@@ -99,26 +99,26 @@
 
 ### Frontend Authentication Foundation
 
-- [ ] T049 Create API base client in frontend/services/api.ts with axios configuration and interceptors
-- [ ] T050 Create AuthService in frontend/services/auth.service.ts with login, logout, refreshToken, getMe methods per contracts/auth.md
-- [ ] T051 Create useAuth custom hook in frontend/hooks/useAuth.ts for authentication state management
-- [ ] T052 Create auth helper functions in frontend/lib/auth.ts (token storage, redirect logic)
-- [ ] T053 Create login page in frontend/app/page.tsx with branch selection, username, password fields
-- [ ] T054 Create root layout in frontend/app/layout.tsx with font configuration
+- [X] T049 Create API base client in frontend/services/api.ts with axios configuration and interceptors
+- [X] T050 Create AuthService in frontend/services/auth.service.ts with login, logout, refreshToken, getMe methods per contracts/auth.md
+- [X] T051 Create useAuth custom hook in frontend/hooks/useAuth.ts for authentication state management
+- [X] T052 Create auth helper functions in frontend/lib/auth.ts (token storage, redirect logic)
+- [X] T053 Create login page in frontend/app/page.tsx with branch selection, username, password fields
+- [X] T054 Create root layout in frontend/app/layout.tsx with font configuration
 
 ### Frontend Type Definitions
 
-- [ ] T055 [P] Create API types in frontend/types/api.types.ts (LoginRequest, LoginResponse, ApiResponse, PaginationResponse, etc.)
-- [ ] T056 [P] Create entity types in frontend/types/entities.types.ts matching backend entities
+- [X] T055 [P] Create API types in frontend/types/api.types.ts (LoginRequest, LoginResponse, ApiResponse, PaginationResponse, etc.)
+- [X] T056 [P] Create entity types in frontend/types/entities.types.ts matching backend entities
 
 ### Shared UI Components (Foundation)
 
-- [ ] T057 [P] Create Button component in frontend/components/shared/Button.tsx
-- [ ] T058 [P] Create Modal component in frontend/components/shared/Modal.tsx
-- [ ] T059 [P] Create Dialog component in frontend/components/shared/Dialog.tsx
-- [ ] T060 [P] Create DataTable component in frontend/components/shared/DataTable.tsx with sorting, filtering, pagination
-- [ ] T061 [P] Create Form components in frontend/components/shared/Form/ (Input, Select, Checkbox, FormError, FormLabel)
-- [ ] T062 [P] Create Layout components in frontend/components/shared/Layout/ (Header, Sidebar, Footer)
+- [X] T057 [P] Create Button component in frontend/components/shared/Button.tsx
+- [X] T058 [P] Create Modal component in frontend/components/shared/Modal.tsx
+- [X] T059 [P] Create Dialog component in frontend/components/shared/Dialog.tsx
+- [X] T060 [P] Create DataTable component in frontend/components/shared/DataTable.tsx with sorting, filtering, pagination
+- [X] T061 [P] Create Form components in frontend/components/shared/Form/ (Input, Select, Checkbox, FormError, FormLabel)
+- [X] T062 [P] Create Layout components in frontend/components/shared/Layout/ (Header, Sidebar, Footer)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 

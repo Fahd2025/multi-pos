@@ -1,0 +1,146 @@
+/**
+ * useAuth Hook
+ * Custom React hook for authentication state management
+ */
+
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { authService, LoginRequest, UserResponse, BranchAssignment } from "@/services/auth.service";
+import { useRouter } from "next/navigation";
+
+interface UseAuthReturn {
+  user: UserResponse | null;
+  branch: BranchAssignment | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+  login: (credentials: LoginRequest) => Promise<void>;
+  logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
+  isHeadOfficeAdmin: () => boolean;
+  hasRole: (role: number) => boolean;
+}
+
+export function useAuth(): UseAuthReturn {
+  const router = useRouter();
+  const [user, setUser] = useState<UserResponse | null>(null);
+  const [branch, setBranch] = useState<BranchAssignment | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Initialize auth state from localStorage
+  useEffect(() => {
+    const initializeAuth = () => {
+      try {
+        const storedUser = authService.getCurrentUser();
+        const storedBranch = authService.getCurrentBranch();
+
+        setUser(storedUser);
+        setBranch(storedBranch);
+      } catch (err) {
+        console.error("Failed to initialize auth:", err);
+        setError("Failed to restore session");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeAuth();
+  }, []);
+
+  // Login function
+  const login = useCallback(async (credentials: LoginRequest) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await authService.login(credentials);
+      setUser(response.user);
+
+      // Find selected branch
+      const selectedBranch = response.user.branches.find(
+        (b) => b.branchCode.toLowerCase() === credentials.branchName.toLowerCase()
+      );
+
+      setBranch(selectedBranch || null);
+
+      // Redirect based on user type
+      if (response.user.isHeadOfficeAdmin) {
+        router.push("/en/head-office");
+      } else {
+        router.push("/en/branch");
+      }
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || "Login failed. Please check your credentials.";
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [router]);
+
+  // Logout function
+  const logout = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await authService.logout();
+      setUser(null);
+      setBranch(null);
+      router.push("/");
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || "Logout failed.";
+      setError(errorMessage);
+      console.error("Logout error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [router]);
+
+  // Refresh user profile from API
+  const refreshUser = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const updatedUser = await authService.getMe();
+      setUser(updatedUser);
+
+      // Update branch if needed
+      const currentBranch = authService.getCurrentBranch();
+      setBranch(currentBranch);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || "Failed to refresh user data.";
+      setError(errorMessage);
+      console.error("Refresh user error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Check if user is head office admin
+  const isHeadOfficeAdmin = useCallback(() => {
+    return user?.isHeadOfficeAdmin ?? false;
+  }, [user]);
+
+  // Check if user has specific role
+  const hasRole = useCallback((role: number) => {
+    if (!branch) return false;
+    return branch.role >= role;
+  }, [branch]);
+
+  return {
+    user,
+    branch,
+    isAuthenticated: !!user,
+    isLoading,
+    error,
+    login,
+    logout,
+    refreshUser,
+    isHeadOfficeAdmin,
+    hasRole,
+  };
+}
