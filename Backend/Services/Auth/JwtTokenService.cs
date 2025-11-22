@@ -2,10 +2,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Backend.Data;
 using Backend.Models.Entities.HeadOffice;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Backend.Services.Auth;
 
@@ -28,7 +28,7 @@ public class JwtTokenService : IJwtTokenService
             new Claim(ClaimTypes.Name, user.Username),
             new Claim(ClaimTypes.Email, user.Email),
             new Claim("preferred_language", user.PreferredLanguage),
-            new Claim("is_head_office_admin", user.IsHeadOfficeAdmin.ToString().ToLower())
+            new Claim("is_head_office_admin", user.IsHeadOfficeAdmin.ToString().ToLower()),
         };
 
         if (branchId.HasValue)
@@ -41,8 +41,12 @@ public class JwtTokenService : IJwtTokenService
             claims.Add(new Claim(ClaimTypes.Role, role));
         }
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-            _configuration["Jwt:SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not configured")));
+        var key = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(
+                _configuration["Jwt:SecretKey"]
+                    ?? throw new InvalidOperationException("JWT SecretKey not configured")
+            )
+        );
 
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -50,7 +54,9 @@ public class JwtTokenService : IJwtTokenService
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenExpiryMinutes"] ?? "15")),
+            expires: DateTime.UtcNow.AddMinutes(
+                int.Parse(_configuration["Jwt:AccessTokenExpiryMinutes"] ?? "15")
+            ),
             signingCredentials: credentials
         );
 
@@ -67,8 +73,8 @@ public class JwtTokenService : IJwtTokenService
 
     public async Task<User?> ValidateRefreshTokenAsync(string token)
     {
-        var refreshToken = await _context.RefreshTokens
-            .Include(rt => rt.User)
+        var refreshToken = await _context
+            .RefreshTokens.Include(rt => rt.User)
             .FirstOrDefaultAsync(rt => rt.Token == token);
 
         if (refreshToken == null)
@@ -104,8 +110,9 @@ public class JwtTokenService : IJwtTokenService
 
     public async Task RevokeRefreshTokenAsync(string token)
     {
-        var refreshToken = await _context.RefreshTokens
-            .FirstOrDefaultAsync(rt => rt.Token == token);
+        var refreshToken = await _context.RefreshTokens.FirstOrDefaultAsync(rt =>
+            rt.Token == token
+        );
 
         if (refreshToken != null)
         {
@@ -116,8 +123,8 @@ public class JwtTokenService : IJwtTokenService
 
     public async Task RevokeAllUserTokensAsync(Guid userId)
     {
-        var tokens = await _context.RefreshTokens
-            .Where(rt => rt.UserId == userId && rt.RevokedAt == null)
+        var tokens = await _context
+            .RefreshTokens.Where(rt => rt.UserId == userId && rt.RevokedAt == null)
             .ToListAsync();
 
         foreach (var token in tokens)
@@ -130,8 +137,8 @@ public class JwtTokenService : IJwtTokenService
 
     public async Task CleanupExpiredTokensAsync()
     {
-        var expiredTokens = await _context.RefreshTokens
-            .Where(rt => rt.ExpiresAt < DateTime.UtcNow || rt.RevokedAt != null)
+        var expiredTokens = await _context
+            .RefreshTokens.Where(rt => rt.ExpiresAt < DateTime.UtcNow || rt.RevokedAt != null)
             .ToListAsync();
 
         _context.RefreshTokens.RemoveRange(expiredTokens);

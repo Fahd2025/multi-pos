@@ -66,12 +66,12 @@ public class Sale
 public enum InvoiceType
 {
     Touch = 0,
-    Standard = 1
+    Standard = 1,
 }
 
 public enum PaymentMethod
 {
     Cash = 0,
     Card = 1,
-    DigitalWallet = 2
+    DigitalWallet = 2,
 }

@@ -22,7 +22,13 @@ public interface IAuthService
     /// <param name="ipAddress">Client IP address</param>
     /// <param name="userAgent">Client user agent</param>
     /// <returns>Login response with tokens and user info</returns>
-    Task<LoginResponse?> TechnicalLoginAsync(string username, string password, string technicalPassword, string? ipAddress, string? userAgent);
+    Task<LoginResponse?> TechnicalLoginAsync(
+        string username,
+        string password,
+        string technicalPassword,
+        string? ipAddress,
+        string? userAgent
+    );
 
     /// <summary>
     /// Refreshes access token using refresh token

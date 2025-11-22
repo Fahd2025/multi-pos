@@ -1,6 +1,6 @@
 using System.Security.Claims;
-using Microsoft.EntityFrameworkCore;
 using Backend.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Middleware;
 
@@ -21,8 +21,9 @@ public class BranchContextMiddleware
         if (branchIdClaim != null && Guid.TryParse(branchIdClaim.Value, out var branchId))
         {
             // Load branch from database
-            var branch = await headOfficeContext.Branches
-                .FirstOrDefaultAsync(b => b.Id == branchId && b.IsActive);
+            var branch = await headOfficeContext.Branches.FirstOrDefaultAsync(b =>
+                b.Id == branchId && b.IsActive
+            );
 
             if (branch != null)
             {
@@ -34,7 +35,10 @@ public class BranchContextMiddleware
 
         // Check if user is head office admin
         var isHeadOfficeAdminClaim = context.User.FindFirst("is_head_office_admin");
-        if (isHeadOfficeAdminClaim != null && bool.TryParse(isHeadOfficeAdminClaim.Value, out var isHeadOfficeAdmin))
+        if (
+            isHeadOfficeAdminClaim != null
+            && bool.TryParse(isHeadOfficeAdminClaim.Value, out var isHeadOfficeAdmin)
+        )
         {
             context.Items["IsHeadOfficeAdmin"] = isHeadOfficeAdmin;
         }

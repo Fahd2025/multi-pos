@@ -36,38 +36,34 @@ public class ErrorHandlingMiddleware
         {
             case KeyNotFoundException:
                 code = HttpStatusCode.NotFound;
-                result = JsonSerializer.Serialize(new
-                {
-                    error = "Resource not found",
-                    message = exception.Message
-                });
+                result = JsonSerializer.Serialize(
+                    new { error = "Resource not found", message = exception.Message }
+                );
                 break;
 
             case UnauthorizedAccessException:
                 code = HttpStatusCode.Unauthorized;
-                result = JsonSerializer.Serialize(new
-                {
-                    error = "Unauthorized",
-                    message = exception.Message
-                });
+                result = JsonSerializer.Serialize(
+                    new { error = "Unauthorized", message = exception.Message }
+                );
                 break;
 
             case ArgumentException:
             case InvalidOperationException:
                 code = HttpStatusCode.BadRequest;
-                result = JsonSerializer.Serialize(new
-                {
-                    error = "Bad request",
-                    message = exception.Message
-                });
+                result = JsonSerializer.Serialize(
+                    new { error = "Bad request", message = exception.Message }
+                );
                 break;
 
             default:
-                result = JsonSerializer.Serialize(new
-                {
-                    error = "Internal server error",
-                    message = "An unexpected error occurred. Please try again later."
-                });
+                result = JsonSerializer.Serialize(
+                    new
+                    {
+                        error = "Internal server error",
+                        message = "An unexpected error occurred. Please try again later.",
+                    }
+                );
                 break;
         }
 

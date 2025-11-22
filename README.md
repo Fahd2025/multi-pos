@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 This is a multi-POS (Point of Sale) system with a full-stack architecture:
+
 - **Frontend**: Next.js 16 with React 19, TypeScript, and Tailwind CSS v4
 - **Backend**: ASP.NET Core 8.0 Web API with minimal API architecture
 
@@ -77,6 +78,7 @@ dotnet run --project Backend   # Run backend from root
 - **TypeScript**: Strict mode enabled with ES2017 target
 
 Key files:
+
 - `app/layout.tsx` - Root layout with font configuration
 - `app/page.tsx` - Homepage
 - `app/globals.css` - Global styles and Tailwind directives
@@ -89,6 +91,7 @@ Key files:
 - **Configuration**: Uses standard ASP.NET Core configuration (`appsettings.json`)
 
 Current endpoints:
+
 - `GET /weatherforecast` - Example weather forecast endpoint
 
 ### Project Conventions
@@ -101,6 +104,7 @@ Current endpoints:
 ## TypeScript Configuration
 
 The frontend uses these key TypeScript settings:
+
 - `jsx: "react-jsx"` - Uses the new JSX transform (no need to import React)
 - `moduleResolution: "bundler"` - Modern module resolution for bundlers
 - `strict: true` - All strict type-checking enabled

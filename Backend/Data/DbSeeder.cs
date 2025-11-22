@@ -1,6 +1,6 @@
-using Microsoft.EntityFrameworkCore;
 using Backend.Models.Entities.HeadOffice;
 using Backend.Utilities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Data;
 
@@ -26,7 +26,7 @@ public static class DbSeeder
                 IsActive = true,
                 IsHeadOfficeAdmin = true,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.UtcNow,
             };
 
             context.Users.Add(adminUser);
@@ -46,7 +46,7 @@ public static class DbSeeder
                 IsEncrypted = false,
                 Description = "Technical override password for branch='all' access",
                 UpdatedAt = DateTime.UtcNow,
-                UpdatedBy = Guid.Empty
+                UpdatedBy = Guid.Empty,
             };
 
             context.MainSettings.Add(technicalPasswordSetting);
@@ -66,7 +66,7 @@ public static class DbSeeder
                 IsEncrypted = false,
                 Description = "Session inactivity timeout in minutes",
                 UpdatedAt = DateTime.UtcNow,
-                UpdatedBy = Guid.Empty
+                UpdatedBy = Guid.Empty,
             };
 
             context.MainSettings.Add(sessionTimeoutSetting);
@@ -86,7 +86,7 @@ public static class DbSeeder
                 IsEncrypted = false,
                 Description = "Maximum failed login attempts before account lockout",
                 UpdatedAt = DateTime.UtcNow,
-                UpdatedBy = Guid.Empty
+                UpdatedBy = Guid.Empty,
             };
 
             context.MainSettings.Add(maxFailedLoginSetting);

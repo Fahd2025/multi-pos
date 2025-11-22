@@ -116,5 +116,5 @@ public enum DatabaseProvider
     SQLite = 0,
     MSSQL = 1,
     PostgreSQL = 2,
-    MySQL = 3
+    MySQL = 3,
 }

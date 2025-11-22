@@ -63,5 +63,6 @@ public class Product
     public Supplier? Supplier { get; set; }
     public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
     public ICollection<SaleLineItem> SaleLineItems { get; set; } = new List<SaleLineItem>();
-    public ICollection<PurchaseLineItem> PurchaseLineItems { get; set; } = new List<PurchaseLineItem>();
+    public ICollection<PurchaseLineItem> PurchaseLineItems { get; set; } =
+        new List<PurchaseLineItem>();
 }

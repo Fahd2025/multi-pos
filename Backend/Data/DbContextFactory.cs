@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using Backend.Models.Entities.HeadOffice;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Data;
 
@@ -55,7 +55,9 @@ public class DbContextFactory
                 break;
 
             default:
-                throw new NotSupportedException($"Database provider {branch.DatabaseProvider} is not supported");
+                throw new NotSupportedException(
+                    $"Database provider {branch.DatabaseProvider} is not supported"
+                );
         }
 
         return builder.Options;
@@ -65,19 +67,17 @@ public class DbContextFactory
     {
         return branch.DatabaseProvider switch
         {
-            DatabaseProvider.SQLite =>
-                $"Data Source={branch.DbServer}/{branch.DbName}.db",
+            DatabaseProvider.SQLite => $"Data Source={branch.DbServer}/{branch.DbName}.db",
 
-            DatabaseProvider.MSSQL =>
-                BuildMsSqlConnectionString(branch),
+            DatabaseProvider.MSSQL => BuildMsSqlConnectionString(branch),
 
-            DatabaseProvider.PostgreSQL =>
-                BuildPostgreSqlConnectionString(branch),
+            DatabaseProvider.PostgreSQL => BuildPostgreSqlConnectionString(branch),
 
-            DatabaseProvider.MySQL =>
-                BuildMySqlConnectionString(branch),
+            DatabaseProvider.MySQL => BuildMySqlConnectionString(branch),
 
-            _ => throw new NotSupportedException($"Database provider {branch.DatabaseProvider} is not supported")
+            _ => throw new NotSupportedException(
+                $"Database provider {branch.DatabaseProvider} is not supported"
+            ),
         };
     }
 
@@ -86,7 +86,7 @@ public class DbContextFactory
         var parts = new List<string>
         {
             $"Server={branch.DbServer},{branch.DbPort}",
-            $"Database={branch.DbName}"
+            $"Database={branch.DbName}",
         };
 
         if (!string.IsNullOrEmpty(branch.DbUsername))
@@ -115,7 +115,7 @@ public class DbContextFactory
             $"Port={branch.DbPort}",
             $"Database={branch.DbName}",
             $"Username={branch.DbUsername}",
-            $"Password={branch.DbPassword}"
+            $"Password={branch.DbPassword}",
         };
 
         if (!string.IsNullOrEmpty(branch.DbAdditionalParams))
@@ -134,7 +134,7 @@ public class DbContextFactory
             $"Port={branch.DbPort}",
             $"Database={branch.DbName}",
             $"Uid={branch.DbUsername}",
-            $"Pwd={branch.DbPassword}"
+            $"Pwd={branch.DbPassword}",
         };
 
         if (!string.IsNullOrEmpty(branch.DbAdditionalParams))

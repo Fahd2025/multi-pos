@@ -1,14 +1,12 @@
-using Microsoft.EntityFrameworkCore;
 using Backend.Models.Entities.Branch;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Data;
 
 public class BranchDbContext : DbContext
 {
     public BranchDbContext(DbContextOptions<BranchDbContext> options)
-        : base(options)
-    {
-    }
+        : base(options) { }
 
     public DbSet<Category> Categories { get; set; }
     public DbSet<Product> Products { get; set; }
@@ -35,7 +33,8 @@ public class BranchDbContext : DbContext
             entity.HasIndex(e => e.ParentCategoryId);
             entity.HasIndex(e => e.IsActive);
 
-            entity.HasOne(e => e.ParentCategory)
+            entity
+                .HasOne(e => e.ParentCategory)
                 .WithMany(c => c.SubCategories)
                 .HasForeignKey(e => e.ParentCategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
@@ -54,12 +53,14 @@ public class BranchDbContext : DbContext
             entity.Property(e => e.SellingPrice).HasPrecision(18, 2);
             entity.Property(e => e.CostPrice).HasPrecision(18, 2);
 
-            entity.HasOne(e => e.Category)
+            entity
+                .HasOne(e => e.Category)
                 .WithMany(c => c.Products)
                 .HasForeignKey(e => e.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne(e => e.Supplier)
+            entity
+                .HasOne(e => e.Supplier)
                 .WithMany(s => s.Products)
                 .HasForeignKey(e => e.SupplierId)
                 .OnDelete(DeleteBehavior.SetNull);
@@ -70,7 +71,8 @@ public class BranchDbContext : DbContext
         {
             entity.HasIndex(e => e.ProductId);
 
-            entity.HasOne(e => e.Product)
+            entity
+                .HasOne(e => e.Product)
                 .WithMany(p => p.Images)
                 .HasForeignKey(e => e.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
@@ -110,7 +112,8 @@ public class BranchDbContext : DbContext
             entity.Property(e => e.TotalDiscount).HasPrecision(18, 2);
             entity.Property(e => e.Total).HasPrecision(18, 2);
 
-            entity.HasOne(e => e.Customer)
+            entity
+                .HasOne(e => e.Customer)
                 .WithMany(c => c.Sales)
                 .HasForeignKey(e => e.CustomerId)
                 .OnDelete(DeleteBehavior.SetNull);
@@ -127,12 +130,14 @@ public class BranchDbContext : DbContext
             entity.Property(e => e.DiscountedUnitPrice).HasPrecision(18, 2);
             entity.Property(e => e.LineTotal).HasPrecision(18, 2);
 
-            entity.HasOne(e => e.Sale)
+            entity
+                .HasOne(e => e.Sale)
                 .WithMany(s => s.LineItems)
                 .HasForeignKey(e => e.SaleId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasOne(e => e.Product)
+            entity
+                .HasOne(e => e.Product)
                 .WithMany(p => p.SaleLineItems)
                 .HasForeignKey(e => e.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
@@ -149,7 +154,8 @@ public class BranchDbContext : DbContext
             entity.Property(e => e.TotalCost).HasPrecision(18, 2);
             entity.Property(e => e.AmountPaid).HasPrecision(18, 2);
 
-            entity.HasOne(e => e.Supplier)
+            entity
+                .HasOne(e => e.Supplier)
                 .WithMany(s => s.Purchases)
                 .HasForeignKey(e => e.SupplierId)
                 .OnDelete(DeleteBehavior.Restrict);
@@ -164,12 +170,14 @@ public class BranchDbContext : DbContext
             entity.Property(e => e.UnitCost).HasPrecision(18, 2);
             entity.Property(e => e.LineTotal).HasPrecision(18, 2);
 
-            entity.HasOne(e => e.Purchase)
+            entity
+                .HasOne(e => e.Purchase)
                 .WithMany(p => p.LineItems)
                 .HasForeignKey(e => e.PurchaseId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasOne(e => e.Product)
+            entity
+                .HasOne(e => e.Product)
                 .WithMany(p => p.PurchaseLineItems)
                 .HasForeignKey(e => e.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
@@ -193,7 +201,8 @@ public class BranchDbContext : DbContext
 
             entity.Property(e => e.Amount).HasPrecision(18, 2);
 
-            entity.HasOne(e => e.Category)
+            entity
+                .HasOne(e => e.Category)
                 .WithMany(c => c.Expenses)
                 .HasForeignKey(e => e.ExpenseCategoryId)
                 .OnDelete(DeleteBehavior.Restrict);

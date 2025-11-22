@@ -1,8 +1,8 @@
-using Microsoft.EntityFrameworkCore;
 using Backend.Data;
 using Backend.Models.DTOs.Auth;
 using Backend.Models.Entities.HeadOffice;
 using Backend.Utilities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services.Auth;
 
@@ -15,18 +15,24 @@ public class AuthService : IAuthService
     public AuthService(
         HeadOfficeDbContext context,
         IJwtTokenService jwtTokenService,
-        IConfiguration configuration)
+        IConfiguration configuration
+    )
     {
         _context = context;
         _jwtTokenService = jwtTokenService;
         _configuration = configuration;
     }
 
-    public async Task<LoginResponse?> LoginAsync(LoginRequest request, string? ipAddress, string? userAgent)
+    public async Task<LoginResponse?> LoginAsync(
+        LoginRequest request,
+        string? ipAddress,
+        string? userAgent
+    )
     {
         // Find user
-        var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Username == request.Username && u.IsActive);
+        var user = await _context.Users.FirstOrDefaultAsync(u =>
+            u.Username == request.Username && u.IsActive
+        );
 
         if (user == null)
         {
@@ -75,8 +81,9 @@ public class AuthService : IAuthService
         }
 
         // Find branch
-        var branch = await _context.Branches
-            .FirstOrDefaultAsync(b => b.LoginName == request.BranchLoginName && b.IsActive);
+        var branch = await _context.Branches.FirstOrDefaultAsync(b =>
+            b.LoginName == request.BranchLoginName && b.IsActive
+        );
 
         if (branch == null)
         {
@@ -84,8 +91,9 @@ public class AuthService : IAuthService
         }
 
         // Check if user has access to this branch
-        var branchUser = await _context.BranchUsers
-            .FirstOrDefaultAsync(bu => bu.UserId == user.Id && bu.BranchId == branch.Id && bu.IsActive);
+        var branchUser = await _context.BranchUsers.FirstOrDefaultAsync(bu =>
+            bu.UserId == user.Id && bu.BranchId == branch.Id && bu.IsActive
+        );
 
         if (branchUser == null)
         {
@@ -93,7 +101,13 @@ public class AuthService : IAuthService
         }
 
         // Generate tokens with branch context
-        return await GenerateLoginResponseAsync(user, branch.Id, branchUser.Role.ToString(), ipAddress, userAgent);
+        return await GenerateLoginResponseAsync(
+            user,
+            branch.Id,
+            branchUser.Role.ToString(),
+            ipAddress,
+            userAgent
+        );
     }
 
     public async Task<LoginResponse?> TechnicalLoginAsync(
@@ -101,11 +115,13 @@ public class AuthService : IAuthService
         string password,
         string technicalPassword,
         string? ipAddress,
-        string? userAgent)
+        string? userAgent
+    )
     {
         // Verify technical password
-        var technicalPasswordSetting = await _context.MainSettings
-            .FirstOrDefaultAsync(s => s.Key == "TechnicalPassword");
+        var technicalPasswordSetting = await _context.MainSettings.FirstOrDefaultAsync(s =>
+            s.Key == "TechnicalPassword"
+        );
 
         if (technicalPasswordSetting == null)
         {
@@ -118,8 +134,9 @@ public class AuthService : IAuthService
         }
 
         // Find user
-        var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
+        var user = await _context.Users.FirstOrDefaultAsync(u =>
+            u.Username == username && u.IsActive
+        );
 
         if (user == null)
         {
@@ -140,7 +157,10 @@ public class AuthService : IAuthService
         return await GenerateLoginResponseAsync(user, null, "Admin", ipAddress, userAgent);
     }
 
-    public async Task<LoginResponse?> RefreshTokenAsync(RefreshTokenRequest request, string? ipAddress)
+    public async Task<LoginResponse?> RefreshTokenAsync(
+        RefreshTokenRequest request,
+        string? ipAddress
+    )
     {
         var user = await _jwtTokenService.ValidateRefreshTokenAsync(request.RefreshToken);
 
@@ -150,8 +170,9 @@ public class AuthService : IAuthService
         }
 
         // Get existing refresh token to check branch context
-        var existingToken = await _context.RefreshTokens
-            .FirstOrDefaultAsync(rt => rt.Token == request.RefreshToken);
+        var existingToken = await _context.RefreshTokens.FirstOrDefaultAsync(rt =>
+            rt.Token == request.RefreshToken
+        );
 
         if (existingToken == null)
         {
@@ -169,8 +190,8 @@ public class AuthService : IAuthService
         if (!user.IsHeadOfficeAdmin)
         {
             // Get user's first active branch assignment
-            var branchUser = await _context.BranchUsers
-                .Include(bu => bu.Branch)
+            var branchUser = await _context
+                .BranchUsers.Include(bu => bu.Branch)
                 .Where(bu => bu.UserId == user.Id && bu.IsActive && bu.Branch.IsActive)
                 .FirstOrDefaultAsync();
 
@@ -182,7 +203,13 @@ public class AuthService : IAuthService
         }
 
         // Generate new tokens
-        return await GenerateLoginResponseAsync(user, branchId, role, ipAddress, existingToken.UserAgent);
+        return await GenerateLoginResponseAsync(
+            user,
+            branchId,
+            role,
+            ipAddress,
+            existingToken.UserAgent
+        );
     }
 
     public async Task LogoutAsync(string refreshToken)
@@ -200,7 +227,8 @@ public class AuthService : IAuthService
         Guid? branchId,
         string? role,
         string? ipAddress,
-        string? userAgent)
+        string? userAgent
+    )
     {
         // Generate tokens
         var accessToken = _jwtTokenService.GenerateAccessToken(user, branchId, role);
@@ -212,11 +240,13 @@ public class AuthService : IAuthService
             Id = Guid.NewGuid(),
             UserId = user.Id,
             Token = refreshToken,
-            ExpiresAt = DateTime.UtcNow.AddDays(int.Parse(_configuration["Jwt:RefreshTokenExpiryDays"] ?? "7")),
+            ExpiresAt = DateTime.UtcNow.AddDays(
+                int.Parse(_configuration["Jwt:RefreshTokenExpiryDays"] ?? "7")
+            ),
             CreatedAt = DateTime.UtcNow,
             LastActivityAt = DateTime.UtcNow,
             IpAddress = ipAddress,
-            UserAgent = userAgent
+            UserAgent = userAgent,
         };
 
         _context.RefreshTokens.Add(refreshTokenEntity);
@@ -236,7 +266,7 @@ public class AuthService : IAuthService
                     NameEn = branch.NameEn,
                     NameAr = branch.NameAr,
                     Language = branch.Language,
-                    Currency = branch.Currency
+                    Currency = branch.Currency,
                 };
             }
         }
@@ -254,10 +284,10 @@ public class AuthService : IAuthService
                 FullNameAr = user.FullNameAr,
                 PreferredLanguage = user.PreferredLanguage,
                 IsHeadOfficeAdmin = user.IsHeadOfficeAdmin,
-                Role = role
+                Role = role,
             },
             Branch = branchInfo,
-            ExpiresAt = refreshTokenEntity.ExpiresAt
+            ExpiresAt = refreshTokenEntity.ExpiresAt,
         };
     }
 }

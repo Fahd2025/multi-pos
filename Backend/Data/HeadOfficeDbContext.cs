@@ -1,14 +1,12 @@
-using Microsoft.EntityFrameworkCore;
 using Backend.Models.Entities.HeadOffice;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Data;
 
 public class HeadOfficeDbContext : DbContext
 {
     public HeadOfficeDbContext(DbContextOptions<HeadOfficeDbContext> options)
-        : base(options)
-    {
-    }
+        : base(options) { }
 
     public DbSet<Branch> Branches { get; set; }
     public DbSet<User> Users { get; set; }
@@ -49,12 +47,14 @@ public class HeadOfficeDbContext : DbContext
             entity.HasIndex(e => e.BranchId);
             entity.HasIndex(e => new { e.UserId, e.BranchId }).IsUnique();
 
-            entity.HasOne(e => e.User)
+            entity
+                .HasOne(e => e.User)
                 .WithMany(u => u.BranchUsers)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasOne(e => e.Branch)
+            entity
+                .HasOne(e => e.Branch)
                 .WithMany(b => b.BranchUsers)
                 .HasForeignKey(e => e.BranchId)
                 .OnDelete(DeleteBehavior.Cascade);
@@ -67,7 +67,8 @@ public class HeadOfficeDbContext : DbContext
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.ExpiresAt);
 
-            entity.HasOne(e => e.User)
+            entity
+                .HasOne(e => e.User)
                 .WithMany(u => u.RefreshTokens)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
@@ -94,7 +95,8 @@ public class HeadOfficeDbContext : DbContext
         {
             entity.HasIndex(e => new { e.UserId, e.Timestamp });
 
-            entity.HasOne(e => e.User)
+            entity
+                .HasOne(e => e.User)
                 .WithMany(u => u.ActivityLogs)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
