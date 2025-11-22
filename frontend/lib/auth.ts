@@ -16,7 +16,7 @@ export function storeAccessToken(token: string): void {
 
 export function getAccessToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN);
+  return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
 }
 
 export function removeAccessToken(): void {
