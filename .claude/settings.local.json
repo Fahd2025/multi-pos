@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git fetch:*)",
+      "Bash(pwsh:*)",
+      "Bash(powershell.exe -File .specify/scripts/powershell/create-new-feature.ps1 -Json -Number 1 -ShortName \"multi-branch-pos\" \"I want to build a professional multi-branch point of sale system (adding a head office dashboard to manage branch data, including settings and databases with any provider and users) and (adding a branch dashboard to manage categories, products, sales, customers, purchases, suppliers, expenses, and users).\")",
+      "Bash(powershell.exe -File .specify/scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly)",
+      "Bash(powershell.exe -File .specify/scripts/powershell/setup-plan.ps1 -Json)",
+      "Bash(powershell.exe -File .specify/scripts/powershell/update-agent-context.ps1 -AgentType claude)",
+      "Bash(powershell.exe -File .specify/scripts/powershell/check-prerequisites.ps1 -Json)",
+      "Bash(powershell.exe:*)",
+      "Bash(dotnet add package:*)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet remove:*)",
+      "Bash(npm install:*)",
+      "Bash(dotnet ef migrations add:*)",
+      "Bash(dotnet tool install:*)",
+      "Bash(dotnet tool list:*)",
+      "Bash(dotnet ef database:*)",
+      "Bash(dotnet build:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
