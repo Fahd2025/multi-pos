@@ -28,12 +28,13 @@ namespace Backend.Migrations
                     IpAddress = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
                     UserAgent = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
                     Success = table.Column<bool>(type: "INTEGER", nullable: false),
-                    ErrorMessage = table.Column<string>(type: "TEXT", nullable: true)
+                    ErrorMessage = table.Column<string>(type: "TEXT", nullable: true),
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AuditLogs", x => x.Id);
-                });
+                }
+            );
 
             migrationBuilder.CreateTable(
                 name: "Branches",
@@ -51,7 +52,11 @@ namespace Backend.Migrations
                     Website = table.Column<string>(type: "TEXT", maxLength: 255, nullable: true),
                     CRN = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
                     TaxNumber = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    NationalAddress = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    NationalAddress = table.Column<string>(
+                        type: "TEXT",
+                        maxLength: 500,
+                        nullable: true
+                    ),
                     LogoPath = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
                     DatabaseProvider = table.Column<int>(type: "INTEGER", nullable: false),
                     DbServer = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
@@ -59,22 +64,36 @@ namespace Backend.Migrations
                     DbPort = table.Column<int>(type: "INTEGER", nullable: false),
                     DbUsername = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
                     DbPassword = table.Column<string>(type: "TEXT", maxLength: 255, nullable: true),
-                    DbAdditionalParams = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    DbAdditionalParams = table.Column<string>(
+                        type: "TEXT",
+                        maxLength: 500,
+                        nullable: true
+                    ),
                     Language = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
                     Currency = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
                     TimeZone = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     DateFormat = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    NumberFormat = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    TaxRate = table.Column<decimal>(type: "TEXT", precision: 5, scale: 2, nullable: false),
+                    NumberFormat = table.Column<string>(
+                        type: "TEXT",
+                        maxLength: 50,
+                        nullable: false
+                    ),
+                    TaxRate = table.Column<decimal>(
+                        type: "TEXT",
+                        precision: 5,
+                        scale: 2,
+                        nullable: false
+                    ),
                     IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    CreatedBy = table.Column<Guid>(type: "TEXT", nullable: false)
+                    CreatedBy = table.Column<Guid>(type: "TEXT", nullable: false),
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Branches", x => x.Id);
-                });
+                }
+            );
 
             migrationBuilder.CreateTable(
                 name: "MainSettings",
@@ -84,14 +103,19 @@ namespace Backend.Migrations
                     Key = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
                     Value = table.Column<string>(type: "TEXT", nullable: true),
                     IsEncrypted = table.Column<bool>(type: "INTEGER", nullable: false),
-                    Description = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    Description = table.Column<string>(
+                        type: "TEXT",
+                        maxLength: 500,
+                        nullable: true
+                    ),
                     UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedBy = table.Column<Guid>(type: "TEXT", nullable: false)
+                    UpdatedBy = table.Column<Guid>(type: "TEXT", nullable: false),
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_MainSettings", x => x.Id);
-                });
+                }
+            );
 
             migrationBuilder.CreateTable(
                 name: "Users",
@@ -100,11 +124,23 @@ namespace Backend.Migrations
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     Username = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     Email = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false),
-                    FullNameEn = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    PasswordHash = table.Column<string>(
+                        type: "TEXT",
+                        maxLength: 500,
+                        nullable: false
+                    ),
+                    FullNameEn = table.Column<string>(
+                        type: "TEXT",
+                        maxLength: 200,
+                        nullable: false
+                    ),
                     FullNameAr = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
                     Phone = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    PreferredLanguage = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
+                    PreferredLanguage = table.Column<string>(
+                        type: "TEXT",
+                        maxLength: 10,
+                        nullable: false
+                    ),
                     IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
                     IsHeadOfficeAdmin = table.Column<bool>(type: "INTEGER", nullable: false),
                     LastLoginAt = table.Column<DateTime>(type: "TEXT", nullable: true),
@@ -112,12 +148,13 @@ namespace Backend.Migrations
                     FailedLoginAttempts = table.Column<int>(type: "INTEGER", nullable: false),
                     LockedUntil = table.Column<DateTime>(type: "TEXT", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
-                });
+                }
+            );
 
             migrationBuilder.CreateTable(
                 name: "BranchUsers",
@@ -129,7 +166,7 @@ namespace Backend.Migrations
                     Role = table.Column<int>(type: "INTEGER", nullable: false),
                     IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
                     AssignedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    AssignedBy = table.Column<Guid>(type: "TEXT", nullable: false)
+                    AssignedBy = table.Column<Guid>(type: "TEXT", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -139,14 +176,17 @@ namespace Backend.Migrations
                         column: x => x.BranchId,
                         principalTable: "Branches",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Cascade
+                    );
                     table.ForeignKey(
                         name: "FK_BranchUsers_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+                        onDelete: ReferentialAction.Cascade
+                    );
+                }
+            );
 
             migrationBuilder.CreateTable(
                 name: "RefreshTokens",
@@ -160,7 +200,7 @@ namespace Backend.Migrations
                     RevokedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
                     LastActivityAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     IpAddress = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    UserAgent = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true)
+                    UserAgent = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
                 },
                 constraints: table =>
                 {
@@ -170,8 +210,10 @@ namespace Backend.Migrations
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+                        onDelete: ReferentialAction.Cascade
+                    );
+                }
+            );
 
             migrationBuilder.CreateTable(
                 name: "UserActivityLogs",
@@ -180,10 +222,18 @@ namespace Backend.Migrations
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     UserId = table.Column<Guid>(type: "TEXT", nullable: false),
                     Timestamp = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    ActivityType = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false),
+                    ActivityType = table.Column<string>(
+                        type: "TEXT",
+                        maxLength: 100,
+                        nullable: false
+                    ),
+                    Description = table.Column<string>(
+                        type: "TEXT",
+                        maxLength: 500,
+                        nullable: false
+                    ),
                     BranchId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    IpAddress = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true)
+                    IpAddress = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
                 },
                 constraints: table =>
                 {
@@ -193,135 +243,149 @@ namespace Backend.Migrations
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+                        onDelete: ReferentialAction.Cascade
+                    );
+                }
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_AuditLogs_BranchId",
                 table: "AuditLogs",
-                column: "BranchId");
+                column: "BranchId"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_AuditLogs_EntityType_EntityId",
                 table: "AuditLogs",
-                columns: new[] { "EntityType", "EntityId" });
+                columns: new[] { "EntityType", "EntityId" }
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_AuditLogs_EventType",
                 table: "AuditLogs",
-                column: "EventType");
+                column: "EventType"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_AuditLogs_Timestamp",
                 table: "AuditLogs",
-                column: "Timestamp");
+                column: "Timestamp"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_AuditLogs_UserId",
                 table: "AuditLogs",
-                column: "UserId");
+                column: "UserId"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_Branches_Code",
                 table: "Branches",
                 column: "Code",
-                unique: true);
+                unique: true
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_Branches_IsActive",
                 table: "Branches",
-                column: "IsActive");
+                column: "IsActive"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_Branches_LoginName",
                 table: "Branches",
                 column: "LoginName",
-                unique: true);
+                unique: true
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_BranchUsers_BranchId",
                 table: "BranchUsers",
-                column: "BranchId");
+                column: "BranchId"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_BranchUsers_UserId",
                 table: "BranchUsers",
-                column: "UserId");
+                column: "UserId"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_BranchUsers_UserId_BranchId",
                 table: "BranchUsers",
                 columns: new[] { "UserId", "BranchId" },
-                unique: true);
+                unique: true
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_MainSettings_Key",
                 table: "MainSettings",
                 column: "Key",
-                unique: true);
+                unique: true
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_ExpiresAt",
                 table: "RefreshTokens",
-                column: "ExpiresAt");
+                column: "ExpiresAt"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_Token",
                 table: "RefreshTokens",
                 column: "Token",
-                unique: true);
+                unique: true
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_UserId",
                 table: "RefreshTokens",
-                column: "UserId");
+                column: "UserId"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserActivityLogs_UserId_Timestamp",
                 table: "UserActivityLogs",
-                columns: new[] { "UserId", "Timestamp" });
+                columns: new[] { "UserId", "Timestamp" }
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Email",
                 table: "Users",
                 column: "Email",
-                unique: true);
+                unique: true
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_IsActive",
                 table: "Users",
-                column: "IsActive");
+                column: "IsActive"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Username",
                 table: "Users",
                 column: "Username",
-                unique: true);
+                unique: true
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "AuditLogs");
+            migrationBuilder.DropTable(name: "AuditLogs");
 
-            migrationBuilder.DropTable(
-                name: "BranchUsers");
+            migrationBuilder.DropTable(name: "BranchUsers");
 
-            migrationBuilder.DropTable(
-                name: "MainSettings");
+            migrationBuilder.DropTable(name: "MainSettings");
 
-            migrationBuilder.DropTable(
-                name: "RefreshTokens");
+            migrationBuilder.DropTable(name: "RefreshTokens");
 
-            migrationBuilder.DropTable(
-                name: "UserActivityLogs");
+            migrationBuilder.DropTable(name: "UserActivityLogs");
 
-            migrationBuilder.DropTable(
-                name: "Branches");
+            migrationBuilder.DropTable(name: "Branches");
 
-            migrationBuilder.DropTable(
-                name: "Users");
+            migrationBuilder.DropTable(name: "Users");
         }
     }
 }
