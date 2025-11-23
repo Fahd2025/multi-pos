@@ -165,30 +165,30 @@
 
 ### Frontend Services for User Story 1
 
-- [ ] T082 [US1] Create SalesService in frontend/services/sales.service.ts with createSale, getSales, getSaleById, voidSale, getInvoice, getSalesStats methods
+- [X] T082 [US1] Create SalesService in frontend/services/sales.service.ts with createSale, getSales, getSaleById, voidSale, getInvoice, getSalesStats methods
 
 ### Offline Sync Implementation for User Story 1
 
-- [ ] T083 [US1] Create IndexedDB offline queue in frontend/lib/offline-sync.ts with init, add, getPending, syncAll, syncTransaction methods per research.md Section 3
-- [ ] T084 [US1] Create useOfflineSync hook in frontend/hooks/useOfflineSync.ts to manage sync state and trigger background sync
-- [ ] T085 [US1] Implement ISyncService interface in Backend/Services/Sync/ISyncService.cs
-- [ ] T086 [US1] Implement SyncService in Backend/Services/Sync/SyncService.cs with ProcessOfflineTransaction, ProcessOfflineSale methods (last-commit-wins conflict resolution)
-- [ ] T087 [US1] Implement POST /api/v1/sync/transaction endpoint in Backend/Program.cs per contracts/sync.md
-- [ ] T088 [US1] Implement POST /api/v1/sync/batch endpoint in Backend/Program.cs for bulk sync
-- [ ] T089 [US1] Implement GET /api/v1/sync/status endpoint in Backend/Program.cs
+- [X] T083 [US1] Create IndexedDB offline queue in frontend/lib/offline-sync.ts with init, add, getPending, syncAll, syncTransaction methods per research.md Section 3
+- [X] T084 [US1] Create useOfflineSync hook in frontend/hooks/useOfflineSync.ts to manage sync state and trigger background sync
+- [X] T085 [US1] Implement ISyncService interface in Backend/Services/Sync/ISyncService.cs
+- [X] T086 [US1] Implement SyncService in Backend/Services/Sync/SyncService.cs with ProcessOfflineTransaction, ProcessOfflineSale methods (last-commit-wins conflict resolution)
+- [X] T087 [US1] Implement POST /api/v1/sync/transaction endpoint in Backend/Program.cs per contracts/sync.md
+- [X] T088 [US1] Implement POST /api/v1/sync/batch endpoint in Backend/Program.cs for bulk sync
+- [X] T089 [US1] Implement GET /api/v1/sync/status endpoint in Backend/Program.cs
 
 ### Frontend UI for User Story 1
 
-- [ ] T090 [US1] Create branch dashboard layout in frontend/app/[locale]/branch/layout.tsx with navigation
-- [ ] T091 [US1] Create branch home page in frontend/app/[locale]/branch/page.tsx
-- [ ] T092 [US1] Create sales page in frontend/app/[locale]/branch/sales/page.tsx with product search, line items list, payment section
+- [X] T090 [US1] Create branch dashboard layout in frontend/app/[locale]/branch/layout.tsx with navigation
+- [X] T091 [US1] Create branch home page in frontend/app/[locale]/branch/page.tsx
+- [X] T092 [US1] Create sales page in frontend/app/[locale]/branch/sales/page.tsx with product search, line items list, payment section
 - [ ] T093 [US1] Create ProductSearch component in frontend/components/sales/ProductSearch.tsx
 - [ ] T094 [US1] Create SaleLineItemsList component in frontend/components/sales/SaleLineItemsList.tsx with quantity, discount controls
 - [ ] T095 [US1] Create PaymentSection component in frontend/components/sales/PaymentSection.tsx with payment method selection, invoice type selection
 - [ ] T096 [US1] Create InvoiceDisplay component in frontend/components/sales/InvoiceDisplay.tsx for Touch and Standard invoice formats
-- [ ] T097 [US1] Create SyncStatusIndicator component in frontend/components/shared/SyncStatusIndicator.tsx (green/yellow/red based on online/syncing/offline status)
-- [ ] T098 [US1] Add offline detection logic to sales page (navigator.onLine, periodic API ping)
-- [ ] T099 [US1] Add automatic sync trigger on connectivity restoration
+- [X] T097 [US1] Create SyncStatusIndicator component in frontend/components/shared/SyncStatusIndicator.tsx (green/yellow/red based on online/syncing/offline status)
+- [X] T098 [US1] Add offline detection logic to sales page (navigator.onLine, periodic API ping)
+- [X] T099 [US1] Add automatic sync trigger on connectivity restoration
 
 ### Integration & Validation for User Story 1
 
