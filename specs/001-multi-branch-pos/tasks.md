@@ -179,16 +179,16 @@
 
 ### Frontend UI for User Story 1
 
-- [ ] T090 [US1] Create branch dashboard layout in frontend/app/[locale]/branch/layout.tsx with navigation
-- [ ] T091 [US1] Create branch home page in frontend/app/[locale]/branch/page.tsx
-- [ ] T092 [US1] Create sales page in frontend/app/[locale]/branch/sales/page.tsx with product search, line items list, payment section
+- [X] T090 [US1] Create branch dashboard layout in frontend/app/[locale]/branch/layout.tsx with navigation
+- [X] T091 [US1] Create branch home page in frontend/app/[locale]/branch/page.tsx
+- [X] T092 [US1] Create sales page in frontend/app/[locale]/branch/sales/page.tsx with product search, line items list, payment section
 - [ ] T093 [US1] Create ProductSearch component in frontend/components/sales/ProductSearch.tsx
 - [ ] T094 [US1] Create SaleLineItemsList component in frontend/components/sales/SaleLineItemsList.tsx with quantity, discount controls
 - [ ] T095 [US1] Create PaymentSection component in frontend/components/sales/PaymentSection.tsx with payment method selection, invoice type selection
 - [ ] T096 [US1] Create InvoiceDisplay component in frontend/components/sales/InvoiceDisplay.tsx for Touch and Standard invoice formats
-- [ ] T097 [US1] Create SyncStatusIndicator component in frontend/components/shared/SyncStatusIndicator.tsx (green/yellow/red based on online/syncing/offline status)
-- [ ] T098 [US1] Add offline detection logic to sales page (navigator.onLine, periodic API ping)
-- [ ] T099 [US1] Add automatic sync trigger on connectivity restoration
+- [X] T097 [US1] Create SyncStatusIndicator component in frontend/components/shared/SyncStatusIndicator.tsx (green/yellow/red based on online/syncing/offline status)
+- [X] T098 [US1] Add offline detection logic to sales page (navigator.onLine, periodic API ping)
+- [X] T099 [US1] Add automatic sync trigger on connectivity restoration
 
 ### Integration & Validation for User Story 1
 
