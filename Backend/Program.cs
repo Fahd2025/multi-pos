@@ -60,6 +60,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<Backend.Services.Sales.ISalesService, Backend.Services.Sales.SalesService>();
+builder.Services.AddScoped<Backend.Services.Sync.ISyncService, Backend.Services.Sync.SyncService>();
 
 // Configure Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -592,4 +593,242 @@ app.MapGet(
     .WithName("GetSalesStats")
     .WithOpenApi();
 
+// ============================================
+// Sync Endpoints
+// ============================================
+
+// POST /api/v1/sync/transaction - Process a single offline transaction
+app.MapPost(
+        "/api/v1/sync/transaction",
+        async (
+            SyncTransactionRequest request,
+            HttpContext httpContext,
+            Backend.Services.Sync.ISyncService syncService
+        ) =>
+        {
+            try
+            {
+                // Get user ID from context
+                var userId = httpContext.Items["UserId"] as Guid?;
+                if (!userId.HasValue)
+                {
+                    return Results.Unauthorized();
+                }
+
+                // Get branch from context
+                var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                if (branch == null)
+                {
+                    return Results.BadRequest(
+                        new
+                        {
+                            success = false,
+                            error = new
+                            {
+                                code = "BRANCH_NOT_FOUND",
+                                message = "Branch context not found",
+                            },
+                        }
+                    );
+                }
+
+                // Deserialize transaction data
+                var transactionDataJson = System.Text.Json.JsonSerializer.Serialize(request.Data);
+
+                // Process the transaction
+                var entityId = await syncService.ProcessOfflineTransactionAsync(
+                    request.Type,
+                    transactionDataJson,
+                    branch.Id.ToString(),
+                    userId.Value.ToString(),
+                    request.Timestamp
+                );
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = new { entityId, transactionId = request.Id },
+                        message = "Transaction synced successfully",
+                    }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new
+                        {
+                            code = "SYNC_ERROR",
+                            message = ex.Message,
+                        },
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(
+                    detail: ex.Message,
+                    statusCode: 500,
+                    title: "Sync failed"
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("SyncTransaction")
+    .WithOpenApi();
+
+// POST /api/v1/sync/batch - Process multiple offline transactions
+app.MapPost(
+        "/api/v1/sync/batch",
+        async (
+            SyncBatchRequest request,
+            HttpContext httpContext,
+            Backend.Services.Sync.ISyncService syncService
+        ) =>
+        {
+            try
+            {
+                // Get user ID from context
+                var userId = httpContext.Items["UserId"] as Guid?;
+                if (!userId.HasValue)
+                {
+                    return Results.Unauthorized();
+                }
+
+                // Get branch from context
+                var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                if (branch == null)
+                {
+                    return Results.BadRequest(
+                        new
+                        {
+                            success = false,
+                            error = new
+                            {
+                                code = "BRANCH_NOT_FOUND",
+                                message = "Branch context not found",
+                            },
+                        }
+                    );
+                }
+
+                var results = new List<object>();
+
+                foreach (var transaction in request.Transactions)
+                {
+                    try
+                    {
+                        var transactionDataJson = System.Text.Json.JsonSerializer.Serialize(
+                            transaction.Data
+                        );
+
+                        var entityId = await syncService.ProcessOfflineTransactionAsync(
+                            transaction.Type,
+                            transactionDataJson,
+                            branch.Id.ToString(),
+                            userId.Value.ToString(),
+                            transaction.Timestamp
+                        );
+
+                        results.Add(
+                            new
+                            {
+                                transactionId = transaction.Id,
+                                success = true,
+                                entityId,
+                            }
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        results.Add(
+                            new
+                            {
+                                transactionId = transaction.Id,
+                                success = false,
+                                error = ex.Message,
+                            }
+                        );
+                    }
+                }
+
+                var successCount = results.Count(r =>
+                    r.GetType().GetProperty("success")?.GetValue(r) as bool? == true
+                );
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = new
+                        {
+                            total = request.Transactions.Count,
+                            successful = successCount,
+                            failed = request.Transactions.Count - successCount,
+                            results,
+                        },
+                        message = $"Batch sync completed: {successCount}/{request.Transactions.Count} successful",
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(
+                    detail: ex.Message,
+                    statusCode: 500,
+                    title: "Batch sync failed"
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("SyncBatch")
+    .WithOpenApi();
+
+// GET /api/v1/sync/status - Get sync status
+app.MapGet(
+        "/api/v1/sync/status",
+        async (HttpContext httpContext, Backend.Services.Sync.ISyncService syncService) =>
+        {
+            try
+            {
+                var status = await syncService.GetSyncStatusAsync();
+
+                return Results.Ok(new { success = true, data = status });
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "ERROR", message = ex.Message },
+                    }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("GetSyncStatus")
+    .WithOpenApi();
+
 app.Run();
+
+// ============================================
+// Request DTOs for Sync Endpoints
+// ============================================
+
+public record SyncTransactionRequest(
+    string Id,
+    string Type,
+    DateTime Timestamp,
+    string BranchId,
+    string UserId,
+    object Data
+);
+
+public record SyncBatchRequest(List<SyncTransactionRequest> Transactions);
