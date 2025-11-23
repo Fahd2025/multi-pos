@@ -216,7 +216,7 @@ public class SyncService : ISyncService
             {
                 product.HasInventoryDiscrepancy = true;
                 inventoryWarnings.Add(
-                    $"Product '{product.NameEn}' (SKU: {product.Sku}) has negative stock: {product.StockLevel}"
+                    $"Product '{product.NameEn}' (SKU: {product.SKU}) has negative stock: {product.StockLevel}"
                 );
             }
 

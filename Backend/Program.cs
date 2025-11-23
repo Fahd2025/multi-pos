@@ -63,6 +63,24 @@ builder.Services.AddScoped<Backend.Services.Sales.ISalesService, Backend.Service
 builder.Services.AddScoped<Backend.Services.Sync.ISyncService, Backend.Services.Sync.SyncService>();
 builder.Services.AddScoped<Backend.Services.Inventory.IInventoryService, Backend.Services.Inventory.InventoryService>();
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<BranchDbContext>(provider =>
+{
+    var httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
+    var dbContextFactory = provider.GetRequiredService<DbContextFactory>();
+    var httpContext = httpContextAccessor.HttpContext;
+
+    if (httpContext?.Items["Branch"] is Backend.Models.Entities.HeadOffice.Branch branch)
+    {
+        return dbContextFactory.CreateBranchContext(branch);
+    }
+
+    // If we are here, it means we are trying to inject BranchDbContext outside of a branch context
+    // This might happen if a service is resolved before the middleware runs or in a background task
+    // For now, we throw an exception to make it explicit
+    throw new InvalidOperationException("Branch context not found. Ensure the request is authenticated and associated with a branch.");
+});
+
 // Configure Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

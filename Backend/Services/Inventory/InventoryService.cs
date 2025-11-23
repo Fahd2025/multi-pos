@@ -30,7 +30,7 @@ public class InventoryService : IInventoryService
         var query = _context.Products
             .Include(p => p.Category)
             .Include(p => p.Supplier)
-            .Include(p => p.ProductImages)
+            .Include(p => p.Images)
             .AsQueryable();
 
         // Apply filters
@@ -87,7 +87,7 @@ public class InventoryService : IInventoryService
                 CreatedAt = p.CreatedAt,
                 UpdatedAt = p.UpdatedAt,
                 CreatedBy = p.CreatedBy,
-                ImagePaths = p.ProductImages
+                ImagePaths = p.Images
                     .OrderBy(i => i.DisplayOrder)
                     .Select(i => i.ImagePath)
                     .ToList()
@@ -102,7 +102,7 @@ public class InventoryService : IInventoryService
         var product = await _context.Products
             .Include(p => p.Category)
             .Include(p => p.Supplier)
-            .Include(p => p.ProductImages)
+            .Include(p => p.Images)
             .FirstOrDefaultAsync(p => p.Id == productId);
 
         if (product == null)
@@ -131,7 +131,7 @@ public class InventoryService : IInventoryService
             CreatedAt = product.CreatedAt,
             UpdatedAt = product.UpdatedAt,
             CreatedBy = product.CreatedBy,
-            ImagePaths = product.ProductImages
+            ImagePaths = product.Images
                 .OrderBy(i => i.DisplayOrder)
                 .Select(i => i.ImagePath)
                 .ToList()
@@ -548,7 +548,7 @@ public class InventoryService : IInventoryService
     {
         var query = _context.Purchases
             .Include(p => p.Supplier)
-            .Include(p => p.PurchaseLineItems)
+            .Include(p => p.LineItems)
                 .ThenInclude(pli => pli.Product)
             .AsQueryable();
 
@@ -570,7 +570,7 @@ public class InventoryService : IInventoryService
 
         if (paymentStatus.HasValue)
         {
-            query = query.Where(p => p.PaymentStatus == paymentStatus.Value);
+            query = query.Where(p => (int)p.PaymentStatus == paymentStatus.Value);
         }
 
         var totalCount = await query.CountAsync();
@@ -588,14 +588,14 @@ public class InventoryService : IInventoryService
                 PurchaseDate = p.PurchaseDate,
                 ReceivedDate = p.ReceivedDate,
                 TotalCost = p.TotalCost,
-                PaymentStatus = p.PaymentStatus,
-                PaymentStatusText = GetPaymentStatusText(p.PaymentStatus),
+                PaymentStatus = (int)p.PaymentStatus,
+                PaymentStatusText = GetPaymentStatusText((int)p.PaymentStatus),
                 AmountPaid = p.AmountPaid,
                 InvoiceImagePath = p.InvoiceImagePath,
                 Notes = p.Notes,
                 CreatedAt = p.CreatedAt,
                 CreatedBy = p.CreatedBy,
-                LineItems = p.PurchaseLineItems.Select(pli => new PurchaseLineItemDto
+                LineItems = p.LineItems.Select(pli => new PurchaseLineItemDto
                 {
                     Id = pli.Id,
                     PurchaseId = pli.PurchaseId,
@@ -617,7 +617,7 @@ public class InventoryService : IInventoryService
     {
         var purchase = await _context.Purchases
             .Include(p => p.Supplier)
-            .Include(p => p.PurchaseLineItems)
+            .Include(p => p.LineItems)
                 .ThenInclude(pli => pli.Product)
             .FirstOrDefaultAsync(p => p.Id == purchaseId);
 
@@ -633,14 +633,14 @@ public class InventoryService : IInventoryService
             PurchaseDate = purchase.PurchaseDate,
             ReceivedDate = purchase.ReceivedDate,
             TotalCost = purchase.TotalCost,
-            PaymentStatus = purchase.PaymentStatus,
-            PaymentStatusText = GetPaymentStatusText(purchase.PaymentStatus),
+            PaymentStatus = (int)purchase.PaymentStatus,
+            PaymentStatusText = GetPaymentStatusText((int)purchase.PaymentStatus),
             AmountPaid = purchase.AmountPaid,
             InvoiceImagePath = purchase.InvoiceImagePath,
             Notes = purchase.Notes,
             CreatedAt = purchase.CreatedAt,
             CreatedBy = purchase.CreatedBy,
-            LineItems = purchase.PurchaseLineItems.Select(pli => new PurchaseLineItemDto
+            LineItems = purchase.LineItems.Select(pli => new PurchaseLineItemDto
             {
                 Id = pli.Id,
                 PurchaseId = pli.PurchaseId,
@@ -687,12 +687,12 @@ public class InventoryService : IInventoryService
             SupplierId = dto.SupplierId,
             PurchaseDate = dto.PurchaseDate,
             ReceivedDate = null,
-            PaymentStatus = 0, // Pending
+            PaymentStatus = PaymentStatus.Pending,
             AmountPaid = 0,
             Notes = dto.Notes,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = userId,
-            PurchaseLineItems = new List<PurchaseLineItem>()
+            LineItems = new List<PurchaseLineItem>()
         };
 
         decimal totalCost = 0;
@@ -712,7 +712,7 @@ public class InventoryService : IInventoryService
                 LineTotal = lineTotal
             };
 
-            purchase.PurchaseLineItems.Add(lineItem);
+            purchase.LineItems.Add(lineItem);
         }
 
         purchase.TotalCost = totalCost;
@@ -726,7 +726,7 @@ public class InventoryService : IInventoryService
     public async Task<PurchaseDto> ReceivePurchaseAsync(Guid purchaseId, Guid userId)
     {
         var purchase = await _context.Purchases
-            .Include(p => p.PurchaseLineItems)
+            .Include(p => p.LineItems)
             .FirstOrDefaultAsync(p => p.Id == purchaseId);
 
         if (purchase == null)
@@ -736,7 +736,7 @@ public class InventoryService : IInventoryService
             throw new InvalidOperationException("Purchase has already been received");
 
         // Update inventory for each line item
-        foreach (var lineItem in purchase.PurchaseLineItems)
+        foreach (var lineItem in purchase.LineItems)
         {
             var product = await _context.Products.FindAsync(lineItem.ProductId);
             if (product != null)
