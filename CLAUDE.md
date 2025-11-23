@@ -18,8 +18,21 @@ multi-pos/
 │   ├── public/       # Static assets
 │   └── package.json
 ├── Backend/          # ASP.NET Core backend API
+│   ├── Data/         # DbContexts and database configuration
+│   ├── Models/       # Entity models and DTOs
+│   ├── Services/     # Business logic services
+│   ├── Middleware/   # Custom middleware
+│   ├── Utilities/    # Helper utilities
 │   ├── Program.cs    # Main API entry point and endpoint definitions
 │   └── Backend.csproj
+├── specs/            # Project specifications and documentation
+│   └── 001-multi-branch-pos/
+│       ├── contracts/    # API contracts
+│       ├── tasks.md      # Implementation tasks checklist
+│       ├── spec.md       # Feature specifications
+│       ├── plan.md       # Architecture and design
+│       └── data-model.md # Database schema
+├── docs/             # Implementation documentation
 └── multi-pos.sln     # Visual Studio solution file
 ```
 
@@ -86,13 +99,26 @@ Key files:
 ### Backend Architecture
 
 - **Framework**: ASP.NET Core 8.0 using minimal API pattern (not controllers)
+- **Database**: Multi-provider support (SQLite, MSSQL, PostgreSQL, MySQL) via Entity Framework Core
+- **Architecture**: Two-database pattern:
+  - **HeadOfficeDb**: Central database for branches, users, and global settings
+  - **BranchDb**: Separate database per branch for operational data
+- **Authentication**: JWT Bearer token authentication with refresh tokens
+- **Authorization**: Role-based access control (HeadOfficeAdmin, Manager, Cashier)
 - **API Documentation**: Swagger/OpenAPI enabled in development
 - **Pattern**: Endpoints defined inline in `Program.cs` using `app.MapGet()`, `app.MapPost()`, etc.
 - **Configuration**: Uses standard ASP.NET Core configuration (`appsettings.json`)
 
 Current endpoints:
 
-- `GET /weatherforecast` - Example weather forecast endpoint
+- `GET /health` - Health check endpoint
+- **Sales Endpoints**:
+  - `POST /api/v1/sales` - Create new sale transaction
+  - `GET /api/v1/sales` - List sales with filtering and pagination
+  - `GET /api/v1/sales/{id}` - Get sale by ID
+  - `POST /api/v1/sales/{id}/void` - Void a sale (Manager only)
+  - `GET /api/v1/sales/{id}/invoice` - Get printable invoice
+  - `GET /api/v1/sales/stats` - Get sales statistics
 
 ### Project Conventions
 
@@ -117,10 +143,84 @@ The frontend uses these key TypeScript settings:
 3. **Adding backend endpoints**: Define new endpoints in `Backend/Program.cs` following the minimal API pattern
 4. **API documentation**: Access Swagger UI at the backend URL + `/swagger` when running in development
 
+## Documentation and Task Tracking Procedures
+
+### When Implementing Tasks
+
+After completing any implementation tasks, you MUST follow these procedures:
+
+1. **Update tasks.md**:
+   - Navigate to `specs/001-multi-branch-pos/tasks.md`
+   - Mark completed tasks with `[X]` instead of `[ ]`
+   - Example: `- [X] T068 [P] [US1] Create CreateSaleDto in Backend/Models/DTOs/Sales/CreateSaleDto.cs`
+
+2. **Create Implementation Documentation**:
+   - Create a new file in the `docs/` directory
+   - **File naming convention**: `YYYY-MM-DD-{description}.md`
+   - Example: `docs/2025-11-23-sales-api-implementation.md`
+   - Use today's date as the prefix
+
+3. **Documentation Content**:
+   The implementation documentation should include:
+   - **Overview**: Summary of what was implemented
+   - **Date**: Implementation date and task range (e.g., T068-T081)
+   - **Tasks Completed**: Detailed description of each task
+   - **Features**: Key features and business logic implemented
+   - **API Endpoints**: Request/response examples for new endpoints
+   - **Database Changes**: Entity modifications and migrations
+   - **Security**: Authentication and authorization details
+   - **Testing Notes**: Build status and testing recommendations
+   - **Files Created/Modified**: Complete list of affected files
+   - **Future Enhancements**: Planned improvements or TODOs
+
+### Example Workflow
+
+```bash
+# After implementing tasks T068-T081
+1. Update specs/001-multi-branch-pos/tasks.md (mark T068-T081 as [X])
+2. Create docs/2025-11-23-sales-api-implementation.md
+3. Document all implementation details
+```
+
 ## Important Notes
 
-- This appears to be a POS (Point of Sale) system in early development stages
-- Both frontend and backend are currently at template/boilerplate stage
-- No database or data persistence layer configured yet
-- No authentication/authorization implemented yet
-- Frontend and backend run as separate processes and will need CORS configuration for communication
+### Current Implementation Status
+
+**Phase 1: Setup** - ✅ Completed
+- All NuGet and NPM packages installed
+- TypeScript, ESLint, Prettier configured
+- Tailwind CSS v4 configured
+- Internationalization (i18n) configured
+
+**Phase 2: Foundational** - ✅ Completed
+- HeadOfficeDbContext and BranchDbContext created
+- Multi-provider database support (SQLite, MSSQL, PostgreSQL, MySQL)
+- All entity models created (Branch, User, Product, Sale, etc.)
+- JWT authentication and authorization configured
+- Error handling and branch context middleware implemented
+- Default admin user seeded (username: "admin", password: "123")
+
+**Phase 3: User Story 1 - Sales Operations** - 🚧 In Progress
+- ✅ Sales DTOs (T068-T071)
+- ✅ Sales Service and business logic (T072-T075)
+- ✅ Sales API endpoints (T076-T081)
+- ⏳ Pending: Frontend services, offline sync, UI components
+
+### Key Features Implemented
+
+- **Multi-branch architecture** with separate databases per branch
+- **JWT authentication** with refresh token support
+- **Role-based access control** (HeadOfficeAdmin, Manager, Cashier)
+- **Sales transaction management** with inventory updates
+- **Customer statistics tracking**
+- **Invoice generation** (Transaction IDs and Invoice Numbers)
+- **Sales analytics and reporting**
+
+### Important Notes
+
+- Frontend and backend run as separate processes
+- CORS is configured to allow frontend access
+- Database migrations are in the `Backend/Migrations/` directory
+- Swagger UI available at `/swagger` in development mode
+- All API endpoints require authentication (except `/health`)
+- Branch context is automatically extracted from JWT token

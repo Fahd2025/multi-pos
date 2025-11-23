@@ -142,26 +142,26 @@
 
 ### DTOs for User Story 1
 
-- [ ] T068 [P] [US1] Create CreateSaleDto in Backend/Models/DTOs/Sales/CreateSaleDto.cs
-- [ ] T069 [P] [US1] Create SaleDto in Backend/Models/DTOs/Sales/SaleDto.cs
-- [ ] T070 [P] [US1] Create SaleLineItemDto in Backend/Models/DTOs/Sales/SaleLineItemDto.cs
-- [ ] T071 [P] [US1] Create VoidSaleDto in Backend/Models/DTOs/Sales/VoidSaleDto.cs
+- [X] T068 [P] [US1] Create CreateSaleDto in Backend/Models/DTOs/Sales/CreateSaleDto.cs
+- [X] T069 [P] [US1] Create SaleDto in Backend/Models/DTOs/Sales/SaleDto.cs
+- [X] T070 [P] [US1] Create SaleLineItemDto in Backend/Models/DTOs/Sales/SaleLineItemDto.cs
+- [X] T071 [P] [US1] Create VoidSaleDto in Backend/Models/DTOs/Sales/VoidSaleDto.cs
 
 ### Backend Services for User Story 1
 
-- [ ] T072 [US1] Implement ISalesService interface in Backend/Services/Sales/ISalesService.cs
-- [ ] T073 [US1] Implement SalesService in Backend/Services/Sales/SalesService.cs with CreateSaleAsync, GetSalesAsync, GetSaleByIdAsync, VoidSaleAsync, GetSalesStatsAsync methods
-- [ ] T074 [US1] Implement InvoiceNumberGenerator utility in Backend/Utilities/InvoiceNumberGenerator.cs for sequential invoice numbers per branch
-- [ ] T075 [US1] Add sales business logic: calculate subtotal, tax, discounts, total, update inventory (last-commit-wins), flag negative stock, update customer stats
+- [X] T072 [US1] Implement ISalesService interface in Backend/Services/Sales/ISalesService.cs
+- [X] T073 [US1] Implement SalesService in Backend/Services/Sales/SalesService.cs with CreateSaleAsync, GetSalesAsync, GetSaleByIdAsync, VoidSaleAsync, GetSalesStatsAsync methods
+- [X] T074 [US1] Implement InvoiceNumberGenerator utility in Backend/Utilities/InvoiceNumberGenerator.cs for sequential invoice numbers per branch
+- [X] T075 [US1] Add sales business logic: calculate subtotal, tax, discounts, total, update inventory (last-commit-wins), flag negative stock, update customer stats
 
 ### API Endpoints for User Story 1
 
-- [ ] T076 [US1] Implement POST /api/v1/sales endpoint in Backend/Program.cs per contracts/sales.md
-- [ ] T077 [US1] Implement GET /api/v1/sales endpoint with filtering and pagination in Backend/Program.cs per contracts/sales.md
-- [ ] T078 [US1] Implement GET /api/v1/sales/:id endpoint in Backend/Program.cs per contracts/sales.md
-- [ ] T079 [US1] Implement POST /api/v1/sales/:id/void endpoint in Backend/Program.cs per contracts/sales.md (manager only)
-- [ ] T080 [US1] Implement GET /api/v1/sales/:id/invoice endpoint in Backend/Program.cs with PDF/HTML/JSON formats
-- [ ] T081 [US1] Implement GET /api/v1/sales/stats endpoint in Backend/Program.cs per contracts/sales.md
+- [X] T076 [US1] Implement POST /api/v1/sales endpoint in Backend/Program.cs per contracts/sales.md
+- [X] T077 [US1] Implement GET /api/v1/sales endpoint with filtering and pagination in Backend/Program.cs per contracts/sales.md
+- [X] T078 [US1] Implement GET /api/v1/sales/:id endpoint in Backend/Program.cs per contracts/sales.md
+- [X] T079 [US1] Implement POST /api/v1/sales/:id/void endpoint in Backend/Program.cs per contracts/sales.md (manager only)
+- [X] T080 [US1] Implement GET /api/v1/sales/:id/invoice endpoint in Backend/Program.cs with PDF/HTML/JSON formats
+- [X] T081 [US1] Implement GET /api/v1/sales/stats endpoint in Backend/Program.cs per contracts/sales.md
 
 ### Frontend Services for User Story 1
 
