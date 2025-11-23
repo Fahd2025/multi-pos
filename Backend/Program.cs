@@ -61,6 +61,7 @@ builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<Backend.Services.Sales.ISalesService, Backend.Services.Sales.SalesService>();
 builder.Services.AddScoped<Backend.Services.Sync.ISyncService, Backend.Services.Sync.SyncService>();
+builder.Services.AddScoped<Backend.Services.Inventory.IInventoryService, Backend.Services.Inventory.InventoryService>();
 
 // Configure Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -816,6 +817,500 @@ app.MapGet(
     .WithName("GetSyncStatus")
     .WithOpenApi();
 
+// ============================================
+// Inventory Endpoints
+// ============================================
+
+// GET /api/v1/categories - Get all categories
+app.MapGet(
+        "/api/v1/categories",
+        async (
+            HttpContext httpContext,
+            Backend.Services.Inventory.IInventoryService inventoryService,
+            bool includeInactive = false
+        ) =>
+        {
+            try
+            {
+                var categories = await inventoryService.GetCategoriesAsync(includeInactive);
+                return Results.Ok(new { success = true, data = categories });
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "ERROR", message = ex.Message },
+                    }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("GetCategories")
+    .WithOpenApi();
+
+// POST /api/v1/categories - Create a new category
+app.MapPost(
+        "/api/v1/categories",
+        async (
+            CreateCategoryRequest request,
+            HttpContext httpContext,
+            Backend.Services.Inventory.IInventoryService inventoryService
+        ) =>
+        {
+            try
+            {
+                var userId = httpContext.Items["UserId"] as Guid?;
+                if (!userId.HasValue)
+                {
+                    return Results.Unauthorized();
+                }
+
+                var category = await inventoryService.CreateCategoryAsync(
+                    request.Code,
+                    request.NameEn,
+                    request.NameAr,
+                    request.DescriptionEn,
+                    request.DescriptionAr,
+                    request.ParentCategoryId,
+                    request.DisplayOrder,
+                    userId.Value
+                );
+
+                return Results.Created(
+                    $"/api/v1/categories/{category.Id}",
+                    new { success = true, data = category, message = "Category created successfully" }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "INVALID_OPERATION", message = ex.Message },
+                    }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("CreateCategory")
+    .WithOpenApi();
+
+// PUT /api/v1/categories/:id - Update a category
+app.MapPut(
+        "/api/v1/categories/{id:guid}",
+        async (
+            Guid id,
+            UpdateCategoryRequest request,
+            Backend.Services.Inventory.IInventoryService inventoryService
+        ) =>
+        {
+            try
+            {
+                var category = await inventoryService.UpdateCategoryAsync(
+                    id,
+                    request.Code,
+                    request.NameEn,
+                    request.NameAr,
+                    request.DescriptionEn,
+                    request.DescriptionAr,
+                    request.ParentCategoryId,
+                    request.DisplayOrder
+                );
+
+                return Results.Ok(
+                    new { success = true, data = category, message = "Category updated successfully" }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "INVALID_OPERATION", message = ex.Message },
+                    }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("UpdateCategory")
+    .WithOpenApi();
+
+// DELETE /api/v1/categories/:id - Delete a category
+app.MapDelete(
+        "/api/v1/categories/{id:guid}",
+        async (Guid id, Backend.Services.Inventory.IInventoryService inventoryService) =>
+        {
+            try
+            {
+                await inventoryService.DeleteCategoryAsync(id);
+                return Results.Ok(
+                    new { success = true, message = "Category deleted successfully" }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "INVALID_OPERATION", message = ex.Message },
+                    }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("DeleteCategory")
+    .WithOpenApi();
+
+// GET /api/v1/products - Get products with filtering
+app.MapGet(
+        "/api/v1/products",
+        async (
+            Backend.Services.Inventory.IInventoryService inventoryService,
+            string? search = null,
+            Guid? categoryId = null,
+            bool? isActive = null,
+            bool? lowStockOnly = null,
+            int page = 1,
+            int pageSize = 50
+        ) =>
+        {
+            try
+            {
+                var (products, totalCount) = await inventoryService.GetProductsAsync(
+                    search,
+                    categoryId,
+                    isActive,
+                    lowStockOnly,
+                    page,
+                    pageSize
+                );
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = products,
+                        pagination = new
+                        {
+                            page,
+                            pageSize,
+                            totalItems = totalCount,
+                            totalPages = (int)Math.Ceiling(totalCount / (double)pageSize),
+                        },
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "ERROR", message = ex.Message },
+                    }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("GetProducts")
+    .WithOpenApi();
+
+// POST /api/v1/products - Create a new product
+app.MapPost(
+        "/api/v1/products",
+        async (
+            Backend.Models.DTOs.Inventory.CreateProductDto dto,
+            HttpContext httpContext,
+            Backend.Services.Inventory.IInventoryService inventoryService
+        ) =>
+        {
+            try
+            {
+                var userId = httpContext.Items["UserId"] as Guid?;
+                if (!userId.HasValue)
+                {
+                    return Results.Unauthorized();
+                }
+
+                var product = await inventoryService.CreateProductAsync(dto, userId.Value);
+
+                return Results.Created(
+                    $"/api/v1/products/{product.Id}",
+                    new { success = true, data = product, message = "Product created successfully" }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "INVALID_OPERATION", message = ex.Message },
+                    }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("CreateProduct")
+    .WithOpenApi();
+
+// PUT /api/v1/products/:id - Update a product
+app.MapPut(
+        "/api/v1/products/{id:guid}",
+        async (
+            Guid id,
+            Backend.Models.DTOs.Inventory.UpdateProductDto dto,
+            Backend.Services.Inventory.IInventoryService inventoryService
+        ) =>
+        {
+            try
+            {
+                var product = await inventoryService.UpdateProductAsync(id, dto);
+
+                return Results.Ok(
+                    new { success = true, data = product, message = "Product updated successfully" }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "INVALID_OPERATION", message = ex.Message },
+                    }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("UpdateProduct")
+    .WithOpenApi();
+
+// DELETE /api/v1/products/:id - Delete a product
+app.MapDelete(
+        "/api/v1/products/{id:guid}",
+        async (Guid id, Backend.Services.Inventory.IInventoryService inventoryService) =>
+        {
+            try
+            {
+                await inventoryService.DeleteProductAsync(id);
+                return Results.Ok(
+                    new { success = true, message = "Product deleted successfully" }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "INVALID_OPERATION", message = ex.Message },
+                    }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("DeleteProduct")
+    .WithOpenApi();
+
+// POST /api/v1/products/:id/adjust-stock - Adjust product stock
+app.MapPost(
+        "/api/v1/products/{id:guid}/adjust-stock",
+        async (
+            Guid id,
+            Backend.Models.DTOs.Inventory.StockAdjustmentDto dto,
+            HttpContext httpContext,
+            Backend.Services.Inventory.IInventoryService inventoryService
+        ) =>
+        {
+            try
+            {
+                var userId = httpContext.Items["UserId"] as Guid?;
+                if (!userId.HasValue)
+                {
+                    return Results.Unauthorized();
+                }
+
+                dto.ProductId = id;
+                var product = await inventoryService.AdjustStockAsync(id, dto, userId.Value);
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = product,
+                        message = $"Stock adjusted successfully. New stock level: {dto.NewStockLevel}",
+                    }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "INVALID_OPERATION", message = ex.Message },
+                    }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("AdjustStock")
+    .WithOpenApi();
+
+// GET /api/v1/purchases - Get purchases with filtering
+app.MapGet(
+        "/api/v1/purchases",
+        async (
+            Backend.Services.Inventory.IInventoryService inventoryService,
+            Guid? supplierId = null,
+            DateTime? startDate = null,
+            DateTime? endDate = null,
+            int? paymentStatus = null,
+            int page = 1,
+            int pageSize = 50
+        ) =>
+        {
+            try
+            {
+                var (purchases, totalCount) = await inventoryService.GetPurchasesAsync(
+                    supplierId,
+                    startDate,
+                    endDate,
+                    paymentStatus,
+                    page,
+                    pageSize
+                );
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = purchases,
+                        pagination = new
+                        {
+                            page,
+                            pageSize,
+                            totalItems = totalCount,
+                            totalPages = (int)Math.Ceiling(totalCount / (double)pageSize),
+                        },
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "ERROR", message = ex.Message },
+                    }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("GetPurchases")
+    .WithOpenApi();
+
+// POST /api/v1/purchases - Create a new purchase
+app.MapPost(
+        "/api/v1/purchases",
+        async (
+            Backend.Models.DTOs.Inventory.CreatePurchaseDto dto,
+            HttpContext httpContext,
+            Backend.Services.Inventory.IInventoryService inventoryService
+        ) =>
+        {
+            try
+            {
+                var userId = httpContext.Items["UserId"] as Guid?;
+                if (!userId.HasValue)
+                {
+                    return Results.Unauthorized();
+                }
+
+                var purchase = await inventoryService.CreatePurchaseAsync(dto, userId.Value);
+
+                return Results.Created(
+                    $"/api/v1/purchases/{purchase.Id}",
+                    new { success = true, data = purchase, message = "Purchase created successfully" }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "INVALID_OPERATION", message = ex.Message },
+                    }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("CreatePurchase")
+    .WithOpenApi();
+
+// POST /api/v1/purchases/:id/receive - Mark purchase as received and update stock
+app.MapPost(
+        "/api/v1/purchases/{id:guid}/receive",
+        async (
+            Guid id,
+            HttpContext httpContext,
+            Backend.Services.Inventory.IInventoryService inventoryService
+        ) =>
+        {
+            try
+            {
+                var userId = httpContext.Items["UserId"] as Guid?;
+                if (!userId.HasValue)
+                {
+                    return Results.Unauthorized();
+                }
+
+                var purchase = await inventoryService.ReceivePurchaseAsync(id, userId.Value);
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = purchase,
+                        message = "Purchase marked as received and inventory updated successfully",
+                    }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "INVALID_OPERATION", message = ex.Message },
+                    }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("ReceivePurchase")
+    .WithOpenApi();
+
 app.Run();
 
 // ============================================
@@ -832,3 +1327,27 @@ public record SyncTransactionRequest(
 );
 
 public record SyncBatchRequest(List<SyncTransactionRequest> Transactions);
+
+// ============================================
+// Request DTOs for Category Endpoints
+// ============================================
+
+public record CreateCategoryRequest(
+    string Code,
+    string NameEn,
+    string NameAr,
+    string? DescriptionEn,
+    string? DescriptionAr,
+    Guid? ParentCategoryId,
+    int DisplayOrder
+);
+
+public record UpdateCategoryRequest(
+    string Code,
+    string NameEn,
+    string NameAr,
+    string? DescriptionEn,
+    string? DescriptionAr,
+    Guid? ParentCategoryId,
+    int DisplayOrder
+);
