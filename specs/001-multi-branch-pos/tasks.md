@@ -216,32 +216,32 @@
 
 ### DTOs for User Story 2
 
-- [ ] T108 [P] [US2] Create CategoryDto in Backend/Models/DTOs/Inventory/CategoryDto.cs
-- [ ] T109 [P] [US2] Create ProductDto in Backend/Models/DTOs/Inventory/ProductDto.cs
-- [ ] T110 [P] [US2] Create CreateProductDto in Backend/Models/DTOs/Inventory/CreateProductDto.cs
-- [ ] T111 [P] [US2] Create UpdateProductDto in Backend/Models/DTOs/Inventory/UpdateProductDto.cs
-- [ ] T112 [P] [US2] Create StockAdjustmentDto in Backend/Models/DTOs/Inventory/StockAdjustmentDto.cs
-- [ ] T113 [P] [US2] Create PurchaseDto in Backend/Models/DTOs/Inventory/PurchaseDto.cs
+- [X] T108 [P] [US2] Create CategoryDto in Backend/Models/DTOs/Inventory/CategoryDto.cs
+- [X] T109 [P] [US2] Create ProductDto in Backend/Models/DTOs/Inventory/ProductDto.cs
+- [X] T110 [P] [US2] Create CreateProductDto in Backend/Models/DTOs/Inventory/CreateProductDto.cs
+- [X] T111 [P] [US2] Create UpdateProductDto in Backend/Models/DTOs/Inventory/UpdateProductDto.cs
+- [X] T112 [P] [US2] Create StockAdjustmentDto in Backend/Models/DTOs/Inventory/StockAdjustmentDto.cs
+- [X] T113 [P] [US2] Create PurchaseDto in Backend/Models/DTOs/Inventory/PurchaseDto.cs
 
 ### Backend Services for User Story 2
 
-- [ ] T114 [US2] Implement IInventoryService interface in Backend/Services/Inventory/IInventoryService.cs
-- [ ] T115 [US2] Implement InventoryService in Backend/Services/Inventory/InventoryService.cs with GetProductsAsync, CreateProductAsync, UpdateProductAsync, DeleteProductAsync, AdjustStockAsync, GetCategoriesAsync, CreateCategoryAsync, CreatePurchaseAsync, CheckLowStockAsync methods
+- [X] T114 [US2] Implement IInventoryService interface in Backend/Services/Inventory/IInventoryService.cs
+- [X] T115 [US2] Implement InventoryService in Backend/Services/Inventory/InventoryService.cs with GetProductsAsync, CreateProductAsync, UpdateProductAsync, DeleteProductAsync, AdjustStockAsync, GetCategoriesAsync, CreateCategoryAsync, CreatePurchaseAsync, CheckLowStockAsync methods
 
 ### API Endpoints for User Story 2
 
-- [ ] T116 [US2] Implement GET /api/v1/categories endpoint in Backend/Program.cs
-- [ ] T117 [US2] Implement POST /api/v1/categories endpoint in Backend/Program.cs
-- [ ] T118 [US2] Implement PUT /api/v1/categories/:id endpoint in Backend/Program.cs
-- [ ] T119 [US2] Implement DELETE /api/v1/categories/:id endpoint in Backend/Program.cs
-- [ ] T120 [US2] Implement GET /api/v1/products endpoint with filtering, search, pagination in Backend/Program.cs per contracts/products.md
-- [ ] T121 [US2] Implement POST /api/v1/products endpoint in Backend/Program.cs per contracts/products.md
-- [ ] T122 [US2] Implement PUT /api/v1/products/:id endpoint in Backend/Program.cs per contracts/products.md
-- [ ] T123 [US2] Implement DELETE /api/v1/products/:id endpoint in Backend/Program.cs per contracts/products.md
-- [ ] T124 [US2] Implement POST /api/v1/products/:id/adjust-stock endpoint in Backend/Program.cs for manual stock adjustments
-- [ ] T125 [US2] Implement GET /api/v1/purchases endpoint in Backend/Program.cs
-- [ ] T126 [US2] Implement POST /api/v1/purchases endpoint in Backend/Program.cs
-- [ ] T127 [US2] Implement POST /api/v1/purchases/:id/receive endpoint in Backend/Program.cs to mark purchase received and update stock
+- [X] T116 [US2] Implement GET /api/v1/categories endpoint in Backend/Program.cs
+- [X] T117 [US2] Implement POST /api/v1/categories endpoint in Backend/Program.cs
+- [X] T118 [US2] Implement PUT /api/v1/categories/:id endpoint in Backend/Program.cs
+- [X] T119 [US2] Implement DELETE /api/v1/categories/:id endpoint in Backend/Program.cs
+- [X] T120 [US2] Implement GET /api/v1/products endpoint with filtering, search, pagination in Backend/Program.cs per contracts/products.md
+- [X] T121 [US2] Implement POST /api/v1/products endpoint in Backend/Program.cs per contracts/products.md
+- [X] T122 [US2] Implement PUT /api/v1/products/:id endpoint in Backend/Program.cs per contracts/products.md
+- [X] T123 [US2] Implement DELETE /api/v1/products/:id endpoint in Backend/Program.cs per contracts/products.md
+- [X] T124 [US2] Implement POST /api/v1/products/:id/adjust-stock endpoint in Backend/Program.cs for manual stock adjustments
+- [X] T125 [US2] Implement GET /api/v1/purchases endpoint in Backend/Program.cs
+- [X] T126 [US2] Implement POST /api/v1/purchases endpoint in Backend/Program.cs
+- [X] T127 [US2] Implement POST /api/v1/purchases/:id/receive endpoint in Backend/Program.cs to mark purchase received and update stock
 
 ### Frontend Services for User Story 2
 
