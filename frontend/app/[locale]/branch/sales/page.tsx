@@ -17,7 +17,7 @@ import InvoiceDisplay from '@/components/sales/InvoiceDisplay';
 import { CreateSaleDto, ProductDto, SaleDto } from '@/types/api.types';
 import { InvoiceType, PaymentMethod, DiscountType } from '@/types/enums';
 
-export default function SalesPage({ params }: { params: { locale: string } }) {
+export default function SalesPage({ params }: { params: Promise<{ locale: string }> }) {
   const router = useRouter();
   const { user } = useAuth();
   const { isOnline, queueTransaction } = useOfflineSync();

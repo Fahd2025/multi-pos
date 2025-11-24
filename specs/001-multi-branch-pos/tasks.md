@@ -192,8 +192,8 @@
 
 ### Integration & Validation for User Story 1
 
-- [ ] T100 [US1] Integrate offline queue with sales page: queue transactions when offline, sync when online
-- [ ] T101 [US1] Test sales flow end-to-end: select products → apply discounts → process payment → generate invoice (Touch and Standard)
+- [X] T100 [US1] Integrate offline queue with sales page: queue transactions when offline, sync when online
+- [X] T101 [US1] Test sales flow end-to-end: select products → apply discounts → process payment → generate invoice (Touch and Standard)
 - [ ] T102 [US1] Test offline mode: disconnect network → create sale → reconnect → verify sync
 - [ ] T103 [US1] Test concurrent sales conflict: simulate two cashiers selling last unit → verify last-commit-wins → verify negative inventory flag → verify manager alert
 - [ ] T104 [US1] Verify invoice reprinting works for both Touch and Standard formats

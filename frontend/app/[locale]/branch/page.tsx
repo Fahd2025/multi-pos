@@ -5,29 +5,30 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import salesService from '@/services/sales.service';
 import { SalesStatsDto } from '@/types/api.types';
 
-export default function BranchHomePage({ params }: { params: { locale: string } }) {
+export default function BranchHomePage({ params }: { params: Promise<{ locale: string }> }) {
   const router = useRouter();
   const { user, isLoading } = useAuth();
   const [stats, setStats] = useState<SalesStatsDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { locale } = use(params);
 
   useEffect(() => {
     if (!isLoading && !user) {
-      router.push(`/${params.locale}/login`);
+      router.push(`/${locale}/login`);
       return;
     }
 
     if (user) {
       loadStats();
     }
-  }, [user, isLoading, router, params.locale]);
+  }, [user, isLoading, router, locale]);
 
   const loadStats = async () => {
     try {
@@ -86,7 +87,7 @@ export default function BranchHomePage({ params }: { params: { locale: string } 
           </p>
         </div>
         <button
-          onClick={() => router.push(`/${params.locale}/branch/sales`)}
+          onClick={() => router.push(`/${locale}/branch/sales`)}
           className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm"
         >
           💳 New Sale
@@ -169,7 +170,7 @@ export default function BranchHomePage({ params }: { params: { locale: string } 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <button
-          onClick={() => router.push(`/${params.locale}/branch/sales`)}
+          onClick={() => router.push(`/${locale}/branch/sales`)}
           className="bg-white border border-gray-200 rounded-lg p-6 hover:bg-gray-50 transition-colors text-left shadow-sm"
         >
           <div className="flex items-center gap-4">
@@ -184,7 +185,7 @@ export default function BranchHomePage({ params }: { params: { locale: string } 
         </button>
 
         <button
-          onClick={() => router.push(`/${params.locale}/branch/inventory`)}
+          onClick={() => router.push(`/${locale}/branch/inventory`)}
           className="bg-white border border-gray-200 rounded-lg p-6 hover:bg-gray-50 transition-colors text-left shadow-sm"
         >
           <div className="flex items-center gap-4">
@@ -199,7 +200,7 @@ export default function BranchHomePage({ params }: { params: { locale: string } 
         </button>
 
         <button
-          onClick={() => router.push(`/${params.locale}/branch/reports`)}
+          onClick={() => router.push(`/${locale}/branch/reports`)}
           className="bg-white border border-gray-200 rounded-lg p-6 hover:bg-gray-50 transition-colors text-left shadow-sm"
         >
           <div className="flex items-center gap-4">

@@ -22,7 +22,14 @@
       "Bash(mkdir:*)",
       "Bash(dotnet new:*)",
       "Bash(dotnet restore:*)",
-      "Bash(Backend/Program.cs)"
+      "Bash(Backend/Program.cs)",
+      "Bash($env:SPECIFY_FEATURE = \"001-multi-branch-pos\")",
+      "Bash(npm run build:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill //F //PID 25260)",
+      "Bash(taskkill //F //PID 11340)",
+      "Bash(taskkill //F //PID 3392)",
+      "Bash(dotnet run)"
     ],
     "deny": [],
     "ask": []

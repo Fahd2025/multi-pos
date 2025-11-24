@@ -271,6 +271,20 @@ public class AuthService : IAuthService
             }
         }
 
+        // Get user's branch assignments
+        var userBranches = await _context.BranchUsers
+            .Include(bu => bu.Branch)
+            .Where(bu => bu.UserId == user.Id && bu.IsActive && bu.Branch.IsActive)
+            .Select(bu => new UserBranchInfo
+            {
+                BranchId = bu.BranchId,
+                BranchCode = bu.Branch.Code,
+                BranchNameEn = bu.Branch.NameEn,
+                BranchNameAr = bu.Branch.NameAr,
+                Role = bu.Role.ToString()
+            })
+            .ToListAsync();
+
         return new LoginResponse
         {
             AccessToken = accessToken,
@@ -285,6 +299,7 @@ public class AuthService : IAuthService
                 PreferredLanguage = user.PreferredLanguage,
                 IsHeadOfficeAdmin = user.IsHeadOfficeAdmin,
                 Role = role,
+                Branches = userBranches
             },
             Branch = branchInfo,
             ExpiresAt = refreshTokenEntity.ExpiresAt,

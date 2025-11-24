@@ -167,6 +167,233 @@ app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = Dat
     .WithOpenApi();
 
 // ============================================
+// Authentication Endpoints
+// ============================================
+
+// POST /api/v1/auth/login - Authenticate user
+app.MapPost("/api/v1/auth/login", async (
+    Backend.Models.DTOs.Auth.LoginRequest loginRequest,
+    Backend.Services.Auth.IAuthService authService,
+    HttpContext httpContext) =>
+{
+    try
+    {
+        // Get client IP and user agent
+        var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = httpContext.Request.Headers.UserAgent.ToString();
+
+        var result = await authService.LoginAsync(loginRequest, ipAddress, userAgent);
+
+        if (result == null)
+        {
+            return Results.Unauthorized();
+        }
+
+        // Set refresh token as HTTP-only cookie
+        httpContext.Response.Cookies.Append("refreshToken", result.RefreshToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTimeOffset.UtcNow.AddDays(7)
+        });
+
+        return Results.Ok(new
+        {
+            success = true,
+            data = new
+            {
+                accessToken = result.AccessToken,
+                accessTokenExpiresIn = 900, // 15 minutes in seconds
+                user = result.User
+            },
+            message = "Login successful"
+        });
+    }
+    catch (UnauthorizedAccessException)
+    {
+        return Results.Unauthorized();
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.NotFound(new
+        {
+            success = false,
+            error = new
+            {
+                code = "BRANCH_NOT_FOUND",
+                message = ex.Message
+            }
+        });
+    }
+})
+.WithName("Login")
+.WithOpenApi();
+
+// POST /api/v1/auth/logout - Logout user
+app.MapPost("/api/v1/auth/logout", async (
+    HttpContext httpContext,
+    Backend.Services.Auth.IAuthService authService) =>
+{
+    try
+    {
+        // Get refresh token from cookie
+        var refreshToken = httpContext.Request.Cookies["refreshToken"];
+
+        if (!string.IsNullOrEmpty(refreshToken))
+        {
+            await authService.LogoutAsync(refreshToken);
+        }
+
+        // Clear refresh token cookie
+        httpContext.Response.Cookies.Delete("refreshToken");
+
+        return Results.Ok(new
+        {
+            success = true,
+            message = "Logout successful"
+        });
+    }
+    catch (Exception)
+    {
+        // Even if logout fails, clear the cookie
+        return Results.Ok(new
+        {
+            success = true,
+            message = "Logout successful"
+        });
+    }
+})
+.RequireAuthorization()
+.WithName("Logout")
+.WithOpenApi();
+
+// POST /api/v1/auth/refresh - Refresh access token
+app.MapPost("/api/v1/auth/refresh", async (
+    HttpContext httpContext,
+    Backend.Services.Auth.IAuthService authService) =>
+{
+    try
+    {
+        // Get refresh token from cookie
+        var refreshToken = httpContext.Request.Cookies["refreshToken"];
+
+        if (string.IsNullOrEmpty(refreshToken))
+        {
+            return Results.Unauthorized();
+        }
+
+        // Get client IP
+        var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString();
+
+        var request = new Backend.Models.DTOs.Auth.RefreshTokenRequest
+        {
+            RefreshToken = refreshToken
+        };
+
+        var result = await authService.RefreshTokenAsync(request, ipAddress);
+
+        if (result == null)
+        {
+            return Results.Unauthorized();
+        }
+
+        // Set new refresh token as HTTP-only cookie
+        httpContext.Response.Cookies.Append("refreshToken", result.RefreshToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTimeOffset.UtcNow.AddDays(7)
+        });
+
+        return Results.Ok(new
+        {
+            success = true,
+            data = new
+            {
+                accessToken = result.AccessToken,
+                accessTokenExpiresIn = 900 // 15 minutes in seconds
+            },
+            message = "Token refreshed successfully"
+        });
+    }
+    catch (UnauthorizedAccessException)
+    {
+        return Results.Unauthorized();
+    }
+})
+.WithName("RefreshToken")
+.WithOpenApi();
+
+// GET /api/v1/auth/me - Get current user info
+app.MapGet("/api/v1/auth/me", async (
+    HttpContext httpContext,
+    Backend.Data.HeadOfficeDbContext headOfficeDb) =>
+{
+    try
+    {
+        // Get user ID from JWT claims
+        var userId = httpContext.Items["UserId"] as Guid?;
+        if (!userId.HasValue)
+        {
+            return Results.Unauthorized();
+        }
+
+        var user = await headOfficeDb.Users
+            .Include(u => u.BranchUsers)
+                .ThenInclude(bu => bu.Branch)
+            .FirstOrDefaultAsync(u => u.Id == userId.Value);
+
+        if (user == null)
+        {
+            return Results.NotFound(new
+            {
+                success = false,
+                error = new
+                {
+                    code = "USER_NOT_FOUND",
+                    message = "User not found"
+                }
+            });
+        }
+
+        return Results.Ok(new
+        {
+            success = true,
+            data = new
+            {
+                id = user.Id,
+                username = user.Username,
+                email = user.Email,
+                fullNameEn = user.FullNameEn,
+                fullNameAr = user.FullNameAr,
+                phone = user.Phone,
+                preferredLanguage = user.PreferredLanguage,
+                isHeadOfficeAdmin = user.IsHeadOfficeAdmin,
+                isActive = user.IsActive,
+                lastLoginAt = user.LastLoginAt,
+                branches = user.BranchUsers.Select(bu => new
+                {
+                    branchId = bu.BranchId,
+                    branchCode = bu.Branch?.Code,
+                    branchNameEn = bu.Branch?.NameEn,
+                    branchNameAr = bu.Branch?.NameAr,
+                    role = bu.Role.ToString()
+                }).ToList()
+            }
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+})
+.RequireAuthorization()
+.WithName("GetCurrentUser")
+.WithOpenApi();
+
+// ============================================
 // Sales Endpoints
 // ============================================
 

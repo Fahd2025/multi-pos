@@ -35,6 +35,113 @@ public static class DbSeeder
             Console.WriteLine("✓ Default admin user created (username: admin, password: 123)");
         }
 
+        // Seed default branches
+        if (!await context.Branches.AnyAsync())
+        {
+            var branch1 = new Branch
+            {
+                Id = Guid.NewGuid(),
+                Code = "B001",
+                LoginName = "B001",
+                NameEn = "Main Branch",
+                NameAr = "الفرع الرئيسي",
+                AddressEn = "123 Main Street",
+                AddressAr = "123 الشارع الرئيسي",
+                Phone = "+1234567890",
+                Language = "en",
+                Currency = "USD",
+                DatabaseProvider = DatabaseProvider.SQLite,
+                ConnectionString = "Data Source=branch_b001.db",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            };
+
+            var branch2 = new Branch
+            {
+                Id = Guid.NewGuid(),
+                Code = "B002",
+                LoginName = "B002",
+                NameEn = "Downtown Branch",
+                NameAr = "فرع وسط المدينة",
+                AddressEn = "456 Downtown Ave",
+                AddressAr = "456 شارع وسط المدينة",
+                Phone = "+1234567891",
+                Language = "en",
+                Currency = "USD",
+                DatabaseProvider = DatabaseProvider.SQLite,
+                ConnectionString = "Data Source=branch_b002.db",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            };
+
+            var branch3 = new Branch
+            {
+                Id = Guid.NewGuid(),
+                Code = "B003",
+                LoginName = "B003",
+                NameEn = "Mall Branch",
+                NameAr = "فرع المول",
+                AddressEn = "789 Mall Complex",
+                AddressAr = "789 مجمع المول",
+                Phone = "+1234567892",
+                Language = "en",
+                Currency = "USD",
+                DatabaseProvider = DatabaseProvider.SQLite,
+                ConnectionString = "Data Source=branch_b003.db",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            };
+
+            context.Branches.AddRange(branch1, branch2, branch3);
+            await context.SaveChangesAsync();
+
+            Console.WriteLine("✓ Default branches created (B001, B002, B003)");
+
+            // Assign admin user to all branches
+            var adminUser = await context.Users.FirstAsync(u => u.Username == "admin");
+
+            var branchUser1 = new BranchUser
+            {
+                Id = Guid.NewGuid(),
+                UserId = adminUser.Id,
+                BranchId = branch1.Id,
+                Role = UserRole.BranchManager,
+                IsActive = true,
+                AssignedAt = DateTime.UtcNow,
+                AssignedBy = adminUser.Id,
+            };
+
+            var branchUser2 = new BranchUser
+            {
+                Id = Guid.NewGuid(),
+                UserId = adminUser.Id,
+                BranchId = branch2.Id,
+                Role = UserRole.BranchManager,
+                IsActive = true,
+                AssignedAt = DateTime.UtcNow,
+                AssignedBy = adminUser.Id,
+            };
+
+            var branchUser3 = new BranchUser
+            {
+                Id = Guid.NewGuid(),
+                UserId = adminUser.Id,
+                BranchId = branch3.Id,
+                Role = UserRole.BranchManager,
+                IsActive = true,
+                AssignedAt = DateTime.UtcNow,
+                AssignedBy = adminUser.Id,
+            };
+
+            context.BranchUsers.AddRange(branchUser1, branchUser2, branchUser3);
+            await context.SaveChangesAsync();
+
+            Console.WriteLine("✓ Admin user assigned to all branches");
+        }
+
         // Seed technical password setting
         if (!await context.MainSettings.AnyAsync(s => s.Key == "TechnicalPassword"))
         {

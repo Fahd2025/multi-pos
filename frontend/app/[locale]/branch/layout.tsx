@@ -10,28 +10,30 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import SyncStatusIndicator from '@/components/shared/SyncStatusIndicator';
+import { use } from 'react';
 
 export default function BranchLayout({
   children,
   params,
 }: {
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const { isOnline, status, pendingCount } = useOfflineSync();
+  const { locale } = use(params);
 
   const navigation = [
-    { name: 'Dashboard', href: `/${params.locale}/branch`, icon: '📊' },
-    { name: 'Sales', href: `/${params.locale}/branch/sales`, icon: '💳' },
-    { name: 'Inventory', href: `/${params.locale}/branch/inventory`, icon: '📦' },
-    { name: 'Customers', href: `/${params.locale}/branch/customers`, icon: '👥' },
-    { name: 'Reports', href: `/${params.locale}/branch/reports`, icon: '📈' },
+    { name: 'Dashboard', href: `/${locale}/branch`, icon: '📊' },
+    { name: 'Sales', href: `/${locale}/branch/sales`, icon: '💳' },
+    { name: 'Inventory', href: `/${locale}/branch/inventory`, icon: '📦' },
+    { name: 'Customers', href: `/${locale}/branch/customers`, icon: '👥' },
+    { name: 'Reports', href: `/${locale}/branch/reports`, icon: '📈' },
   ];
 
   const isActiveLink = (href: string) => {
-    if (href === `/${params.locale}/branch`) {
+    if (href === `/${locale}/branch`) {
       return pathname === href;
     }
     return pathname?.startsWith(href);

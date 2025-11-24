@@ -19,6 +19,16 @@ public class UserInfo
     public string PreferredLanguage { get; set; } = string.Empty;
     public bool IsHeadOfficeAdmin { get; set; }
     public string? Role { get; set; }
+    public List<UserBranchInfo> Branches { get; set; } = new();
+}
+
+public class UserBranchInfo
+{
+    public Guid BranchId { get; set; }
+    public string BranchCode { get; set; } = string.Empty;
+    public string BranchNameEn { get; set; } = string.Empty;
+    public string BranchNameAr { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
 }
 
 public class BranchInfo
