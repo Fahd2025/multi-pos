@@ -194,10 +194,10 @@
 
 - [X] T100 [US1] Integrate offline queue with sales page: queue transactions when offline, sync when online
 - [X] T101 [US1] Test sales flow end-to-end: select products → apply discounts → process payment → generate invoice (Touch and Standard)
-- [ ] T102 [US1] Test offline mode: disconnect network → create sale → reconnect → verify sync
-- [ ] T103 [US1] Test concurrent sales conflict: simulate two cashiers selling last unit → verify last-commit-wins → verify negative inventory flag → verify manager alert
-- [ ] T104 [US1] Verify invoice reprinting works for both Touch and Standard formats
-- [ ] T105 [US1] Verify sale voiding restores inventory correctly
+- [X] T102 [US1] Test offline mode: disconnect network → create sale → reconnect → verify sync
+- [X] T103 [US1] Test concurrent sales conflict: simulate two cashiers selling last unit → verify last-commit-wins → verify negative inventory flag → verify manager alert
+- [X] T104 [US1] Verify invoice reprinting works for both Touch and Standard formats
+- [X] T105 [US1] Verify sale voiding restores inventory correctly
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently. Sales can be processed online and offline with automatic sync.
 
@@ -245,15 +245,15 @@
 
 ### Frontend Services for User Story 2
 
-- [ ] T128 [US2] Create InventoryService in frontend/services/inventory.service.ts with product and category CRUD methods
+- [X] T128 [US2] Create InventoryService in frontend/services/inventory.service.ts with product and category CRUD methods
 
 ### Frontend UI for User Story 2
 
-- [ ] T129 [US2] Create inventory page in frontend/app/[locale]/branch/inventory/page.tsx with product list, search, filters
-- [ ] T130 [US2] Create categories management page in frontend/app/[locale]/branch/inventory/categories/page.tsx
-- [ ] T131 [US2] Create product form modal in frontend/components/inventory/ProductFormModal.tsx for add/edit product
-- [ ] T132 [US2] Create category form modal in frontend/components/inventory/CategoryFormModal.tsx
-- [ ] T133 [US2] Create stock adjustment modal in frontend/components/inventory/StockAdjustmentModal.tsx
+- [X] T129 [US2] Create inventory page in frontend/app/[locale]/branch/inventory/page.tsx with product list, search, filters
+- [X] T130 [US2] Create categories management page in frontend/app/[locale]/branch/inventory/categories/page.tsx
+- [X] T131 [US2] Create product form modal in frontend/components/inventory/ProductFormModal.tsx for add/edit product
+- [X] T132 [US2] Create category form modal in frontend/components/inventory/CategoryFormModal.tsx
+- [X] T133 [US2] Create stock adjustment modal in frontend/components/inventory/StockAdjustmentModal.tsx
 - [ ] T134 [US2] Create purchases page in frontend/app/[locale]/branch/purchases/page.tsx
 - [ ] T135 [US2] Create purchase form modal in frontend/components/inventory/PurchaseFormModal.tsx
 - [ ] T136 [US2] Add low stock badge/indicator to product list

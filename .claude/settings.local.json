@@ -29,7 +29,9 @@
       "Bash(taskkill //F //PID 25260)",
       "Bash(taskkill //F //PID 11340)",
       "Bash(taskkill //F //PID 3392)",
-      "Bash(dotnet run)"
+      "Bash(dotnet run)",
+      "Bash(curl:*)",
+      "Bash(tasklist:*)"
     ],
     "deny": [],
     "ask": []
