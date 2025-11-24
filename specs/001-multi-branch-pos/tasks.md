@@ -211,8 +211,8 @@
 
 ### Tests for User Story 2
 
-- [ ] T106 [P] [US2] Create InventoryServiceTests in Backend.UnitTests/Services/InventoryServiceTests.cs testing product CRUD and stock adjustments
-- [ ] T107 [P] [US2] Create inventory endpoint integration tests in Backend.IntegrationTests/Endpoints/InventoryEndpointsTests.cs
+- [X] T106 [P] [US2] Create InventoryServiceTests in Backend.UnitTests/Services/InventoryServiceTests.cs testing product CRUD and stock adjustments
+- [X] T107 [P] [US2] Create inventory endpoint integration tests in Backend.IntegrationTests/Endpoints/InventoryEndpointsTests.cs
 
 ### DTOs for User Story 2
 
@@ -261,12 +261,12 @@
 
 ### Integration & Validation for User Story 2
 
-- [ ] T138 [US2] Test category CRUD operations
-- [ ] T139 [US2] Test product CRUD operations with category assignment
-- [ ] T140 [US2] Test stock adjustment workflow
-- [ ] T141 [US2] Test purchase order workflow: create purchase → mark received → verify stock updated
-- [ ] T142 [US2] Verify low stock alerts appear when stock < MinStockThreshold
-- [ ] T143 [US2] Verify sales (from US1) automatically decrease stock
+- [X] T138 [US2] Test category CRUD operations
+- [X] T139 [US2] Test product CRUD operations with category assignment
+- [X] T140 [US2] Test stock adjustment workflow
+- [X] T141 [US2] Test purchase order workflow: create purchase → mark received → verify stock updated
+- [X] T142 [US2] Verify low stock alerts appear when stock < MinStockThreshold
+- [X] T143 [US2] Verify sales (from US1) automatically decrease stock
 
 **Checkpoint**: User Stories 1 AND 2 should both work independently. Sales update inventory, inventory can be managed separately.
 

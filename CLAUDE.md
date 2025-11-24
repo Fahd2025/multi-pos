@@ -119,6 +119,19 @@ Current endpoints:
   - `POST /api/v1/sales/{id}/void` - Void a sale (Manager only)
   - `GET /api/v1/sales/{id}/invoice` - Get printable invoice
   - `GET /api/v1/sales/stats` - Get sales statistics
+- **Inventory Endpoints**:
+  - `GET /api/v1/categories` - List categories
+  - `POST /api/v1/categories` - Create category
+  - `PUT /api/v1/categories/{id}` - Update category
+  - `DELETE /api/v1/categories/{id}` - Delete category
+  - `GET /api/v1/products` - List products with filtering and pagination
+  - `POST /api/v1/products` - Create product
+  - `PUT /api/v1/products/{id}` - Update product
+  - `DELETE /api/v1/products/{id}` - Delete product
+  - `POST /api/v1/products/{id}/adjust-stock` - Manual stock adjustment
+  - `GET /api/v1/purchases` - List purchase orders
+  - `POST /api/v1/purchases` - Create purchase order
+  - `POST /api/v1/purchases/{id}/receive` - Mark purchase as received and update inventory
 
 ### Project Conventions
 
@@ -200,11 +213,21 @@ After completing any implementation tasks, you MUST follow these procedures:
 - Error handling and branch context middleware implemented
 - Default admin user seeded (username: "admin", password: "123")
 
-**Phase 3: User Story 1 - Sales Operations** - 🚧 In Progress
+**Phase 3: User Story 1 - Sales Operations** - ✅ Completed
 - ✅ Sales DTOs (T068-T071)
 - ✅ Sales Service and business logic (T072-T075)
 - ✅ Sales API endpoints (T076-T081)
-- ⏳ Pending: Frontend services, offline sync, UI components
+- ✅ Frontend services and offline sync (T082-T089)
+- ✅ Frontend UI components (T090-T099)
+- ✅ Integration and validation (T100-T105)
+
+**Phase 4: User Story 2 - Inventory Management** - ✅ Completed
+- ✅ Unit tests (T106-T107)
+- ✅ Inventory DTOs (T108-T113)
+- ✅ Inventory Service implementation (T114-T115)
+- ✅ Inventory API endpoints (T116-T127)
+- ✅ Frontend services and UI (T128-T137)
+- ✅ Integration and validation tests (T138-T143)
 
 ### Key Features Implemented
 
@@ -215,6 +238,17 @@ After completing any implementation tasks, you MUST follow these procedures:
 - **Customer statistics tracking**
 - **Invoice generation** (Transaction IDs and Invoice Numbers)
 - **Sales analytics and reporting**
+- **Inventory management**:
+  - Category management with hierarchical structure
+  - Product CRUD with category assignment
+  - Stock level tracking and adjustments
+  - Low stock alerts and thresholds
+  - Inventory discrepancy flagging (negative stock)
+  - Purchase order management
+  - Automatic inventory updates on purchase receipt
+  - Supplier management integration
+- **Offline sync** with IndexedDB queue and automatic synchronization
+- **Comprehensive testing**: 44 automated tests (27 unit + 17 integration) + 59 manual validation tests
 
 ### Important Notes
 
