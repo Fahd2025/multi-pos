@@ -144,6 +144,20 @@ desktop.ini
 *.cache
 *~
 
-# File uploads
+# File uploads (but keep directory structure)
 Uploads/
 /Backend/Uploads/
+
+# Upload directory - exclude actual files but keep structure
+Upload/**/*.db
+Upload/**/*.db-shm
+Upload/**/*.db-wal
+Upload/**/Products/*
+Upload/**/Categories/*
+Upload/**/Customers/*
+Upload/**/Suppliers/*
+Upload/**/Documents/*
+# But keep the .gitkeep files and README
+!Upload/**/.gitkeep
+!Upload/**/README.md
+!Upload/README.md
