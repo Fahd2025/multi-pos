@@ -141,7 +141,7 @@ export default function CategoryFormModal({
       const categoryData = {
         code: formData.code.trim(),
         nameEn: formData.nameEn.trim(),
-        nameAr: formData.nameAr.trim() || undefined,
+        nameAr: formData.nameAr.trim() || '',
         descriptionEn: formData.descriptionEn.trim() || undefined,
         descriptionAr: formData.descriptionAr.trim() || undefined,
         parentCategoryId: formData.parentCategoryId || undefined,

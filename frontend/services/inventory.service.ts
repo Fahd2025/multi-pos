@@ -189,7 +189,7 @@ class InventoryService {
    */
   async getLowStockCount(): Promise<number> {
     const response = await this.getProducts({ lowStock: true, pageSize: 1 });
-    return response.totalCount;
+    return response.pagination.totalItems;
   }
 
   /**
@@ -197,7 +197,7 @@ class InventoryService {
    */
   async getOutOfStockCount(): Promise<number> {
     const response = await this.getProducts({ outOfStock: true, pageSize: 1 });
-    return response.totalCount;
+    return response.pagination.totalItems;
   }
 
   /**
@@ -205,7 +205,7 @@ class InventoryService {
    */
   async getTotalProductsCount(): Promise<number> {
     const response = await this.getProducts({ pageSize: 1 });
-    return response.totalCount;
+    return response.pagination.totalItems;
   }
 
   /**

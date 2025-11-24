@@ -69,6 +69,11 @@ export default function DataTableDemoPage() {
   const viewModal = useModal<Product>();
   const confirmation = useConfirmation();
 
+  // Adapter for sort change to match DataTable's expected signature
+  const handleSortChange = (config: { key: keyof Product | string; direction: 'asc' | 'desc' }) => {
+    handleSort(config.key);
+  };
+
   // Define table columns
   const columns: DataTableColumn<Product>[] = [
     {
@@ -117,7 +122,7 @@ export default function DataTableDemoPage() {
       label: 'Status',
       sortable: true,
       render: (value) => {
-        const statusColors = {
+        const statusColors: Record<string, string> = {
           active: 'bg-green-100 text-green-800',
           inactive: 'bg-gray-100 text-gray-800'
         };
@@ -343,8 +348,8 @@ export default function DataTableDemoPage() {
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           sortable
-          sortConfig={sortConfig}
-          onSortChange={handleSort}
+          sortConfig={sortConfig ?? undefined}
+          onSortChange={handleSortChange}
           emptyMessage="No products found. Click 'Add Product' to create one."
         />
 
@@ -417,7 +422,7 @@ export default function DataTableDemoPage() {
         isOpen={createEditModal.isOpen}
         onClose={createEditModal.close}
         title={createEditModal.mode === 'create' ? 'Create New Product' : 'Edit Product'}
-        mode={createEditModal.mode}
+        mode={createEditModal.mode as 'create' | 'edit'}
         initialData={createEditModal.data || undefined}
         fields={formFields}
         onSubmit={handleSubmit}

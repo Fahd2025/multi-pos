@@ -46,10 +46,10 @@ export default function StockAdjustmentModal({
    * Calculate new stock level
    */
   const calculateNewStock = (): number => {
-    if (!product || !quantity) return product?.stock || 0;
+    if (!product || !quantity) return product?.stockLevel || 0;
 
     const qty = parseFloat(quantity);
-    const currentStock = product.stock;
+    const currentStock = product.stockLevel;
 
     switch (adjustmentType) {
       case 'increase':
@@ -100,9 +100,25 @@ export default function StockAdjustmentModal({
     setError(null);
 
     try {
+      const qty = parseFloat(quantity);
+      let adjustmentValue: number;
+
+      switch (adjustmentType) {
+        case 'increase':
+          adjustmentValue = qty;
+          break;
+        case 'decrease':
+          adjustmentValue = -qty;
+          break;
+        case 'set':
+          adjustmentValue = qty - product.stockLevel;
+          break;
+        default:
+          adjustmentValue = 0;
+      }
+
       const adjustment = {
-        quantity: parseFloat(quantity),
-        adjustmentType: adjustmentType === 'set' ? 'set' : adjustmentType,
+        adjustment: adjustmentValue,
         reason: reason.trim(),
       };
 
@@ -120,7 +136,7 @@ export default function StockAdjustmentModal({
   if (!isOpen || !product) return null;
 
   const newStock = calculateNewStock();
-  const stockDifference = newStock - product.stock;
+  const stockDifference = newStock - product.stockLevel;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -153,7 +169,7 @@ export default function StockAdjustmentModal({
               <div>
                 <p className="text-sm text-gray-600">Current Stock</p>
                 <p className="text-3xl font-bold text-gray-900 mt-1">
-                  {product.stock}
+                  {product.stockLevel}
                 </p>
               </div>
               <div>

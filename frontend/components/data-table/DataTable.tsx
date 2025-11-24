@@ -80,15 +80,11 @@ export function DataTable<T>({
 
     if (selectedRows.size === data.length) {
       // Deselect all
-      data.forEach(row => onSelectionChange(getRowKey(row)));
+      onSelectionChange(new Set());
     } else {
       // Select all
-      data.forEach(row => {
-        const key = getRowKey(row);
-        if (!selectedRows.has(key)) {
-          onSelectionChange(key);
-        }
-      });
+      const allKeys = data.map(row => getRowKey(row));
+      onSelectionChange(new Set(allKeys));
     }
   };
 
@@ -211,7 +207,15 @@ export function DataTable<T>({
                       <input
                         type="checkbox"
                         checked={isSelected}
-                        onChange={() => onSelectionChange(rowKey)}
+                        onChange={() => {
+                          const newSet = new Set(selectedRows);
+                          if (isSelected) {
+                            newSet.delete(rowKey);
+                          } else {
+                            newSet.add(rowKey);
+                          }
+                          onSelectionChange(newSet);
+                        }}
                         className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
                         aria-label={`Select row ${rowKey}`}
                       />

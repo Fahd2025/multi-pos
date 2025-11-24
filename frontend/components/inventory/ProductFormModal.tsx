@@ -28,17 +28,16 @@ export default function ProductFormModal({
 
   // Form state
   const [formData, setFormData] = useState({
-    code: '',
+    sku: '',
     nameEn: '',
     nameAr: '',
     descriptionEn: '',
     descriptionAr: '',
-    price: '',
-    cost: '',
-    stock: '',
+    sellingPrice: '',
+    costPrice: '',
+    stockLevel: '',
     minStockThreshold: '',
     barcode: '',
-    sku: '',
     categoryId: '',
     isActive: true,
   });
@@ -51,34 +50,32 @@ export default function ProductFormModal({
   useEffect(() => {
     if (product) {
       setFormData({
-        code: product.code,
+        sku: product.sku,
         nameEn: product.nameEn,
         nameAr: product.nameAr || '',
         descriptionEn: product.descriptionEn || '',
         descriptionAr: product.descriptionAr || '',
-        price: product.price.toString(),
-        cost: product.cost?.toString() || '',
-        stock: product.stock.toString(),
+        sellingPrice: product.sellingPrice.toString(),
+        costPrice: product.costPrice.toString(),
+        stockLevel: product.stockLevel.toString(),
         minStockThreshold: product.minStockThreshold.toString(),
         barcode: product.barcode || '',
-        sku: product.sku || '',
         categoryId: product.categoryId || '',
         isActive: product.isActive,
       });
     } else {
       // Reset form for add mode
       setFormData({
-        code: '',
+        sku: '',
         nameEn: '',
         nameAr: '',
         descriptionEn: '',
         descriptionAr: '',
-        price: '',
-        cost: '',
-        stock: '0',
+        sellingPrice: '',
+        costPrice: '',
+        stockLevel: '0',
         minStockThreshold: '5',
         barcode: '',
-        sku: '',
         categoryId: '',
         isActive: true,
       });
@@ -93,13 +90,13 @@ export default function ProductFormModal({
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
-    if (!formData.code.trim()) errors.code = 'Code is required';
+    if (!formData.sku.trim()) errors.sku = 'SKU is required';
     if (!formData.nameEn.trim()) errors.nameEn = 'English name is required';
-    if (!formData.price || parseFloat(formData.price) <= 0) {
-      errors.price = 'Price must be greater than 0';
+    if (!formData.sellingPrice || parseFloat(formData.sellingPrice) <= 0) {
+      errors.sellingPrice = 'Selling price must be greater than 0';
     }
-    if (formData.stock && parseFloat(formData.stock) < 0) {
-      errors.stock = 'Stock cannot be negative';
+    if (formData.stockLevel && parseFloat(formData.stockLevel) < 0) {
+      errors.stockLevel = 'Stock level cannot be negative';
     }
     if (formData.minStockThreshold && parseFloat(formData.minStockThreshold) < 0) {
       errors.minStockThreshold = 'Min stock threshold cannot be negative';
@@ -146,19 +143,17 @@ export default function ProductFormModal({
 
     try {
       const productData = {
-        code: formData.code.trim(),
+        sku: formData.sku.trim(),
         nameEn: formData.nameEn.trim(),
-        nameAr: formData.nameAr.trim() || undefined,
+        nameAr: formData.nameAr.trim() || '',
         descriptionEn: formData.descriptionEn.trim() || undefined,
         descriptionAr: formData.descriptionAr.trim() || undefined,
-        price: parseFloat(formData.price),
-        cost: formData.cost ? parseFloat(formData.cost) : undefined,
-        stock: parseFloat(formData.stock),
+        sellingPrice: parseFloat(formData.sellingPrice),
+        costPrice: parseFloat(formData.costPrice) || 0,
+        stockLevel: parseFloat(formData.stockLevel),
         minStockThreshold: parseFloat(formData.minStockThreshold),
         barcode: formData.barcode.trim() || undefined,
-        sku: formData.sku.trim() || undefined,
-        categoryId: formData.categoryId || undefined,
-        isActive: formData.isActive,
+        categoryId: formData.categoryId,
       };
 
       if (isEditMode && product) {
@@ -216,37 +211,24 @@ export default function ProductFormModal({
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Code */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Product Code <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="code"
-                    value={formData.code}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      validationErrors.code ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="e.g., PROD001"
-                  />
-                  {validationErrors.code && (
-                    <p className="text-red-500 text-xs mt-1">{validationErrors.code}</p>
-                  )}
-                </div>
-
                 {/* SKU */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">SKU</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    SKU <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
                     name="sku"
                     value={formData.sku}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="e.g., SKU-001"
+                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      validationErrors.sku ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="e.g., PROD001"
                   />
+                  {validationErrors.sku && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.sku}</p>
+                  )}
                 </div>
 
                 {/* Name (English) */}
@@ -368,19 +350,19 @@ export default function ProductFormModal({
                     <span className="absolute left-3 top-2 text-gray-500">$</span>
                     <input
                       type="number"
-                      name="price"
-                      value={formData.price}
+                      name="sellingPrice"
+                      value={formData.sellingPrice}
                       onChange={handleChange}
                       step="0.01"
                       min="0"
                       className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        validationErrors.price ? 'border-red-500' : 'border-gray-300'
+                        validationErrors.sellingPrice ? 'border-red-500' : 'border-gray-300'
                       }`}
                       placeholder="0.00"
                     />
                   </div>
-                  {validationErrors.price && (
-                    <p className="text-red-500 text-xs mt-1">{validationErrors.price}</p>
+                  {validationErrors.sellingPrice && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.sellingPrice}</p>
                   )}
                 </div>
 
@@ -393,8 +375,8 @@ export default function ProductFormModal({
                     <span className="absolute left-3 top-2 text-gray-500">$</span>
                     <input
                       type="number"
-                      name="cost"
-                      value={formData.cost}
+                      name="costPrice"
+                      value={formData.costPrice}
                       onChange={handleChange}
                       step="0.01"
                       min="0"
@@ -417,18 +399,18 @@ export default function ProductFormModal({
                   </label>
                   <input
                     type="number"
-                    name="stock"
-                    value={formData.stock}
+                    name="stockLevel"
+                    value={formData.stockLevel}
                     onChange={handleChange}
                     step="1"
                     min="0"
                     className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      validationErrors.stock ? 'border-red-500' : 'border-gray-300'
+                      validationErrors.stockLevel ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="0"
                   />
-                  {validationErrors.stock && (
-                    <p className="text-red-500 text-xs mt-1">{validationErrors.stock}</p>
+                  {validationErrors.stockLevel && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.stockLevel}</p>
                   )}
                   {isEditMode && (
                     <p className="text-xs text-gray-500 mt-1">

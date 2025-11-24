@@ -64,7 +64,7 @@ export default function InventoryPage({
       });
 
       setProducts(productsResponse.data);
-      setTotalPages(Math.ceil(productsResponse.totalCount / pageSize));
+      setTotalPages(productsResponse.pagination.totalPages);
 
       // Load categories (only once)
       if (categories.length === 0) {
@@ -117,13 +117,13 @@ export default function InventoryPage({
    * Get stock status badge
    */
   const getStockBadge = (product: ProductDto) => {
-    if (product.stock <= 0) {
+    if (product.stockLevel <= 0) {
       return (
         <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
           Out of Stock
         </span>
       );
-    } else if (product.stock <= product.minStockThreshold) {
+    } else if (product.stockLevel <= product.minStockThreshold) {
       return (
         <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
           Low Stock
@@ -303,18 +303,20 @@ export default function InventoryPage({
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{product.code}</div>
-                        <div className="text-sm text-gray-500">{product.sku}</div>
+                        <div className="text-sm text-gray-900">{product.sku}</div>
+                        {product.barcode && (
+                          <div className="text-sm text-gray-500">{product.barcode}</div>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {getCategoryName(product.categoryId)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
-                        ${product.price.toFixed(2)}
+                        ${product.sellingPrice.toFixed(2)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <span className="text-sm font-semibold text-gray-900">
-                          {product.stock}
+                          {product.stockLevel}
                         </span>
                         <span className="text-xs text-gray-500 ml-1">
                           / {product.minStockThreshold}
@@ -399,13 +401,13 @@ export default function InventoryPage({
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="text-sm text-gray-600">Low Stock Alerts</div>
           <div className="text-2xl font-bold text-yellow-600 mt-1">
-            {products.filter((p) => p.stock > 0 && p.stock <= p.minStockThreshold).length}
+            {products.filter((p) => p.stockLevel > 0 && p.stockLevel <= p.minStockThreshold).length}
           </div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="text-sm text-gray-600">Out of Stock</div>
           <div className="text-2xl font-bold text-red-600 mt-1">
-            {products.filter((p) => p.stock <= 0).length}
+            {products.filter((p) => p.stockLevel <= 0).length}
           </div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
