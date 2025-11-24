@@ -6,9 +6,13 @@ This directory contains the upload structure for branch-related files in the Mul
 
 ```
 Upload/
+├── HeadOffice/
+│   └── Database/          # Head Office database files
+│       └── headoffice.db  # Main HeadOffice SQLite database
 └── Branches/
     └── [Branch Login Name]/
-        ├── Database/          # Database backups and exports
+        ├── Database/          # Branch database files and backups
+        │   └── [DbName].db    # Branch SQLite database
         ├── Products/          # Product-related files
         │   └── [Product ID]/  # Individual product files (images, docs)
         ├── Categories/        # Category images and documents
@@ -22,12 +26,19 @@ Upload/
 
 ## Purpose
 
-Each branch has its own dedicated upload directory structure to organize files:
+### HeadOffice/Database/
+**IMPORTANT**: This directory contains the actual Head Office database file
+- `headoffice.db` - The primary SQLite database for head office data
+- Contains: Branches, Users, BranchUsers, Settings, Audit Logs
+- This is NOT a backup location - it's the primary database location
 
-### Database/
-- Database backups (SQLite, SQL Server, PostgreSQL, MySQL)
-- Database export files
-- Migration scripts specific to the branch
+### Branches/[Branch]/Database/
+**IMPORTANT**: This directory contains the actual branch database files
+- `[DbName].db` - The primary SQLite database for branch operational data
+- Contains: Categories, Products, Sales, Customers, Suppliers, Purchases, Expenses
+- For SQLite databases, this is the primary database location
+- Can also store database backups and exports
+- For SQL Server/PostgreSQL/MySQL, only stores backups (actual DB is on server)
 
 ### Products/[Product ID]/
 - Product images (main image, gallery images)
@@ -153,7 +164,38 @@ await dbContext.SaveChangesAsync();
 
 ## Notes
 
+### Pre-created Directories
+
+The following directories are pre-created with the system:
+
+- **Upload/HeadOffice/Database/** - Contains the HeadOffice SQLite database
+- **Upload/Branches/B001/** - Main Branch (complete directory structure)
+- **Upload/Branches/B002/** - Downtown Branch (complete directory structure)
+- **Upload/Branches/B003/** - Mall Branch (complete directory structure)
+
+### Database Locations
+
+**IMPORTANT**: All SQLite databases are stored in the Upload directory structure:
+
+- **HeadOffice Database**: `Upload/HeadOffice/Database/headoffice.db`
+  - Configured in: `Backend/appsettings.json`
+  - Connection string: `Data Source=../Upload/HeadOffice/Database/headoffice.db`
+
+- **Branch Databases**: `Upload/Branches/[LoginName]/Database/[DbName].db`
+  - Example: `Upload/Branches/B001/Database/branch_b001.db`
+  - Automatically created when backend starts
+  - Path configured in: `Backend/Data/DbContextFactory.cs`
+
+### Git Tracking
+
 - All directories contain a `.gitkeep` file to ensure they're tracked by Git
 - Empty directories will be preserved in version control
+- Database files (*.db) should be added to `.gitignore` for production
+- Directory structure is committed, but actual data files are not
+
+### Deployment Notes
+
 - When deploying to production, ensure proper file permissions are set
 - Consider using cloud storage (AWS S3, Azure Blob Storage) for production deployments
+- For production, databases should be hosted on dedicated database servers
+- This Upload structure is ideal for development and small deployments

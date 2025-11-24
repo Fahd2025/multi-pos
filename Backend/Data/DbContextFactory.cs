@@ -67,7 +67,7 @@ public class DbContextFactory
     {
         return branch.DatabaseProvider switch
         {
-            DatabaseProvider.SQLite => $"Data Source={branch.DbServer}/{branch.DbName}.db",
+            DatabaseProvider.SQLite => BuildSqliteConnectionString(branch),
 
             DatabaseProvider.MSSQL => BuildMsSqlConnectionString(branch),
 
@@ -79,6 +79,20 @@ public class DbContextFactory
                 $"Database provider {branch.DatabaseProvider} is not supported"
             ),
         };
+    }
+
+    private string BuildSqliteConnectionString(Branch branch)
+    {
+        // Store SQLite databases in Upload/Branches/[LoginName]/Database/
+        var uploadPath = Path.Combine(
+            "..",
+            "Upload",
+            "Branches",
+            branch.LoginName,
+            "Database",
+            $"{branch.DbName}.db"
+        );
+        return $"Data Source={uploadPath}";
     }
 
     private string BuildMsSqlConnectionString(Branch branch)

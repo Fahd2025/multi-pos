@@ -225,6 +225,19 @@ public static class DbSeeder
         {
             try
             {
+                // Ensure Upload directory structure exists for SQLite databases
+                if (branch.DatabaseProvider == DatabaseProvider.SQLite)
+                {
+                    var uploadPath = Path.Combine(
+                        "..",
+                        "Upload",
+                        "Branches",
+                        branch.LoginName,
+                        "Database"
+                    );
+                    Directory.CreateDirectory(uploadPath);
+                }
+
                 using var branchContext = dbContextFactory.CreateBranchContext(branch);
 
                 // Ensure database is created
