@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -17,7 +17,11 @@ export const metadata: Metadata = {
   description: "Professional multi-branch point of sale system with head office and branch management",
   keywords: ["POS", "Point of Sale", "Multi-Branch", "Retail", "Sales Management"],
   authors: [{ name: "Your Company Name" }],
-  viewport: "width=device-width, initial-scale=1",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
   themeColor: "#2563eb",
 };
 
