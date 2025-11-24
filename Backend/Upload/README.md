@@ -2,10 +2,12 @@
 
 This directory contains the upload structure for branch-related files in the Multi-POS system.
 
+**Location**: `Backend/Upload/`
+
 ## Directory Structure
 
 ```
-Upload/
+Backend/Upload/
 ├── HeadOffice/
 │   └── Database/          # Head Office database files
 │       └── headoffice.db  # Main HeadOffice SQLite database
@@ -76,17 +78,19 @@ Upload/
 When a new branch is created in the system, create the corresponding upload directory structure:
 
 ```bash
+cd Backend
 mkdir -p Upload/Branches/[LoginName]/{Database,Products,Categories,Customers,Suppliers,Documents}
 ```
 
 For example, for branch "B004":
 ```bash
+cd Backend
 mkdir -p Upload/Branches/B004/{Database,Products,Categories,Customers,Suppliers,Documents}
 ```
 
 ### Uploading Product Images
 
-Product images should be stored in `Upload/Branches/[Branch]/Products/[ProductID]/`:
+Product images should be stored in `Backend/Upload/Branches/[Branch]/Products/[ProductID]/`:
 
 1. Navigate to the product directory
 2. Upload images with descriptive names (e.g., `main.jpg`, `gallery-1.jpg`, `gallery-2.jpg`)
@@ -168,21 +172,21 @@ await dbContext.SaveChangesAsync();
 
 The following directories are pre-created with the system:
 
-- **Upload/HeadOffice/Database/** - Contains the HeadOffice SQLite database
-- **Upload/Branches/B001/** - Main Branch (complete directory structure)
-- **Upload/Branches/B002/** - Downtown Branch (complete directory structure)
-- **Upload/Branches/B003/** - Mall Branch (complete directory structure)
+- **Backend/Upload/HeadOffice/Database/** - Contains the HeadOffice SQLite database
+- **Backend/Upload/Branches/B001/** - Main Branch (complete directory structure)
+- **Backend/Upload/Branches/B002/** - Downtown Branch (complete directory structure)
+- **Backend/Upload/Branches/B003/** - Mall Branch (complete directory structure)
 
 ### Database Locations
 
-**IMPORTANT**: All SQLite databases are stored in the Upload directory structure:
+**IMPORTANT**: All SQLite databases are stored in the Backend/Upload directory structure:
 
-- **HeadOffice Database**: `Upload/HeadOffice/Database/headoffice.db`
+- **HeadOffice Database**: `Backend/Upload/HeadOffice/Database/headoffice.db`
   - Configured in: `Backend/appsettings.json`
-  - Connection string: `Data Source=../Upload/HeadOffice/Database/headoffice.db`
+  - Connection string: `Data Source=Upload/HeadOffice/Database/headoffice.db`
 
-- **Branch Databases**: `Upload/Branches/[LoginName]/Database/[DbName].db`
-  - Example: `Upload/Branches/B001/Database/branch_b001.db`
+- **Branch Databases**: `Backend/Upload/Branches/[LoginName]/Database/[DbName].db`
+  - Example: `Backend/Upload/Branches/B001/Database/branch_b001.db`
   - Automatically created when backend starts
   - Path configured in: `Backend/Data/DbContextFactory.cs`
 

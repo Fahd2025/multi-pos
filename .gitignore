@@ -149,15 +149,15 @@ Uploads/
 /Backend/Uploads/
 
 # Upload directory - exclude actual files but keep structure
-Upload/**/*.db
-Upload/**/*.db-shm
-Upload/**/*.db-wal
-Upload/**/Products/*
-Upload/**/Categories/*
-Upload/**/Customers/*
-Upload/**/Suppliers/*
-Upload/**/Documents/*
+/Backend/Upload/**/*.db
+/Backend/Upload/**/*.db-shm
+/Backend/Upload/**/*.db-wal
+/Backend/Upload/**/Products/*
+/Backend/Upload/**/Categories/*
+/Backend/Upload/**/Customers/*
+/Backend/Upload/**/Suppliers/*
+/Backend/Upload/**/Documents/*
 # But keep the .gitkeep files and README
-!Upload/**/.gitkeep
-!Upload/**/README.md
-!Upload/README.md
+!/Backend/Upload/**/.gitkeep
+!/Backend/Upload/**/README.md
+!/Backend/Upload/README.md
