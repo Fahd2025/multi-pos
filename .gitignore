@@ -90,6 +90,36 @@ next-env.d.ts
 /Backend/_ReSharper*/*
 /Backend/_UpgradeReport_Files/
 
+# .NET Backend Tests
+/Backend.IntegrationTests/bin/
+/Backend.IntegrationTests/obj/
+/Backend.IntegrationTests/Logs/
+/Backend.IntegrationTests/Logs/**
+/Backend.IntegrationTests/**/*.user
+/Backend.IntegrationTests/**/*.useros
+/Backend.IntegrationTests/**/Debug/
+/Backend.IntegrationTests/**/Release/
+/Backend.IntegrationTests/**/bin/
+/Backend.IntegrationTests/**/obj/
+/Backend.IntegrationTests/**/bld/
+/Backend.IntegrationTests/**/*.VC.db
+/Backend.IntegrationTests/**/*.VC.VC.db
+
+# .NET Backend Unit Tests
+/Backend.UnitTests/bin/
+/Backend.UnitTests/obj/
+/Backend.UnitTests/Logs/
+/Backend.UnitTests/Logs/**
+/Backend.UnitTests/**/*.user
+/Backend.UnitTests/**/*.useros
+/Backend.UnitTests/**/Debug/
+/Backend.UnitTests/**/Release/
+/Backend.UnitTests/**/bin/
+/Backend.UnitTests/**/obj/
+/Backend.UnitTests/**/bld/
+/Backend.UnitTests/**/*.VC.db
+/Backend.UnitTests/**/*.VC.VC.db
+
 # Database files
 *.db
 *.db-shm

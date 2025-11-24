@@ -134,11 +134,11 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T063 [P] [US1] Create SalesServiceTests in Backend.UnitTests/Services/SalesServiceTests.cs with CreateSale_ValidSale_ReturnsSaleWithCalculatedTotals test
-- [ ] T064 [P] [US1] Create SalesServiceTests concurrent sales test in Backend.UnitTests/Services/SalesServiceTests.cs for inventory conflict handling
-- [ ] T065 [P] [US1] Create sales endpoint integration tests in Backend.IntegrationTests/Endpoints/SalesEndpointsTests.cs testing POST /api/v1/sales, GET /api/v1/sales, GET /api/v1/sales/:id
-- [ ] T066 [P] [US1] Create offline sync tests in frontend/__tests__/lib/offline-sync.test.ts testing queue, sync, retry, chronological ordering
-- [ ] T067 [P] [US1] Create SalesForm component test in frontend/__tests__/components/SalesForm.test.tsx
+- [X] T063 [P] [US1] Create SalesServiceTests in Backend.UnitTests/Services/SalesServiceTests.cs with CreateSale_ValidSale_ReturnsSaleWithCalculatedTotals test
+- [X] T064 [P] [US1] Create SalesServiceTests concurrent sales test in Backend.UnitTests/Services/SalesServiceTests.cs for inventory conflict handling
+- [X] T065 [P] [US1] Create sales endpoint integration tests in Backend.IntegrationTests/Endpoints/SalesEndpointsTests.cs testing POST /api/v1/sales, GET /api/v1/sales, GET /api/v1/sales/:id
+- [X] T066 [P] [US1] Create offline sync tests in frontend/__tests__/lib/offline-sync.test.ts testing queue, sync, retry, chronological ordering
+- [X] T067 [P] [US1] Create SalesForm component test in frontend/__tests__/components/SalesForm.test.tsx
 
 ### DTOs for User Story 1
 

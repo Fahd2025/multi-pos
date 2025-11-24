@@ -1369,3 +1369,6 @@ public record UpdateCategoryRequest(
     Guid? ParentCategoryId,
     int DisplayOrder
 );
+
+// Make Program class accessible for integration testing
+public partial class Program { }

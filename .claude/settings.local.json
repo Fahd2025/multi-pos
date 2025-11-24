@@ -19,7 +19,10 @@
       "Bash(dotnet ef database:*)",
       "Bash(dotnet build:*)",
       "Bash(dotnet list:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet restore:*)",
+      "Bash(Backend/Program.cs)"
     ],
     "deny": [],
     "ask": []
