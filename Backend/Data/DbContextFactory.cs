@@ -83,9 +83,8 @@ public class DbContextFactory
 
     private string BuildSqliteConnectionString(Branch branch)
     {
-        // Store SQLite databases in Upload/Branches/[LoginName]/Database/
+        // Store SQLite databases in Backend/Upload/Branches/[LoginName]/Database/
         var uploadPath = Path.Combine(
-            "..",
             "Upload",
             "Branches",
             branch.LoginName,

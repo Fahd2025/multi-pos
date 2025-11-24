@@ -229,7 +229,6 @@ public static class DbSeeder
                 if (branch.DatabaseProvider == DatabaseProvider.SQLite)
                 {
                     var uploadPath = Path.Combine(
-                        "..",
                         "Upload",
                         "Branches",
                         branch.LoginName,
