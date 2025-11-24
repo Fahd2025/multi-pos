@@ -49,9 +49,16 @@ class AuthService {
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     try {
+      // Map frontend field names to backend field names
+      const loginPayload = {
+        username: credentials.username,
+        password: credentials.password,
+        branchLoginName: credentials.branchName, // Backend expects 'branchLoginName'
+      };
+
       const response = await api.post<{ success: boolean; data: LoginResponse; message: string }>(
         API_ROUTES.AUTH.LOGIN,
-        credentials
+        loginPayload
       );
 
       const { accessToken, user } = response.data.data;

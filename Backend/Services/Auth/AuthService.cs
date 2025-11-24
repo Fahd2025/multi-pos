@@ -67,47 +67,61 @@ public class AuthService : IAuthService
         user.LastLoginAt = DateTime.UtcNow;
         user.LastActivityAt = DateTime.UtcNow;
 
-        // Check if user is head office admin
+        // Check if a branch was selected (both head office admins and regular users can select a branch)
+        if (!string.IsNullOrEmpty(request.BranchLoginName))
+        {
+            // Find branch
+            var branch = await _context.Branches.FirstOrDefaultAsync(b =>
+                b.LoginName == request.BranchLoginName && b.IsActive
+            );
+
+            if (branch == null)
+            {
+                return null;
+            }
+
+            // For head office admins, create a temporary branch assignment
+            if (user.IsHeadOfficeAdmin)
+            {
+                // Head office admin accessing a specific branch
+                return await GenerateLoginResponseAsync(
+                    user,
+                    branch.Id,
+                    UserRole.Manager.ToString(), // Grant manager role by default
+                    ipAddress,
+                    userAgent
+                );
+            }
+
+            // For regular users, check if they have access to this branch
+            var branchUser = await _context.BranchUsers.FirstOrDefaultAsync(bu =>
+                bu.UserId == user.Id && bu.BranchId == branch.Id && bu.IsActive
+            );
+
+            if (branchUser == null)
+            {
+                return null;
+            }
+
+            // Generate tokens with branch context
+            return await GenerateLoginResponseAsync(
+                user,
+                branch.Id,
+                branchUser.Role.ToString(),
+                ipAddress,
+                userAgent
+            );
+        }
+
+        // Head office admin without branch selection (head office mode - not yet implemented)
         if (user.IsHeadOfficeAdmin)
         {
-            // Head office admin can access all branches
-            return await GenerateLoginResponseAsync(user, null, null, ipAddress, userAgent);
-        }
-
-        // Regular user - must select a branch
-        if (string.IsNullOrEmpty(request.BranchLoginName))
-        {
+            // For now, require branch selection even for head office admins
             return null;
         }
 
-        // Find branch
-        var branch = await _context.Branches.FirstOrDefaultAsync(b =>
-            b.LoginName == request.BranchLoginName && b.IsActive
-        );
-
-        if (branch == null)
-        {
-            return null;
-        }
-
-        // Check if user has access to this branch
-        var branchUser = await _context.BranchUsers.FirstOrDefaultAsync(bu =>
-            bu.UserId == user.Id && bu.BranchId == branch.Id && bu.IsActive
-        );
-
-        if (branchUser == null)
-        {
-            return null;
-        }
-
-        // Generate tokens with branch context
-        return await GenerateLoginResponseAsync(
-            user,
-            branch.Id,
-            branchUser.Role.ToString(),
-            ipAddress,
-            userAgent
-        );
+        // Regular user without branch selection
+        return null;
     }
 
     public async Task<LoginResponse?> TechnicalLoginAsync(

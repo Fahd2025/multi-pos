@@ -165,8 +165,14 @@ class SalesService {
         `${this.basePath}/stats?${queryString}`
       );
       return response.data.data!;
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Sales stats error:', error);
+      console.error('Sales stats error response:', error.response?.data);
       const errorMessage = apiHelpers.getErrorMessage(error);
+      // Re-throw the original error to preserve response data
+      if (error.response) {
+        throw error;
+      }
       throw new Error(`Failed to fetch sales statistics: ${errorMessage}`);
     }
   }

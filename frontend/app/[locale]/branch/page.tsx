@@ -9,12 +9,14 @@ import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import salesService from '@/services/sales.service';
+import inventoryService from '@/services/inventory.service';
 import { SalesStatsDto } from '@/types/api.types';
 
 export default function BranchHomePage({ params }: { params: Promise<{ locale: string }> }) {
   const router = useRouter();
   const { user, isLoading } = useAuth();
   const [stats, setStats] = useState<SalesStatsDto | null>(null);
+  const [inventoryStats, setInventoryStats] = useState({ lowStock: 0, totalProducts: 0, totalCategories: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { locale } = use(params);
@@ -36,16 +38,38 @@ export default function BranchHomePage({ params }: { params: Promise<{ locale: s
       const today = new Date();
       const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
+      const dateFrom = firstDayOfMonth.toISOString().split('T')[0];
+      const dateTo = today.toISOString().split('T')[0];
+
+      console.log('Requesting stats with dates:', { dateFrom, dateTo });
+
+      // Load sales stats
       const statsData = await salesService.getSalesStats({
-        dateFrom: firstDayOfMonth.toISOString().split('T')[0],
-        dateTo: today.toISOString().split('T')[0],
+        dateFrom,
+        dateTo,
       });
 
       setStats(statsData);
+
+      // Load inventory stats
+      const [lowStockCount, totalProductsCount, totalCategoriesCount] = await Promise.all([
+        inventoryService.getLowStockCount(),
+        inventoryService.getTotalProductsCount(),
+        inventoryService.getTotalCategoriesCount(),
+      ]);
+
+      setInventoryStats({
+        lowStock: lowStockCount,
+        totalProducts: totalProductsCount,
+        totalCategories: totalCategoriesCount,
+      });
+
       setError(null);
     } catch (err: any) {
       console.error('Failed to load stats:', err);
-      setError(err.message || 'Failed to load statistics');
+      console.error('Error response:', err.response?.data);
+      const errorMsg = err.response?.data?.error?.message || err.message || 'Failed to load statistics';
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -162,6 +186,60 @@ export default function BranchHomePage({ params }: { params: Promise<{ locale: s
             </div>
             <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
               <span className="text-2xl">🏆</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Inventory Overview */}
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Inventory Status</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Low Stock Alert */}
+          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 font-medium">Low Stock Alerts</p>
+                <p className="text-2xl font-bold text-yellow-600 mt-2">
+                  {inventoryStats.lowStock}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">products need attention</p>
+              </div>
+              <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                <span className="text-2xl">⚠️</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Total Products */}
+          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 font-medium">Total Products</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">
+                  {inventoryStats.totalProducts}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">in inventory</p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <span className="text-2xl">📦</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Total Categories */}
+          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 font-medium">Categories</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">
+                  {inventoryStats.totalCategories}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">product groups</p>
+              </div>
+              <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
+                <span className="text-2xl">🏷️</span>
+              </div>
             </div>
           </div>
         </div>

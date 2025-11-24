@@ -11,6 +11,11 @@ import {
   CategoryDto,
   StockAdjustmentDto,
   PaginationResponse,
+  PurchaseDto,
+  CreatePurchaseDto,
+  SupplierDto,
+  CreateSupplierDto,
+  ApiResponse,
 } from '@/types/api.types';
 
 /**
@@ -102,16 +107,16 @@ class InventoryService {
    * Get all categories
    */
   async getCategories(): Promise<CategoryDto[]> {
-    const response = await api.get<CategoryDto[]>('/api/v1/categories');
-    return response.data;
+    const response = await api.get<ApiResponse<CategoryDto[]>>('/api/v1/categories');
+    return response.data.data || [];
   }
 
   /**
    * Get category by ID
    */
   async getCategoryById(id: string): Promise<CategoryDto> {
-    const response = await api.get<CategoryDto>(`/api/v1/categories/${id}`);
-    return response.data;
+    const response = await api.get<ApiResponse<CategoryDto>>(`/api/v1/categories/${id}`);
+    return response.data.data!;
   }
 
   /**
@@ -126,8 +131,8 @@ class InventoryService {
     parentCategoryId?: string;
     displayOrder: number;
   }): Promise<CategoryDto> {
-    const response = await api.post<CategoryDto>('/api/v1/categories', category);
-    return response.data;
+    const response = await api.post<ApiResponse<CategoryDto>>('/api/v1/categories', category);
+    return response.data.data!;
   }
 
   /**
@@ -145,8 +150,8 @@ class InventoryService {
       displayOrder: number;
     }
   ): Promise<CategoryDto> {
-    const response = await api.put<CategoryDto>(`/api/v1/categories/${id}`, category);
-    return response.data;
+    const response = await api.put<ApiResponse<CategoryDto>>(`/api/v1/categories/${id}`, category);
+    return response.data.data!;
   }
 
   /**
@@ -161,7 +166,7 @@ class InventoryService {
   /**
    * Get purchases
    */
-  async getPurchases(page: number = 1, pageSize: number = 20): Promise<any> {
+  async getPurchases(page: number = 1, pageSize: number = 20): Promise<PaginationResponse<PurchaseDto>> {
     const response = await api.get(`/api/v1/purchases?page=${page}&pageSize=${pageSize}`);
     return response.data;
   }
@@ -169,7 +174,7 @@ class InventoryService {
   /**
    * Create a new purchase
    */
-  async createPurchase(purchase: any): Promise<any> {
+  async createPurchase(purchase: CreatePurchaseDto): Promise<ApiResponse<PurchaseDto>> {
     const response = await api.post('/api/v1/purchases', purchase);
     return response.data;
   }
@@ -177,8 +182,26 @@ class InventoryService {
   /**
    * Mark purchase as received
    */
-  async receivePurchase(id: string): Promise<any> {
+  async receivePurchase(id: string): Promise<ApiResponse<PurchaseDto>> {
     const response = await api.post(`/api/v1/purchases/${id}/receive`);
+    return response.data;
+  }
+
+  // ==================== SUPPLIERS ====================
+
+  /**
+   * Get suppliers
+   */
+  async getSuppliers(): Promise<SupplierDto[]> {
+    const response = await api.get('/api/v1/suppliers');
+    return response.data.data;
+  }
+
+  /**
+   * Create a new supplier
+   */
+  async createSupplier(supplier: CreateSupplierDto): Promise<ApiResponse<SupplierDto>> {
+    const response = await api.post('/api/v1/suppliers', supplier);
     return response.data;
   }
 

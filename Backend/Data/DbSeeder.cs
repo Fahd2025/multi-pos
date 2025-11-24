@@ -207,5 +207,39 @@ public static class DbSeeder
 
             Console.WriteLine("✓ Max failed login attempts configured (5 attempts)");
         }
+
+        // Create branch databases
+        await CreateBranchDatabasesAsync(context);
+    }
+
+    private static async Task CreateBranchDatabasesAsync(HeadOfficeDbContext context)
+    {
+        Console.WriteLine("\n=== Creating Branch Databases ===");
+
+        var branches = await context.Branches.Where(b => b.IsActive).ToListAsync();
+        var dbContextFactory = new DbContextFactory();
+
+        foreach (var branch in branches)
+        {
+            try
+            {
+                using var branchContext = dbContextFactory.CreateBranchContext(branch);
+
+                // Ensure database is created
+                await branchContext.Database.EnsureCreatedAsync();
+
+                Console.WriteLine(
+                    $"✓ Branch database created/verified: {branch.Code} ({branch.DbName})"
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    $"✗ Failed to create branch database {branch.Code}: {ex.Message}"
+                );
+            }
+        }
+
+        Console.WriteLine("=== Branch Databases Setup Complete ===\n");
     }
 }

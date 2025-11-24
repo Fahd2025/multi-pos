@@ -254,10 +254,10 @@
 - [X] T131 [US2] Create product form modal in frontend/components/inventory/ProductFormModal.tsx for add/edit product
 - [X] T132 [US2] Create category form modal in frontend/components/inventory/CategoryFormModal.tsx
 - [X] T133 [US2] Create stock adjustment modal in frontend/components/inventory/StockAdjustmentModal.tsx
-- [ ] T134 [US2] Create purchases page in frontend/app/[locale]/branch/purchases/page.tsx
-- [ ] T135 [US2] Create purchase form modal in frontend/components/inventory/PurchaseFormModal.tsx
-- [ ] T136 [US2] Add low stock badge/indicator to product list
-- [ ] T137 [US2] Add inventory dashboard widget showing low stock count, total products, total categories
+- [X] T134 [US2] Create purchases page in frontend/app/[locale]/branch/purchases/page.tsx
+- [X] T135 [US2] Create purchase form modal in frontend/components/inventory/PurchaseFormModal.tsx
+- [X] T136 [US2] Add low stock badge/indicator to product list
+- [X] T137 [US2] Add inventory dashboard widget showing low stock count, total products, total categories
 
 ### Integration & Validation for User Story 2
 

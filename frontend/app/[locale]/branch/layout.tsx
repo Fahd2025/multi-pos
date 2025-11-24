@@ -28,6 +28,7 @@ export default function BranchLayout({
     { name: 'Dashboard', href: `/${locale}/branch`, icon: '📊' },
     { name: 'Sales', href: `/${locale}/branch/sales`, icon: '💳' },
     { name: 'Inventory', href: `/${locale}/branch/inventory`, icon: '📦' },
+    { name: 'Purchases', href: `/${locale}/branch/purchases`, icon: '🛒' },
     { name: 'Customers', href: `/${locale}/branch/customers`, icon: '👥' },
     { name: 'Reports', href: `/${locale}/branch/reports`, icon: '📈' },
   ];

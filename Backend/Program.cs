@@ -59,9 +59,15 @@ builder.Services.AddAuthorization();
 // Register Services
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<Backend.Services.Sales.ISalesService, Backend.Services.Sales.SalesService>();
+builder.Services.AddScoped<
+    Backend.Services.Sales.ISalesService,
+    Backend.Services.Sales.SalesService
+>();
 builder.Services.AddScoped<Backend.Services.Sync.ISyncService, Backend.Services.Sync.SyncService>();
-builder.Services.AddScoped<Backend.Services.Inventory.IInventoryService, Backend.Services.Inventory.InventoryService>();
+builder.Services.AddScoped<
+    Backend.Services.Inventory.IInventoryService,
+    Backend.Services.Inventory.InventoryService
+>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<BranchDbContext>(provider =>
@@ -78,7 +84,9 @@ builder.Services.AddScoped<BranchDbContext>(provider =>
     // If we are here, it means we are trying to inject BranchDbContext outside of a branch context
     // This might happen if a service is resolved before the middleware runs or in a background task
     // For now, we throw an exception to make it explicit
-    throw new InvalidOperationException("Branch context not found. Ensure the request is authenticated and associated with a branch.");
+    throw new InvalidOperationException(
+        "Branch context not found. Ensure the request is authenticated and associated with a branch."
+    );
 });
 
 // Configure Swagger/OpenAPI
@@ -171,227 +179,238 @@ app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = Dat
 // ============================================
 
 // POST /api/v1/auth/login - Authenticate user
-app.MapPost("/api/v1/auth/login", async (
-    Backend.Models.DTOs.Auth.LoginRequest loginRequest,
-    Backend.Services.Auth.IAuthService authService,
-    HttpContext httpContext) =>
-{
-    try
-    {
-        // Get client IP and user agent
-        var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString();
-        var userAgent = httpContext.Request.Headers.UserAgent.ToString();
-
-        var result = await authService.LoginAsync(loginRequest, ipAddress, userAgent);
-
-        if (result == null)
+app.MapPost(
+        "/api/v1/auth/login",
+        async (
+            Backend.Models.DTOs.Auth.LoginRequest loginRequest,
+            Backend.Services.Auth.IAuthService authService,
+            HttpContext httpContext
+        ) =>
         {
-            return Results.Unauthorized();
-        }
-
-        // Set refresh token as HTTP-only cookie
-        httpContext.Response.Cookies.Append("refreshToken", result.RefreshToken, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Expires = DateTimeOffset.UtcNow.AddDays(7)
-        });
-
-        return Results.Ok(new
-        {
-            success = true,
-            data = new
+            try
             {
-                accessToken = result.AccessToken,
-                accessTokenExpiresIn = 900, // 15 minutes in seconds
-                user = result.User
-            },
-            message = "Login successful"
-        });
-    }
-    catch (UnauthorizedAccessException)
-    {
-        return Results.Unauthorized();
-    }
-    catch (InvalidOperationException ex)
-    {
-        return Results.NotFound(new
-        {
-            success = false,
-            error = new
-            {
-                code = "BRANCH_NOT_FOUND",
-                message = ex.Message
+                // Get client IP and user agent
+                var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString();
+                var userAgent = httpContext.Request.Headers.UserAgent.ToString();
+
+                var result = await authService.LoginAsync(loginRequest, ipAddress, userAgent);
+
+                if (result == null)
+                {
+                    return Results.Unauthorized();
+                }
+
+                // Set refresh token as HTTP-only cookie
+                httpContext.Response.Cookies.Append(
+                    "refreshToken",
+                    result.RefreshToken,
+                    new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        SameSite = SameSiteMode.Strict,
+                        Expires = DateTimeOffset.UtcNow.AddDays(7),
+                    }
+                );
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = new
+                        {
+                            accessToken = result.AccessToken,
+                            accessTokenExpiresIn = 900, // 15 minutes in seconds
+                            user = result.User,
+                        },
+                        message = "Login successful",
+                    }
+                );
             }
-        });
-    }
-})
-.WithName("Login")
-.WithOpenApi();
+            catch (UnauthorizedAccessException)
+            {
+                return Results.Unauthorized();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.NotFound(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "BRANCH_NOT_FOUND", message = ex.Message },
+                    }
+                );
+            }
+        }
+    )
+    .WithName("Login")
+    .WithOpenApi();
 
 // POST /api/v1/auth/logout - Logout user
-app.MapPost("/api/v1/auth/logout", async (
-    HttpContext httpContext,
-    Backend.Services.Auth.IAuthService authService) =>
-{
-    try
-    {
-        // Get refresh token from cookie
-        var refreshToken = httpContext.Request.Cookies["refreshToken"];
-
-        if (!string.IsNullOrEmpty(refreshToken))
+app.MapPost(
+        "/api/v1/auth/logout",
+        async (HttpContext httpContext, Backend.Services.Auth.IAuthService authService) =>
         {
-            await authService.LogoutAsync(refreshToken);
+            try
+            {
+                // Get refresh token from cookie
+                var refreshToken = httpContext.Request.Cookies["refreshToken"];
+
+                if (!string.IsNullOrEmpty(refreshToken))
+                {
+                    await authService.LogoutAsync(refreshToken);
+                }
+
+                // Clear refresh token cookie
+                httpContext.Response.Cookies.Delete("refreshToken");
+
+                return Results.Ok(new { success = true, message = "Logout successful" });
+            }
+            catch (Exception)
+            {
+                // Even if logout fails, clear the cookie
+                return Results.Ok(new { success = true, message = "Logout successful" });
+            }
         }
-
-        // Clear refresh token cookie
-        httpContext.Response.Cookies.Delete("refreshToken");
-
-        return Results.Ok(new
-        {
-            success = true,
-            message = "Logout successful"
-        });
-    }
-    catch (Exception)
-    {
-        // Even if logout fails, clear the cookie
-        return Results.Ok(new
-        {
-            success = true,
-            message = "Logout successful"
-        });
-    }
-})
-.RequireAuthorization()
-.WithName("Logout")
-.WithOpenApi();
+    )
+    .RequireAuthorization()
+    .WithName("Logout")
+    .WithOpenApi();
 
 // POST /api/v1/auth/refresh - Refresh access token
-app.MapPost("/api/v1/auth/refresh", async (
-    HttpContext httpContext,
-    Backend.Services.Auth.IAuthService authService) =>
-{
-    try
-    {
-        // Get refresh token from cookie
-        var refreshToken = httpContext.Request.Cookies["refreshToken"];
-
-        if (string.IsNullOrEmpty(refreshToken))
+app.MapPost(
+        "/api/v1/auth/refresh",
+        async (HttpContext httpContext, Backend.Services.Auth.IAuthService authService) =>
         {
-            return Results.Unauthorized();
-        }
-
-        // Get client IP
-        var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString();
-
-        var request = new Backend.Models.DTOs.Auth.RefreshTokenRequest
-        {
-            RefreshToken = refreshToken
-        };
-
-        var result = await authService.RefreshTokenAsync(request, ipAddress);
-
-        if (result == null)
-        {
-            return Results.Unauthorized();
-        }
-
-        // Set new refresh token as HTTP-only cookie
-        httpContext.Response.Cookies.Append("refreshToken", result.RefreshToken, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Expires = DateTimeOffset.UtcNow.AddDays(7)
-        });
-
-        return Results.Ok(new
-        {
-            success = true,
-            data = new
+            try
             {
-                accessToken = result.AccessToken,
-                accessTokenExpiresIn = 900 // 15 minutes in seconds
-            },
-            message = "Token refreshed successfully"
-        });
-    }
-    catch (UnauthorizedAccessException)
-    {
-        return Results.Unauthorized();
-    }
-})
-.WithName("RefreshToken")
-.WithOpenApi();
+                // Get refresh token from cookie
+                var refreshToken = httpContext.Request.Cookies["refreshToken"];
+
+                if (string.IsNullOrEmpty(refreshToken))
+                {
+                    return Results.Unauthorized();
+                }
+
+                // Get client IP
+                var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString();
+
+                var request = new Backend.Models.DTOs.Auth.RefreshTokenRequest
+                {
+                    RefreshToken = refreshToken,
+                };
+
+                var result = await authService.RefreshTokenAsync(request, ipAddress);
+
+                if (result == null)
+                {
+                    return Results.Unauthorized();
+                }
+
+                // Set new refresh token as HTTP-only cookie
+                httpContext.Response.Cookies.Append(
+                    "refreshToken",
+                    result.RefreshToken,
+                    new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        SameSite = SameSiteMode.Strict,
+                        Expires = DateTimeOffset.UtcNow.AddDays(7),
+                    }
+                );
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = new
+                        {
+                            accessToken = result.AccessToken,
+                            accessTokenExpiresIn = 900, // 15 minutes in seconds
+                        },
+                        message = "Token refreshed successfully",
+                    }
+                );
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Results.Unauthorized();
+            }
+        }
+    )
+    .WithName("RefreshToken")
+    .WithOpenApi();
 
 // GET /api/v1/auth/me - Get current user info
-app.MapGet("/api/v1/auth/me", async (
-    HttpContext httpContext,
-    Backend.Data.HeadOfficeDbContext headOfficeDb) =>
-{
-    try
-    {
-        // Get user ID from JWT claims
-        var userId = httpContext.Items["UserId"] as Guid?;
-        if (!userId.HasValue)
+app.MapGet(
+        "/api/v1/auth/me",
+        async (HttpContext httpContext, Backend.Data.HeadOfficeDbContext headOfficeDb) =>
         {
-            return Results.Unauthorized();
-        }
-
-        var user = await headOfficeDb.Users
-            .Include(u => u.BranchUsers)
-                .ThenInclude(bu => bu.Branch)
-            .FirstOrDefaultAsync(u => u.Id == userId.Value);
-
-        if (user == null)
-        {
-            return Results.NotFound(new
+            try
             {
-                success = false,
-                error = new
+                // Get user ID from JWT claims
+                var userId = httpContext.Items["UserId"] as Guid?;
+                if (!userId.HasValue)
                 {
-                    code = "USER_NOT_FOUND",
-                    message = "User not found"
+                    return Results.Unauthorized();
                 }
-            });
-        }
 
-        return Results.Ok(new
-        {
-            success = true,
-            data = new
-            {
-                id = user.Id,
-                username = user.Username,
-                email = user.Email,
-                fullNameEn = user.FullNameEn,
-                fullNameAr = user.FullNameAr,
-                phone = user.Phone,
-                preferredLanguage = user.PreferredLanguage,
-                isHeadOfficeAdmin = user.IsHeadOfficeAdmin,
-                isActive = user.IsActive,
-                lastLoginAt = user.LastLoginAt,
-                branches = user.BranchUsers.Select(bu => new
+                var user = await headOfficeDb
+                    .Users.Include(u => u.BranchUsers)
+                    .ThenInclude(bu => bu.Branch)
+                    .FirstOrDefaultAsync(u => u.Id == userId.Value);
+
+                if (user == null)
                 {
-                    branchId = bu.BranchId,
-                    branchCode = bu.Branch?.Code,
-                    branchNameEn = bu.Branch?.NameEn,
-                    branchNameAr = bu.Branch?.NameAr,
-                    role = bu.Role.ToString()
-                }).ToList()
+                    return Results.NotFound(
+                        new
+                        {
+                            success = false,
+                            error = new { code = "USER_NOT_FOUND", message = "User not found" },
+                        }
+                    );
+                }
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = new
+                        {
+                            id = user.Id,
+                            username = user.Username,
+                            email = user.Email,
+                            fullNameEn = user.FullNameEn,
+                            fullNameAr = user.FullNameAr,
+                            phone = user.Phone,
+                            preferredLanguage = user.PreferredLanguage,
+                            isHeadOfficeAdmin = user.IsHeadOfficeAdmin,
+                            isActive = user.IsActive,
+                            lastLoginAt = user.LastLoginAt,
+                            branches = user
+                                .BranchUsers.Select(bu => new
+                                {
+                                    branchId = bu.BranchId,
+                                    branchCode = bu.Branch?.Code,
+                                    branchNameEn = bu.Branch?.NameEn,
+                                    branchNameAr = bu.Branch?.NameAr,
+                                    role = bu.Role.ToString(),
+                                })
+                                .ToList(),
+                        },
+                    }
+                );
             }
-        });
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem(ex.Message);
-    }
-})
-.RequireAuthorization()
-.WithName("GetCurrentUser")
-.WithOpenApi();
+            catch (Exception ex)
+            {
+                return Results.Problem(ex.Message);
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("GetCurrentUser")
+    .WithOpenApi();
 
 // ============================================
 // Sales Endpoints
@@ -416,7 +435,8 @@ app.MapPost(
                 }
 
                 // Get branch from context
-                var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                var branch =
+                    httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
                 if (branch == null)
                 {
                     return Results.BadRequest(
@@ -440,7 +460,12 @@ app.MapPost(
 
                 return Results.Created(
                     $"/api/v1/sales/{sale.Id}",
-                    new { success = true, data = sale, message = "Sale created successfully" }
+                    new
+                    {
+                        success = true,
+                        data = sale,
+                        message = "Sale created successfully",
+                    }
                 );
             }
             catch (InvalidOperationException ex)
@@ -480,7 +505,8 @@ app.MapGet(
             try
             {
                 // Get branch from context
-                var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                var branch =
+                    httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
                 if (branch == null)
                 {
                     return Results.BadRequest(
@@ -528,11 +554,7 @@ app.MapGet(
             catch (Exception ex)
             {
                 return Results.BadRequest(
-                    new
-                    {
-                        success = false,
-                        error = new { code = "ERROR", message = ex.Message },
-                    }
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
                 );
             }
         }
@@ -544,12 +566,17 @@ app.MapGet(
 // GET /api/v1/sales/:id - Get sale by ID
 app.MapGet(
         "/api/v1/sales/{id:guid}",
-        async (Guid id, HttpContext httpContext, Backend.Services.Sales.ISalesService salesService) =>
+        async (
+            Guid id,
+            HttpContext httpContext,
+            Backend.Services.Sales.ISalesService salesService
+        ) =>
         {
             try
             {
                 // Get branch from context
-                var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                var branch =
+                    httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
                 if (branch == null)
                 {
                     return Results.BadRequest(
@@ -587,11 +614,7 @@ app.MapGet(
             catch (Exception ex)
             {
                 return Results.BadRequest(
-                    new
-                    {
-                        success = false,
-                        error = new { code = "ERROR", message = ex.Message },
-                    }
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
                 );
             }
         }
@@ -620,7 +643,9 @@ app.MapPost(
                 }
 
                 // Check if user has manager role or higher
-                var userRole = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+                var userRole = httpContext
+                    .User.FindFirst(System.Security.Claims.ClaimTypes.Role)
+                    ?.Value;
                 if (
                     userRole != "Manager"
                     && userRole != "Admin"
@@ -631,7 +656,8 @@ app.MapPost(
                 }
 
                 // Get branch from context
-                var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                var branch =
+                    httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
                 if (branch == null)
                 {
                     return Results.BadRequest(
@@ -654,7 +680,14 @@ app.MapPost(
                     branch.LoginName
                 );
 
-                return Results.Ok(new { success = true, data = sale, message = "Sale voided successfully" });
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = sale,
+                        message = "Sale voided successfully",
+                    }
+                );
             }
             catch (InvalidOperationException ex)
             {
@@ -664,11 +697,7 @@ app.MapPost(
                         new
                         {
                             success = false,
-                            error = new
-                            {
-                                code = "SALE_ALREADY_VOIDED",
-                                message = ex.Message,
-                            },
+                            error = new { code = "SALE_ALREADY_VOIDED", message = ex.Message },
                         }
                     );
                 }
@@ -689,12 +718,18 @@ app.MapPost(
 // GET /api/v1/sales/:id/invoice - Get invoice (placeholder for now)
 app.MapGet(
         "/api/v1/sales/{id:guid}/invoice",
-        async (Guid id, HttpContext httpContext, Backend.Services.Sales.ISalesService salesService, string format = "json") =>
+        async (
+            Guid id,
+            HttpContext httpContext,
+            Backend.Services.Sales.ISalesService salesService,
+            string format = "json"
+        ) =>
         {
             try
             {
                 // Get branch from context
-                var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                var branch =
+                    httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
                 if (branch == null)
                 {
                     return Results.BadRequest(
@@ -757,11 +792,13 @@ app.MapGet(
                                 productName = li.ProductName,
                                 quantity = li.Quantity,
                                 unitPrice = li.UnitPrice,
-                                discount = li.DiscountType == Backend.Models.Entities.Branch.DiscountType.Percentage
+                                discount = li.DiscountType
+                                == Backend.Models.Entities.Branch.DiscountType.Percentage
                                     ? $"{li.DiscountValue}% off"
-                                    : li.DiscountType == Backend.Models.Entities.Branch.DiscountType.FixedAmount
-                                        ? $"${li.DiscountValue} off"
-                                        : "No discount",
+                                : li.DiscountType
+                                == Backend.Models.Entities.Branch.DiscountType.FixedAmount
+                                    ? $"${li.DiscountValue} off"
+                                : "No discount",
                                 lineTotal = li.LineTotal,
                             }),
                             subtotal = sale.Subtotal,
@@ -778,11 +815,7 @@ app.MapGet(
             catch (Exception ex)
             {
                 return Results.BadRequest(
-                    new
-                    {
-                        success = false,
-                        error = new { code = "ERROR", message = ex.Message },
-                    }
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
                 );
             }
         }
@@ -794,7 +827,12 @@ app.MapGet(
 // GET /api/v1/sales/stats - Get sales statistics
 app.MapGet(
         "/api/v1/sales/stats",
-        async (HttpContext httpContext, Backend.Services.Sales.ISalesService salesService, DateTime? dateFrom = null, DateTime? dateTo = null) =>
+        async (
+            HttpContext httpContext,
+            Backend.Services.Sales.ISalesService salesService,
+            DateTime? dateFrom = null,
+            DateTime? dateTo = null
+        ) =>
         {
             try
             {
@@ -803,7 +841,8 @@ app.MapGet(
                 var to = dateTo ?? DateTime.UtcNow;
 
                 // Get branch from context
-                var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                var branch =
+                    httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
                 if (branch == null)
                 {
                     return Results.BadRequest(
@@ -826,11 +865,7 @@ app.MapGet(
             catch (Exception ex)
             {
                 return Results.BadRequest(
-                    new
-                    {
-                        success = false,
-                        error = new { code = "ERROR", message = ex.Message },
-                    }
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
                 );
             }
         }
@@ -862,7 +897,8 @@ app.MapPost(
                 }
 
                 // Get branch from context
-                var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                var branch =
+                    httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
                 if (branch == null)
                 {
                     return Results.BadRequest(
@@ -905,21 +941,13 @@ app.MapPost(
                     new
                     {
                         success = false,
-                        error = new
-                        {
-                            code = "SYNC_ERROR",
-                            message = ex.Message,
-                        },
+                        error = new { code = "SYNC_ERROR", message = ex.Message },
                     }
                 );
             }
             catch (Exception ex)
             {
-                return Results.Problem(
-                    detail: ex.Message,
-                    statusCode: 500,
-                    title: "Sync failed"
-                );
+                return Results.Problem(detail: ex.Message, statusCode: 500, title: "Sync failed");
             }
         }
     )
@@ -946,7 +974,8 @@ app.MapPost(
                 }
 
                 // Get branch from context
-                var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                var branch =
+                    httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
                 if (branch == null)
                 {
                     return Results.BadRequest(
@@ -1049,11 +1078,7 @@ app.MapGet(
             catch (Exception ex)
             {
                 return Results.BadRequest(
-                    new
-                    {
-                        success = false,
-                        error = new { code = "ERROR", message = ex.Message },
-                    }
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
                 );
             }
         }
@@ -1083,11 +1108,7 @@ app.MapGet(
             catch (Exception ex)
             {
                 return Results.BadRequest(
-                    new
-                    {
-                        success = false,
-                        error = new { code = "ERROR", message = ex.Message },
-                    }
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
                 );
             }
         }
@@ -1126,7 +1147,12 @@ app.MapPost(
 
                 return Results.Created(
                     $"/api/v1/categories/{category.Id}",
-                    new { success = true, data = category, message = "Category created successfully" }
+                    new
+                    {
+                        success = true,
+                        data = category,
+                        message = "Category created successfully",
+                    }
                 );
             }
             catch (InvalidOperationException ex)
@@ -1168,7 +1194,12 @@ app.MapPut(
                 );
 
                 return Results.Ok(
-                    new { success = true, data = category, message = "Category updated successfully" }
+                    new
+                    {
+                        success = true,
+                        data = category,
+                        message = "Category updated successfully",
+                    }
                 );
             }
             catch (InvalidOperationException ex)
@@ -1257,11 +1288,7 @@ app.MapGet(
             catch (Exception ex)
             {
                 return Results.BadRequest(
-                    new
-                    {
-                        success = false,
-                        error = new { code = "ERROR", message = ex.Message },
-                    }
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
                 );
             }
         }
@@ -1291,7 +1318,12 @@ app.MapPost(
 
                 return Results.Created(
                     $"/api/v1/products/{product.Id}",
-                    new { success = true, data = product, message = "Product created successfully" }
+                    new
+                    {
+                        success = true,
+                        data = product,
+                        message = "Product created successfully",
+                    }
                 );
             }
             catch (InvalidOperationException ex)
@@ -1324,7 +1356,12 @@ app.MapPut(
                 var product = await inventoryService.UpdateProductAsync(id, dto);
 
                 return Results.Ok(
-                    new { success = true, data = product, message = "Product updated successfully" }
+                    new
+                    {
+                        success = true,
+                        data = product,
+                        message = "Product updated successfully",
+                    }
                 );
             }
             catch (InvalidOperationException ex)
@@ -1351,9 +1388,7 @@ app.MapDelete(
             try
             {
                 await inventoryService.DeleteProductAsync(id);
-                return Results.Ok(
-                    new { success = true, message = "Product deleted successfully" }
-                );
+                return Results.Ok(new { success = true, message = "Product deleted successfully" });
             }
             catch (InvalidOperationException ex)
             {
@@ -1459,11 +1494,7 @@ app.MapGet(
             catch (Exception ex)
             {
                 return Results.BadRequest(
-                    new
-                    {
-                        success = false,
-                        error = new { code = "ERROR", message = ex.Message },
-                    }
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
                 );
             }
         }
@@ -1493,7 +1524,12 @@ app.MapPost(
 
                 return Results.Created(
                     $"/api/v1/purchases/{purchase.Id}",
-                    new { success = true, data = purchase, message = "Purchase created successfully" }
+                    new
+                    {
+                        success = true,
+                        data = purchase,
+                        message = "Purchase created successfully",
+                    }
                 );
             }
             catch (InvalidOperationException ex)

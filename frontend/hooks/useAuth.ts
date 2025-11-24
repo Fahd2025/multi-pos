@@ -65,12 +65,14 @@ export function useAuth(): UseAuthReturn {
 
       setBranch(selectedBranch || null);
 
-      // Redirect based on user type
-      if (response.user.isHeadOfficeAdmin) {
-        router.push("/en/head-office");
-      } else {
-        router.push("/en/branch");
-      }
+      // Get current locale from window location (default to 'en')
+      const pathSegments = window.location.pathname.split('/').filter(Boolean);
+      const locale = pathSegments[0] || 'en';
+
+      // Redirect to branch dashboard
+      // Note: Head office functionality will be implemented in a future phase
+      // For now, all users access the branch dashboard
+      router.push(`/${locale}/branch`);
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || "Login failed. Please check your credentials.";
       setError(errorMessage);
@@ -89,7 +91,12 @@ export function useAuth(): UseAuthReturn {
       await authService.logout();
       setUser(null);
       setBranch(null);
-      router.push("/");
+
+      // Get current locale from window location (default to 'en')
+      const pathSegments = window.location.pathname.split('/').filter(Boolean);
+      const locale = pathSegments[0] || 'en';
+
+      router.push(`/${locale}`);
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || "Logout failed.";
       setError(errorMessage);

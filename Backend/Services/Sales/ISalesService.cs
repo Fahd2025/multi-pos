@@ -17,8 +17,13 @@ public interface ISalesService
         PaymentMethod? paymentMethod = null,
         bool? isVoided = false,
         string? search = null,
-        string? branchName = null);
+        string? branchName = null
+    );
     Task<SaleDto?> GetSaleByIdAsync(Guid id, string branchName);
     Task<SaleDto> VoidSaleAsync(Guid id, string reason, Guid voidedBy, string branchName);
-    Task<SalesStatsDto> GetSalesStatsAsync(DateTime dateFrom, DateTime dateTo, string? branchName = null);
+    Task<SalesStatsDto> GetSalesStatsAsync(
+        DateTime dateFrom,
+        DateTime dateTo,
+        string? branchName = null
+    );
 }
