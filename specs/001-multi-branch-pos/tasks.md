@@ -280,14 +280,14 @@
 
 ### Tests for User Story 3
 
-- [ ] T144 [P] [US3] Create CustomerServiceTests in Backend.UnitTests/Services/CustomerServiceTests.cs
-- [ ] T145 [P] [US3] Create customer endpoint integration tests in Backend.IntegrationTests/Endpoints/CustomerEndpointsTests.cs
+- [X] T144 [P] [US3] Create CustomerServiceTests in Backend.UnitTests/Services/CustomerServiceTests.cs
+- [X] T145 [P] [US3] Create customer endpoint integration tests in Backend.IntegrationTests/Endpoints/CustomerEndpointsTests.cs
 
 ### DTOs for User Story 3
 
-- [ ] T146 [P] [US3] Create CustomerDto in Backend/Models/DTOs/Customers/CustomerDto.cs
-- [ ] T147 [P] [US3] Create CreateCustomerDto in Backend/Models/DTOs/Customers/CreateCustomerDto.cs
-- [ ] T148 [P] [US3] Create UpdateCustomerDto in Backend/Models/DTOs/Customers/UpdateCustomerDto.cs
+- [X] T146 [P] [US3] Create CustomerDto in Backend/Models/DTOs/Customers/CustomerDto.cs
+- [X] T147 [P] [US3] Create CreateCustomerDto in Backend/Models/DTOs/Customers/CreateCustomerDto.cs
+- [X] T148 [P] [US3] Create UpdateCustomerDto in Backend/Models/DTOs/Customers/UpdateCustomerDto.cs
 
 ### Backend Services for User Story 3
 
