@@ -383,30 +383,30 @@
 
 ### DTOs for User Story 5
 
-- [ ] T188 [P] [US5] Create BranchDto in Backend/Models/DTOs/Branches/BranchDto.cs
-- [ ] T189 [P] [US5] Create CreateBranchDto in Backend/Models/DTOs/Branches/CreateBranchDto.cs
-- [ ] T190 [P] [US5] Create UpdateBranchDto in Backend/Models/DTOs/Branches/UpdateBranchDto.cs
-- [ ] T191 [P] [US5] Create BranchSettingsDto in Backend/Models/DTOs/Branches/BranchSettingsDto.cs
+- [X] T188 [P] [US5] Create BranchDto in Backend/Models/DTOs/Branches/BranchDto.cs
+- [X] T189 [P] [US5] Create CreateBranchDto in Backend/Models/DTOs/Branches/CreateBranchDto.cs
+- [X] T190 [P] [US5] Create UpdateBranchDto in Backend/Models/DTOs/Branches/UpdateBranchDto.cs
+- [X] T191 [P] [US5] Create BranchSettingsDto in Backend/Models/DTOs/Branches/BranchSettingsDto.cs
 
 ### Backend Services for User Story 5
 
-- [ ] T192 [US5] Implement IBranchService interface in Backend/Services/Branches/IBranchService.cs
-- [ ] T193 [US5] Implement BranchService in Backend/Services/Branches/BranchService.cs with GetBranchesAsync, CreateBranchAsync, UpdateBranchAsync, DeleteBranchAsync, GetBranchSettingsAsync, UpdateBranchSettingsAsync, TestDatabaseConnectionAsync, ProvisionBranchDatabaseAsync methods
-- [ ] T194 [US5] Add branch database provisioning logic: create database using DbContextFactory, run migrations, seed sample data (categories, products, customers, suppliers)
+- [X] T192 [US5] Implement IBranchService interface in Backend/Services/Branches/IBranchService.cs
+- [X] T193 [US5] Implement BranchService in Backend/Services/Branches/BranchService.cs with GetBranchesAsync, CreateBranchAsync, UpdateBranchAsync, DeleteBranchAsync, GetBranchSettingsAsync, UpdateBranchSettingsAsync, TestDatabaseConnectionAsync, ProvisionBranchDatabaseAsync methods
+- [X] T194 [US5] Add branch database provisioning logic: create database using DbContextFactory, run migrations, seed sample data (categories, products, customers, suppliers)
 
 ### API Endpoints for User Story 5
 
-- [ ] T195 [US5] Implement GET /api/v1/branches endpoint in Backend/Program.cs (head office admin only) per contracts/branches.md
-- [ ] T196 [US5] Implement POST /api/v1/branches endpoint in Backend/Program.cs (head office admin only) per contracts/branches.md
-- [ ] T197 [US5] Implement PUT /api/v1/branches/:id endpoint in Backend/Program.cs (head office admin only) per contracts/branches.md
-- [ ] T198 [US5] Implement DELETE /api/v1/branches/:id endpoint in Backend/Program.cs (head office admin only) per contracts/branches.md
-- [ ] T199 [US5] Implement GET /api/v1/branches/:id/settings endpoint in Backend/Program.cs per contracts/branches.md
-- [ ] T200 [US5] Implement PUT /api/v1/branches/:id/settings endpoint in Backend/Program.cs per contracts/branches.md
-- [ ] T201 [US5] Implement POST /api/v1/branches/:id/test-connection endpoint in Backend/Program.cs to validate database connection
+- [X] T195 [US5] Implement GET /api/v1/branches endpoint in Backend/Program.cs (head office admin only) per contracts/branches.md
+- [X] T196 [US5] Implement POST /api/v1/branches endpoint in Backend/Program.cs (head office admin only) per contracts/branches.md
+- [X] T197 [US5] Implement PUT /api/v1/branches/:id endpoint in Backend/Program.cs (head office admin only) per contracts/branches.md
+- [X] T198 [US5] Implement DELETE /api/v1/branches/:id endpoint in Backend/Program.cs (head office admin only) per contracts/branches.md
+- [X] T199 [US5] Implement GET /api/v1/branches/:id/settings endpoint in Backend/Program.cs per contracts/branches.md
+- [X] T200 [US5] Implement PUT /api/v1/branches/:id/settings endpoint in Backend/Program.cs per contracts/branches.md
+- [X] T201 [US5] Implement POST /api/v1/branches/:id/test-connection endpoint in Backend/Program.cs to validate database connection
 
 ### Frontend Services for User Story 5
 
-- [ ] T202 [US5] Create BranchService in frontend/services/branch.service.ts
+- [X] T202 [US5] Create BranchService in frontend/services/branch.service.ts
 
 ### Frontend UI for User Story 5
 
