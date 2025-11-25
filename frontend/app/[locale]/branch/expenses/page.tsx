@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { use } from 'react';
+import Link from 'next/link';
 import expenseService from '@/services/expense.service';
 import { ExpenseDto, ExpenseCategoryDto } from '@/types/api.types';
 import ExpenseFormModal from '@/components/expenses/ExpenseFormModal';
@@ -165,18 +166,32 @@ export default function ExpensesPage({
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Expenses</h1>
-        <Button
-          onClick={() => {
-            setSelectedExpense(undefined);
-            setIsModalOpen(true);
-          }}
-          variant="primary"
-        >
-          + Add Expense
-        </Button>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Expense Management</h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Track and manage business expenses with approval workflow
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Link href={`/${locale}/branch/expense-categories`}>
+            <Button variant="secondary" size="md">
+              📁 Manage Categories
+            </Button>
+          </Link>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => {
+              setSelectedExpense(undefined);
+              setIsModalOpen(true);
+            }}
+          >
+            ➕ Add Expense
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}

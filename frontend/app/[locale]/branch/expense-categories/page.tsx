@@ -7,8 +7,10 @@
 
 import { useState, useEffect } from 'react';
 import { use } from 'react';
+import Link from 'next/link';
 import expenseService from '@/services/expense.service';
 import { ExpenseCategoryDto } from '@/types/api.types';
+import { Button } from '@/components/shared/Button';
 
 export default function ExpenseCategoriesPage({
   params,
@@ -148,15 +150,29 @@ export default function ExpenseCategoriesPage({
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Expense Categories</h1>
-        <button
-          onClick={() => setIsFormOpen(true)}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          + Add Category
-        </button>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Expense Category Management</h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Organize expenses into categories with budget allocations
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Link href={`/${locale}/branch/expenses`}>
+            <Button variant="secondary" size="md">
+              ← Back to Expenses
+            </Button>
+          </Link>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => setIsFormOpen(true)}
+          >
+            ➕ Add Category
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}

@@ -512,6 +512,7 @@ export interface ExpenseCategoryDto {
   budgetAllocation?: number;
   isActive: boolean;
   createdAt: string;
+  updatedAt: string;
   totalExpenses?: number;
   expenseCount?: number;
 }

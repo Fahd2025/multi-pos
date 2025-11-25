@@ -27,6 +27,9 @@ public class ExpenseCategory
     [Required]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    [Required]
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
     // Navigation properties
     public ICollection<Expense> Expenses { get; set; } = new List<Expense>();
 }

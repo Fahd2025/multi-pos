@@ -306,7 +306,8 @@ public class ExpenseService : IExpenseService
                 BudgetAllocation = c.BudgetAllocation,
                 IsActive = c.IsActive,
                 CreatedAt = c.CreatedAt,
-                TotalExpenses = c.Expenses.Where(e => e.ApprovalStatus == ApprovalStatus.Approved).Sum(e => (decimal?)e.Amount),
+                UpdatedAt = c.UpdatedAt,
+                TotalExpenses = c.Expenses.Where(e => e.ApprovalStatus == ApprovalStatus.Approved).Sum(e => (decimal?)e.Amount) ?? 0,
                 ExpenseCount = c.Expenses.Count
             })
             .ToListAsync();
@@ -333,7 +334,8 @@ public class ExpenseService : IExpenseService
             NameAr = nameAr,
             BudgetAllocation = budgetAllocation,
             IsActive = true,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
 
         _context.ExpenseCategories.Add(category);
@@ -348,6 +350,7 @@ public class ExpenseService : IExpenseService
             BudgetAllocation = category.BudgetAllocation,
             IsActive = category.IsActive,
             CreatedAt = category.CreatedAt,
+            UpdatedAt = category.UpdatedAt,
             TotalExpenses = 0,
             ExpenseCount = 0
         };

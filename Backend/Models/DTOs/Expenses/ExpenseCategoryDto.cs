@@ -41,6 +41,11 @@ public class ExpenseCategoryDto
     public DateTime CreatedAt { get; set; }
 
     /// <summary>
+    /// Record last update timestamp
+    /// </summary>
+    public DateTime UpdatedAt { get; set; }
+
+    /// <summary>
     /// Total expenses in this category (optional, calculated)
     /// </summary>
     public decimal? TotalExpenses { get; set; }

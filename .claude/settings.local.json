@@ -32,7 +32,9 @@
       "Bash(dotnet run)",
       "Bash(curl:*)",
       "Bash(tasklist:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(dir /S /B UploadBranches*.db)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []

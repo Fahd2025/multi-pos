@@ -4,7 +4,7 @@
  */
 
 import api from './api';
-import { ExpenseDto, CreateExpenseDto, ExpenseCategoryDto, PaginationResponse } from '@/types/api.types';
+import { ExpenseDto, CreateExpenseDto, ExpenseCategoryDto, PaginationResponse, ApiResponse } from '@/types/api.types';
 
 /**
  * Expense filter parameters
@@ -74,16 +74,16 @@ class ExpenseService {
    * Create a new expense
    */
   async createExpense(expense: CreateExpenseDto): Promise<ExpenseDto> {
-    const response = await api.post<ExpenseDto>('/api/v1/expenses', expense);
-    return response.data;
+    const response = await api.post<ApiResponse<ExpenseDto>>('/api/v1/expenses', expense);
+    return response.data.data!;
   }
 
   /**
    * Update an existing expense (only pending expenses can be updated)
    */
   async updateExpense(id: string, expense: CreateExpenseDto): Promise<ExpenseDto> {
-    const response = await api.put<ExpenseDto>(`/api/v1/expenses/${id}`, expense);
-    return response.data;
+    const response = await api.put<ApiResponse<ExpenseDto>>(`/api/v1/expenses/${id}`, expense);
+    return response.data.data!;
   }
 
   /**
@@ -97,11 +97,11 @@ class ExpenseService {
    * Approve or reject an expense (Manager only)
    */
   async approveExpense(id: string, approved: boolean): Promise<ExpenseDto> {
-    const response = await api.post<ExpenseDto>(
+    const response = await api.post<ApiResponse<ExpenseDto>>(
       `/api/v1/expenses/${id}/approve`,
       { approved }
     );
-    return response.data;
+    return response.data.data!;
   }
 
   /**
@@ -109,16 +109,16 @@ class ExpenseService {
    */
   async getExpenseCategories(includeInactive: boolean = false): Promise<ExpenseCategoryDto[]> {
     const params = includeInactive ? '?includeInactive=true' : '';
-    const response = await api.get<ExpenseCategoryDto[]>(`/api/v1/expense-categories${params}`);
-    return response.data;
+    const response = await api.get<ApiResponse<ExpenseCategoryDto[]>>(`/api/v1/expense-categories${params}`);
+    return response.data.data || [];
   }
 
   /**
    * Create a new expense category
    */
   async createExpenseCategory(category: CreateExpenseCategoryDto): Promise<ExpenseCategoryDto> {
-    const response = await api.post<ExpenseCategoryDto>('/api/v1/expense-categories', category);
-    return response.data;
+    const response = await api.post<ApiResponse<ExpenseCategoryDto>>('/api/v1/expense-categories', category);
+    return response.data.data!;
   }
 
   /**
