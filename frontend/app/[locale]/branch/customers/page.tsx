@@ -10,6 +10,7 @@ import { use } from 'react';
 import customerService from '@/services/customer.service';
 import { CustomerDto } from '@/types/api.types';
 import Link from 'next/link';
+import CustomerFormModal from '@/components/customers/CustomerFormModal';
 
 export default function CustomersPage({
   params,
@@ -234,21 +235,16 @@ export default function CustomersPage({
         </div>
       )}
 
-      {/* Customer Form Modal - Placeholder (T158) */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow-lg max-w-2xl w-full">
-            <h2 className="text-2xl font-bold mb-4">{selectedCustomer ? 'Edit Customer' : 'Add Customer'}</h2>
-            <p className="text-gray-600 mb-4">Customer form modal - Implementation in progress (T158)</p>
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Customer Form Modal */}
+      <CustomerFormModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedCustomer(undefined);
+        }}
+        onSuccess={loadCustomers}
+        customer={selectedCustomer}
+      />
     </div>
   );
 }

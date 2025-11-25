@@ -309,10 +309,10 @@
 ### Frontend UI for User Story 3
 
 - [X] T157 [US3] Create customers page in frontend/app/[locale]/branch/customers/page.tsx with customer list, search
-- [ ] T158 [US3] Create customer form modal in frontend/components/customers/CustomerFormModal.tsx
-- [ ] T159 [US3] Create customer details page in frontend/app/[locale]/branch/customers/[id]/page.tsx showing profile and purchase history
-- [ ] T160 [US3] Add customer search/link component to sales page for linking customer to sale
-- [ ] T161 [US3] Add customer analytics widget to dashboard (top customers, total customers, new customers this month)
+- [X] T158 [US3] Create customer form modal in frontend/components/customers/CustomerFormModal.tsx
+- [X] T159 [US3] Create customer details page in frontend/app/[locale]/branch/customers/[id]/page.tsx showing profile and purchase history
+- [X] T160 [US3] Add customer search/link component to sales page for linking customer to sale
+- [X] T161 [US3] Add customer analytics widget to dashboard (top customers, total customers, new customers this month)
 
 ### Integration & Validation for User Story 3
 
