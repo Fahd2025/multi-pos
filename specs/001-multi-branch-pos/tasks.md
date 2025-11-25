@@ -410,9 +410,9 @@
 
 ### Frontend UI for User Story 5
 
-- [ ] T203 [US5] Create head office layout in frontend/app/[locale]/head-office/layout.tsx
-- [ ] T204 [US5] Create head office home page in frontend/app/[locale]/head-office/page.tsx with multi-branch dashboard (total sales across branches, active branches, total users)
-- [ ] T205 [US5] Create branches management page in frontend/app/[locale]/head-office/branches/page.tsx with branch list
+- [X] T203 [US5] Create head office layout in frontend/app/[locale]/head-office/layout.tsx
+- [X] T204 [US5] Create head office home page in frontend/app/[locale]/head-office/page.tsx with multi-branch dashboard (total sales across branches, active branches, total users)
+- [X] T205 [US5] Create branches management page in frontend/app/[locale]/head-office/branches/page.tsx with branch list
 - [ ] T206 [US5] Create branch form modal in frontend/components/head-office/BranchFormModal.tsx with database provider selection, connection string builder
 - [ ] T207 [US5] Create branch details page in frontend/app/[locale]/head-office/branches/[id]/page.tsx showing branch info, settings, users, database status
 - [ ] T208 [US5] Create branch settings form in frontend/components/head-office/BranchSettingsForm.tsx (tax rate, currency, language, date format, timezone)
