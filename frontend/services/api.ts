@@ -72,18 +72,31 @@ api.interceptors.response.use(
       }
     }
 
-    // Handle other errors
-    if (error.response?.status === HTTP_STATUS.FORBIDDEN) {
-      // User doesn't have permission
-      console.error("Access forbidden");
-    }
+    // Enhanced error logging for all error responses
+    if (error.response) {
+      const errorData = error.response.data as any;
+      console.error("❌ API Error Details:");
+      console.error(`  Method: ${error.config?.method?.toUpperCase()}`);
+      console.error(`  URL: ${error.config?.url}`);
+      console.error(`  Status: ${error.response.status} ${error.response.statusText}`);
 
-    if (error.response?.status === HTTP_STATUS.NOT_FOUND) {
-      console.error("Resource not found");
-    }
+      if (errorData?.error) {
+        console.error(`  Error Code: ${errorData.error.code || 'N/A'}`);
+        console.error(`  Error Message: ${errorData.error.message || 'N/A'}`);
+      } else if (errorData?.message) {
+        console.error(`  Message: ${errorData.message}`);
+      }
 
-    if (error.response?.status === HTTP_STATUS.INTERNAL_SERVER_ERROR) {
-      console.error("Server error");
+      // Log full response data for debugging
+      console.error("  Full Error Response:", errorData);
+    } else if (error.request) {
+      // Request was made but no response received
+      console.error("❌ Network Error - No response received:");
+      console.error(`  URL: ${error.config?.url}`);
+      console.error(`  Message: ${error.message}`);
+    } else {
+      // Something else happened
+      console.error("❌ Request Error:", error.message);
     }
 
     return Promise.reject(error);
@@ -134,7 +147,16 @@ export const apiHelpers = {
    */
   getErrorMessage: (error: unknown): string => {
     if (axios.isAxiosError(error)) {
-      return error.response?.data?.message || error.message || "An unexpected error occurred";
+      const errorData = error.response?.data as any;
+      // Check for new error format { success: false, error: { code, message } }
+      if (errorData?.error?.message) {
+        return errorData.error.message;
+      }
+      // Check for old format { message }
+      if (errorData?.message) {
+        return errorData.message;
+      }
+      return error.message || "An unexpected error occurred";
     }
     if (error instanceof Error) {
       return error.message;

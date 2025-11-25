@@ -87,9 +87,10 @@ export default function BranchDetailsPage({
               {branch.nameEn}
             </h1>
             <StatusBadge
-              status={branch.isActive ? 'success' : 'inactive'}
-              text={branch.isActive ? 'Active' : 'Inactive'}
-            />
+              variant={branch.isActive ? 'success' : 'neutral'}
+            >
+              {branch.isActive ? 'Active' : 'Inactive'}
+            </StatusBadge>
           </div>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
             Code: {branch.code} • Login: {branch.loginName}

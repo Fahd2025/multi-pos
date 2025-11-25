@@ -263,14 +263,9 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
             label="Database Provider*"
             value={formData.databaseProvider}
             onChange={(e) => handleChange('databaseProvider', parseInt(e.target.value))}
+            options={branchService.getDatabaseProviderOptions()}
             required
-          >
-            {branchService.getDatabaseProviderOptions().map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </Select>
+          />
 
           <div className="grid grid-cols-2 gap-4">
             <Input
@@ -335,11 +330,12 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
               label="Language*"
               value={formData.language}
               onChange={(e) => handleChange('language', e.target.value)}
+              options={[
+                { value: 'en', label: 'English' },
+                { value: 'ar', label: 'Arabic' }
+              ]}
               required
-            >
-              <option value="en">English</option>
-              <option value="ar">Arabic</option>
-            </Select>
+            />
 
             <Input
               label="Currency*"

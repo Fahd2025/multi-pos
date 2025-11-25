@@ -75,11 +75,12 @@ export const BranchSettingsForm: React.FC<BranchSettingsFormProps> = ({ branch, 
             label="Language*"
             value={formData.language}
             onChange={(e) => handleChange('language', e.target.value)}
+            options={[
+              { value: 'en', label: 'English' },
+              { value: 'ar', label: 'Arabic' }
+            ]}
             required
-          >
-            <option value="en">English</option>
-            <option value="ar">Arabic</option>
-          </Select>
+          />
 
           <Input
             label="Currency*"

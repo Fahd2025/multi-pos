@@ -23,11 +23,10 @@ public class ExpenseService : IExpenseService
         DateTime? endDate = null,
         int? approvalStatus = null,
         int page = 1,
-        int pageSize = 50)
+        int pageSize = 50
+    )
     {
-        var query = _context.Expenses
-            .Include(e => e.Category)
-            .AsQueryable();
+        var query = _context.Expenses.Include(e => e.Category).AsQueryable();
 
         // Apply filters
         if (categoryId.HasValue)
@@ -73,7 +72,7 @@ public class ExpenseService : IExpenseService
                 ApprovedBy = e.ApprovedBy,
                 ApprovedAt = e.ApprovedAt,
                 CreatedAt = e.CreatedAt,
-                CreatedBy = e.CreatedBy
+                CreatedBy = e.CreatedBy,
             })
             .ToListAsync();
 
@@ -82,8 +81,8 @@ public class ExpenseService : IExpenseService
 
     public async Task<ExpenseDto?> GetExpenseByIdAsync(Guid expenseId)
     {
-        var expense = await _context.Expenses
-            .Include(e => e.Category)
+        var expense = await _context
+            .Expenses.Include(e => e.Category)
             .Where(e => e.Id == expenseId)
             .Select(e => new ExpenseDto
             {
@@ -102,7 +101,7 @@ public class ExpenseService : IExpenseService
                 ApprovedBy = e.ApprovedBy,
                 ApprovedAt = e.ApprovedAt,
                 CreatedAt = e.CreatedAt,
-                CreatedBy = e.CreatedBy
+                CreatedBy = e.CreatedBy,
             })
             .FirstOrDefaultAsync();
 
@@ -115,7 +114,9 @@ public class ExpenseService : IExpenseService
         var category = await _context.ExpenseCategories.FindAsync(dto.ExpenseCategoryId);
         if (category == null)
         {
-            throw new KeyNotFoundException($"Expense category with ID '{dto.ExpenseCategoryId}' not found.");
+            throw new KeyNotFoundException(
+                $"Expense category with ID '{dto.ExpenseCategoryId}' not found."
+            );
         }
 
         var expense = new Expense
@@ -131,7 +132,7 @@ public class ExpenseService : IExpenseService
             ReceiptImagePath = dto.ReceiptImagePath,
             ApprovalStatus = ApprovalStatus.Pending,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = userId
+            CreatedBy = userId,
         };
 
         _context.Expenses.Add(expense);
@@ -154,14 +155,14 @@ public class ExpenseService : IExpenseService
             ApprovedBy = expense.ApprovedBy,
             ApprovedAt = expense.ApprovedAt,
             CreatedAt = expense.CreatedAt,
-            CreatedBy = expense.CreatedBy
+            CreatedBy = expense.CreatedBy,
         };
     }
 
     public async Task<ExpenseDto> UpdateExpenseAsync(Guid expenseId, CreateExpenseDto dto)
     {
-        var expense = await _context.Expenses
-            .Include(e => e.Category)
+        var expense = await _context
+            .Expenses.Include(e => e.Category)
             .FirstOrDefaultAsync(e => e.Id == expenseId);
 
         if (expense == null)
@@ -172,7 +173,9 @@ public class ExpenseService : IExpenseService
         // Only allow updates for pending expenses
         if (expense.ApprovalStatus != ApprovalStatus.Pending)
         {
-            throw new InvalidOperationException("Cannot update an expense that has been approved or rejected.");
+            throw new InvalidOperationException(
+                "Cannot update an expense that has been approved or rejected."
+            );
         }
 
         // Verify category exists if changed
@@ -181,7 +184,9 @@ public class ExpenseService : IExpenseService
             var category = await _context.ExpenseCategories.FindAsync(dto.ExpenseCategoryId);
             if (category == null)
             {
-                throw new KeyNotFoundException($"Expense category with ID '{dto.ExpenseCategoryId}' not found.");
+                throw new KeyNotFoundException(
+                    $"Expense category with ID '{dto.ExpenseCategoryId}' not found."
+                );
             }
             expense.ExpenseCategoryId = dto.ExpenseCategoryId;
         }
@@ -207,8 +212,8 @@ public class ExpenseService : IExpenseService
         {
             Id = expense.Id,
             ExpenseCategoryId = expense.ExpenseCategoryId,
-            CategoryNameEn = expense.Category.NameEn,
-            CategoryNameAr = expense.Category.NameAr,
+            CategoryNameEn = expense.Category!.NameEn,
+            CategoryNameAr = expense.Category!.NameAr,
             Amount = expense.Amount,
             ExpenseDate = expense.ExpenseDate,
             DescriptionEn = expense.DescriptionEn,
@@ -220,7 +225,7 @@ public class ExpenseService : IExpenseService
             ApprovedBy = expense.ApprovedBy,
             ApprovedAt = expense.ApprovedAt,
             CreatedAt = expense.CreatedAt,
-            CreatedBy = expense.CreatedBy
+            CreatedBy = expense.CreatedBy,
         };
     }
 
@@ -236,7 +241,9 @@ public class ExpenseService : IExpenseService
         // Only allow deletion of pending expenses
         if (expense.ApprovalStatus != ApprovalStatus.Pending)
         {
-            throw new InvalidOperationException("Cannot delete an expense that has been approved or rejected.");
+            throw new InvalidOperationException(
+                "Cannot delete an expense that has been approved or rejected."
+            );
         }
 
         _context.Expenses.Remove(expense);
@@ -245,8 +252,8 @@ public class ExpenseService : IExpenseService
 
     public async Task<ExpenseDto> ApproveExpenseAsync(Guid expenseId, Guid userId, bool approved)
     {
-        var expense = await _context.Expenses
-            .Include(e => e.Category)
+        var expense = await _context
+            .Expenses.Include(e => e.Category)
             .FirstOrDefaultAsync(e => e.Id == expenseId);
 
         if (expense == null)
@@ -282,21 +289,25 @@ public class ExpenseService : IExpenseService
             ApprovedBy = expense.ApprovedBy,
             ApprovedAt = expense.ApprovedAt,
             CreatedAt = expense.CreatedAt,
-            CreatedBy = expense.CreatedBy
+            CreatedBy = expense.CreatedBy,
         };
     }
 
-    public async Task<List<ExpenseCategoryDto>> GetExpenseCategoriesAsync(bool includeInactive = false)
+    public async Task<List<ExpenseCategoryDto>> GetExpenseCategoriesAsync(
+        bool includeInactive = false
+    )
     {
-        var query = _context.ExpenseCategories.AsQueryable();
+        var query = _context.ExpenseCategories.Include(c => c.Expenses).AsQueryable();
 
         if (!includeInactive)
         {
             query = query.Where(c => c.IsActive);
         }
 
-        var categories = await query
-            .OrderBy(c => c.NameEn)
+        var categories = await query.OrderBy(c => c.NameEn).ToListAsync();
+
+        // Calculate totals in memory to avoid SQLite decimal Sum() limitation
+        return categories
             .Select(c => new ExpenseCategoryDto
             {
                 Id = c.Id,
@@ -307,23 +318,31 @@ public class ExpenseService : IExpenseService
                 IsActive = c.IsActive,
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt,
-                TotalExpenses = c.Expenses.Where(e => e.ApprovalStatus == ApprovalStatus.Approved).Sum(e => (decimal?)e.Amount) ?? 0,
-                ExpenseCount = c.Expenses.Count
+                TotalExpenses = c
+                    .Expenses.Where(e => e.ApprovalStatus == ApprovalStatus.Approved)
+                    .Sum(e => e.Amount),
+                ExpenseCount = c.Expenses.Count,
             })
-            .ToListAsync();
-
-        return categories;
+            .ToList();
     }
 
-    public async Task<ExpenseCategoryDto> CreateExpenseCategoryAsync(string code, string nameEn, string nameAr, decimal? budgetAllocation = null)
+    public async Task<ExpenseCategoryDto> CreateExpenseCategoryAsync(
+        string code,
+        string nameEn,
+        string nameAr,
+        decimal? budgetAllocation = null
+    )
     {
         // Check for duplicate code
-        var existingCategory = await _context.ExpenseCategories
-            .FirstOrDefaultAsync(c => c.Code == code);
+        var existingCategory = await _context.ExpenseCategories.FirstOrDefaultAsync(c =>
+            c.Code == code
+        );
 
         if (existingCategory != null)
         {
-            throw new InvalidOperationException($"An expense category with code '{code}' already exists.");
+            throw new InvalidOperationException(
+                $"An expense category with code '{code}' already exists."
+            );
         }
 
         var category = new ExpenseCategory
@@ -335,7 +354,7 @@ public class ExpenseService : IExpenseService
             BudgetAllocation = budgetAllocation,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            UpdatedAt = DateTime.UtcNow,
         };
 
         _context.ExpenseCategories.Add(category);
@@ -352,7 +371,7 @@ public class ExpenseService : IExpenseService
             CreatedAt = category.CreatedAt,
             UpdatedAt = category.UpdatedAt,
             TotalExpenses = 0,
-            ExpenseCount = 0
+            ExpenseCount = 0,
         };
     }
 }

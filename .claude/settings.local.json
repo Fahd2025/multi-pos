@@ -34,7 +34,8 @@
       "Bash(tasklist:*)",
       "Bash(taskkill:*)",
       "Bash(dir /S /B UploadBranches*.db)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []

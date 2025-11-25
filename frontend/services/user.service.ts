@@ -145,6 +145,10 @@ export const getUsers = async (
     throw new Error(response.data.error?.message || 'Failed to fetch users');
   }
 
+  if (!response.data.data) {
+    throw new Error('No data returned from server');
+  }
+
   return response.data.data;
 };
 
@@ -156,6 +160,10 @@ export const getUserById = async (id: string): Promise<UserDto> => {
 
   if (!response.data.success) {
     throw new Error(response.data.error?.message || 'Failed to fetch user');
+  }
+
+  if (!response.data.data) {
+    throw new Error('No data returned from server');
   }
 
   return response.data.data;
@@ -171,6 +179,10 @@ export const createUser = async (user: CreateUserDto): Promise<UserDto> => {
     throw new Error(response.data.error?.message || 'Failed to create user');
   }
 
+  if (!response.data.data) {
+    throw new Error('No data returned from server');
+  }
+
   return response.data.data;
 };
 
@@ -182,6 +194,10 @@ export const updateUser = async (id: string, user: UpdateUserDto): Promise<UserD
 
   if (!response.data.success) {
     throw new Error(response.data.error?.message || 'Failed to update user');
+  }
+
+  if (!response.data.data) {
+    throw new Error('No data returned from server');
   }
 
   return response.data.data;
@@ -240,6 +256,10 @@ export const getUserActivity = async (userId: string, limit?: number): Promise<U
     throw new Error(response.data.error?.message || 'Failed to fetch user activity');
   }
 
+  if (!response.data.data) {
+    throw new Error('No data returned from server');
+  }
+
   return response.data.data;
 };
 
@@ -274,6 +294,10 @@ export const getAuditLogs = async (
     throw new Error(response.data.error?.message || 'Failed to fetch audit logs');
   }
 
+  if (!response.data.data) {
+    throw new Error('No data returned from server');
+  }
+
   return response.data.data;
 };
 
@@ -299,6 +323,10 @@ export const getUserAuditTrail = async (
 
   if (!response.data.success) {
     throw new Error(response.data.error?.message || 'Failed to fetch user audit trail');
+  }
+
+  if (!response.data.data) {
+    throw new Error('No data returned from server');
   }
 
   return response.data.data;

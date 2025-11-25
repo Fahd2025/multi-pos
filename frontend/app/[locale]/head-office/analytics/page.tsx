@@ -31,7 +31,7 @@ export default function AnalyticsPage({
       <EmptyState
         icon="📈"
         title="Analytics Coming Soon"
-        description="Multi-branch analytics with consolidated sales, inventory, and revenue charts will be available once User Story 1 (Sales) and User Story 2 (Inventory) data is available across branches."
+        message="Multi-branch analytics with consolidated sales, inventory, and revenue charts will be available once User Story 1 (Sales) and User Story 2 (Inventory) data is available across branches."
       />
 
       {/* Preview of Future Sections */}
