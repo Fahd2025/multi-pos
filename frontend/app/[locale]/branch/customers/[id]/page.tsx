@@ -3,24 +3,25 @@
  * Shows customer profile, statistics, and purchase history
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { use } from 'react';
-import { useRouter } from 'next/navigation';
-import customerService from '@/services/customer.service';
-import { CustomerDto, SaleDto } from '@/types/api.types';
-import Link from 'next/link';
-import CustomerFormModal from '@/components/customers/CustomerFormModal';
-import { Button } from '@/components/shared/Button';
-import { StatusBadge } from '@/components/shared/StatusBadge';
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { ErrorAlert } from '@/components/shared/ErrorAlert';
-import { EmptyState } from '@/components/shared/EmptyState';
-import { Dialog } from '@/components/shared/Dialog';
-import { ConfirmationDialog } from '@/components/modals/ConfirmationDialog';
-import { useDialog } from '@/hooks/useDialog';
-import { useConfirmation } from '@/hooks/useModal';
+import { useState, useEffect } from "react";
+import { use } from "react";
+import { useRouter } from "next/navigation";
+import customerService from "@/services/customer.service";
+import { CustomerDto, SaleDto } from "@/types/api.types";
+import Link from "next/link";
+import CustomerFormModal from "@/components/customers/CustomerFormModal";
+import { DataTable } from "@/components/data-table";
+import { ConfirmationDialog } from "@/components/modals";
+import { useDataTable } from "@/hooks/useDataTable";
+import { useConfirmation } from "@/hooks/useModal";
+import { DataTableColumn } from "@/types/data-table.types";
+import { Button } from "@/components/shared/Button";
+import { StatusBadge } from "@/components/shared/StatusBadge";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { ErrorAlert } from "@/components/shared/ErrorAlert";
+import { EmptyState } from "@/components/shared/EmptyState";
 
 export default function CustomerDetailsPage({
   params,
@@ -36,17 +37,25 @@ export default function CustomerDetailsPage({
   const [historyLoading, setHistoryLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Pagination for purchase history
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const pageSize = 10;
-
   // Modal states
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  // Dialog hooks
-  const dialog = useDialog();
+  // Hooks
   const confirmation = useConfirmation();
+
+  // DataTable hook for purchase history
+  const {
+    data: displayHistory,
+    paginationConfig,
+    sortConfig,
+    handlePageChange,
+    handlePageSizeChange,
+    handleSort,
+  } = useDataTable(purchaseHistory, {
+    pageSize: 10,
+    sortable: true,
+    pagination: true,
+  });
 
   /**
    * Load customer details
@@ -60,7 +69,7 @@ export default function CustomerDetailsPage({
    */
   useEffect(() => {
     loadPurchaseHistory();
-  }, [id, currentPage]);
+  }, [id]);
 
   const loadCustomer = async () => {
     try {
@@ -69,8 +78,8 @@ export default function CustomerDetailsPage({
       const data = await customerService.getCustomerById(id);
       setCustomer(data);
     } catch (err: any) {
-      setError(err.message || 'Failed to load customer details');
-      console.error('Error loading customer:', err);
+      setError(err.message || "Failed to load customer details");
+      console.error("Error loading customer:", err);
     } finally {
       setLoading(false);
     }
@@ -79,14 +88,17 @@ export default function CustomerDetailsPage({
   const loadPurchaseHistory = async () => {
     try {
       setHistoryLoading(true);
+      // Note: We are loading all history or a page. The API supports pagination.
+      // To work with client-side DataTable, we might want to load more or adapt.
+      // Previous code: await customerService.getCustomerPurchaseHistory(id, { page: currentPage, pageSize });
+      // Let's fetch the first page or a reasonable amount for now, similar to purchases page decision.
       const response = await customerService.getCustomerPurchaseHistory(id, {
-        page: currentPage,
-        pageSize,
+        page: 1,
+        pageSize: 100, // Fetch more for client-side table
       });
       setPurchaseHistory(response.data);
-      setTotalPages(response.pagination.totalPages);
     } catch (err: any) {
-      console.error('Error loading purchase history:', err);
+      console.error("Error loading purchase history:", err);
     } finally {
       setHistoryLoading(false);
     }
@@ -96,18 +108,74 @@ export default function CustomerDetailsPage({
     if (!customer) return;
 
     confirmation.ask(
-      'Delete Customer',
+      "Delete Customer",
       `Are you sure you want to delete "${customer.nameEn}"? This action cannot be undone.`,
       async () => {
         try {
           await customerService.deleteCustomer(id);
           router.push(`/${locale}/branch/customers`);
         } catch (err: any) {
-          dialog.error(`Failed to delete customer: ${err.message}`);
+          setError(`Failed to delete customer: ${err.message}`);
         }
       },
-      'danger'
+      "danger"
     );
+  };
+
+  // Define columns for purchase history
+  const historyColumns: DataTableColumn<SaleDto>[] = [
+    {
+      key: "createdAt",
+      label: "Date",
+      sortable: true,
+      render: (value) => new Date(value).toLocaleDateString(),
+    },
+    {
+      key: "invoiceNumber",
+      label: "Invoice #",
+      sortable: true,
+      render: (value, row) => (
+        <Link
+          href={`/${locale}/branch/sales/${row.id}`}
+          className="text-blue-600 hover:underline font-medium"
+        >
+          {value}
+        </Link>
+      ),
+    },
+    {
+      key: "lineItems",
+      label: "Items",
+      sortable: false, // Array not sortable by default
+      render: (value) => `${value?.length || 0} items`,
+    },
+    {
+      key: "total",
+      label: "Total",
+      sortable: true,
+      render: (value) => `$${value.toFixed(2)}`,
+    },
+    {
+      key: "paymentMethod",
+      label: "Payment",
+      sortable: true,
+      render: (value) => (value === 0 ? "Cash" : value === 1 ? "Card" : "Other"),
+    },
+    {
+      key: "isVoided",
+      label: "Status",
+      sortable: true,
+      render: (value) => (
+        <StatusBadge variant={value ? "danger" : "success"}>
+          {value ? "Voided" : "Completed"}
+        </StatusBadge>
+      ),
+    },
+  ];
+
+  // Adapter for sort change
+  const handleSortChange = (config: { key: keyof SaleDto | string; direction: "asc" | "desc" }) => {
+    handleSort(config.key);
   };
 
   if (loading) {
@@ -121,7 +189,7 @@ export default function CustomerDetailsPage({
   if (error || !customer) {
     return (
       <div className="container mx-auto p-6">
-        <ErrorAlert message={error || 'Customer not found'} />
+        <ErrorAlert message={error || "Customer not found"} />
         <Link href={`/${locale}/branch/customers`}>
           <Button variant="secondary" size="md" className="mt-4">
             ← Back to Customers
@@ -136,11 +204,18 @@ export default function CustomerDetailsPage({
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <Link href={`/${locale}/branch/customers`} className="text-blue-600 hover:underline mb-2 inline-block">
+          <Link
+            href={`/${locale}/branch/customers`}
+            className="text-blue-600 hover:underline mb-2 inline-block"
+          >
             ← Back to Customers
           </Link>
           <h1 className="text-3xl font-bold">{customer.nameEn}</h1>
-          {customer.nameAr && <p className="text-gray-600" dir="rtl">{customer.nameAr}</p>}
+          {customer.nameAr && (
+            <p className="text-gray-600" dir="rtl">
+              {customer.nameAr}
+            </p>
+          )}
         </div>
         <div className="flex gap-2">
           <Button variant="primary" size="md" onClick={() => setIsEditModalOpen(true)}>
@@ -164,8 +239,8 @@ export default function CustomerDetailsPage({
             </div>
             <div>
               <p className="text-sm text-gray-600">Status</p>
-              <StatusBadge variant={customer.isActive ? 'success' : 'danger'}>
-                {customer.isActive ? 'Active' : 'Inactive'}
+              <StatusBadge variant={customer.isActive ? "success" : "danger"}>
+                {customer.isActive ? "Active" : "Inactive"}
               </StatusBadge>
             </div>
             {customer.email && (
@@ -189,7 +264,9 @@ export default function CustomerDetailsPage({
             {customer.addressAr && (
               <div className="md:col-span-2">
                 <p className="text-sm text-gray-600">Address (Arabic)</p>
-                <p className="font-medium" dir="rtl">{customer.addressAr}</p>
+                <p className="font-medium" dir="rtl">
+                  {customer.addressAr}
+                </p>
               </div>
             )}
             <div>
@@ -209,7 +286,9 @@ export default function CustomerDetailsPage({
           <div className="space-y-4">
             <div>
               <p className="text-sm text-gray-600">Total Purchases</p>
-              <p className="text-2xl font-bold text-green-600">${customer.totalPurchases.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-green-600">
+                ${customer.totalPurchases.toFixed(2)}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Visit Count</p>
@@ -235,83 +314,19 @@ export default function CustomerDetailsPage({
 
         {historyLoading ? (
           <LoadingSpinner size="md" text="Loading purchase history..." />
-        ) : purchaseHistory.length > 0 ? (
-          <>
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead className="bg-gray-50 border-b">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invoice #</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Items</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {purchaseHistory.map((sale) => (
-                    <tr key={sale.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {new Date(sale.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <Link
-                          href={`/${locale}/branch/sales/${sale.id}`}
-                          className="text-blue-600 hover:underline"
-                        >
-                          {sale.invoiceNumber}
-                        </Link>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {sale.lineItems?.length || 0} items
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        ${sale.total.toFixed(2)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {sale.paymentMethod === 0 ? 'Cash' : sale.paymentMethod === 1 ? 'Card' : 'Other'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <StatusBadge variant={sale.isVoided ? 'danger' : 'success'}>
-                          {sale.isVoided ? 'Voided' : 'Completed'}
-                        </StatusBadge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center items-center mt-6 gap-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </Button>
-                <span className="px-4 py-2">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </Button>
-              </div>
-            )}
-          </>
         ) : (
-          <EmptyState
-            title="No purchase history"
-            message="This customer has not made any purchases yet."
+          <DataTable
+            data={displayHistory}
+            columns={historyColumns}
+            getRowKey={(row) => row.id}
+            pagination
+            paginationConfig={paginationConfig}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+            sortable
+            sortConfig={sortConfig ?? undefined}
+            onSortChange={handleSortChange}
+            emptyMessage="This customer has not made any purchases yet."
           />
         )}
       </div>
@@ -325,20 +340,6 @@ export default function CustomerDetailsPage({
           setIsEditModalOpen(false);
         }}
         customer={customer}
-      />
-
-      {/* Alert Dialog */}
-      <Dialog
-        isOpen={dialog.isOpen}
-        onClose={dialog.handleClose}
-        onConfirm={dialog.showCancel ? undefined : dialog.handleClose}
-        title={dialog.title}
-        message={dialog.message}
-        type={dialog.type}
-        confirmText={dialog.confirmText}
-        cancelText={dialog.cancelText}
-        showCancel={dialog.showCancel}
-        isLoading={dialog.isProcessing}
       />
 
       {/* Confirmation Dialog */}

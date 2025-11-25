@@ -3,28 +3,24 @@
  * Manage product categories with hierarchical structure
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { use } from 'react';
-import Link from 'next/link';
-import inventoryService from '@/services/inventory.service';
-import { CategoryDto } from '@/types/api.types';
-import CategoryFormModal from '@/components/inventory/CategoryFormModal';
-import { Button } from '@/components/shared/Button';
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { ErrorAlert } from '@/components/shared/ErrorAlert';
-import { EmptyState } from '@/components/shared/EmptyState';
-import { Dialog } from '@/components/shared/Dialog';
-import { ConfirmationDialog } from '@/components/modals/ConfirmationDialog';
-import { useDialog } from '@/hooks/useDialog';
-import { useConfirmation } from '@/hooks/useModal';
+import { useState, useEffect } from "react";
+import { use } from "react";
+import Link from "next/link";
+import inventoryService from "@/services/inventory.service";
+import { CategoryDto } from "@/types/api.types";
+import CategoryFormModal from "@/components/inventory/CategoryFormModal";
+import { DataTable } from "@/components/data-table";
+import { ConfirmationDialog } from "@/components/modals";
+import { useDataTable } from "@/hooks/useDataTable";
+import { useConfirmation } from "@/hooks/useModal";
+import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
+import { Button } from "@/components/shared/Button";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { ErrorAlert } from "@/components/shared/ErrorAlert";
 
-export default function CategoriesPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
+export default function CategoriesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
 
   const [categories, setCategories] = useState<CategoryDto[]>([]);
@@ -35,9 +31,22 @@ export default function CategoriesPage({
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<CategoryDto | undefined>(undefined);
 
-  // Dialog hooks
-  const dialog = useDialog();
+  // Hooks
   const confirmation = useConfirmation();
+
+  // DataTable hook
+  const {
+    data: displayData,
+    paginationConfig,
+    sortConfig,
+    handlePageChange,
+    handlePageSizeChange,
+    handleSort,
+  } = useDataTable(categories, {
+    pageSize: 20,
+    sortable: true,
+    pagination: true,
+  });
 
   /**
    * Load categories
@@ -53,8 +62,8 @@ export default function CategoriesPage({
       const data = await inventoryService.getCategories();
       setCategories(data);
     } catch (err: any) {
-      setError(err.message || 'Failed to load categories');
-      console.error('Failed to load categories:', err);
+      setError(err.message || "Failed to load categories");
+      console.error("Failed to load categories:", err);
     } finally {
       setLoading(false);
     }
@@ -65,17 +74,17 @@ export default function CategoriesPage({
    */
   const handleDelete = async (id: string, name: string) => {
     confirmation.ask(
-      'Delete Category',
+      "Delete Category",
       `Are you sure you want to delete category "${name}"? This action cannot be undone.`,
       async () => {
         try {
           await inventoryService.deleteCategory(id);
-          loadCategories(); // Reload list
+          loadCategories();
         } catch (err: any) {
-          dialog.error(`Failed to delete category: ${err.message}`);
+          setError(`Failed to delete category: ${err.message}`);
         }
       },
-      'danger'
+      "danger"
     );
   };
 
@@ -83,9 +92,9 @@ export default function CategoriesPage({
    * Get parent category name
    */
   const getParentName = (parentId?: string) => {
-    if (!parentId) return 'None';
+    if (!parentId) return "None";
     const parent = categories.find((c) => c.id === parentId);
-    return parent?.nameEn || 'Unknown';
+    return parent?.nameEn || "Unknown";
   };
 
   /**
@@ -100,6 +109,75 @@ export default function CategoriesPage({
    */
   const getRootCategories = () => {
     return categories.filter((c) => !c.parentCategoryId);
+  };
+
+  // Define table columns
+  const columns: DataTableColumn<CategoryDto>[] = [
+    {
+      key: "code",
+      label: "Code",
+      sortable: true,
+      render: (value) => <div className="font-medium text-gray-900">{value}</div>,
+    },
+    {
+      key: "nameEn",
+      label: "Name",
+      sortable: true,
+      render: (value, row) => (
+        <div>
+          <div className="text-sm font-medium text-gray-900">{value}</div>
+          {row.nameAr && <div className="text-sm text-gray-500">{row.nameAr}</div>}
+        </div>
+      ),
+    },
+    {
+      key: "descriptionEn",
+      label: "Description",
+      sortable: true,
+      render: (value, row) => (
+        <div>
+          <div className="text-sm text-gray-900">{value || "-"}</div>
+          {row.descriptionAr && <div className="text-sm text-gray-500">{row.descriptionAr}</div>}
+        </div>
+      ),
+    },
+    {
+      key: "parentCategoryId",
+      label: "Parent Category",
+      sortable: true,
+      render: (value) => <div className="text-sm text-gray-500">{getParentName(value)}</div>,
+    },
+    {
+      key: "displayOrder",
+      label: "Display Order",
+      sortable: true,
+      render: (value) => <div className="text-center text-sm text-gray-500">{value}</div>,
+    },
+  ];
+
+  // Define row actions
+  const actions: DataTableAction<CategoryDto>[] = [
+    {
+      label: "✏️ Edit",
+      onClick: (row) => {
+        setSelectedCategory(row);
+        setIsCategoryModalOpen(true);
+      },
+      variant: "primary",
+    },
+    {
+      label: "🗑️ Delete",
+      onClick: (row) => handleDelete(row.id, row.nameEn),
+      variant: "danger",
+    },
+  ];
+
+  // Adapter for sort change
+  const handleSortChange = (config: {
+    key: keyof CategoryDto | string;
+    direction: "asc" | "desc";
+  }) => {
+    handleSort(config.key);
   };
 
   return (
@@ -134,128 +212,36 @@ export default function CategoriesPage({
       {/* Error Message */}
       {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
 
-      {/* Categories Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        {loading ? (
-          <LoadingSpinner size="lg" text="Loading categories..." />
-        ) : categories.length === 0 ? (
-          <EmptyState
-            title="No categories found"
-            message="Start by adding your first category to organize products."
-            action={
-              <Button
-                variant="primary"
-                size="md"
-                onClick={() => {
-                  setSelectedCategory(undefined);
-                  setIsCategoryModalOpen(true);
-                }}
-              >
-                Add Your First Category
-              </Button>
-            }
-          />
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Code
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Description
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Parent Category
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Display Order
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {categories
-                  .sort((a, b) => a.displayOrder - b.displayOrder)
-                  .map((category) => (
-                    <tr key={category.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {category.code}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {category.nameEn}
-                        </div>
-                        {category.nameAr && (
-                          <div className="text-sm text-gray-500">{category.nameAr}</div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900">
-                          {category.descriptionEn || '-'}
-                        </div>
-                        {category.descriptionAr && (
-                          <div className="text-sm text-gray-500">
-                            {category.descriptionAr}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {getParentName(category.parentCategoryId)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
-                        {category.displayOrder}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => {
-                              setSelectedCategory(category);
-                              setIsCategoryModalOpen(true);
-                            }}
-                            className="text-blue-600 hover:text-blue-900"
-                            title="Edit"
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleDelete(category.id, category.nameEn)
-                            }
-                            className="text-red-600 hover:text-red-900"
-                            title="Delete"
-                          >
-                            🗑️
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      {/* Loading State */}
+      {loading && <LoadingSpinner size="lg" text="Loading categories..." />}
+
+      {/* Categories DataTable */}
+      {!loading && (
+        <DataTable
+          data={displayData}
+          columns={columns}
+          actions={actions}
+          getRowKey={(row) => row.id}
+          pagination
+          paginationConfig={paginationConfig}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          sortable
+          sortConfig={sortConfig ?? undefined}
+          onSortChange={handleSortChange}
+          emptyMessage="No categories found. Click 'Add Category' to create one."
+        />
+      )}
 
       {/* Category Structure View */}
       {!loading && categories.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Category Hierarchy
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Category Hierarchy</h2>
           <div className="space-y-2">
             {getRootCategories().map((root) => (
               <div key={root.id} className="space-y-1">
                 <div className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                  <span className="text-sm font-medium text-gray-900">
-                    📁 {root.nameEn}
-                  </span>
+                  <span className="text-sm font-medium text-gray-900">📁 {root.nameEn}</span>
                   <span className="text-xs text-gray-500">({root.code})</span>
                 </div>
                 {getChildCategories(root.id).map((child) => (
@@ -263,9 +249,7 @@ export default function CategoriesPage({
                     key={child.id}
                     className="flex items-center gap-2 p-2 pl-8 bg-gray-50 rounded ml-6"
                   >
-                    <span className="text-sm text-gray-700">
-                      📄 {child.nameEn}
-                    </span>
+                    <span className="text-sm text-gray-700">📄 {child.nameEn}</span>
                     <span className="text-xs text-gray-500">({child.code})</span>
                   </div>
                 ))}
@@ -279,15 +263,11 @@ export default function CategoriesPage({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="text-sm text-gray-600">Total Categories</div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">
-            {categories.length}
-          </div>
+          <div className="text-2xl font-bold text-gray-900 mt-1">{categories.length}</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="text-sm text-gray-600">Root Categories</div>
-          <div className="text-2xl font-bold text-blue-600 mt-1">
-            {getRootCategories().length}
-          </div>
+          <div className="text-2xl font-bold text-blue-600 mt-1">{getRootCategories().length}</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="text-sm text-gray-600">Subcategories</div>
@@ -309,20 +289,6 @@ export default function CategoriesPage({
         }}
         category={selectedCategory}
         categories={categories}
-      />
-
-      {/* Alert Dialog */}
-      <Dialog
-        isOpen={dialog.isOpen}
-        onClose={dialog.handleClose}
-        onConfirm={dialog.showCancel ? undefined : dialog.handleClose}
-        title={dialog.title}
-        message={dialog.message}
-        type={dialog.type}
-        confirmText={dialog.confirmText}
-        cancelText={dialog.cancelText}
-        showCancel={dialog.showCancel}
-        isLoading={dialog.isProcessing}
       />
 
       {/* Confirmation Dialog */}

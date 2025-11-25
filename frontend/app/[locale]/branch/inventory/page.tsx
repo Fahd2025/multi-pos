@@ -1,32 +1,28 @@
 /**
  * Inventory Management Page
- * Product list with search, filters, and CRUD operations
+ * Product list with search, filters, and CRUD operations using generic DataTable
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { use } from 'react';
-import inventoryService from '@/services/inventory.service';
-import { ProductDto, CategoryDto } from '@/types/api.types';
-import Link from 'next/link';
-import ProductFormModal from '@/components/inventory/ProductFormModal';
-import StockAdjustmentModal from '@/components/inventory/StockAdjustmentModal';
-import { Button } from '@/components/shared/Button';
-import { StatusBadge, getStockStatusVariant } from '@/components/shared/StatusBadge';
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { ErrorAlert } from '@/components/shared/ErrorAlert';
-import { EmptyState } from '@/components/shared/EmptyState';
-import { Dialog } from '@/components/shared/Dialog';
-import { ConfirmationDialog } from '@/components/modals/ConfirmationDialog';
-import { useDialog } from '@/hooks/useDialog';
-import { useConfirmation } from '@/hooks/useModal';
+import { useState, useEffect } from "react";
+import { use } from "react";
+import inventoryService from "@/services/inventory.service";
+import { ProductDto, CategoryDto } from "@/types/api.types";
+import Link from "next/link";
+import ProductFormModal from "@/components/inventory/ProductFormModal";
+import StockAdjustmentModal from "@/components/inventory/StockAdjustmentModal";
+import { DataTable } from "@/components/data-table";
+import { ConfirmationDialog } from "@/components/modals";
+import { useDataTable } from "@/hooks/useDataTable";
+import { useConfirmation } from "@/hooks/useModal";
+import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
+import { Button } from "@/components/shared/Button";
+import { StatusBadge, getStockStatusVariant } from "@/components/shared/StatusBadge";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { ErrorAlert } from "@/components/shared/ErrorAlert";
 
-export default function InventoryPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
+export default function InventoryPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
 
   const [products, setProducts] = useState<ProductDto[]>([]);
@@ -35,31 +31,39 @@ export default function InventoryPage({
   const [error, setError] = useState<string | null>(null);
 
   // Filter states
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [showLowStock, setShowLowStock] = useState(false);
   const [showOutOfStock, setShowOutOfStock] = useState(false);
-
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const pageSize = 20;
 
   // Modal states
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isStockModalOpen, setIsStockModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductDto | undefined>(undefined);
 
-  // Dialog hooks
-  const dialog = useDialog();
+  // Hooks
   const confirmation = useConfirmation();
+
+  // DataTable hook
+  const {
+    data: displayData,
+    paginationConfig,
+    sortConfig,
+    handlePageChange,
+    handlePageSizeChange,
+    handleSort,
+  } = useDataTable(products, {
+    pageSize: 20,
+    sortable: true,
+    pagination: true,
+  });
 
   /**
    * Load products and categories
    */
   useEffect(() => {
     loadData();
-  }, [currentPage, selectedCategory, showLowStock, showOutOfStock]);
+  }, [selectedCategory, showLowStock, showOutOfStock]);
 
   const loadData = async () => {
     try {
@@ -68,8 +72,8 @@ export default function InventoryPage({
 
       // Load products with filters
       const productsResponse = await inventoryService.getProducts({
-        page: currentPage,
-        pageSize,
+        page: paginationConfig?.currentPage || 1,
+        pageSize: paginationConfig?.pageSize || 20,
         search: searchTerm || undefined,
         categoryId: selectedCategory || undefined,
         lowStock: showLowStock || undefined,
@@ -77,7 +81,6 @@ export default function InventoryPage({
       });
 
       setProducts(productsResponse.data);
-      setTotalPages(productsResponse.pagination.totalPages);
 
       // Load categories (only once)
       if (categories.length === 0) {
@@ -85,8 +88,8 @@ export default function InventoryPage({
         setCategories(categoriesData);
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to load inventory data');
-      console.error('Failed to load inventory:', err);
+      setError(err.message || "Failed to load inventory data");
+      console.error("Failed to load inventory:", err);
     } finally {
       setLoading(false);
     }
@@ -97,26 +100,25 @@ export default function InventoryPage({
    */
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    setCurrentPage(1);
     loadData();
   };
 
   /**
    * Handle delete product
    */
-  const handleDelete = async (id: string, name: string) => {
+  const handleDelete = async (product: ProductDto) => {
     confirmation.ask(
-      'Delete Product',
-      `Are you sure you want to delete "${name}"? This action cannot be undone.`,
+      "Delete Product",
+      `Are you sure you want to delete "${product.nameEn}"? This action cannot be undone.`,
       async () => {
         try {
-          await inventoryService.deleteProduct(id);
-          loadData(); // Reload list
+          await inventoryService.deleteProduct(product.id);
+          loadData();
         } catch (err: any) {
-          dialog.error(`Failed to delete product: ${err.message}`);
+          setError(`Failed to delete product: ${err.message}`);
         }
       },
-      'danger'
+      "danger"
     );
   };
 
@@ -124,9 +126,9 @@ export default function InventoryPage({
    * Get category name
    */
   const getCategoryName = (categoryId?: string) => {
-    if (!categoryId) return 'Uncategorized';
+    if (!categoryId) return "Uncategorized";
     const category = categories.find((c) => c.id === categoryId);
-    return category?.nameEn || 'Unknown';
+    return category?.nameEn || "Unknown";
   };
 
   /**
@@ -134,12 +136,106 @@ export default function InventoryPage({
    */
   const getStockLabel = (product: ProductDto) => {
     if (product.stockLevel <= 0) {
-      return 'Out of Stock';
+      return "Out of Stock";
     } else if (product.stockLevel <= product.minStockThreshold) {
-      return 'Low Stock';
+      return "Low Stock";
     } else {
-      return 'In Stock';
+      return "In Stock";
     }
+  };
+
+  // Define table columns
+  const columns: DataTableColumn<ProductDto>[] = [
+    {
+      key: "nameEn",
+      label: "Product",
+      sortable: true,
+      render: (value, row) => (
+        <div>
+          <div className="text-sm font-medium text-gray-900">{value}</div>
+          {row.nameAr && <div className="text-sm text-gray-500">{row.nameAr}</div>}
+        </div>
+      ),
+    },
+    {
+      key: "sku",
+      label: "Code / SKU",
+      sortable: true,
+      render: (value, row) => (
+        <div>
+          <div className="text-sm text-gray-900">{value}</div>
+          {row.barcode && <div className="text-sm text-gray-500">{row.barcode}</div>}
+        </div>
+      ),
+    },
+    {
+      key: "categoryId",
+      label: "Category",
+      sortable: true,
+      render: (value) => <span className="text-sm text-gray-500">{getCategoryName(value)}</span>,
+    },
+    {
+      key: "sellingPrice",
+      label: "Price",
+      sortable: true,
+      render: (value) => (
+        <span className="text-sm font-medium text-gray-900">${value.toFixed(2)}</span>
+      ),
+    },
+    {
+      key: "stockLevel",
+      label: "Stock",
+      sortable: true,
+      render: (value, row) => (
+        <div className="text-right">
+          <span className="text-sm font-semibold text-gray-900">{value}</span>
+          <span className="text-xs text-gray-500 ml-1">/ {row.minStockThreshold}</span>
+        </div>
+      ),
+    },
+    {
+      key: "stockStatus",
+      label: "Status",
+      sortable: false,
+      render: (_, row) => (
+        <StatusBadge variant={getStockStatusVariant(row.stockLevel, row.minStockThreshold)}>
+          {getStockLabel(row)}
+        </StatusBadge>
+      ),
+    },
+  ];
+
+  // Define row actions
+  const actions: DataTableAction<ProductDto>[] = [
+    {
+      label: "📊 Stock",
+      onClick: (row) => {
+        setSelectedProduct(row);
+        setIsStockModalOpen(true);
+      },
+      variant: "secondary",
+    },
+    {
+      label: "Edit",
+      onClick: (row) => {
+        setSelectedProduct(row);
+        setIsProductModalOpen(true);
+      },
+      variant: "primary",
+    },
+    {
+      label: "Delete",
+      onClick: (row) => handleDelete(row),
+      variant: "danger",
+    },
+  ];
+
+  // Adapter for sort change
+  const handleSortChange = (config: {
+    key: keyof ProductDto | string;
+    direction: "asc" | "desc";
+  }) => {
+    handleSort(config.key);
   };
 
   return (
@@ -194,7 +290,6 @@ export default function InventoryPage({
               value={selectedCategory}
               onChange={(e) => {
                 setSelectedCategory(e.target.value);
-                setCurrentPage(1);
               }}
               className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
             >
@@ -212,7 +307,6 @@ export default function InventoryPage({
                 checked={showLowStock}
                 onChange={(e) => {
                   setShowLowStock(e.target.checked);
-                  setCurrentPage(1);
                 }}
                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
               />
@@ -225,7 +319,6 @@ export default function InventoryPage({
                 checked={showOutOfStock}
                 onChange={(e) => {
                   setShowOutOfStock(e.target.checked);
-                  setCurrentPage(1);
                 }}
                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
               />
@@ -238,170 +331,32 @@ export default function InventoryPage({
       {/* Error Message */}
       {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
 
-      {/* Products Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        {loading ? (
-          <LoadingSpinner size="lg" text="Loading products..." />
-        ) : products.length === 0 ? (
-          <EmptyState
-            title="No products found"
-            message="Start by adding your first product to the inventory."
-            action={
-              <Button
-                variant="primary"
-                size="md"
-                onClick={() => {
-                  setSelectedProduct(undefined);
-                  setIsProductModalOpen(true);
-                }}
-              >
-                Add Your First Product
-              </Button>
-            }
-          />
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Product
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Code / SKU
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Category
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Price
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Stock
-                    </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {products.map((product) => (
-                    <tr key={product.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">
-                              {product.nameEn}
-                            </div>
-                            {product.nameAr && (
-                              <div className="text-sm text-gray-500">{product.nameAr}</div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{product.sku}</div>
-                        {product.barcode && (
-                          <div className="text-sm text-gray-500">{product.barcode}</div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {getCategoryName(product.categoryId)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
-                        ${product.sellingPrice.toFixed(2)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <span className="text-sm font-semibold text-gray-900">
-                          {product.stockLevel}
-                        </span>
-                        <span className="text-xs text-gray-500 ml-1">
-                          / {product.minStockThreshold}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <StatusBadge variant={getStockStatusVariant(product.stockLevel, product.minStockThreshold)}>
-                          {getStockLabel(product)}
-                        </StatusBadge>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => {
-                              setSelectedProduct(product);
-                              setIsStockModalOpen(true);
-                            }}
-                            className="text-green-600 hover:text-green-900"
-                            title="Adjust Stock"
-                          >
-                            📊
-                          </button>
-                          <button
-                            onClick={() => {
-                              setSelectedProduct(product);
-                              setIsProductModalOpen(true);
-                            }}
-                            className="text-blue-600 hover:text-blue-900"
-                            title="Edit"
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            onClick={() => handleDelete(product.id, product.nameEn)}
-                            className="text-red-600 hover:text-red-900"
-                            title="Delete"
-                          >
-                            🗑️
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+      {/* Loading State */}
+      {loading && <LoadingSpinner size="lg" text="Loading products..." />}
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
-                <div className="text-sm text-gray-700">
-                  Page {currentPage} of {totalPages}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setCurrentPage(currentPage - 1)}
-                    disabled={currentPage === 1}
-                  >
-                    ← Previous
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                  >
-                    Next →
-                  </Button>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+      {/* Products DataTable */}
+      {!loading && (
+        <DataTable
+          data={displayData}
+          columns={columns}
+          actions={actions}
+          getRowKey={(row) => row.id}
+          pagination
+          paginationConfig={paginationConfig}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          sortable
+          sortConfig={sortConfig ?? undefined}
+          onSortChange={handleSortChange}
+          emptyMessage="No products found. Click 'Add Product' to create one."
+        />
+      )}
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="text-sm text-gray-600">Total Products</div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">
-            {products.length}
-          </div>
+          <div className="text-2xl font-bold text-gray-900 mt-1">{products.length}</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="text-sm text-gray-600">Low Stock Alerts</div>
@@ -417,9 +372,7 @@ export default function InventoryPage({
         </div>
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="text-sm text-gray-600">Categories</div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">
-            {categories.length}
-          </div>
+          <div className="text-2xl font-bold text-gray-900 mt-1">{categories.length}</div>
         </div>
       </div>
 
@@ -447,20 +400,6 @@ export default function InventoryPage({
           loadData();
         }}
         product={selectedProduct || null}
-      />
-
-      {/* Alert Dialog */}
-      <Dialog
-        isOpen={dialog.isOpen}
-        onClose={dialog.handleClose}
-        onConfirm={dialog.showCancel ? undefined : dialog.handleClose}
-        title={dialog.title}
-        message={dialog.message}
-        type={dialog.type}
-        confirmText={dialog.confirmText}
-        cancelText={dialog.cancelText}
-        showCancel={dialog.showCancel}
-        isLoading={dialog.isProcessing}
       />
 
       {/* Confirmation Dialog */}

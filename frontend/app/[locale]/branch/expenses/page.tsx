@@ -3,29 +3,25 @@
  * Expense list with filtering, approval workflow, and CRUD operations
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { use } from 'react';
-import Link from 'next/link';
-import expenseService from '@/services/expense.service';
-import { ExpenseDto, ExpenseCategoryDto } from '@/types/api.types';
-import ExpenseFormModal from '@/components/expenses/ExpenseFormModal';
-import { Button } from '@/components/shared/Button';
-import { StatusBadge, getApprovalStatusVariant } from '@/components/shared/StatusBadge';
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { ErrorAlert } from '@/components/shared/ErrorAlert';
-import { EmptyState } from '@/components/shared/EmptyState';
-import { Dialog } from '@/components/shared/Dialog';
-import { ConfirmationDialog } from '@/components/modals/ConfirmationDialog';
-import { useDialog } from '@/hooks/useDialog';
-import { useConfirmation } from '@/hooks/useModal';
+import { useState, useEffect } from "react";
+import { use } from "react";
+import Link from "next/link";
+import expenseService from "@/services/expense.service";
+import { ExpenseDto, ExpenseCategoryDto } from "@/types/api.types";
+import ExpenseFormModal from "@/components/expenses/ExpenseFormModal";
+import { ConfirmationDialog } from "@/components/modals";
+import { useConfirmation } from "@/hooks/useModal";
+import { Button } from "@/components/shared/Button";
+import { StatusBadge, getApprovalStatusVariant } from "@/components/shared/StatusBadge";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { ErrorAlert } from "@/components/shared/ErrorAlert";
+import { DataTable } from "@/components/data-table";
+import { useDataTable } from "@/hooks/useDataTable";
+import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
 
-export default function ExpensesPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
+export default function ExpensesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
 
   const [expenses, setExpenses] = useState<ExpenseDto[]>([]);
@@ -34,30 +30,38 @@ export default function ExpensesPage({
   const [error, setError] = useState<string | null>(null);
 
   // Filter states
-  const [categoryFilter, setCategoryFilter] = useState<string>('');
+  const [categoryFilter, setCategoryFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<number | undefined>(undefined);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const pageSize = 20;
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<ExpenseDto | undefined>(undefined);
 
-  // Dialog hooks
-  const dialog = useDialog();
+  // Hooks
   const confirmation = useConfirmation();
+
+  // DataTable hook
+  const {
+    data: displayData,
+    paginationConfig,
+    sortConfig,
+    handlePageChange,
+    handlePageSizeChange,
+    handleSort,
+  } = useDataTable(expenses, {
+    pageSize: 20,
+    sortable: true,
+    pagination: true,
+  });
 
   /**
    * Load expenses and categories
    */
   useEffect(() => {
     loadData();
-  }, [currentPage, statusFilter, categoryFilter]);
+  }, [categoryFilter, statusFilter, startDate, endDate]);
 
   const loadData = async () => {
     try {
@@ -69,9 +73,15 @@ export default function ExpensesPage({
       setCategories(categoriesData);
 
       // Load expenses
+      // Note: API supports pagination. For client-side DataTable, we fetch a larger set or adapt.
+      // Previous code used server-side pagination: page: currentPage, pageSize: pageSize
+      // Here we will fetch a reasonable amount for client-side handling or we should implement server-side DataTable.
+      // Given the "replace with example page" instruction, and example page uses client-side DataTable hook,
+      // we'll fetch a larger set (e.g. 1000) or just the first page if we assume limited data.
+      // Let's fetch more to be safe for client-side sorting/pagination.
       const response = await expenseService.getExpenses({
-        page: currentPage,
-        pageSize,
+        page: 1,
+        pageSize: 1000,
         categoryId: categoryFilter || undefined,
         approvalStatus: statusFilter,
         startDate: startDate || undefined,
@@ -79,24 +89,23 @@ export default function ExpensesPage({
       });
 
       setExpenses(response.data);
-      setTotalPages(response.pagination.totalPages);
     } catch (err: any) {
-      setError(err.message || 'Failed to load expenses');
-      console.error('Error loading expenses:', err);
+      setError(err.message || "Failed to load expenses");
+      console.error("Error loading expenses:", err);
     } finally {
       setLoading(false);
     }
   };
 
   const handleApplyFilters = () => {
-    setCurrentPage(1);
+    // Filters are applied via useEffect dependencies
     loadData();
   };
 
   const handleEdit = (expense: ExpenseDto) => {
     // Only allow editing of pending expenses
     if (expense.approvalStatus !== 0) {
-      dialog.warning('Only pending expenses can be edited');
+      setError("Only pending expenses can be edited");
       return;
     }
     setSelectedExpense(expense);
@@ -106,63 +115,159 @@ export default function ExpensesPage({
   const handleDelete = async (expenseId: string, expense: ExpenseDto) => {
     // Only allow deleting of pending expenses
     if (expense.approvalStatus !== 0) {
-      dialog.warning('Only pending expenses can be deleted');
+      setError("Only pending expenses can be deleted");
       return;
     }
 
     confirmation.ask(
-      'Delete Expense',
-      'Are you sure you want to delete this expense? This action cannot be undone.',
+      "Delete Expense",
+      "Are you sure you want to delete this expense? This action cannot be undone.",
       async () => {
         try {
           await expenseService.deleteExpense(expenseId);
           loadData();
         } catch (err: any) {
-          dialog.error(err.message || 'Failed to delete expense');
+          setError(err.message || "Failed to delete expense");
         }
       },
-      'danger'
+      "danger"
     );
   };
 
   const handleApprove = async (expenseId: string, approved: boolean) => {
     confirmation.ask(
-      approved ? 'Approve Expense' : 'Reject Expense',
-      `Are you sure you want to ${approved ? 'approve' : 'reject'} this expense?`,
+      approved ? "Approve Expense" : "Reject Expense",
+      `Are you sure you want to ${approved ? "approve" : "reject"} this expense?`,
       async () => {
         try {
           await expenseService.approveExpense(expenseId, approved);
           loadData();
         } catch (err: any) {
-          dialog.error(err.message || `Failed to ${approved ? 'approve' : 'reject'} expense`);
+          setError(err.message || `Failed to ${approved ? "approve" : "reject"} expense`);
         }
       },
-      approved ? 'success' : 'warning'
+      approved ? "success" : "warning"
     );
   };
 
   const getStatusLabel = (status: number) => {
     switch (status) {
-      case 0: return 'Pending';
-      case 1: return 'Approved';
-      case 2: return 'Rejected';
-      default: return 'Unknown';
+      case 0:
+        return "Pending";
+      case 1:
+        return "Approved";
+      case 2:
+        return "Rejected";
+      default:
+        return "Unknown";
     }
   };
 
   const getPaymentMethodLabel = (method: number) => {
     switch (method) {
       case 0:
-        return 'Cash';
+        return "Cash";
       case 1:
-        return 'Card';
+        return "Card";
       case 2:
-        return 'Bank Transfer';
+        return "Bank Transfer";
       case 3:
-        return 'Other';
+        return "Other";
       default:
-        return 'Unknown';
+        return "Unknown";
     }
+  };
+
+  // Define columns
+  const columns: DataTableColumn<ExpenseDto>[] = [
+    {
+      key: "expenseDate",
+      label: "Date",
+      sortable: true,
+      render: (value) => new Date(value).toLocaleDateString(),
+    },
+    {
+      key: "categoryNameEn",
+      label: "Category",
+      sortable: true,
+      render: (value, row) => (locale === "ar" ? row.categoryNameAr : value),
+    },
+    {
+      key: "descriptionEn",
+      label: "Description",
+      sortable: true,
+      render: (value, row) => (
+        <div className="max-w-xs truncate">
+          {locale === "ar" && row.descriptionAr ? row.descriptionAr : value}
+        </div>
+      ),
+    },
+    {
+      key: "amount",
+      label: "Amount",
+      sortable: true,
+      render: (value) => <span className="font-medium">${value.toFixed(2)}</span>,
+    },
+    {
+      key: "paymentMethod",
+      label: "Payment",
+      sortable: true,
+      render: (value) => getPaymentMethodLabel(value),
+    },
+    {
+      key: "approvalStatus",
+      label: "Status",
+      sortable: true,
+      render: (value, row) => (
+        <div>
+          <StatusBadge variant={getApprovalStatusVariant(value)}>
+            {getStatusLabel(value)}
+          </StatusBadge>
+          {value !== 0 && (
+            <div className="text-xs text-gray-400 mt-1">
+              {value === 1 ? "Approved" : "Rejected"} on{" "}
+              {row.approvedAt ? new Date(row.approvedAt).toLocaleDateString() : "N/A"}
+            </div>
+          )}
+        </div>
+      ),
+    },
+  ];
+
+  // Define actions
+  const actions: DataTableAction<ExpenseDto>[] = [
+    {
+      label: "✏️ Edit",
+      onClick: (row) => handleEdit(row),
+      variant: "primary",
+      condition: (row) => row.approvalStatus === 0,
+    },
+    {
+      label: "✓ Approve",
+      onClick: (row) => handleApprove(row.id, true),
+      variant: "success",
+      condition: (row) => row.approvalStatus === 0,
+    },
+    {
+      label: "✗ Reject",
+      onClick: (row) => handleApprove(row.id, false),
+      variant: "secondary", // Using secondary for reject to distinguish from delete
+      condition: (row) => row.approvalStatus === 0,
+    },
+    {
+      label: "🗑️ Delete",
+      onClick: (row) => handleDelete(row.id, row),
+      variant: "danger",
+      condition: (row) => row.approvalStatus === 0,
+    },
+  ];
+
+  // Adapter for sort change
+  const handleSortChange = (config: {
+    key: keyof ExpenseDto | string;
+    direction: "asc" | "desc";
+  }) => {
+    handleSort(config.key);
   };
 
   return (
@@ -207,7 +312,7 @@ export default function ExpensesPage({
               <option value="">All Categories</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
-                  {locale === 'ar' ? cat.nameAr : cat.nameEn}
+                  {locale === "ar" ? cat.nameAr : cat.nameEn}
                 </option>
               ))}
             </select>
@@ -215,7 +320,7 @@ export default function ExpensesPage({
           <div>
             <label className="block text-sm font-medium mb-1">Status</label>
             <select
-              value={statusFilter ?? ''}
+              value={statusFilter ?? ""}
               onChange={(e) => setStatusFilter(e.target.value ? Number(e.target.value) : undefined)}
               className="w-full border border-gray-300 rounded px-3 py-2"
             >
@@ -232,7 +337,7 @@ export default function ExpensesPage({
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
               className="w-full border border-gray-300 rounded px-3 py-2"
-            />
+            ></input>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">End Date</label>
@@ -241,14 +346,10 @@ export default function ExpensesPage({
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
               className="w-full border border-gray-300 rounded px-3 py-2"
-            />
+            ></input>
           </div>
           <div className="flex items-end">
-            <Button
-              onClick={handleApplyFilters}
-              variant="secondary"
-              isFullWidth
-            >
+            <Button onClick={handleApplyFilters} variant="secondary" isFullWidth>
               Apply Filters
             </Button>
           </div>
@@ -261,143 +362,22 @@ export default function ExpensesPage({
       {/* Loading State */}
       {loading && <LoadingSpinner size="lg" text="Loading expenses..." className="py-8" />}
 
-      {/* Empty State */}
-      {!loading && expenses.length === 0 && (
-        <EmptyState
-          title="No expenses found"
-          message="Add your first expense to get started."
+      {/* Expenses DataTable */}
+      {!loading && (
+        <DataTable
+          data={displayData}
+          columns={columns}
+          actions={actions}
+          getRowKey={(row) => row.id}
+          pagination
+          paginationConfig={paginationConfig}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          sortable
+          sortConfig={sortConfig ?? undefined}
+          onSortChange={handleSortChange}
+          emptyMessage="No expenses found. Add your first expense to get started."
         />
-      )}
-
-      {!loading && expenses.length > 0 && (
-        <div className="bg-white rounded shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Category
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Description
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Amount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Payment
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {expenses.map((expense) => (
-                <tr key={expense.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {new Date(expense.expenseDate).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {locale === 'ar' ? expense.categoryNameAr : expense.categoryNameEn}
-                  </td>
-                  <td className="px-6 py-4 text-sm">
-                    <div className="max-w-xs truncate">
-                      {locale === 'ar' && expense.descriptionAr
-                        ? expense.descriptionAr
-                        : expense.descriptionEn}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    ${expense.amount.toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {getPaymentMethodLabel(expense.paymentMethod)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <StatusBadge variant={getApprovalStatusVariant(expense.approvalStatus)}>
-                      {getStatusLabel(expense.approvalStatus)}
-                    </StatusBadge>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <div className="flex gap-2">
-                      {expense.approvalStatus === 0 && (
-                        <>
-                          <Button
-                            onClick={() => handleEdit(expense)}
-                            variant="ghost"
-                            size="sm"
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            onClick={() => handleDelete(expense.id, expense)}
-                            variant="ghost"
-                            size="sm"
-                          >
-                            Delete
-                          </Button>
-                          <Button
-                            onClick={() => handleApprove(expense.id, true)}
-                            variant="ghost"
-                            size="sm"
-                          >
-                            Approve
-                          </Button>
-                          <Button
-                            onClick={() => handleApprove(expense.id, false)}
-                            variant="ghost"
-                            size="sm"
-                          >
-                            Reject
-                          </Button>
-                        </>
-                      )}
-                      {expense.approvalStatus !== 0 && (
-                        <span className="text-gray-400 text-xs">
-                          {expense.approvalStatus === 1 ? 'Approved' : 'Rejected'} on{' '}
-                          {expense.approvedAt
-                            ? new Date(expense.approvedAt).toLocaleDateString()
-                            : 'N/A'}
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-6">
-          <Button
-            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-            disabled={currentPage === 1}
-            variant="secondary"
-            size="sm"
-          >
-            Previous
-          </Button>
-          <span className="px-4 py-2">
-            Page {currentPage} of {totalPages}
-          </span>
-          <Button
-            onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-            disabled={currentPage === totalPages}
-            variant="secondary"
-            size="sm"
-          >
-            Next
-          </Button>
-        </div>
       )}
 
       {/* Expense Form Modal */}
@@ -416,20 +396,6 @@ export default function ExpensesPage({
           }}
         />
       )}
-
-      {/* Alert Dialog */}
-      <Dialog
-        isOpen={dialog.isOpen}
-        onClose={dialog.handleClose}
-        onConfirm={dialog.showCancel ? undefined : dialog.handleClose}
-        title={dialog.title}
-        message={dialog.message}
-        type={dialog.type}
-        confirmText={dialog.confirmText}
-        cancelText={dialog.cancelText}
-        showCancel={dialog.showCancel}
-        isLoading={dialog.isProcessing}
-      />
 
       {/* Confirmation Dialog */}
       <ConfirmationDialog

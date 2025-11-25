@@ -3,29 +3,26 @@
  * Customer list with search, filters, and CRUD operations
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { use } from 'react';
-import customerService from '@/services/customer.service';
-import { CustomerDto } from '@/types/api.types';
-import Link from 'next/link';
-import CustomerFormModal from '@/components/customers/CustomerFormModal';
-import { Button } from '@/components/shared/Button';
-import { StatusBadge } from '@/components/shared/StatusBadge';
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { ErrorAlert } from '@/components/shared/ErrorAlert';
-import { EmptyState } from '@/components/shared/EmptyState';
-import { Dialog } from '@/components/shared/Dialog';
-import { ConfirmationDialog } from '@/components/modals/ConfirmationDialog';
-import { useDialog } from '@/hooks/useDialog';
-import { useConfirmation } from '@/hooks/useModal';
+import { useState, useEffect } from "react";
+import { use } from "react";
+import customerService from "@/services/customer.service";
+import { CustomerDto } from "@/types/api.types";
+import Link from "next/link";
+import CustomerFormModal from "@/components/customers/CustomerFormModal";
+import { DataTable } from "@/components/data-table";
+import { ModalBottomSheet, FeaturedDialog, ConfirmationDialog } from "@/components/modals";
+import { useDataTable } from "@/hooks/useDataTable";
+import { useModal, useConfirmation } from "@/hooks/useModal";
+import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
+import { Button } from "@/components/shared/Button";
+import { StatusBadge } from "@/components/shared/StatusBadge";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { ErrorAlert } from "@/components/shared/ErrorAlert";
+import { EmptyState } from "@/components/shared/EmptyState";
 
-export default function CustomersPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
+export default function CustomersPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
 
   const [customers, setCustomers] = useState<CustomerDto[]>([]);
@@ -33,7 +30,7 @@ export default function CustomersPage({
   const [error, setError] = useState<string | null>(null);
 
   // Filter states
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [showActiveOnly, setShowActiveOnly] = useState(true);
 
   // Pagination
@@ -45,9 +42,23 @@ export default function CustomersPage({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerDto | undefined>(undefined);
 
-  // Dialog hooks
-  const dialog = useDialog();
+  // Modal hooks
+  const viewModal = useModal<CustomerDto>();
   const confirmation = useConfirmation();
+
+  // DataTable hook
+  const {
+    data: displayData,
+    paginationConfig,
+    sortConfig,
+    handlePageChange,
+    handlePageSizeChange,
+    handleSort,
+  } = useDataTable(customers, {
+    pageSize: 20,
+    sortable: true,
+    pagination: true,
+  });
 
   /**
    * Load customers
@@ -71,8 +82,8 @@ export default function CustomersPage({
       setCustomers(response.data);
       setTotalPages(response.pagination.totalPages);
     } catch (err: any) {
-      setError(err.message || 'Failed to load customers');
-      console.error('Error loading customers:', err);
+      setError(err.message || "Failed to load customers");
+      console.error("Error loading customers:", err);
     } finally {
       setLoading(false);
     }
@@ -90,18 +101,106 @@ export default function CustomersPage({
 
   const handleDelete = async (customer: CustomerDto) => {
     confirmation.ask(
-      'Delete Customer',
+      "Delete Customer",
       `Are you sure you want to delete "${customer.nameEn}"? This action cannot be undone.`,
       async () => {
         try {
           await customerService.deleteCustomer(customer.id);
           loadCustomers();
         } catch (err: any) {
-          dialog.error(`Failed to delete customer: ${err.message}`);
+          setError(`Failed to delete customer: ${err.message}`);
         }
       },
-      'danger'
+      "danger"
     );
+  };
+
+  // Define table columns
+  const columns: DataTableColumn<CustomerDto>[] = [
+    {
+      key: "code",
+      label: "Code",
+      sortable: true,
+      width: "100px",
+    },
+    {
+      key: "nameEn",
+      label: "Name",
+      sortable: true,
+      render: (value, row) => (
+        <Link
+          href={`/${locale}/branch/customers/${row.id}`}
+          className="text-blue-600 hover:underline font-medium"
+        >
+          {value}
+        </Link>
+      ),
+    },
+    {
+      key: "email",
+      label: "Email",
+      sortable: true,
+      render: (value) => value || "-",
+    },
+    {
+      key: "phone",
+      label: "Phone",
+      sortable: true,
+      render: (value) => value || "-",
+    },
+    {
+      key: "totalPurchases",
+      label: "Total Purchases",
+      sortable: true,
+      render: (value) => `$${value.toFixed(2)}`,
+    },
+    {
+      key: "visitCount",
+      label: "Visit Count",
+      sortable: true,
+    },
+    {
+      key: "loyaltyPoints",
+      label: "Loyalty Points",
+      sortable: true,
+    },
+    {
+      key: "isActive",
+      label: "Status",
+      sortable: true,
+      render: (value) => (
+        <StatusBadge variant={value ? "success" : "danger"}>
+          {value ? "Active" : "Inactive"}
+        </StatusBadge>
+      ),
+    },
+  ];
+
+  // Define row actions
+  const actions: DataTableAction<CustomerDto>[] = [
+    {
+      label: "View",
+      onClick: (row) => viewModal.open(row, "view"),
+      variant: "secondary",
+    },
+    {
+      label: "Edit",
+      onClick: (row) => handleEdit(row),
+      variant: "primary",
+    },
+    {
+      label: "Delete",
+      onClick: (row) => handleDelete(row),
+      variant: "danger",
+    },
+  ];
+
+  // Adapter for sort change
+  const handleSortChange = (config: {
+    key: keyof CustomerDto | string;
+    direction: "asc" | "desc";
+  }) => {
+    handleSort(config.key);
   };
 
   return (
@@ -129,7 +228,7 @@ export default function CustomersPage({
               placeholder="Search by name, code, email, phone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               className="w-full border border-gray-300 rounded px-3 py-2"
             />
           </div>
@@ -158,102 +257,22 @@ export default function CustomersPage({
       {/* Loading State */}
       {loading && <LoadingSpinner size="lg" text="Loading customers..." />}
 
-      {/* Customers Table */}
-      {!loading && customers.length > 0 && (
-        <div className="bg-white rounded shadow overflow-x-auto">
-          <table className="min-w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Purchases</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Visit Count</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Loyalty Points</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {customers.map((customer) => (
-                <tr key={customer.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">{customer.code}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <Link href={`/${locale}/branch/customers/${customer.id}`} className="text-blue-600 hover:underline">
-                      {customer.nameEn}
-                    </Link>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">{customer.email || '-'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">{customer.phone || '-'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">${customer.totalPurchases.toFixed(2)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">{customer.visitCount}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">{customer.loyaltyPoints}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <StatusBadge variant={customer.isActive ? 'success' : 'danger'}>
-                      {customer.isActive ? 'Active' : 'Inactive'}
-                    </StatusBadge>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => handleEdit(customer)}>
-                        Edit
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(customer)}>
-                        Delete
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {!loading && customers.length === 0 && (
-        <EmptyState
-          title="No customers found"
-          message="Start by adding your first customer."
-          action={
-            <Button
-              variant="primary"
-              size="md"
-              onClick={() => {
-                setSelectedCustomer(undefined);
-                setIsModalOpen(true);
-              }}
-            >
-              Add Your First Customer
-            </Button>
-          }
+      {/* Customers DataTable */}
+      {!loading && (
+        <DataTable
+          data={displayData}
+          columns={columns}
+          actions={actions}
+          getRowKey={(row) => row.id}
+          pagination
+          paginationConfig={paginationConfig}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          sortable
+          sortConfig={sortConfig ?? undefined}
+          onSortChange={handleSortChange}
+          emptyMessage="No customers found. Click 'Add Customer' to create one."
         />
-      )}
-
-      {/* Pagination */}
-      {!loading && totalPages > 1 && (
-        <div className="flex justify-center items-center mt-6 gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-          <span className="px-4 py-2">
-            Page {currentPage} of {totalPages}
-          </span>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </Button>
-        </div>
       )}
 
       {/* Customer Form Modal */}
@@ -265,20 +284,6 @@ export default function CustomersPage({
         }}
         onSuccess={loadCustomers}
         customer={selectedCustomer}
-      />
-
-      {/* Alert Dialog */}
-      <Dialog
-        isOpen={dialog.isOpen}
-        onClose={dialog.handleClose}
-        onConfirm={dialog.showCancel ? undefined : dialog.handleClose}
-        title={dialog.title}
-        message={dialog.message}
-        type={dialog.type}
-        confirmText={dialog.confirmText}
-        cancelText={dialog.cancelText}
-        showCancel={dialog.showCancel}
-        isLoading={dialog.isProcessing}
       />
 
       {/* Confirmation Dialog */}

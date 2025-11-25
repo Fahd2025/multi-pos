@@ -3,65 +3,77 @@
  * Track purchase orders, suppliers, and inventory receiving
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { use } from 'react';
-import inventoryService from '@/services/inventory.service';
-import { PurchaseDto, SupplierDto } from '@/types/api.types';
-import PurchaseFormModal from '@/components/inventory/PurchaseFormModal';
-import { Button } from '@/components/shared/Button';
-import { StatusBadge } from '@/components/shared/StatusBadge';
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { ErrorAlert } from '@/components/shared/ErrorAlert';
-import { EmptyState } from '@/components/shared/EmptyState';
-import { Dialog } from '@/components/shared/Dialog';
-import { ConfirmationDialog } from '@/components/modals/ConfirmationDialog';
-import { useDialog } from '@/hooks/useDialog';
-import { useConfirmation } from '@/hooks/useModal';
+import { useState, useEffect } from "react";
+import { use } from "react";
+import inventoryService from "@/services/inventory.service";
+import { PurchaseDto } from "@/types/api.types";
+import PurchaseFormModal from "@/components/inventory/PurchaseFormModal";
+import { DataTable } from "@/components/data-table";
+import { ConfirmationDialog } from "@/components/modals";
+import { useDataTable } from "@/hooks/useDataTable";
+import { useConfirmation } from "@/hooks/useModal";
+import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
+import { Button } from "@/components/shared/Button";
+import { StatusBadge } from "@/components/shared/StatusBadge";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { ApiErrorAlert, InlineApiError } from "@/components/shared/ApiErrorAlert";
 
-export default function PurchasesPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
+export default function PurchasesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
 
   const [purchases, setPurchases] = useState<PurchaseDto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const pageSize = 20;
+  const [error, setError] = useState<any | null>(null);
 
   // Modal states
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
   const [selectedPurchase, setSelectedPurchase] = useState<PurchaseDto | undefined>(undefined);
 
-  // Dialog hooks
-  const dialog = useDialog();
+  // Hooks
   const confirmation = useConfirmation();
+
+  // DataTable hook
+  const {
+    data: displayData,
+    paginationConfig,
+    sortConfig,
+    handlePageChange,
+    handlePageSizeChange,
+    handleSort,
+  } = useDataTable(purchases, {
+    pageSize: 20,
+    sortable: true,
+    pagination: true,
+  });
 
   /**
    * Load purchases
    */
   useEffect(() => {
     loadData();
-  }, [currentPage]);
+  }, []);
 
   const loadData = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const purchasesResponse = await inventoryService.getPurchases(currentPage, pageSize);
+      // Note: The API supports pagination, but for the DataTable client-side model we load all or handle server-side
+      // For this implementation, we'll stick to the pattern used in other pages (client-side pagination of loaded data)
+      // or if the API is strictly server-side, we might need to adjust.
+      // Based on previous code, it was fetching with page/pageSize.
+      // If we want to use the generic DataTable fully client-side features, we should fetch all or adapt.
+      // However, the previous code was: await inventoryService.getPurchases(currentPage, pageSize);
+      // Let's assume we fetch a larger set or the first page.
+      // To keep it consistent with other pages that seem to load data and then use DataTable:
+
+      const purchasesResponse = await inventoryService.getPurchases(1, 1000); // Fetching more for client-side table
       setPurchases(purchasesResponse.data || []);
-      setTotalPages(purchasesResponse.pagination?.totalPages || 1);
     } catch (err: any) {
-      setError(err.message || 'Failed to load purchases');
-      console.error('Failed to load purchases:', err);
+      setError(err);
+      console.error("Failed to load purchases:", err);
     } finally {
       setLoading(false);
     }
@@ -72,17 +84,17 @@ export default function PurchasesPage({
    */
   const handleReceivePurchase = async (id: string, purchaseOrderNumber: string) => {
     confirmation.ask(
-      'Receive Purchase Order',
+      "Receive Purchase Order",
       `Mark purchase ${purchaseOrderNumber} as received? This will update inventory stock levels.`,
       async () => {
         try {
           await inventoryService.receivePurchase(id);
           loadData(); // Reload list
         } catch (err: any) {
-          dialog.error(`Failed to receive purchase: ${err.message}`);
+          setError(`Failed to receive purchase: ${err.message}`);
         }
       },
-      'success'
+      "success"
     );
   };
 
@@ -91,11 +103,11 @@ export default function PurchasesPage({
    */
   const getPaymentStatus = (status: number, amountPaid: number, totalCost: number) => {
     if (status === 2 || amountPaid >= totalCost) {
-      return { variant: 'success' as const, label: 'Paid' };
+      return { variant: "success" as const, label: "Paid" };
     } else if (amountPaid > 0) {
-      return { variant: 'warning' as const, label: 'Partial' };
+      return { variant: "warning" as const, label: "Partial" };
     } else {
-      return { variant: 'danger' as const, label: 'Unpaid' };
+      return { variant: "danger" as const, label: "Unpaid" };
     }
   };
 
@@ -104,10 +116,102 @@ export default function PurchasesPage({
    */
   const getReceivedStatus = (receivedDate?: string) => {
     if (receivedDate) {
-      return { variant: 'info' as const, label: 'Received' };
+      return { variant: "info" as const, label: "Received" };
     } else {
-      return { variant: 'neutral' as const, label: 'Pending' };
+      return { variant: "neutral" as const, label: "Pending" };
     }
+  };
+
+  // Define table columns
+  const columns: DataTableColumn<PurchaseDto>[] = [
+    {
+      key: "purchaseOrderNumber",
+      label: "PO Number",
+      sortable: true,
+      render: (value, row) => (
+        <div>
+          <div className="text-sm font-medium text-gray-900">{value}</div>
+          {row.notes && <div className="text-sm text-gray-500 truncate max-w-xs">{row.notes}</div>}
+        </div>
+      ),
+    },
+    {
+      key: "supplierName",
+      label: "Supplier",
+      sortable: true,
+    },
+    {
+      key: "purchaseDate",
+      label: "Purchase Date",
+      sortable: true,
+      render: (value, row) => (
+        <div>
+          <div className="text-sm text-gray-900">{new Date(value).toLocaleDateString()}</div>
+          {row.receivedDate && (
+            <div className="text-sm text-gray-500">
+              Received: {new Date(row.receivedDate).toLocaleDateString()}
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "totalCost",
+      label: "Total Cost",
+      sortable: true,
+      render: (value, row) => (
+        <div className="text-right">
+          <div className="text-sm font-semibold text-gray-900">${value.toFixed(2)}</div>
+          {row.amountPaid > 0 && (
+            <div className="text-xs text-gray-500">Paid: ${row.amountPaid.toFixed(2)}</div>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "paymentStatus",
+      label: "Payment Status",
+      sortable: true,
+      render: (value, row) => {
+        const status = getPaymentStatus(value, row.amountPaid, row.totalCost);
+        return <StatusBadge variant={status.variant}>{status.label}</StatusBadge>;
+      },
+    },
+    {
+      key: "receivedDate",
+      label: "Received Status",
+      sortable: true,
+      render: (value) => {
+        const status = getReceivedStatus(value);
+        return <StatusBadge variant={status.variant}>{status.label}</StatusBadge>;
+      },
+    },
+  ];
+
+  // Define row actions
+  const actions: DataTableAction<PurchaseDto>[] = [
+    {
+      label: "✓ Receive",
+      onClick: (row) => handleReceivePurchase(row.id, row.purchaseOrderNumber),
+      variant: "success",
+      condition: (row) => !row.receivedDate, // Only show if not received
+    },
+    {
+      label: "👁️ View",
+      onClick: (row) => {
+        setSelectedPurchase(row);
+        setIsPurchaseModalOpen(true);
+      },
+      variant: "secondary",
+    },
+  ];
+
+  // Adapter for sort change
+  const handleSortChange = (config: {
+    key: keyof PurchaseDto | string;
+    direction: "asc" | "desc";
+  }) => {
+    handleSort(config.key);
   };
 
   return (
@@ -133,171 +237,34 @@ export default function PurchasesPage({
       </div>
 
       {/* Error Message */}
-      {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
+      {error && <ApiErrorAlert error={error} onRetry={loadData} onDismiss={() => setError(null)} />}
 
-      {/* Purchases Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        {loading ? (
-          <LoadingSpinner size="lg" text="Loading purchases..." />
-        ) : purchases.length === 0 ? (
-          <EmptyState
-            title="No purchase orders found"
-            message="Start by creating your first purchase order to track inventory."
-            action={
-              <Button
-                variant="primary"
-                size="md"
-                onClick={() => setIsPurchaseModalOpen(true)}
-              >
-                Create Your First Purchase Order
-              </Button>
-            }
-          />
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      PO Number
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Supplier
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Purchase Date
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total Cost
-                    </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Payment Status
-                    </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Received Status
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {purchases.map((purchase) => (
-                    <tr key={purchase.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {purchase.purchaseOrderNumber}
-                        </div>
-                        {purchase.notes && (
-                          <div className="text-sm text-gray-500 truncate max-w-xs">
-                            {purchase.notes}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{purchase.supplierName}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {new Date(purchase.purchaseDate).toLocaleDateString()}
-                        </div>
-                        {purchase.receivedDate && (
-                          <div className="text-sm text-gray-500">
-                            Received: {new Date(purchase.receivedDate).toLocaleDateString()}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <div className="text-sm font-semibold text-gray-900">
-                          ${purchase.totalCost.toFixed(2)}
-                        </div>
-                        {purchase.amountPaid > 0 && (
-                          <div className="text-xs text-gray-500">
-                            Paid: ${purchase.amountPaid.toFixed(2)}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        {(() => {
-                          const status = getPaymentStatus(purchase.paymentStatus, purchase.amountPaid, purchase.totalCost);
-                          return <StatusBadge variant={status.variant}>{status.label}</StatusBadge>;
-                        })()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        {(() => {
-                          const status = getReceivedStatus(purchase.receivedDate);
-                          return <StatusBadge variant={status.variant}>{status.label}</StatusBadge>;
-                        })()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end gap-2">
-                          {!purchase.receivedDate && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleReceivePurchase(purchase.id, purchase.purchaseOrderNumber)}
-                              title="Mark as Received"
-                            >
-                              ✓ Receive
-                            </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedPurchase(purchase);
-                              setIsPurchaseModalOpen(true);
-                            }}
-                            title="View Details"
-                          >
-                            👁️
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+      {/* Loading State */}
+      {loading && <LoadingSpinner size="lg" text="Loading purchases..." />}
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
-                <div className="text-sm text-gray-700">
-                  Page {currentPage} of {totalPages}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setCurrentPage(currentPage - 1)}
-                    disabled={currentPage === 1}
-                  >
-                    ← Previous
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                  >
-                    Next →
-                  </Button>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+      {/* Purchases DataTable or Error */}
+      {!loading && !error && (
+        <DataTable
+          data={displayData}
+          columns={columns}
+          actions={actions}
+          getRowKey={(row) => row.id}
+          pagination
+          paginationConfig={paginationConfig}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          sortable
+          sortConfig={sortConfig ?? undefined}
+          onSortChange={handleSortChange}
+          emptyMessage="No purchase orders found. Click 'New Purchase Order' to create one."
+        />
+      )}
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="text-sm text-gray-600">Total Purchase Orders</div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">
-            {purchases.length}
-          </div>
+          <div className="text-2xl font-bold text-gray-900 mt-1">{purchases.length}</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="text-sm text-gray-600">Pending Receipt</div>
@@ -330,20 +297,6 @@ export default function PurchasesPage({
           loadData();
         }}
         purchase={selectedPurchase}
-      />
-
-      {/* Alert Dialog */}
-      <Dialog
-        isOpen={dialog.isOpen}
-        onClose={dialog.handleClose}
-        onConfirm={dialog.showCancel ? undefined : dialog.handleClose}
-        title={dialog.title}
-        message={dialog.message}
-        type={dialog.type}
-        confirmText={dialog.confirmText}
-        cancelText={dialog.cancelText}
-        showCancel={dialog.showCancel}
-        isLoading={dialog.isProcessing}
       />
 
       {/* Confirmation Dialog */}

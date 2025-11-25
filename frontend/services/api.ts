@@ -76,13 +76,15 @@ api.interceptors.response.use(
     if (error.response) {
       const errorData = error.response.data as any;
       console.error("❌ API Error Details:");
-      console.error(`  Method: ${error.config?.method?.toUpperCase()}`);
-      console.error(`  URL: ${error.config?.url}`);
-      console.error(`  Status: ${error.response.status} ${error.response.statusText}`);
+      console.error(`  Method: ${error.config?.method?.toUpperCase() || "UNKNOWN"}`);
+      console.error(`  URL: ${error.config?.url || "UNKNOWN"}`);
+      console.error(
+        `  Status: ${error.response?.status || "N/A"} ${error.response?.statusText || ""}`
+      );
 
       if (errorData?.error) {
-        console.error(`  Error Code: ${errorData.error.code || 'N/A'}`);
-        console.error(`  Error Message: ${errorData.error.message || 'N/A'}`);
+        console.error(`  Error Code: ${errorData.error.code || "N/A"}`);
+        console.error(`  Error Message: ${errorData.error.message || "N/A"}`);
       } else if (errorData?.message) {
         console.error(`  Message: ${errorData.message}`);
       }

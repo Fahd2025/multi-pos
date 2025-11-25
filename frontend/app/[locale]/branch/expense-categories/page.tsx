@@ -3,20 +3,19 @@
  * Manage expense categories with budget allocations
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { use } from 'react';
-import Link from 'next/link';
-import expenseService from '@/services/expense.service';
-import { ExpenseCategoryDto } from '@/types/api.types';
-import { Button } from '@/components/shared/Button';
+import { useState, useEffect } from "react";
+import { use } from "react";
+import Link from "next/link";
+import expenseService from "@/services/expense.service";
+import { ExpenseCategoryDto } from "@/types/api.types";
+import { Button } from "@/components/shared/Button";
+import { DataTable } from "@/components/data-table";
+import { useDataTable } from "@/hooks/useDataTable";
+import { DataTableColumn } from "@/types/data-table.types";
 
-export default function ExpenseCategoriesPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
+export default function ExpenseCategoriesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
 
   const [categories, setCategories] = useState<ExpenseCategoryDto[]>([]);
@@ -29,13 +28,27 @@ export default function ExpenseCategoriesPage({
   // Form states
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formData, setFormData] = useState({
-    code: '',
-    nameEn: '',
-    nameAr: '',
-    budgetAllocation: '',
+    code: "",
+    nameEn: "",
+    nameAr: "",
+    budgetAllocation: "",
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [formLoading, setFormLoading] = useState(false);
+
+  // DataTable hook
+  const {
+    data: displayData,
+    paginationConfig,
+    sortConfig,
+    handlePageChange,
+    handlePageSizeChange,
+    handleSort,
+  } = useDataTable(categories, {
+    pageSize: 20,
+    sortable: true,
+    pagination: true,
+  });
 
   /**
    * Load expense categories
@@ -52,8 +65,8 @@ export default function ExpenseCategoriesPage({
       const data = await expenseService.getExpenseCategories(showInactive);
       setCategories(data);
     } catch (err: any) {
-      setError(err.message || 'Failed to load expense categories');
-      console.error('Error loading categories:', err);
+      setError(err.message || "Failed to load expense categories");
+      console.error("Error loading categories:", err);
     } finally {
       setLoading(false);
     }
@@ -63,28 +76,28 @@ export default function ExpenseCategoriesPage({
     const errors: Record<string, string> = {};
 
     if (!formData.code.trim()) {
-      errors.code = 'Category code is required';
+      errors.code = "Category code is required";
     } else if (formData.code.length > 20) {
-      errors.code = 'Code cannot exceed 20 characters';
+      errors.code = "Code cannot exceed 20 characters";
     }
 
     if (!formData.nameEn.trim()) {
-      errors.nameEn = 'English name is required';
+      errors.nameEn = "English name is required";
     } else if (formData.nameEn.length > 100) {
-      errors.nameEn = 'Name cannot exceed 100 characters';
+      errors.nameEn = "Name cannot exceed 100 characters";
     }
 
     if (!formData.nameAr.trim()) {
-      errors.nameAr = 'Arabic name is required';
+      errors.nameAr = "Arabic name is required";
     } else if (formData.nameAr.length > 100) {
-      errors.nameAr = 'Name cannot exceed 100 characters';
+      errors.nameAr = "Name cannot exceed 100 characters";
     }
 
     if (
       formData.budgetAllocation &&
       (isNaN(Number(formData.budgetAllocation)) || Number(formData.budgetAllocation) < 0)
     ) {
-      errors.budgetAllocation = 'Budget must be a positive number';
+      errors.budgetAllocation = "Budget must be a positive number";
     }
 
     setValidationErrors(errors);
@@ -105,17 +118,15 @@ export default function ExpenseCategoriesPage({
         code: formData.code,
         nameEn: formData.nameEn,
         nameAr: formData.nameAr,
-        budgetAllocation: formData.budgetAllocation
-          ? Number(formData.budgetAllocation)
-          : undefined,
+        budgetAllocation: formData.budgetAllocation ? Number(formData.budgetAllocation) : undefined,
       });
 
       // Reset form and reload categories
-      setFormData({ code: '', nameEn: '', nameAr: '', budgetAllocation: '' });
+      setFormData({ code: "", nameEn: "", nameAr: "", budgetAllocation: "" });
       setIsFormOpen(false);
       loadCategories();
     } catch (err: any) {
-      setError(err.message || 'Failed to create expense category');
+      setError(err.message || "Failed to create expense category");
     } finally {
       setFormLoading(false);
     }
@@ -130,9 +141,7 @@ export default function ExpenseCategoriesPage({
 
     if (usedPercent >= 100) {
       return (
-        <span className="text-red-600 font-semibold">
-          Over budget ({usedPercent.toFixed(0)}%)
-        </span>
+        <span className="text-red-600 font-semibold">Over budget ({usedPercent.toFixed(0)}%)</span>
       );
     } else if (usedPercent >= 80) {
       return (
@@ -141,12 +150,70 @@ export default function ExpenseCategoriesPage({
         </span>
       );
     } else {
-      return (
-        <span className="text-green-600">
-          Within budget ({usedPercent.toFixed(0)}%)
-        </span>
-      );
+      return <span className="text-green-600">Within budget ({usedPercent.toFixed(0)}%)</span>;
     }
+  };
+
+  // Define columns
+  const columns: DataTableColumn<ExpenseCategoryDto>[] = [
+    {
+      key: "code",
+      label: "Code",
+      sortable: true,
+      render: (value) => <div className="font-medium">{value}</div>,
+    },
+    {
+      key: "nameEn",
+      label: "Name (EN)",
+      sortable: true,
+    },
+    {
+      key: "nameAr",
+      label: "Name (AR)",
+      sortable: true,
+      render: (value) => <div dir="rtl">{value}</div>,
+    },
+    {
+      key: "budgetAllocation",
+      label: "Budget",
+      sortable: true,
+      render: (value) => (value ? `$${value.toFixed(2)}` : "No budget"),
+    },
+    {
+      key: "totalExpenses",
+      label: "Total Expenses",
+      sortable: true,
+      render: (value) => <div className="font-medium">${(value ?? 0).toFixed(2)}</div>,
+    },
+    {
+      key: "expenseCount",
+      label: "Count",
+      sortable: true,
+      render: (value) => `${value ?? 0} expenses`,
+    },
+    {
+      key: "isActive",
+      label: "Status",
+      sortable: true,
+      render: (value, row) => (
+        <div>
+          {value ? (
+            <span className="text-green-600">Active</span>
+          ) : (
+            <span className="text-gray-500">Inactive</span>
+          )}
+          {row.budgetAllocation && <div className="mt-1">{getBudgetStatus(row)}</div>}
+        </div>
+      ),
+    },
+  ];
+
+  // Adapter for sort change
+  const handleSortChange = (config: {
+    key: keyof ExpenseCategoryDto | string;
+    direction: "asc" | "desc";
+  }) => {
+    handleSort(config.key);
   };
 
   return (
@@ -165,11 +232,7 @@ export default function ExpenseCategoriesPage({
               ← Back to Expenses
             </Button>
           </Link>
-          <Button
-            variant="primary"
-            size="md"
-            onClick={() => setIsFormOpen(true)}
-          >
+          <Button variant="primary" size="md" onClick={() => setIsFormOpen(true)}>
             ➕ Add Category
           </Button>
         </div>
@@ -198,82 +261,21 @@ export default function ExpenseCategoriesPage({
       {/* Loading State */}
       {loading && <div className="text-center py-8">Loading categories...</div>}
 
-      {/* Categories Table */}
-      {!loading && categories.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          No expense categories found. Add your first category to get started.
-        </div>
-      )}
-
-      {!loading && categories.length > 0 && (
-        <div className="bg-white rounded shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Code
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Name (EN)
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Name (AR)
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Budget
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Total Expenses
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Count
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {categories.map((category) => (
-                <tr
-                  key={category.id}
-                  className={`hover:bg-gray-50 ${!category.isActive ? 'opacity-50' : ''}`}
-                >
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    {category.code}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {category.nameEn}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm" dir="rtl">
-                    {category.nameAr}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {category.budgetAllocation
-                      ? `$${category.budgetAllocation.toFixed(2)}`
-                      : 'No budget'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    ${(category.totalExpenses ?? 0).toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {category.expenseCount ?? 0} expenses
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {category.isActive ? (
-                      <span className="text-green-600">Active</span>
-                    ) : (
-                      <span className="text-gray-500">Inactive</span>
-                    )}
-                    {category.budgetAllocation && (
-                      <div className="mt-1">{getBudgetStatus(category)}</div>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {/* Categories DataTable */}
+      {!loading && (
+        <DataTable
+          data={displayData}
+          columns={columns}
+          getRowKey={(row) => row.id}
+          pagination
+          paginationConfig={paginationConfig}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          sortable
+          sortConfig={sortConfig ?? undefined}
+          onSortChange={handleSortChange}
+          emptyMessage="No expense categories found. Add your first category to get started."
+        />
       )}
 
       {/* Create Category Modal */}
@@ -286,7 +288,7 @@ export default function ExpenseCategoriesPage({
               <button
                 onClick={() => {
                   setIsFormOpen(false);
-                  setFormData({ code: '', nameEn: '', nameAr: '', budgetAllocation: '' });
+                  setFormData({ code: "", nameEn: "", nameAr: "", budgetAllocation: "" });
                   setValidationErrors({});
                 }}
                 className="text-gray-500 hover:text-gray-700 text-2xl"
@@ -311,7 +313,7 @@ export default function ExpenseCategoriesPage({
                     }
                     placeholder="RENT"
                     className={`w-full border rounded px-3 py-2 ${
-                      validationErrors.code ? 'border-red-500' : 'border-gray-300'
+                      validationErrors.code ? "border-red-500" : "border-gray-300"
                     }`}
                   />
                   {validationErrors.code && (
@@ -330,7 +332,7 @@ export default function ExpenseCategoriesPage({
                     onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
                     placeholder="Rent & Utilities"
                     className={`w-full border rounded px-3 py-2 ${
-                      validationErrors.nameEn ? 'border-red-500' : 'border-gray-300'
+                      validationErrors.nameEn ? "border-red-500" : "border-gray-300"
                     }`}
                   />
                   {validationErrors.nameEn && (
@@ -350,7 +352,7 @@ export default function ExpenseCategoriesPage({
                     placeholder="إيجار ومرافق"
                     dir="rtl"
                     className={`w-full border rounded px-3 py-2 ${
-                      validationErrors.nameAr ? 'border-red-500' : 'border-gray-300'
+                      validationErrors.nameAr ? "border-red-500" : "border-gray-300"
                     }`}
                   />
                   {validationErrors.nameAr && (
@@ -368,20 +370,18 @@ export default function ExpenseCategoriesPage({
                     step="0.01"
                     min="0"
                     value={formData.budgetAllocation}
-                    onChange={(e) =>
-                      setFormData({ ...formData, budgetAllocation: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, budgetAllocation: e.target.value })}
                     placeholder="1000.00"
                     className={`w-full border rounded px-3 py-2 ${
-                      validationErrors.budgetAllocation ? 'border-red-500' : 'border-gray-300'
+                      validationErrors.budgetAllocation ? "border-red-500" : "border-gray-300"
                     }`}
                   />
                   {validationErrors.budgetAllocation && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {validationErrors.budgetAllocation}
-                    </p>
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.budgetAllocation}</p>
                   )}
-                  <p className="text-xs text-gray-500 mt-1">Optional budget limit for this category</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Optional budget limit for this category
+                  </p>
                 </div>
               </div>
 
@@ -391,7 +391,7 @@ export default function ExpenseCategoriesPage({
                   type="button"
                   onClick={() => {
                     setIsFormOpen(false);
-                    setFormData({ code: '', nameEn: '', nameAr: '', budgetAllocation: '' });
+                    setFormData({ code: "", nameEn: "", nameAr: "", budgetAllocation: "" });
                     setValidationErrors({});
                   }}
                   disabled={formLoading}
@@ -404,7 +404,7 @@ export default function ExpenseCategoriesPage({
                   disabled={formLoading}
                   className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
                 >
-                  {formLoading ? 'Creating...' : 'Create Category'}
+                  {formLoading ? "Creating..." : "Create Category"}
                 </button>
               </div>
             </form>
