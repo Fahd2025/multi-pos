@@ -291,24 +291,24 @@
 
 ### Backend Services for User Story 3
 
-- [ ] T149 [US3] Implement ICustomerService interface in Backend/Services/Customers/ICustomerService.cs
-- [ ] T150 [US3] Implement CustomerService in Backend/Services/Customers/CustomerService.cs with GetCustomersAsync, CreateCustomerAsync, UpdateCustomerAsync, DeleteCustomerAsync, GetCustomerPurchaseHistoryAsync, UpdateCustomerStatsAsync methods
+- [X] T149 [US3] Implement ICustomerService interface in Backend/Services/Customers/ICustomerService.cs
+- [X] T150 [US3] Implement CustomerService in Backend/Services/Customers/CustomerService.cs with GetCustomersAsync, CreateCustomerAsync, UpdateCustomerAsync, DeleteCustomerAsync, GetCustomerPurchaseHistoryAsync, UpdateCustomerStatsAsync methods
 
 ### API Endpoints for User Story 3
 
-- [ ] T151 [US3] Implement GET /api/v1/customers endpoint with search, pagination in Backend/Program.cs per contracts/customers.md
-- [ ] T152 [US3] Implement POST /api/v1/customers endpoint in Backend/Program.cs per contracts/customers.md
-- [ ] T153 [US3] Implement PUT /api/v1/customers/:id endpoint in Backend/Program.cs per contracts/customers.md
-- [ ] T154 [US3] Implement DELETE /api/v1/customers/:id endpoint in Backend/Program.cs per contracts/customers.md
-- [ ] T155 [US3] Implement GET /api/v1/customers/:id/history endpoint in Backend/Program.cs to retrieve purchase history
+- [X] T151 [US3] Implement GET /api/v1/customers endpoint with search, pagination in Backend/Program.cs per contracts/customers.md
+- [X] T152 [US3] Implement POST /api/v1/customers endpoint in Backend/Program.cs per contracts/customers.md
+- [X] T153 [US3] Implement PUT /api/v1/customers/:id endpoint in Backend/Program.cs per contracts/customers.md
+- [X] T154 [US3] Implement DELETE /api/v1/customers/:id endpoint in Backend/Program.cs per contracts/customers.md
+- [X] T155 [US3] Implement GET /api/v1/customers/:id/history endpoint in Backend/Program.cs to retrieve purchase history
 
 ### Frontend Services for User Story 3
 
-- [ ] T156 [US3] Create CustomerService in frontend/services/customer.service.ts with CRUD and history methods
+- [X] T156 [US3] Create CustomerService in frontend/services/customer.service.ts with CRUD and history methods
 
 ### Frontend UI for User Story 3
 
-- [ ] T157 [US3] Create customers page in frontend/app/[locale]/branch/customers/page.tsx with customer list, search
+- [X] T157 [US3] Create customers page in frontend/app/[locale]/branch/customers/page.tsx with customer list, search
 - [ ] T158 [US3] Create customer form modal in frontend/components/customers/CustomerFormModal.tsx
 - [ ] T159 [US3] Create customer details page in frontend/app/[locale]/branch/customers/[id]/page.tsx showing profile and purchase history
 - [ ] T160 [US3] Add customer search/link component to sales page for linking customer to sale

@@ -381,16 +381,22 @@ export interface CreateCustomerDto {
   phone?: string;
   addressEn?: string;
   addressAr?: string;
+  logoPath?: string;
+  loyaltyPoints?: number;
+  isActive?: boolean;
 }
 
 export interface UpdateCustomerDto {
-  nameEn?: string;
+  code: string;
+  nameEn: string;
   nameAr?: string;
   email?: string;
   phone?: string;
   addressEn?: string;
   addressAr?: string;
-  isActive?: boolean;
+  logoPath?: string;
+  loyaltyPoints: number;
+  isActive: boolean;
 }
 
 // ============================================================================

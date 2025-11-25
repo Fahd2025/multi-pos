@@ -68,6 +68,10 @@ builder.Services.AddScoped<
     Backend.Services.Inventory.IInventoryService,
     Backend.Services.Inventory.InventoryService
 >();
+builder.Services.AddScoped<
+    Backend.Services.Customers.ICustomerService,
+    Backend.Services.Customers.CustomerService
+>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<BranchDbContext>(provider =>
@@ -1590,6 +1594,244 @@ app.MapPost(
     )
     .RequireAuthorization()
     .WithName("ReceivePurchase")
+    .WithOpenApi();
+
+// ============================================
+// Customer Endpoints
+// ============================================
+
+// GET /api/v1/customers - Get all customers with search and pagination
+app.MapGet(
+        "/api/v1/customers",
+        async (
+            Backend.Services.Customers.ICustomerService customerService,
+            string? search = null,
+            bool? isActive = null,
+            int page = 1,
+            int pageSize = 50
+        ) =>
+        {
+            try
+            {
+                var (customers, totalCount) = await customerService.GetCustomersAsync(
+                    search,
+                    isActive,
+                    page,
+                    pageSize
+                );
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = customers,
+                        pagination = new
+                        {
+                            page,
+                            pageSize,
+                            totalItems = totalCount,
+                            totalPages = (int)Math.Ceiling(totalCount / (double)pageSize),
+                        },
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("GetCustomers")
+    .WithOpenApi();
+
+// POST /api/v1/customers - Create a new customer
+app.MapPost(
+        "/api/v1/customers",
+        async (
+            Backend.Models.DTOs.Customers.CreateCustomerDto dto,
+            HttpContext httpContext,
+            Backend.Services.Customers.ICustomerService customerService
+        ) =>
+        {
+            try
+            {
+                var userId = httpContext.Items["UserId"] as Guid?;
+                if (!userId.HasValue)
+                {
+                    return Results.Unauthorized();
+                }
+
+                var customer = await customerService.CreateCustomerAsync(dto, userId.Value);
+
+                return Results.Created(
+                    $"/api/v1/customers/{customer.Id}",
+                    new
+                    {
+                        success = true,
+                        data = customer,
+                        message = "Customer created successfully",
+                    }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "INVALID_OPERATION", message = ex.Message },
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("CreateCustomer")
+    .WithOpenApi();
+
+// PUT /api/v1/customers/:id - Update an existing customer
+app.MapPut(
+        "/api/v1/customers/{id:guid}",
+        async (
+            Guid id,
+            Backend.Models.DTOs.Customers.UpdateCustomerDto dto,
+            Backend.Services.Customers.ICustomerService customerService
+        ) =>
+        {
+            try
+            {
+                var customer = await customerService.UpdateCustomerAsync(id, dto);
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = customer,
+                        message = "Customer updated successfully",
+                    }
+                );
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return Results.NotFound(
+                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "INVALID_OPERATION", message = ex.Message },
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("UpdateCustomer")
+    .WithOpenApi();
+
+// DELETE /api/v1/customers/:id - Delete (soft delete) a customer
+app.MapDelete(
+        "/api/v1/customers/{id:guid}",
+        async (Guid id, Backend.Services.Customers.ICustomerService customerService) =>
+        {
+            try
+            {
+                await customerService.DeleteCustomerAsync(id);
+
+                return Results.Ok(
+                    new { success = true, message = "Customer deleted successfully" }
+                );
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return Results.NotFound(
+                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("DeleteCustomer")
+    .WithOpenApi();
+
+// GET /api/v1/customers/:id/history - Get customer purchase history
+app.MapGet(
+        "/api/v1/customers/{id:guid}/history",
+        async (
+            Guid id,
+            Backend.Services.Customers.ICustomerService customerService,
+            DateTime? startDate = null,
+            DateTime? endDate = null,
+            int page = 1,
+            int pageSize = 50
+        ) =>
+        {
+            try
+            {
+                var (sales, totalCount) = await customerService.GetCustomerPurchaseHistoryAsync(
+                    id,
+                    startDate,
+                    endDate,
+                    page,
+                    pageSize
+                );
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = sales,
+                        pagination = new
+                        {
+                            page,
+                            pageSize,
+                            totalItems = totalCount,
+                            totalPages = (int)Math.Ceiling(totalCount / (double)pageSize),
+                        },
+                    }
+                );
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return Results.NotFound(
+                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("GetCustomerPurchaseHistory")
     .WithOpenApi();
 
 app.Run();
