@@ -15,16 +15,23 @@ public class UserActivityLog
 
     [Required]
     [MaxLength(100)]
-    public string ActivityType { get; set; } = string.Empty;
+    public string Action { get; set; } = string.Empty;
 
     [Required]
-    [MaxLength(500)]
-    public string Description { get; set; } = string.Empty;
+    [MaxLength(100)]
+    public string EntityType { get; set; } = string.Empty;
+
+    public Guid? EntityId { get; set; }
+
+    public string? Details { get; set; }
 
     public Guid? BranchId { get; set; }
 
     [MaxLength(50)]
     public string? IpAddress { get; set; }
+
+    [MaxLength(500)]
+    public string? UserAgent { get; set; }
 
     // Navigation properties
     public User User { get; set; } = null!;
