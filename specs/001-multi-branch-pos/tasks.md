@@ -413,11 +413,11 @@
 - [X] T203 [US5] Create head office layout in frontend/app/[locale]/head-office/layout.tsx
 - [X] T204 [US5] Create head office home page in frontend/app/[locale]/head-office/page.tsx with multi-branch dashboard (total sales across branches, active branches, total users)
 - [X] T205 [US5] Create branches management page in frontend/app/[locale]/head-office/branches/page.tsx with branch list
-- [ ] T206 [US5] Create branch form modal in frontend/components/head-office/BranchFormModal.tsx with database provider selection, connection string builder
-- [ ] T207 [US5] Create branch details page in frontend/app/[locale]/head-office/branches/[id]/page.tsx showing branch info, settings, users, database status
-- [ ] T208 [US5] Create branch settings form in frontend/components/head-office/BranchSettingsForm.tsx (tax rate, currency, language, date format, timezone)
-- [ ] T209 [US5] Create database connection test component in frontend/components/head-office/DatabaseConnectionTest.tsx
-- [ ] T210 [US5] Create multi-branch analytics page in frontend/app/[locale]/head-office/analytics/page.tsx with consolidated sales, inventory, revenue charts
+- [X] T206 [US5] Create branch form modal in frontend/components/head-office/BranchFormModal.tsx with database provider selection, connection string builder
+- [X] T207 [US5] Create branch details page in frontend/app/[locale]/head-office/branches/[id]/page.tsx showing branch info, settings, users, database status
+- [X] T208 [US5] Create branch settings form in frontend/components/head-office/BranchSettingsForm.tsx (tax rate, currency, language, date format, timezone)
+- [X] T209 [US5] Create database connection test component in frontend/components/head-office/DatabaseConnectionTest.tsx
+- [X] T210 [US5] Create multi-branch analytics page in frontend/app/[locale]/head-office/analytics/page.tsx with consolidated sales, inventory, revenue charts
 
 ### Integration & Validation for User Story 5
 

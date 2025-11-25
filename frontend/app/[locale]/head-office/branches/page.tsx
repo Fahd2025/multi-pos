@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { use } from 'react';
 import branchService, { BranchDto } from '@/services/branch.service';
+import { BranchFormModal } from '@/components/head-office/BranchFormModal';
 
 export default function BranchesManagementPage({
   params,
@@ -25,6 +26,8 @@ export default function BranchesManagementPage({
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const pageSize = 20;
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingBranch, setEditingBranch] = useState<BranchDto | undefined>(undefined);
 
   useEffect(() => {
     loadBranches();
@@ -88,7 +91,7 @@ export default function BranchesManagementPage({
           </p>
         </div>
         <button
-          onClick={() => alert('Branch form modal would open here (T206)')}
+          onClick={() => setShowCreateModal(true)}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
         >
           + Create Branch
@@ -189,7 +192,7 @@ export default function BranchesManagementPage({
               </p>
               {!search && filterActive === undefined && (
                 <button
-                  onClick={() => alert('Branch form modal would open here (T206)')}
+                  onClick={() => setShowCreateModal(true)}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
                   + Create Branch
@@ -277,9 +280,7 @@ export default function BranchesManagementPage({
                           View
                         </Link>
                         <button
-                          onClick={() =>
-                            alert(`Edit modal would open for branch ${branch.id} (T206)`)
-                          }
+                          onClick={() => setEditingBranch(branch)}
                           className="text-green-600 dark:text-green-400 hover:underline"
                         >
                           Edit
@@ -324,6 +325,21 @@ export default function BranchesManagementPage({
           )}
         </>
       )}
+
+      {/* Create/Edit Modal */}
+      <BranchFormModal
+        isOpen={showCreateModal || !!editingBranch}
+        onClose={() => {
+          setShowCreateModal(false);
+          setEditingBranch(undefined);
+        }}
+        onSuccess={() => {
+          loadBranches();
+          setShowCreateModal(false);
+          setEditingBranch(undefined);
+        }}
+        branch={editingBranch}
+      />
     </div>
   );
 }
