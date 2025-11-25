@@ -11,6 +11,14 @@ import Link from 'next/link';
 import inventoryService from '@/services/inventory.service';
 import { CategoryDto } from '@/types/api.types';
 import CategoryFormModal from '@/components/inventory/CategoryFormModal';
+import { Button } from '@/components/shared/Button';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+import { ErrorAlert } from '@/components/shared/ErrorAlert';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { Dialog } from '@/components/shared/Dialog';
+import { ConfirmationDialog } from '@/components/modals/ConfirmationDialog';
+import { useDialog } from '@/hooks/useDialog';
+import { useConfirmation } from '@/hooks/useModal';
 
 export default function CategoriesPage({
   params,
@@ -26,6 +34,10 @@ export default function CategoriesPage({
   // Modal states
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<CategoryDto | undefined>(undefined);
+
+  // Dialog hooks
+  const dialog = useDialog();
+  const confirmation = useConfirmation();
 
   /**
    * Load categories
@@ -52,16 +64,19 @@ export default function CategoriesPage({
    * Handle delete category
    */
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete category "${name}"?`)) {
-      return;
-    }
-
-    try {
-      await inventoryService.deleteCategory(id);
-      loadCategories(); // Reload list
-    } catch (err: any) {
-      alert(`Failed to delete category: ${err.message}`);
-    }
+    confirmation.ask(
+      'Delete Category',
+      `Are you sure you want to delete category "${name}"? This action cannot be undone.`,
+      async () => {
+        try {
+          await inventoryService.deleteCategory(id);
+          loadCategories(); // Reload list
+        } catch (err: any) {
+          dialog.error(`Failed to delete category: ${err.message}`);
+        }
+      },
+      'danger'
+    );
   };
 
   /**
@@ -98,48 +113,48 @@ export default function CategoriesPage({
           </p>
         </div>
         <div className="flex gap-3">
-          <Link
-            href={`/${locale}/branch/inventory`}
-            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-          >
-            ← Back to Inventory
+          <Link href={`/${locale}/branch/inventory`}>
+            <Button variant="secondary" size="md">
+              ← Back to Inventory
+            </Button>
           </Link>
-          <button
+          <Button
+            variant="primary"
+            size="md"
             onClick={() => {
               setSelectedCategory(undefined);
               setIsCategoryModalOpen(true);
             }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
           >
             ➕ Add Category
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md">
-          ⚠️ {error}
-        </div>
-      )}
+      {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
 
       {/* Categories Table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <span className="ml-3 text-gray-600">Loading categories...</span>
-          </div>
+          <LoadingSpinner size="lg" text="Loading categories..." />
         ) : categories.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No categories found</p>
-            <button
-              onClick={() => alert('Category form modal coming soon!')}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              Add Your First Category
-            </button>
-          </div>
+          <EmptyState
+            title="No categories found"
+            message="Start by adding your first category to organize products."
+            action={
+              <Button
+                variant="primary"
+                size="md"
+                onClick={() => {
+                  setSelectedCategory(undefined);
+                  setIsCategoryModalOpen(true);
+                }}
+              >
+                Add Your First Category
+              </Button>
+            }
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -294,6 +309,33 @@ export default function CategoriesPage({
         }}
         category={selectedCategory}
         categories={categories}
+      />
+
+      {/* Alert Dialog */}
+      <Dialog
+        isOpen={dialog.isOpen}
+        onClose={dialog.handleClose}
+        onConfirm={dialog.showCancel ? undefined : dialog.handleClose}
+        title={dialog.title}
+        message={dialog.message}
+        type={dialog.type}
+        confirmText={dialog.confirmText}
+        cancelText={dialog.cancelText}
+        showCancel={dialog.showCancel}
+        isLoading={dialog.isProcessing}
+      />
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={confirmation.isOpen}
+        onClose={confirmation.cancel}
+        onConfirm={confirmation.confirm}
+        title={confirmation.title}
+        message={confirmation.message}
+        variant={confirmation.variant}
+        confirmLabel="Confirm"
+        cancelLabel="Cancel"
+        isProcessing={confirmation.isProcessing}
       />
     </div>
   );

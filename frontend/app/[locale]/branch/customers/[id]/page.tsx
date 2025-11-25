@@ -12,6 +12,15 @@ import customerService from '@/services/customer.service';
 import { CustomerDto, SaleDto } from '@/types/api.types';
 import Link from 'next/link';
 import CustomerFormModal from '@/components/customers/CustomerFormModal';
+import { Button } from '@/components/shared/Button';
+import { StatusBadge } from '@/components/shared/StatusBadge';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+import { ErrorAlert } from '@/components/shared/ErrorAlert';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { Dialog } from '@/components/shared/Dialog';
+import { ConfirmationDialog } from '@/components/modals/ConfirmationDialog';
+import { useDialog } from '@/hooks/useDialog';
+import { useConfirmation } from '@/hooks/useModal';
 
 export default function CustomerDetailsPage({
   params,
@@ -34,6 +43,10 @@ export default function CustomerDetailsPage({
 
   // Modal states
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // Dialog hooks
+  const dialog = useDialog();
+  const confirmation = useConfirmation();
 
   /**
    * Load customer details
@@ -80,22 +93,27 @@ export default function CustomerDetailsPage({
   };
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this customer?')) {
-      return;
-    }
+    if (!customer) return;
 
-    try {
-      await customerService.deleteCustomer(id);
-      router.push(`/${locale}/branch/customers`);
-    } catch (err: any) {
-      alert(err.message || 'Failed to delete customer');
-    }
+    confirmation.ask(
+      'Delete Customer',
+      `Are you sure you want to delete "${customer.nameEn}"? This action cannot be undone.`,
+      async () => {
+        try {
+          await customerService.deleteCustomer(id);
+          router.push(`/${locale}/branch/customers`);
+        } catch (err: any) {
+          dialog.error(`Failed to delete customer: ${err.message}`);
+        }
+      },
+      'danger'
+    );
   };
 
   if (loading) {
     return (
       <div className="container mx-auto p-6">
-        <div className="text-center py-8">Loading customer details...</div>
+        <LoadingSpinner size="lg" text="Loading customer details..." />
       </div>
     );
   }
@@ -103,11 +121,11 @@ export default function CustomerDetailsPage({
   if (error || !customer) {
     return (
       <div className="container mx-auto p-6">
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          {error || 'Customer not found'}
-        </div>
-        <Link href={`/${locale}/branch/customers`} className="text-blue-600 hover:underline mt-4 inline-block">
-          ← Back to Customers
+        <ErrorAlert message={error || 'Customer not found'} />
+        <Link href={`/${locale}/branch/customers`}>
+          <Button variant="secondary" size="md" className="mt-4">
+            ← Back to Customers
+          </Button>
         </Link>
       </div>
     );
@@ -125,18 +143,12 @@ export default function CustomerDetailsPage({
           {customer.nameAr && <p className="text-gray-600" dir="rtl">{customer.nameAr}</p>}
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={() => setIsEditModalOpen(true)}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-          >
+          <Button variant="primary" size="md" onClick={() => setIsEditModalOpen(true)}>
             Edit
-          </button>
-          <button
-            onClick={handleDelete}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
-          >
+          </Button>
+          <Button variant="danger" size="md" onClick={handleDelete}>
             Delete
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -152,9 +164,9 @@ export default function CustomerDetailsPage({
             </div>
             <div>
               <p className="text-sm text-gray-600">Status</p>
-              <span className={`px-2 py-1 rounded text-xs ${customer.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+              <StatusBadge variant={customer.isActive ? 'success' : 'danger'}>
                 {customer.isActive ? 'Active' : 'Inactive'}
-              </span>
+              </StatusBadge>
             </div>
             {customer.email && (
               <div>
@@ -222,7 +234,7 @@ export default function CustomerDetailsPage({
         <h2 className="text-xl font-bold mb-4">Purchase History</h2>
 
         {historyLoading ? (
-          <div className="text-center py-8">Loading purchase history...</div>
+          <LoadingSpinner size="md" text="Loading purchase history..." />
         ) : purchaseHistory.length > 0 ? (
           <>
             <div className="overflow-x-auto">
@@ -255,17 +267,15 @@ export default function CustomerDetailsPage({
                         {sale.lineItems?.length || 0} items
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        ${sale.totalAmount.toFixed(2)}
+                        ${sale.total.toFixed(2)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         {sale.paymentMethod === 0 ? 'Cash' : sale.paymentMethod === 1 ? 'Card' : 'Other'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {sale.isVoided ? (
-                          <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Voided</span>
-                        ) : (
-                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Completed</span>
-                        )}
+                        <StatusBadge variant={sale.isVoided ? 'danger' : 'success'}>
+                          {sale.isVoided ? 'Voided' : 'Completed'}
+                        </StatusBadge>
                       </td>
                     </tr>
                   ))}
@@ -276,30 +286,33 @@ export default function CustomerDetailsPage({
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex justify-center items-center mt-6 gap-2">
-                <button
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 border rounded disabled:opacity-50"
                 >
                   Previous
-                </button>
+                </Button>
                 <span className="px-4 py-2">
                   Page {currentPage} of {totalPages}
                 </span>
-                <button
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-2 border rounded disabled:opacity-50"
                 >
                   Next
-                </button>
+                </Button>
               </div>
             )}
           </>
         ) : (
-          <div className="text-center py-8 text-gray-500">
-            No purchase history found for this customer.
-          </div>
+          <EmptyState
+            title="No purchase history"
+            message="This customer has not made any purchases yet."
+          />
         )}
       </div>
 
@@ -312,6 +325,33 @@ export default function CustomerDetailsPage({
           setIsEditModalOpen(false);
         }}
         customer={customer}
+      />
+
+      {/* Alert Dialog */}
+      <Dialog
+        isOpen={dialog.isOpen}
+        onClose={dialog.handleClose}
+        onConfirm={dialog.showCancel ? undefined : dialog.handleClose}
+        title={dialog.title}
+        message={dialog.message}
+        type={dialog.type}
+        confirmText={dialog.confirmText}
+        cancelText={dialog.cancelText}
+        showCancel={dialog.showCancel}
+        isLoading={dialog.isProcessing}
+      />
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={confirmation.isOpen}
+        onClose={confirmation.cancel}
+        onConfirm={confirmation.confirm}
+        title={confirmation.title}
+        message={confirmation.message}
+        variant={confirmation.variant}
+        confirmLabel="Confirm"
+        cancelLabel="Cancel"
+        isProcessing={confirmation.isProcessing}
       />
     </div>
   );

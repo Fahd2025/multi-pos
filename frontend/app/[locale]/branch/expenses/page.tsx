@@ -10,6 +10,15 @@ import { use } from 'react';
 import expenseService from '@/services/expense.service';
 import { ExpenseDto, ExpenseCategoryDto } from '@/types/api.types';
 import ExpenseFormModal from '@/components/expenses/ExpenseFormModal';
+import { Button } from '@/components/shared/Button';
+import { StatusBadge, getApprovalStatusVariant } from '@/components/shared/StatusBadge';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+import { ErrorAlert } from '@/components/shared/ErrorAlert';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { Dialog } from '@/components/shared/Dialog';
+import { ConfirmationDialog } from '@/components/modals/ConfirmationDialog';
+import { useDialog } from '@/hooks/useDialog';
+import { useConfirmation } from '@/hooks/useModal';
 
 export default function ExpensesPage({
   params,
@@ -37,6 +46,10 @@ export default function ExpensesPage({
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<ExpenseDto | undefined>(undefined);
+
+  // Dialog hooks
+  const dialog = useDialog();
+  const confirmation = useConfirmation();
 
   /**
    * Load expenses and categories
@@ -82,7 +95,7 @@ export default function ExpensesPage({
   const handleEdit = (expense: ExpenseDto) => {
     // Only allow editing of pending expenses
     if (expense.approvalStatus !== 0) {
-      alert('Only pending expenses can be edited');
+      dialog.warning('Only pending expenses can be edited');
       return;
     }
     setSelectedExpense(expense);
@@ -92,41 +105,47 @@ export default function ExpensesPage({
   const handleDelete = async (expenseId: string, expense: ExpenseDto) => {
     // Only allow deleting of pending expenses
     if (expense.approvalStatus !== 0) {
-      alert('Only pending expenses can be deleted');
+      dialog.warning('Only pending expenses can be deleted');
       return;
     }
 
-    if (!confirm('Are you sure you want to delete this expense?')) {
-      return;
-    }
-
-    try {
-      await expenseService.deleteExpense(expenseId);
-      loadData();
-    } catch (err: any) {
-      alert(err.message || 'Failed to delete expense');
-    }
+    confirmation.ask(
+      'Delete Expense',
+      'Are you sure you want to delete this expense? This action cannot be undone.',
+      async () => {
+        try {
+          await expenseService.deleteExpense(expenseId);
+          loadData();
+        } catch (err: any) {
+          dialog.error(err.message || 'Failed to delete expense');
+        }
+      },
+      'danger'
+    );
   };
 
   const handleApprove = async (expenseId: string, approved: boolean) => {
-    try {
-      await expenseService.approveExpense(expenseId, approved);
-      loadData();
-    } catch (err: any) {
-      alert(err.message || `Failed to ${approved ? 'approve' : 'reject'} expense`);
-    }
+    confirmation.ask(
+      approved ? 'Approve Expense' : 'Reject Expense',
+      `Are you sure you want to ${approved ? 'approve' : 'reject'} this expense?`,
+      async () => {
+        try {
+          await expenseService.approveExpense(expenseId, approved);
+          loadData();
+        } catch (err: any) {
+          dialog.error(err.message || `Failed to ${approved ? 'approve' : 'reject'} expense`);
+        }
+      },
+      approved ? 'success' : 'warning'
+    );
   };
 
-  const getStatusBadge = (status: number) => {
+  const getStatusLabel = (status: number) => {
     switch (status) {
-      case 0:
-        return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">Pending</span>;
-      case 1:
-        return <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Approved</span>;
-      case 2:
-        return <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">Rejected</span>;
-      default:
-        return <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded">Unknown</span>;
+      case 0: return 'Pending';
+      case 1: return 'Approved';
+      case 2: return 'Rejected';
+      default: return 'Unknown';
     }
   };
 
@@ -149,15 +168,15 @@ export default function ExpensesPage({
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Expenses</h1>
-        <button
+        <Button
           onClick={() => {
             setSelectedExpense(undefined);
             setIsModalOpen(true);
           }}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+          variant="primary"
         >
           + Add Expense
-        </button>
+        </Button>
       </div>
 
       {/* Filters */}
@@ -210,31 +229,29 @@ export default function ExpensesPage({
             />
           </div>
           <div className="flex items-end">
-            <button
+            <Button
               onClick={handleApplyFilters}
-              className="w-full bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+              variant="secondary"
+              isFullWidth
             >
               Apply Filters
-            </button>
+            </Button>
           </div>
         </div>
       </div>
 
       {/* Error Message */}
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
+      {error && <ErrorAlert message={error} onDismiss={() => setError(null)} className="mb-4" />}
 
       {/* Loading State */}
-      {loading && <div className="text-center py-8">Loading expenses...</div>}
+      {loading && <LoadingSpinner size="lg" text="Loading expenses..." className="py-8" />}
 
-      {/* Expenses Table */}
+      {/* Empty State */}
       {!loading && expenses.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          No expenses found. Add your first expense to get started.
-        </div>
+        <EmptyState
+          title="No expenses found"
+          message="Add your first expense to get started."
+        />
       )}
 
       {!loading && expenses.length > 0 && (
@@ -288,36 +305,42 @@ export default function ExpensesPage({
                     {getPaymentMethodLabel(expense.paymentMethod)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {getStatusBadge(expense.approvalStatus)}
+                    <StatusBadge variant={getApprovalStatusVariant(expense.approvalStatus)}>
+                      {getStatusLabel(expense.approvalStatus)}
+                    </StatusBadge>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <div className="flex gap-2">
                       {expense.approvalStatus === 0 && (
                         <>
-                          <button
+                          <Button
                             onClick={() => handleEdit(expense)}
-                            className="text-blue-600 hover:text-blue-900"
+                            variant="ghost"
+                            size="sm"
                           >
                             Edit
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             onClick={() => handleDelete(expense.id, expense)}
-                            className="text-red-600 hover:text-red-900"
+                            variant="ghost"
+                            size="sm"
                           >
                             Delete
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             onClick={() => handleApprove(expense.id, true)}
-                            className="text-green-600 hover:text-green-900"
+                            variant="ghost"
+                            size="sm"
                           >
                             Approve
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             onClick={() => handleApprove(expense.id, false)}
-                            className="text-orange-600 hover:text-orange-900"
+                            variant="ghost"
+                            size="sm"
                           >
                             Reject
-                          </button>
+                          </Button>
                         </>
                       )}
                       {expense.approvalStatus !== 0 && (
@@ -340,23 +363,25 @@ export default function ExpensesPage({
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center gap-2 mt-6">
-          <button
+          <Button
             onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
             disabled={currentPage === 1}
-            className="px-4 py-2 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+            variant="secondary"
+            size="sm"
           >
             Previous
-          </button>
+          </Button>
           <span className="px-4 py-2">
             Page {currentPage} of {totalPages}
           </span>
-          <button
+          <Button
             onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
             disabled={currentPage === totalPages}
-            className="px-4 py-2 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+            variant="secondary"
+            size="sm"
           >
             Next
-          </button>
+          </Button>
         </div>
       )}
 
@@ -376,6 +401,33 @@ export default function ExpensesPage({
           }}
         />
       )}
+
+      {/* Alert Dialog */}
+      <Dialog
+        isOpen={dialog.isOpen}
+        onClose={dialog.handleClose}
+        onConfirm={dialog.showCancel ? undefined : dialog.handleClose}
+        title={dialog.title}
+        message={dialog.message}
+        type={dialog.type}
+        confirmText={dialog.confirmText}
+        cancelText={dialog.cancelText}
+        showCancel={dialog.showCancel}
+        isLoading={dialog.isProcessing}
+      />
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={confirmation.isOpen}
+        onClose={confirmation.cancel}
+        onConfirm={confirmation.confirm}
+        title={confirmation.title}
+        message={confirmation.message}
+        variant={confirmation.variant}
+        confirmLabel="Confirm"
+        cancelLabel="Cancel"
+        isProcessing={confirmation.isProcessing}
+      />
     </div>
   );
 }

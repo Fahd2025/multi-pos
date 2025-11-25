@@ -12,6 +12,15 @@ import { ProductDto, CategoryDto } from '@/types/api.types';
 import Link from 'next/link';
 import ProductFormModal from '@/components/inventory/ProductFormModal';
 import StockAdjustmentModal from '@/components/inventory/StockAdjustmentModal';
+import { Button } from '@/components/shared/Button';
+import { StatusBadge, getStockStatusVariant } from '@/components/shared/StatusBadge';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+import { ErrorAlert } from '@/components/shared/ErrorAlert';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { Dialog } from '@/components/shared/Dialog';
+import { ConfirmationDialog } from '@/components/modals/ConfirmationDialog';
+import { useDialog } from '@/hooks/useDialog';
+import { useConfirmation } from '@/hooks/useModal';
 
 export default function InventoryPage({
   params,
@@ -40,6 +49,10 @@ export default function InventoryPage({
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isStockModalOpen, setIsStockModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductDto | undefined>(undefined);
+
+  // Dialog hooks
+  const dialog = useDialog();
+  const confirmation = useConfirmation();
 
   /**
    * Load products and categories
@@ -92,16 +105,19 @@ export default function InventoryPage({
    * Handle delete product
    */
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete "${name}"?`)) {
-      return;
-    }
-
-    try {
-      await inventoryService.deleteProduct(id);
-      loadData(); // Reload list
-    } catch (err: any) {
-      alert(`Failed to delete product: ${err.message}`);
-    }
+    confirmation.ask(
+      'Delete Product',
+      `Are you sure you want to delete "${name}"? This action cannot be undone.`,
+      async () => {
+        try {
+          await inventoryService.deleteProduct(id);
+          loadData(); // Reload list
+        } catch (err: any) {
+          dialog.error(`Failed to delete product: ${err.message}`);
+        }
+      },
+      'danger'
+    );
   };
 
   /**
@@ -114,27 +130,15 @@ export default function InventoryPage({
   };
 
   /**
-   * Get stock status badge
+   * Get stock status label
    */
-  const getStockBadge = (product: ProductDto) => {
+  const getStockLabel = (product: ProductDto) => {
     if (product.stockLevel <= 0) {
-      return (
-        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-          Out of Stock
-        </span>
-      );
+      return 'Out of Stock';
     } else if (product.stockLevel <= product.minStockThreshold) {
-      return (
-        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-          Low Stock
-        </span>
-      );
+      return 'Low Stock';
     } else {
-      return (
-        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-          In Stock
-        </span>
-      );
+      return 'In Stock';
     }
   };
 
@@ -149,21 +153,21 @@ export default function InventoryPage({
           </p>
         </div>
         <div className="flex gap-3">
-          <Link
-            href={`/${locale}/branch/inventory/categories`}
-            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-          >
-            📁 Manage Categories
+          <Link href={`/${locale}/branch/inventory/categories`}>
+            <Button variant="secondary" size="md">
+              📁 Manage Categories
+            </Button>
           </Link>
-          <button
+          <Button
+            variant="primary"
+            size="md"
             onClick={() => {
               setSelectedProduct(undefined);
               setIsProductModalOpen(true);
             }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
           >
             ➕ Add Product
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -179,12 +183,9 @@ export default function InventoryPage({
               onChange={(e) => setSearchTerm(e.target.value)}
               className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
-            <button
-              type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
+            <Button type="submit" variant="primary" size="md">
               🔍 Search
-            </button>
+            </Button>
           </div>
 
           {/* Filter Options */}
@@ -235,29 +236,29 @@ export default function InventoryPage({
       </div>
 
       {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md">
-          ⚠️ {error}
-        </div>
-      )}
+      {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
 
       {/* Products Table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <span className="ml-3 text-gray-600">Loading products...</span>
-          </div>
+          <LoadingSpinner size="lg" text="Loading products..." />
         ) : products.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No products found</p>
-            <button
-              onClick={() => alert('Product form modal coming soon!')}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              Add Your First Product
-            </button>
-          </div>
+          <EmptyState
+            title="No products found"
+            message="Start by adding your first product to the inventory."
+            action={
+              <Button
+                variant="primary"
+                size="md"
+                onClick={() => {
+                  setSelectedProduct(undefined);
+                  setIsProductModalOpen(true);
+                }}
+              >
+                Add Your First Product
+              </Button>
+            }
+          />
         ) : (
           <>
             <div className="overflow-x-auto">
@@ -323,7 +324,9 @@ export default function InventoryPage({
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        {getStockBadge(product)}
+                        <StatusBadge variant={getStockStatusVariant(product.stockLevel, product.minStockThreshold)}>
+                          {getStockLabel(product)}
+                        </StatusBadge>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end gap-2">
@@ -369,20 +372,22 @@ export default function InventoryPage({
                   Page {currentPage} of {totalPages}
                 </div>
                 <div className="flex gap-2">
-                  <button
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => setCurrentPage(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     ← Previous
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => setCurrentPage(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next →
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}
@@ -442,6 +447,33 @@ export default function InventoryPage({
           loadData();
         }}
         product={selectedProduct || null}
+      />
+
+      {/* Alert Dialog */}
+      <Dialog
+        isOpen={dialog.isOpen}
+        onClose={dialog.handleClose}
+        onConfirm={dialog.showCancel ? undefined : dialog.handleClose}
+        title={dialog.title}
+        message={dialog.message}
+        type={dialog.type}
+        confirmText={dialog.confirmText}
+        cancelText={dialog.cancelText}
+        showCancel={dialog.showCancel}
+        isLoading={dialog.isProcessing}
+      />
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={confirmation.isOpen}
+        onClose={confirmation.cancel}
+        onConfirm={confirmation.confirm}
+        title={confirmation.title}
+        message={confirmation.message}
+        variant={confirmation.variant}
+        confirmLabel="Confirm"
+        cancelLabel="Cancel"
+        isProcessing={confirmation.isProcessing}
       />
     </div>
   );

@@ -11,6 +11,15 @@ import customerService from '@/services/customer.service';
 import { CustomerDto } from '@/types/api.types';
 import Link from 'next/link';
 import CustomerFormModal from '@/components/customers/CustomerFormModal';
+import { Button } from '@/components/shared/Button';
+import { StatusBadge } from '@/components/shared/StatusBadge';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+import { ErrorAlert } from '@/components/shared/ErrorAlert';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { Dialog } from '@/components/shared/Dialog';
+import { ConfirmationDialog } from '@/components/modals/ConfirmationDialog';
+import { useDialog } from '@/hooks/useDialog';
+import { useConfirmation } from '@/hooks/useModal';
 
 export default function CustomersPage({
   params,
@@ -35,6 +44,10 @@ export default function CustomersPage({
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerDto | undefined>(undefined);
+
+  // Dialog hooks
+  const dialog = useDialog();
+  const confirmation = useConfirmation();
 
   /**
    * Load customers
@@ -75,32 +88,36 @@ export default function CustomersPage({
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (customerId: string) => {
-    if (!confirm('Are you sure you want to delete this customer?')) {
-      return;
-    }
-
-    try {
-      await customerService.deleteCustomer(customerId);
-      loadCustomers();
-    } catch (err: any) {
-      alert(err.message || 'Failed to delete customer');
-    }
+  const handleDelete = async (customer: CustomerDto) => {
+    confirmation.ask(
+      'Delete Customer',
+      `Are you sure you want to delete "${customer.nameEn}"? This action cannot be undone.`,
+      async () => {
+        try {
+          await customerService.deleteCustomer(customer.id);
+          loadCustomers();
+        } catch (err: any) {
+          dialog.error(`Failed to delete customer: ${err.message}`);
+        }
+      },
+      'danger'
+    );
   };
 
   return (
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Customers</h1>
-        <button
+        <Button
+          variant="primary"
+          size="md"
           onClick={() => {
             setSelectedCustomer(undefined);
             setIsModalOpen(true);
           }}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
         >
           + Add Customer
-        </button>
+        </Button>
       </div>
 
       {/* Filters */}
@@ -128,25 +145,18 @@ export default function CustomersPage({
             </label>
           </div>
           <div>
-            <button
-              onClick={handleSearch}
-              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
-            >
+            <Button variant="secondary" size="md" onClick={handleSearch}>
               Search
-            </button>
+            </Button>
           </div>
         </div>
       </div>
 
       {/* Error Message */}
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
+      {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
 
       {/* Loading State */}
-      {loading && <div className="text-center py-8">Loading customers...</div>}
+      {loading && <LoadingSpinner size="lg" text="Loading customers..." />}
 
       {/* Customers Table */}
       {!loading && customers.length > 0 && (
@@ -180,23 +190,19 @@ export default function CustomersPage({
                   <td className="px-6 py-4 whitespace-nowrap text-sm">{customer.visitCount}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">{customer.loyaltyPoints}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span className={`px-2 py-1 rounded text-xs ${customer.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    <StatusBadge variant={customer.isActive ? 'success' : 'danger'}>
                       {customer.isActive ? 'Active' : 'Inactive'}
-                    </span>
+                    </StatusBadge>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <button
-                      onClick={() => handleEdit(customer)}
-                      className="text-blue-600 hover:underline mr-3"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(customer.id)}
-                      className="text-red-600 hover:underline"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => handleEdit(customer)}>
+                        Edit
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(customer)}>
+                        Delete
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -207,31 +213,46 @@ export default function CustomersPage({
 
       {/* Empty State */}
       {!loading && customers.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          No customers found. Click "Add Customer" to create one.
-        </div>
+        <EmptyState
+          title="No customers found"
+          message="Start by adding your first customer."
+          action={
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => {
+                setSelectedCustomer(undefined);
+                setIsModalOpen(true);
+              }}
+            >
+              Add Your First Customer
+            </Button>
+          }
+        />
       )}
 
       {/* Pagination */}
       {!loading && totalPages > 1 && (
         <div className="flex justify-center items-center mt-6 gap-2">
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
             disabled={currentPage === 1}
-            className="px-4 py-2 border rounded disabled:opacity-50"
           >
             Previous
-          </button>
+          </Button>
           <span className="px-4 py-2">
             Page {currentPage} of {totalPages}
           </span>
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
             disabled={currentPage === totalPages}
-            className="px-4 py-2 border rounded disabled:opacity-50"
           >
             Next
-          </button>
+          </Button>
         </div>
       )}
 
@@ -244,6 +265,33 @@ export default function CustomersPage({
         }}
         onSuccess={loadCustomers}
         customer={selectedCustomer}
+      />
+
+      {/* Alert Dialog */}
+      <Dialog
+        isOpen={dialog.isOpen}
+        onClose={dialog.handleClose}
+        onConfirm={dialog.showCancel ? undefined : dialog.handleClose}
+        title={dialog.title}
+        message={dialog.message}
+        type={dialog.type}
+        confirmText={dialog.confirmText}
+        cancelText={dialog.cancelText}
+        showCancel={dialog.showCancel}
+        isLoading={dialog.isProcessing}
+      />
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={confirmation.isOpen}
+        onClose={confirmation.cancel}
+        onConfirm={confirmation.confirm}
+        title={confirmation.title}
+        message={confirmation.message}
+        variant={confirmation.variant}
+        confirmLabel="Confirm"
+        cancelLabel="Cancel"
+        isProcessing={confirmation.isProcessing}
       />
     </div>
   );

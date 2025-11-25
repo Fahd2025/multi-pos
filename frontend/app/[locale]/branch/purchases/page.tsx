@@ -10,6 +10,15 @@ import { use } from 'react';
 import inventoryService from '@/services/inventory.service';
 import { PurchaseDto, SupplierDto } from '@/types/api.types';
 import PurchaseFormModal from '@/components/inventory/PurchaseFormModal';
+import { Button } from '@/components/shared/Button';
+import { StatusBadge } from '@/components/shared/StatusBadge';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+import { ErrorAlert } from '@/components/shared/ErrorAlert';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { Dialog } from '@/components/shared/Dialog';
+import { ConfirmationDialog } from '@/components/modals/ConfirmationDialog';
+import { useDialog } from '@/hooks/useDialog';
+import { useConfirmation } from '@/hooks/useModal';
 
 export default function PurchasesPage({
   params,
@@ -30,6 +39,10 @@ export default function PurchasesPage({
   // Modal states
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
   const [selectedPurchase, setSelectedPurchase] = useState<PurchaseDto | undefined>(undefined);
+
+  // Dialog hooks
+  const dialog = useDialog();
+  const confirmation = useConfirmation();
 
   /**
    * Load purchases
@@ -58,59 +71,42 @@ export default function PurchasesPage({
    * Handle receive purchase
    */
   const handleReceivePurchase = async (id: string, purchaseOrderNumber: string) => {
-    if (!confirm(`Mark purchase ${purchaseOrderNumber} as received?`)) {
-      return;
-    }
-
-    try {
-      await inventoryService.receivePurchase(id);
-      loadData(); // Reload list
-    } catch (err: any) {
-      alert(`Failed to receive purchase: ${err.message}`);
-    }
+    confirmation.ask(
+      'Receive Purchase Order',
+      `Mark purchase ${purchaseOrderNumber} as received? This will update inventory stock levels.`,
+      async () => {
+        try {
+          await inventoryService.receivePurchase(id);
+          loadData(); // Reload list
+        } catch (err: any) {
+          dialog.error(`Failed to receive purchase: ${err.message}`);
+        }
+      },
+      'success'
+    );
   };
 
   /**
-   * Get payment status badge
+   * Get payment status variant and label
    */
-  const getPaymentStatusBadge = (status: number, amountPaid: number, totalCost: number) => {
+  const getPaymentStatus = (status: number, amountPaid: number, totalCost: number) => {
     if (status === 2 || amountPaid >= totalCost) {
-      return (
-        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-          Paid
-        </span>
-      );
+      return { variant: 'success' as const, label: 'Paid' };
     } else if (amountPaid > 0) {
-      return (
-        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-          Partial
-        </span>
-      );
+      return { variant: 'warning' as const, label: 'Partial' };
     } else {
-      return (
-        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-          Unpaid
-        </span>
-      );
+      return { variant: 'danger' as const, label: 'Unpaid' };
     }
   };
 
   /**
-   * Get received status badge
+   * Get received status variant and label
    */
-  const getReceivedStatusBadge = (receivedDate?: string) => {
+  const getReceivedStatus = (receivedDate?: string) => {
     if (receivedDate) {
-      return (
-        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-          Received
-        </span>
-      );
+      return { variant: 'info' as const, label: 'Received' };
     } else {
-      return (
-        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-          Pending
-        </span>
-      );
+      return { variant: 'neutral' as const, label: 'Pending' };
     }
   };
 
@@ -124,41 +120,39 @@ export default function PurchasesPage({
             Track and manage inventory purchases from suppliers
           </p>
         </div>
-        <button
+        <Button
+          variant="primary"
+          size="md"
           onClick={() => {
             setSelectedPurchase(undefined);
             setIsPurchaseModalOpen(true);
           }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
         >
           ➕ New Purchase Order
-        </button>
+        </Button>
       </div>
 
       {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md">
-          ⚠️ {error}
-        </div>
-      )}
+      {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
 
       {/* Purchases Table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <span className="ml-3 text-gray-600">Loading purchases...</span>
-          </div>
+          <LoadingSpinner size="lg" text="Loading purchases..." />
         ) : purchases.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No purchase orders found</p>
-            <button
-              onClick={() => setIsPurchaseModalOpen(true)}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              Create Your First Purchase Order
-            </button>
-          </div>
+          <EmptyState
+            title="No purchase orders found"
+            message="Start by creating your first purchase order to track inventory."
+            action={
+              <Button
+                variant="primary"
+                size="md"
+                onClick={() => setIsPurchaseModalOpen(true)}
+              >
+                Create Your First Purchase Order
+              </Button>
+            }
+          />
         ) : (
           <>
             <div className="overflow-x-auto">
@@ -225,32 +219,40 @@ export default function PurchasesPage({
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        {getPaymentStatusBadge(purchase.paymentStatus, purchase.amountPaid, purchase.totalCost)}
+                        {(() => {
+                          const status = getPaymentStatus(purchase.paymentStatus, purchase.amountPaid, purchase.totalCost);
+                          return <StatusBadge variant={status.variant}>{status.label}</StatusBadge>;
+                        })()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        {getReceivedStatusBadge(purchase.receivedDate)}
+                        {(() => {
+                          const status = getReceivedStatus(purchase.receivedDate);
+                          return <StatusBadge variant={status.variant}>{status.label}</StatusBadge>;
+                        })()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end gap-2">
                           {!purchase.receivedDate && (
-                            <button
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => handleReceivePurchase(purchase.id, purchase.purchaseOrderNumber)}
-                              className="text-green-600 hover:text-green-900"
                               title="Mark as Received"
                             >
                               ✓ Receive
-                            </button>
+                            </Button>
                           )}
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => {
                               setSelectedPurchase(purchase);
                               setIsPurchaseModalOpen(true);
                             }}
-                            className="text-blue-600 hover:text-blue-900"
                             title="View Details"
                           >
                             👁️
-                          </button>
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -266,20 +268,22 @@ export default function PurchasesPage({
                   Page {currentPage} of {totalPages}
                 </div>
                 <div className="flex gap-2">
-                  <button
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => setCurrentPage(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     ← Previous
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => setCurrentPage(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next →
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}
@@ -326,6 +330,33 @@ export default function PurchasesPage({
           loadData();
         }}
         purchase={selectedPurchase}
+      />
+
+      {/* Alert Dialog */}
+      <Dialog
+        isOpen={dialog.isOpen}
+        onClose={dialog.handleClose}
+        onConfirm={dialog.showCancel ? undefined : dialog.handleClose}
+        title={dialog.title}
+        message={dialog.message}
+        type={dialog.type}
+        confirmText={dialog.confirmText}
+        cancelText={dialog.cancelText}
+        showCancel={dialog.showCancel}
+        isLoading={dialog.isProcessing}
+      />
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={confirmation.isOpen}
+        onClose={confirmation.cancel}
+        onConfirm={confirmation.confirm}
+        title={confirmation.title}
+        message={confirmation.message}
+        variant={confirmation.variant}
+        confirmLabel="Confirm"
+        cancelLabel="Cancel"
+        isProcessing={confirmation.isProcessing}
       />
     </div>
   );
