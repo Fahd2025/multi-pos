@@ -439,34 +439,34 @@
 
 ### DTOs for User Story 6
 
-- [ ] T216 [P] [US6] Create UserDto in Backend/Models/DTOs/Users/UserDto.cs
-- [ ] T217 [P] [US6] Create CreateUserDto in Backend/Models/DTOs/Users/CreateUserDto.cs
-- [ ] T218 [P] [US6] Create UpdateUserDto in Backend/Models/DTOs/Users/UpdateUserDto.cs
-- [ ] T219 [P] [US6] Create AssignBranchDto in Backend/Models/DTOs/Users/AssignBranchDto.cs
+- [X] T216 [P] [US6] Create UserDto in Backend/Models/DTOs/Users/UserDto.cs
+- [X] T217 [P] [US6] Create CreateUserDto in Backend/Models/DTOs/Users/CreateUserDto.cs
+- [X] T218 [P] [US6] Create UpdateUserDto in Backend/Models/DTOs/Users/UpdateUserDto.cs
+- [X] T219 [P] [US6] Create AssignBranchDto in Backend/Models/DTOs/Users/AssignBranchDto.cs
 
 ### Backend Services for User Story 6
 
-- [ ] T220 [US6] Implement IUserService interface in Backend/Services/Users/IUserService.cs
-- [ ] T221 [US6] Implement UserService in Backend/Services/Users/UserService.cs with GetUsersAsync, CreateUserAsync, UpdateUserAsync, DeleteUserAsync, DeactivateUserAsync, AssignBranchAsync, RemoveBranchAssignmentAsync, GetUserActivityAsync methods
-- [ ] T222 [US6] Implement IAuditService interface in Backend/Services/Audit/IAuditService.cs
-- [ ] T223 [US6] Implement AuditService in Backend/Services/Audit/AuditService.cs with LogAsync, LogActivityAsync, GetUserAuditTrailAsync, GetUserRecentActivityAsync methods (circular buffer for activity logs)
+- [X] T220 [US6] Implement IUserService interface in Backend/Services/Users/IUserService.cs
+- [X] T221 [US6] Implement UserService in Backend/Services/Users/UserService.cs with GetUsersAsync, CreateUserAsync, UpdateUserAsync, DeleteUserAsync, DeactivateUserAsync, AssignBranchAsync, RemoveBranchAssignmentAsync, GetUserActivityAsync methods
+- [X] T222 [US6] Implement IAuditService interface in Backend/Services/Audit/IAuditService.cs
+- [X] T223 [US6] Implement AuditService in Backend/Services/Audit/AuditService.cs with LogAsync, LogActivityAsync, GetUserAuditTrailAsync, GetUserRecentActivityAsync methods (circular buffer for activity logs)
 - [ ] T224 [US6] Integrate AuditService with all critical operations (sales, inventory changes, user management, branch changes)
 
 ### API Endpoints for User Story 6
 
-- [ ] T225 [US6] Implement GET /api/v1/users endpoint in Backend/Program.cs with role-based filtering per contracts/users.md
-- [ ] T226 [US6] Implement POST /api/v1/users endpoint in Backend/Program.cs (admin only) per contracts/users.md
-- [ ] T227 [US6] Implement PUT /api/v1/users/:id endpoint in Backend/Program.cs per contracts/users.md
-- [ ] T228 [US6] Implement DELETE /api/v1/users/:id endpoint in Backend/Program.cs (admin only) per contracts/users.md
-- [ ] T229 [US6] Implement POST /api/v1/users/:id/assign-branch endpoint in Backend/Program.cs per contracts/users.md
-- [ ] T230 [US6] Implement DELETE /api/v1/users/:id/branches/:branchId endpoint in Backend/Program.cs
-- [ ] T231 [US6] Implement GET /api/v1/users/:id/activity endpoint in Backend/Program.cs (last 100 activities)
-- [ ] T232 [US6] Implement GET /api/v1/audit/logs endpoint in Backend/Program.cs (admin only) per contracts/audit.md
-- [ ] T233 [US6] Implement GET /api/v1/audit/user/:userId endpoint in Backend/Program.cs per contracts/audit.md
+- [X] T225 [US6] Implement GET /api/v1/users endpoint in Backend/Program.cs with role-based filtering per contracts/users.md
+- [X] T226 [US6] Implement POST /api/v1/users endpoint in Backend/Program.cs (admin only) per contracts/users.md
+- [X] T227 [US6] Implement PUT /api/v1/users/:id endpoint in Backend/Program.cs per contracts/users.md
+- [X] T228 [US6] Implement DELETE /api/v1/users/:id endpoint in Backend/Program.cs (admin only) per contracts/users.md
+- [X] T229 [US6] Implement POST /api/v1/users/:id/assign-branch endpoint in Backend/Program.cs per contracts/users.md
+- [X] T230 [US6] Implement DELETE /api/v1/users/:id/branches/:branchId endpoint in Backend/Program.cs
+- [X] T231 [US6] Implement GET /api/v1/users/:id/activity endpoint in Backend/Program.cs (last 100 activities)
+- [X] T232 [US6] Implement GET /api/v1/audit/logs endpoint in Backend/Program.cs (admin only) per contracts/audit.md
+- [X] T233 [US6] Implement GET /api/v1/audit/user/:userId endpoint in Backend/Program.cs per contracts/audit.md
 
 ### Frontend Services for User Story 6
 
-- [ ] T234 [US6] Create UserService in frontend/services/user.service.ts
+- [X] T234 [US6] Create UserService in frontend/services/user.service.ts
 
 ### Frontend UI for User Story 6
 

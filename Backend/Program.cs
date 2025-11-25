@@ -80,6 +80,8 @@ builder.Services.AddScoped<
     Backend.Services.Branches.IBranchService,
     Backend.Services.Branches.BranchService
 >();
+builder.Services.AddScoped<Backend.Services.Users.IUserService, Backend.Services.Users.UserService>();
+builder.Services.AddScoped<Backend.Services.Audit.IAuditService, Backend.Services.Audit.AuditService>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<BranchDbContext>(provider =>
@@ -2549,6 +2551,445 @@ app.MapPost(
     )
     .RequireAuthorization()
     .WithName("TestBranchConnection")
+    .WithOpenApi();
+
+// ============================================
+// User Management Endpoints
+// ============================================
+
+// GET /api/v1/users - Get all users with filtering
+app.MapGet(
+        "/api/v1/users",
+        async (
+            HttpContext httpContext,
+            Backend.Services.Users.IUserService userService,
+            bool? includeInactive = false,
+            Guid? branchId = null,
+            string? role = null,
+            string? searchTerm = null,
+            int page = 1,
+            int pageSize = 50
+        ) =>
+        {
+            try
+            {
+                // Check if user is head office admin or branch manager
+                var isHeadOfficeAdmin = httpContext.Items["IsHeadOfficeAdmin"] as bool? == true;
+                var currentUserId = httpContext.Items["UserId"] as Guid?;
+
+                if (!isHeadOfficeAdmin && branchId == null)
+                {
+                    return Results.Forbid();
+                }
+
+                Backend.Models.Entities.HeadOffice.UserRole? parsedRole = null;
+                if (!string.IsNullOrWhiteSpace(role))
+                {
+                    if (Enum.TryParse<Backend.Models.Entities.HeadOffice.UserRole>(role, true, out var r))
+                    {
+                        parsedRole = r;
+                    }
+                }
+
+                var (users, totalCount) = await userService.GetUsersAsync(
+                    includeInactive ?? false,
+                    branchId,
+                    parsedRole,
+                    searchTerm,
+                    page,
+                    pageSize
+                );
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = new
+                        {
+                            users,
+                            pagination = new { page, pageSize, totalCount, totalPages = (int)Math.Ceiling((double)totalCount / pageSize) }
+                        }
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("GetUsers")
+    .WithOpenApi();
+
+// POST /api/v1/users - Create a new user (admin only)
+app.MapPost(
+        "/api/v1/users",
+        async (
+            Backend.Models.DTOs.Users.CreateUserDto createDto,
+            Backend.Services.Users.IUserService userService,
+            HttpContext httpContext
+        ) =>
+        {
+            try
+            {
+                // Check if user is head office admin
+                if (httpContext.Items["IsHeadOfficeAdmin"] as bool? != true)
+                {
+                    return Results.Forbid();
+                }
+
+                var currentUserId = httpContext.Items["UserId"] as Guid?;
+                if (!currentUserId.HasValue)
+                {
+                    return Results.Unauthorized();
+                }
+
+                var user = await userService.CreateUserAsync(createDto, currentUserId.Value);
+
+                return Results.Ok(new { success = true, data = user });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "VALIDATION_ERROR", message = ex.Message } }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("CreateUser")
+    .WithOpenApi();
+
+// PUT /api/v1/users/:id - Update user
+app.MapPut(
+        "/api/v1/users/{id:guid}",
+        async (
+            Guid id,
+            Backend.Models.DTOs.Users.UpdateUserDto updateDto,
+            Backend.Services.Users.IUserService userService,
+            HttpContext httpContext
+        ) =>
+        {
+            try
+            {
+                var currentUserId = httpContext.Items["UserId"] as Guid?;
+                if (!currentUserId.HasValue)
+                {
+                    return Results.Unauthorized();
+                }
+
+                // Users can update themselves, or admins can update anyone
+                var isHeadOfficeAdmin = httpContext.Items["IsHeadOfficeAdmin"] as bool? == true;
+                if (!isHeadOfficeAdmin && currentUserId.Value != id)
+                {
+                    return Results.Forbid();
+                }
+
+                var user = await userService.UpdateUserAsync(id, updateDto, currentUserId.Value);
+
+                return Results.Ok(new { success = true, data = user });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.NotFound(
+                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("UpdateUser")
+    .WithOpenApi();
+
+// DELETE /api/v1/users/:id - Delete user (admin only)
+app.MapDelete(
+        "/api/v1/users/{id:guid}",
+        async (Guid id, Backend.Services.Users.IUserService userService, HttpContext httpContext) =>
+        {
+            try
+            {
+                // Check if user is head office admin
+                if (httpContext.Items["IsHeadOfficeAdmin"] as bool? != true)
+                {
+                    return Results.Forbid();
+                }
+
+                var currentUserId = httpContext.Items["UserId"] as Guid?;
+                if (!currentUserId.HasValue)
+                {
+                    return Results.Unauthorized();
+                }
+
+                await userService.DeleteUserAsync(id, currentUserId.Value);
+
+                return Results.Ok(new { success = true, message = "User deactivated successfully" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.NotFound(
+                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("DeleteUser")
+    .WithOpenApi();
+
+// POST /api/v1/users/:id/assign-branch - Assign user to branch
+app.MapPost(
+        "/api/v1/users/{id:guid}/assign-branch",
+        async (
+            Guid id,
+            Backend.Models.DTOs.Users.AssignBranchDto assignDto,
+            Backend.Services.Users.IUserService userService,
+            HttpContext httpContext
+        ) =>
+        {
+            try
+            {
+                // Check if user is head office admin
+                if (httpContext.Items["IsHeadOfficeAdmin"] as bool? != true)
+                {
+                    return Results.Forbid();
+                }
+
+                var currentUserId = httpContext.Items["UserId"] as Guid?;
+                if (!currentUserId.HasValue)
+                {
+                    return Results.Unauthorized();
+                }
+
+                await userService.AssignBranchAsync(id, assignDto, currentUserId.Value);
+
+                return Results.Ok(new { success = true, message = "User assigned to branch successfully" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "VALIDATION_ERROR", message = ex.Message } }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("AssignUserToBranch")
+    .WithOpenApi();
+
+// DELETE /api/v1/users/:id/branches/:branchId - Remove branch assignment
+app.MapDelete(
+        "/api/v1/users/{id:guid}/branches/{branchId:guid}",
+        async (
+            Guid id,
+            Guid branchId,
+            Backend.Services.Users.IUserService userService,
+            HttpContext httpContext
+        ) =>
+        {
+            try
+            {
+                // Check if user is head office admin
+                if (httpContext.Items["IsHeadOfficeAdmin"] as bool? != true)
+                {
+                    return Results.Forbid();
+                }
+
+                var currentUserId = httpContext.Items["UserId"] as Guid?;
+                if (!currentUserId.HasValue)
+                {
+                    return Results.Unauthorized();
+                }
+
+                await userService.RemoveBranchAssignmentAsync(id, branchId, currentUserId.Value);
+
+                return Results.Ok(new { success = true, message = "Branch assignment removed successfully" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.NotFound(
+                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("RemoveBranchAssignment")
+    .WithOpenApi();
+
+// GET /api/v1/users/:id/activity - Get user activity log
+app.MapGet(
+        "/api/v1/users/{id:guid}/activity",
+        async (Guid id, Backend.Services.Users.IUserService userService, HttpContext httpContext, int? limit = 100) =>
+        {
+            try
+            {
+                var currentUserId = httpContext.Items["UserId"] as Guid?;
+                if (!currentUserId.HasValue)
+                {
+                    return Results.Unauthorized();
+                }
+
+                // Users can view their own activity, or admins can view anyone's
+                var isHeadOfficeAdmin = httpContext.Items["IsHeadOfficeAdmin"] as bool? == true;
+                if (!isHeadOfficeAdmin && currentUserId.Value != id)
+                {
+                    return Results.Forbid();
+                }
+
+                var activities = await userService.GetUserActivityAsync(id, limit ?? 100);
+
+                return Results.Ok(new { success = true, data = activities });
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("GetUserActivity")
+    .WithOpenApi();
+
+// ============================================
+// Audit Endpoints
+// ============================================
+
+// GET /api/v1/audit/logs - Get audit logs (admin only)
+app.MapGet(
+        "/api/v1/audit/logs",
+        async (
+            HttpContext httpContext,
+            Backend.Services.Audit.IAuditService auditService,
+            Guid? userId = null,
+            Guid? branchId = null,
+            string? eventType = null,
+            string? action = null,
+            DateTime? fromDate = null,
+            DateTime? toDate = null,
+            int page = 1,
+            int pageSize = 50
+        ) =>
+        {
+            try
+            {
+                // Check if user is head office admin
+                if (httpContext.Items["IsHeadOfficeAdmin"] as bool? != true)
+                {
+                    return Results.Forbid();
+                }
+
+                var (logs, totalCount) = await auditService.GetAuditLogsAsync(
+                    userId,
+                    branchId,
+                    eventType,
+                    action,
+                    fromDate,
+                    toDate,
+                    page,
+                    pageSize
+                );
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = new
+                        {
+                            logs,
+                            pagination = new { page, pageSize, totalCount, totalPages = (int)Math.Ceiling((double)totalCount / pageSize) }
+                        }
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("GetAuditLogs")
+    .WithOpenApi();
+
+// GET /api/v1/audit/user/:userId - Get user audit trail
+app.MapGet(
+        "/api/v1/audit/user/{userId:guid}",
+        async (
+            Guid userId,
+            HttpContext httpContext,
+            Backend.Services.Audit.IAuditService auditService,
+            DateTime? fromDate = null,
+            DateTime? toDate = null,
+            int page = 1,
+            int pageSize = 50
+        ) =>
+        {
+            try
+            {
+                var currentUserId = httpContext.Items["UserId"] as Guid?;
+                if (!currentUserId.HasValue)
+                {
+                    return Results.Unauthorized();
+                }
+
+                // Users can view their own audit trail, or admins can view anyone's
+                var isHeadOfficeAdmin = httpContext.Items["IsHeadOfficeAdmin"] as bool? == true;
+                if (!isHeadOfficeAdmin && currentUserId.Value != userId)
+                {
+                    return Results.Forbid();
+                }
+
+                var logs = await auditService.GetUserAuditTrailAsync(userId, fromDate, toDate, page, pageSize);
+
+                return Results.Ok(new { success = true, data = logs });
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("GetUserAuditTrail")
     .WithOpenApi();
 
 app.Run();
