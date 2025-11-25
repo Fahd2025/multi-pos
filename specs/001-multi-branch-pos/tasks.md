@@ -334,35 +334,35 @@
 
 ### DTOs for User Story 4
 
-- [ ] T167 [P] [US4] Create ExpenseDto in Backend/Models/DTOs/Expenses/ExpenseDto.cs
-- [ ] T168 [P] [US4] Create CreateExpenseDto in Backend/Models/DTOs/Expenses/CreateExpenseDto.cs
-- [ ] T169 [P] [US4] Create ExpenseCategoryDto in Backend/Models/DTOs/Expenses/ExpenseCategoryDto.cs
+- [X] T167 [P] [US4] Create ExpenseDto in Backend/Models/DTOs/Expenses/ExpenseDto.cs
+- [X] T168 [P] [US4] Create CreateExpenseDto in Backend/Models/DTOs/Expenses/CreateExpenseDto.cs
+- [X] T169 [P] [US4] Create ExpenseCategoryDto in Backend/Models/DTOs/Expenses/ExpenseCategoryDto.cs
 
 ### Backend Services for User Story 4
 
-- [ ] T170 [US4] Implement IExpenseService interface in Backend/Services/Expenses/IExpenseService.cs
-- [ ] T171 [US4] Implement ExpenseService in Backend/Services/Expenses/ExpenseService.cs with GetExpensesAsync, CreateExpenseAsync, UpdateExpenseAsync, DeleteExpenseAsync, ApproveExpenseAsync, GetExpenseCategoriesAsync, CreateExpenseCategoryAsync methods
+- [X] T170 [US4] Implement IExpenseService interface in Backend/Services/Expenses/IExpenseService.cs
+- [X] T171 [US4] Implement ExpenseService in Backend/Services/Expenses/ExpenseService.cs with GetExpensesAsync, CreateExpenseAsync, UpdateExpenseAsync, DeleteExpenseAsync, ApproveExpenseAsync, GetExpenseCategoriesAsync, CreateExpenseCategoryAsync methods
 
 ### API Endpoints for User Story 4
 
-- [ ] T172 [US4] Implement GET /api/v1/expenses endpoint with filtering by category, date range in Backend/Program.cs per contracts/expenses.md
-- [ ] T173 [US4] Implement POST /api/v1/expenses endpoint in Backend/Program.cs per contracts/expenses.md
-- [ ] T174 [US4] Implement PUT /api/v1/expenses/:id endpoint in Backend/Program.cs per contracts/expenses.md
-- [ ] T175 [US4] Implement DELETE /api/v1/expenses/:id endpoint in Backend/Program.cs per contracts/expenses.md
-- [ ] T176 [US4] Implement POST /api/v1/expenses/:id/approve endpoint in Backend/Program.cs (manager only)
-- [ ] T177 [US4] Implement GET /api/v1/expense-categories endpoint in Backend/Program.cs
-- [ ] T178 [US4] Implement POST /api/v1/expense-categories endpoint in Backend/Program.cs
+- [X] T172 [US4] Implement GET /api/v1/expenses endpoint with filtering by category, date range in Backend/Program.cs per contracts/expenses.md
+- [X] T173 [US4] Implement POST /api/v1/expenses endpoint in Backend/Program.cs per contracts/expenses.md
+- [X] T174 [US4] Implement PUT /api/v1/expenses/:id endpoint in Backend/Program.cs per contracts/expenses.md
+- [X] T175 [US4] Implement DELETE /api/v1/expenses/:id endpoint in Backend/Program.cs per contracts/expenses.md
+- [X] T176 [US4] Implement POST /api/v1/expenses/:id/approve endpoint in Backend/Program.cs (manager only)
+- [X] T177 [US4] Implement GET /api/v1/expense-categories endpoint in Backend/Program.cs
+- [X] T178 [US4] Implement POST /api/v1/expense-categories endpoint in Backend/Program.cs
 
 ### Frontend Services for User Story 4
 
-- [ ] T179 [US4] Create ExpenseService in frontend/services/expense.service.ts
+- [X] T179 [US4] Create ExpenseService in frontend/services/expense.service.ts
 
 ### Frontend UI for User Story 4
 
-- [ ] T180 [US4] Create expenses page in frontend/app/[locale]/branch/expenses/page.tsx with expense list, filters
-- [ ] T181 [US4] Create expense form modal in frontend/components/expenses/ExpenseFormModal.tsx
-- [ ] T182 [US4] Create expense categories page in frontend/app/[locale]/branch/expenses/categories/page.tsx
-- [ ] T183 [US4] Add expense summary widget to dashboard (total expenses this month, by category breakdown)
+- [X] T180 [US4] Create expenses page in frontend/app/[locale]/branch/expenses/page.tsx with expense list, filters
+- [X] T181 [US4] Create expense form modal in frontend/components/expenses/ExpenseFormModal.tsx
+- [X] T182 [US4] Create expense categories page in frontend/app/[locale]/branch/expense-categories/page.tsx
+- [X] T183 [US4] Add expense summary widget to dashboard (total expenses this month, by category breakdown)
 
 ### Integration & Validation for User Story 4
 

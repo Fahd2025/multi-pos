@@ -477,7 +477,8 @@ export interface CreatePurchaseLineItemDto {
 export interface ExpenseDto {
   id: string;
   expenseCategoryId: string;
-  categoryName: string;
+  categoryNameEn: string;
+  categoryNameAr: string;
   amount: number;
   expenseDate: string;
   descriptionEn: string;
@@ -500,6 +501,7 @@ export interface CreateExpenseDto {
   descriptionAr?: string;
   paymentMethod: number;
   paymentReference?: string;
+  receiptImagePath?: string;
 }
 
 export interface ExpenseCategoryDto {
@@ -510,6 +512,8 @@ export interface ExpenseCategoryDto {
   budgetAllocation?: number;
   isActive: boolean;
   createdAt: string;
+  totalExpenses?: number;
+  expenseCount?: number;
 }
 
 // ============================================================================

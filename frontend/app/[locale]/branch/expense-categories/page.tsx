@@ -1,0 +1,400 @@
+/**
+ * Expense Categories Management Page
+ * Manage expense categories with budget allocations
+ */
+
+'use client';
+
+import { useState, useEffect } from 'react';
+import { use } from 'react';
+import expenseService from '@/services/expense.service';
+import { ExpenseCategoryDto } from '@/types/api.types';
+
+export default function ExpenseCategoriesPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = use(params);
+
+  const [categories, setCategories] = useState<ExpenseCategoryDto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Filter states
+  const [showInactive, setShowInactive] = useState(false);
+
+  // Form states
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    code: '',
+    nameEn: '',
+    nameAr: '',
+    budgetAllocation: '',
+  });
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [formLoading, setFormLoading] = useState(false);
+
+  /**
+   * Load expense categories
+   */
+  useEffect(() => {
+    loadCategories();
+  }, [showInactive]);
+
+  const loadCategories = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const data = await expenseService.getExpenseCategories(showInactive);
+      setCategories(data);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load expense categories');
+      console.error('Error loading categories:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.code.trim()) {
+      errors.code = 'Category code is required';
+    } else if (formData.code.length > 20) {
+      errors.code = 'Code cannot exceed 20 characters';
+    }
+
+    if (!formData.nameEn.trim()) {
+      errors.nameEn = 'English name is required';
+    } else if (formData.nameEn.length > 100) {
+      errors.nameEn = 'Name cannot exceed 100 characters';
+    }
+
+    if (!formData.nameAr.trim()) {
+      errors.nameAr = 'Arabic name is required';
+    } else if (formData.nameAr.length > 100) {
+      errors.nameAr = 'Name cannot exceed 100 characters';
+    }
+
+    if (
+      formData.budgetAllocation &&
+      (isNaN(Number(formData.budgetAllocation)) || Number(formData.budgetAllocation) < 0)
+    ) {
+      errors.budgetAllocation = 'Budget must be a positive number';
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setFormLoading(true);
+
+    try {
+      await expenseService.createExpenseCategory({
+        code: formData.code,
+        nameEn: formData.nameEn,
+        nameAr: formData.nameAr,
+        budgetAllocation: formData.budgetAllocation
+          ? Number(formData.budgetAllocation)
+          : undefined,
+      });
+
+      // Reset form and reload categories
+      setFormData({ code: '', nameEn: '', nameAr: '', budgetAllocation: '' });
+      setIsFormOpen(false);
+      loadCategories();
+    } catch (err: any) {
+      setError(err.message || 'Failed to create expense category');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const getBudgetStatus = (category: ExpenseCategoryDto) => {
+    if (!category.budgetAllocation || !category.totalExpenses) {
+      return null;
+    }
+
+    const usedPercent = (category.totalExpenses / category.budgetAllocation) * 100;
+
+    if (usedPercent >= 100) {
+      return (
+        <span className="text-red-600 font-semibold">
+          Over budget ({usedPercent.toFixed(0)}%)
+        </span>
+      );
+    } else if (usedPercent >= 80) {
+      return (
+        <span className="text-orange-600 font-semibold">
+          Near limit ({usedPercent.toFixed(0)}%)
+        </span>
+      );
+    } else {
+      return (
+        <span className="text-green-600">
+          Within budget ({usedPercent.toFixed(0)}%)
+        </span>
+      );
+    }
+  };
+
+  return (
+    <div className="container mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Expense Categories</h1>
+        <button
+          onClick={() => setIsFormOpen(true)}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+        >
+          + Add Category
+        </button>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white p-4 rounded shadow mb-6">
+        <label className="flex items-center">
+          <input
+            type="checkbox"
+            checked={showInactive}
+            onChange={(e) => setShowInactive(e.target.checked)}
+            className="mr-2"
+          />
+          Show Inactive Categories
+        </label>
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
+
+      {/* Loading State */}
+      {loading && <div className="text-center py-8">Loading categories...</div>}
+
+      {/* Categories Table */}
+      {!loading && categories.length === 0 && (
+        <div className="text-center py-8 text-gray-500">
+          No expense categories found. Add your first category to get started.
+        </div>
+      )}
+
+      {!loading && categories.length > 0 && (
+        <div className="bg-white rounded shadow overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Code
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Name (EN)
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Name (AR)
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Budget
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Total Expenses
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Count
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Status
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {categories.map((category) => (
+                <tr
+                  key={category.id}
+                  className={`hover:bg-gray-50 ${!category.isActive ? 'opacity-50' : ''}`}
+                >
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    {category.code}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    {category.nameEn}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm" dir="rtl">
+                    {category.nameAr}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    {category.budgetAllocation
+                      ? `$${category.budgetAllocation.toFixed(2)}`
+                      : 'No budget'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    ${(category.totalExpenses ?? 0).toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    {category.expenseCount ?? 0} expenses
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    {category.isActive ? (
+                      <span className="text-green-600">Active</span>
+                    ) : (
+                      <span className="text-gray-500">Inactive</span>
+                    )}
+                    {category.budgetAllocation && (
+                      <div className="mt-1">{getBudgetStatus(category)}</div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Create Category Modal */}
+      {isFormOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            {/* Header */}
+            <div className="border-b px-6 py-4 flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Add Expense Category</h2>
+              <button
+                onClick={() => {
+                  setIsFormOpen(false);
+                  setFormData({ code: '', nameEn: '', nameAr: '', budgetAllocation: '' });
+                  setValidationErrors({});
+                }}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="p-6">
+              <div className="space-y-4">
+                {/* Code */}
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Code <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.code}
+                    onChange={(e) =>
+                      setFormData({ ...formData, code: e.target.value.toUpperCase() })
+                    }
+                    placeholder="RENT"
+                    className={`w-full border rounded px-3 py-2 ${
+                      validationErrors.code ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  />
+                  {validationErrors.code && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.code}</p>
+                  )}
+                </div>
+
+                {/* Name (English) */}
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Name (English) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.nameEn}
+                    onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
+                    placeholder="Rent & Utilities"
+                    className={`w-full border rounded px-3 py-2 ${
+                      validationErrors.nameEn ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  />
+                  {validationErrors.nameEn && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.nameEn}</p>
+                  )}
+                </div>
+
+                {/* Name (Arabic) */}
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Name (Arabic) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.nameAr}
+                    onChange={(e) => setFormData({ ...formData, nameAr: e.target.value })}
+                    placeholder="إيجار ومرافق"
+                    dir="rtl"
+                    className={`w-full border rounded px-3 py-2 ${
+                      validationErrors.nameAr ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  />
+                  {validationErrors.nameAr && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.nameAr}</p>
+                  )}
+                </div>
+
+                {/* Budget Allocation */}
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Monthly Budget Allocation
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.budgetAllocation}
+                    onChange={(e) =>
+                      setFormData({ ...formData, budgetAllocation: e.target.value })
+                    }
+                    placeholder="1000.00"
+                    className={`w-full border rounded px-3 py-2 ${
+                      validationErrors.budgetAllocation ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  />
+                  {validationErrors.budgetAllocation && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {validationErrors.budgetAllocation}
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">Optional budget limit for this category</p>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsFormOpen(false);
+                    setFormData({ code: '', nameEn: '', nameAr: '', budgetAllocation: '' });
+                    setValidationErrors({});
+                  }}
+                  disabled={formLoading}
+                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={formLoading}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                >
+                  {formLoading ? 'Creating...' : 'Create Category'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

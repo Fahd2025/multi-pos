@@ -72,6 +72,10 @@ builder.Services.AddScoped<
     Backend.Services.Customers.ICustomerService,
     Backend.Services.Customers.CustomerService
 >();
+builder.Services.AddScoped<
+    Backend.Services.Expenses.IExpenseService,
+    Backend.Services.Expenses.ExpenseService
+>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<BranchDbContext>(provider =>
@@ -1834,6 +1838,348 @@ app.MapGet(
     .WithName("GetCustomerPurchaseHistory")
     .WithOpenApi();
 
+// ============================================
+// Expense Endpoints
+// ============================================
+
+// GET /api/v1/expenses - Get all expenses with filtering
+app.MapGet(
+        "/api/v1/expenses",
+        async (
+            Backend.Services.Expenses.IExpenseService expenseService,
+            Guid? categoryId = null,
+            DateTime? startDate = null,
+            DateTime? endDate = null,
+            int? approvalStatus = null,
+            int page = 1,
+            int pageSize = 50
+        ) =>
+        {
+            try
+            {
+                var (expenses, totalCount) = await expenseService.GetExpensesAsync(
+                    categoryId,
+                    startDate,
+                    endDate,
+                    approvalStatus,
+                    page,
+                    pageSize
+                );
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = expenses,
+                        pagination = new
+                        {
+                            page,
+                            pageSize,
+                            totalItems = totalCount,
+                            totalPages = (int)Math.Ceiling(totalCount / (double)pageSize),
+                        },
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("GetExpenses")
+    .WithOpenApi();
+
+// POST /api/v1/expenses - Create a new expense
+app.MapPost(
+        "/api/v1/expenses",
+        async (
+            Backend.Models.DTOs.Expenses.CreateExpenseDto dto,
+            HttpContext httpContext,
+            Backend.Services.Expenses.IExpenseService expenseService
+        ) =>
+        {
+            try
+            {
+                var userId = httpContext.Items["UserId"] as Guid?;
+                if (!userId.HasValue)
+                {
+                    return Results.Unauthorized();
+                }
+
+                var expense = await expenseService.CreateExpenseAsync(dto, userId.Value);
+
+                return Results.Created(
+                    $"/api/v1/expenses/{expense.Id}",
+                    new
+                    {
+                        success = true,
+                        data = expense,
+                        message = "Expense created successfully",
+                    }
+                );
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return Results.NotFound(
+                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("CreateExpense")
+    .WithOpenApi();
+
+// PUT /api/v1/expenses/:id - Update an expense
+app.MapPut(
+        "/api/v1/expenses/{id:guid}",
+        async (
+            Guid id,
+            Backend.Models.DTOs.Expenses.CreateExpenseDto dto,
+            Backend.Services.Expenses.IExpenseService expenseService
+        ) =>
+        {
+            try
+            {
+                var expense = await expenseService.UpdateExpenseAsync(id, dto);
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = expense,
+                        message = "Expense updated successfully",
+                    }
+                );
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return Results.NotFound(
+                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "INVALID_OPERATION", message = ex.Message },
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("UpdateExpense")
+    .WithOpenApi();
+
+// DELETE /api/v1/expenses/:id - Delete an expense
+app.MapDelete(
+        "/api/v1/expenses/{id:guid}",
+        async (Guid id, Backend.Services.Expenses.IExpenseService expenseService) =>
+        {
+            try
+            {
+                await expenseService.DeleteExpenseAsync(id);
+
+                return Results.Ok(new { success = true, message = "Expense deleted successfully" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return Results.NotFound(
+                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "INVALID_OPERATION", message = ex.Message },
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("DeleteExpense")
+    .WithOpenApi();
+
+// POST /api/v1/expenses/:id/approve - Approve or reject an expense (Manager only)
+app.MapPost(
+        "/api/v1/expenses/{id:guid}/approve",
+        async (
+            Guid id,
+            ApproveExpenseRequest request,
+            HttpContext httpContext,
+            Backend.Services.Expenses.IExpenseService expenseService
+        ) =>
+        {
+            try
+            {
+                var userId = httpContext.Items["UserId"] as Guid?;
+                if (!userId.HasValue)
+                {
+                    return Results.Unauthorized();
+                }
+
+                // Check if user has manager role or higher
+                var userRole = httpContext
+                    .User.FindFirst(System.Security.Claims.ClaimTypes.Role)
+                    ?.Value;
+                if (
+                    userRole != "Manager"
+                    && userRole != "Admin"
+                    && httpContext.Items["IsHeadOfficeAdmin"] as bool? != true
+                )
+                {
+                    return Results.Forbid();
+                }
+
+                var expense = await expenseService.ApproveExpenseAsync(
+                    id,
+                    userId.Value,
+                    request.Approved
+                );
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = expense,
+                        message = request.Approved
+                            ? "Expense approved successfully"
+                            : "Expense rejected successfully",
+                    }
+                );
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return Results.NotFound(
+                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "INVALID_OPERATION", message = ex.Message },
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("ApproveExpense")
+    .WithOpenApi();
+
+// GET /api/v1/expense-categories - Get all expense categories
+app.MapGet(
+        "/api/v1/expense-categories",
+        async (
+            Backend.Services.Expenses.IExpenseService expenseService,
+            bool includeInactive = false
+        ) =>
+        {
+            try
+            {
+                var categories = await expenseService.GetExpenseCategoriesAsync(includeInactive);
+
+                return Results.Ok(new { success = true, data = categories });
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("GetExpenseCategories")
+    .WithOpenApi();
+
+// POST /api/v1/expense-categories - Create a new expense category
+app.MapPost(
+        "/api/v1/expense-categories",
+        async (
+            CreateExpenseCategoryRequest request,
+            Backend.Services.Expenses.IExpenseService expenseService
+        ) =>
+        {
+            try
+            {
+                var category = await expenseService.CreateExpenseCategoryAsync(
+                    request.Code,
+                    request.NameEn,
+                    request.NameAr,
+                    request.BudgetAllocation
+                );
+
+                return Results.Created(
+                    $"/api/v1/expense-categories/{category.Id}",
+                    new
+                    {
+                        success = true,
+                        data = category,
+                        message = "Expense category created successfully",
+                    }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "INVALID_OPERATION", message = ex.Message },
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("CreateExpenseCategory")
+    .WithOpenApi();
+
 app.Run();
 
 // ============================================
@@ -1873,6 +2219,19 @@ public record UpdateCategoryRequest(
     string? DescriptionAr,
     Guid? ParentCategoryId,
     int DisplayOrder
+);
+
+// ============================================
+// Request DTOs for Expense Endpoints
+// ============================================
+
+public record ApproveExpenseRequest(bool Approved);
+
+public record CreateExpenseCategoryRequest(
+    string Code,
+    string NameEn,
+    string NameAr,
+    decimal? BudgetAllocation
 );
 
 // Make Program class accessible for integration testing
