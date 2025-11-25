@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Input, Select } from '@/components/shared/Form';
 import { Button } from '@/components/shared/Button';
+import { ThemeSwitcherCompact } from '@/components/shared/ThemeSwitcher';
 
 export default function LoginPage() {
   const { login, isLoading, error } = useAuth();
@@ -32,7 +33,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
+      {/* Theme Switcher - Top Right */}
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeSwitcherCompact />
+      </div>
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
@@ -51,16 +56,16 @@ export default function LoginPage() {
               />
             </svg>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
             Multi-Branch POS
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Sign in to your account to continue
           </p>
         </div>
 
         {/* Login Form */}
-        <div className="mt-8 bg-white rounded-xl shadow-lg p-8">
+        <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Branch Selection */}
             <Select
@@ -168,14 +173,14 @@ export default function LoginPage() {
 
           {/* Footer Links */}
           <div className="mt-6 text-center">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               Multi-Branch Point of Sale System v1.0
             </p>
           </div>
         </div>
 
         {/* Additional Info */}
-        <div className="text-center text-sm text-gray-600">
+        <div className="text-center text-sm text-gray-600 dark:text-gray-400">
           <p>Need help? Contact your system administrator</p>
         </div>
       </div>

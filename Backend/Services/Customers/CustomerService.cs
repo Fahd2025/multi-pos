@@ -245,7 +245,9 @@ public class CustomerService : ICustomerService
         }
 
         var query = _context.Sales
+            .Include(s => s.Customer)
             .Include(s => s.LineItems)
+                .ThenInclude(li => li.Product)
             .Where(s => s.CustomerId == customerId);
 
         // Apply date filters
@@ -272,39 +274,34 @@ public class CustomerService : ICustomerService
                 InvoiceNumber = s.InvoiceNumber,
                 InvoiceType = s.InvoiceType,
                 Subtotal = s.Subtotal,
-                TaxRate = s.TaxRate,
                 TaxAmount = s.TaxAmount,
-                Discount = s.Discount,
-                DiscountType = s.DiscountType,
-                TotalAmount = s.TotalAmount,
+                TotalDiscount = s.TotalDiscount,
+                Total = s.Total,
                 PaymentMethod = s.PaymentMethod,
-                AmountPaid = s.AmountPaid,
-                Change = s.Change,
+                PaymentMethodName = s.PaymentMethod.ToString(),
+                PaymentReference = s.PaymentReference,
                 CustomerId = s.CustomerId,
-                CustomerName = s.CustomerName,
+                CustomerName = s.Customer != null ? s.Customer.NameEn : null,
+                CashierId = s.CashierId,
+                CashierName = string.Empty, // Will need to be populated separately if User info is needed
+                SaleDate = s.SaleDate,
                 IsVoided = s.IsVoided,
                 VoidedAt = s.VoidedAt,
                 VoidedBy = s.VoidedBy,
                 VoidReason = s.VoidReason,
                 Notes = s.Notes,
                 CreatedAt = s.CreatedAt,
-                UpdatedAt = s.UpdatedAt,
-                CreatedBy = s.CreatedBy,
                 LineItems = s.LineItems.Select(li => new SaleLineItemDto
                 {
                     Id = li.Id,
-                    SaleId = li.SaleId,
                     ProductId = li.ProductId,
-                    ProductName = li.ProductName,
-                    ProductSKU = li.ProductSKU,
+                    ProductName = li.Product != null ? li.Product.NameEn : string.Empty,
                     Quantity = li.Quantity,
                     UnitPrice = li.UnitPrice,
-                    Discount = li.Discount,
                     DiscountType = li.DiscountType,
-                    TaxRate = li.TaxRate,
-                    TaxAmount = li.TaxAmount,
-                    Subtotal = li.Subtotal,
-                    TotalAmount = li.TotalAmount
+                    DiscountValue = li.DiscountValue,
+                    DiscountedUnitPrice = li.DiscountedUnitPrice,
+                    LineTotal = li.LineTotal
                 }).ToList()
             })
             .ToListAsync();
