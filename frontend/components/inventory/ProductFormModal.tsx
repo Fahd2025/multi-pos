@@ -10,6 +10,8 @@ import { ProductDto, CategoryDto, CreateProductDto, UpdateProductDto } from "@/t
 import inventoryService from "@/services/inventory.service";
 import { ModalBottomSheet } from "@/components/modals";
 import { FormField } from "@/types/data-table.types";
+import { useApiError } from "@/hooks/useApiError";
+import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
 
 interface ProductFormModalProps {
   isOpen: boolean;
@@ -27,6 +29,7 @@ export default function ProductFormModal({
   categories,
 }: ProductFormModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { error, isError, executeWithErrorHandling, clearError } = useApiError();
 
   const fields: FormField<any>[] = [
     {
@@ -118,7 +121,8 @@ export default function ProductFormModal({
 
   const handleSubmit = async (data: any) => {
     setIsSubmitting(true);
-    try {
+
+    const result = await executeWithErrorHandling(async () => {
       const productData = {
         sku: data.sku,
         nameEn: data.nameEn,
@@ -134,32 +138,47 @@ export default function ProductFormModal({
       };
 
       if (product) {
-        await inventoryService.updateProduct(product.id, productData as UpdateProductDto);
+        return await inventoryService.updateProduct(product.id, productData as UpdateProductDto);
       } else {
-        await inventoryService.createProduct(productData as CreateProductDto);
+        return await inventoryService.createProduct(productData as CreateProductDto);
       }
+    });
 
+    setIsSubmitting(false);
+
+    if (result) {
+      // Success! Close modal and notify parent
       onSuccess();
       onClose();
-    } catch (err: any) {
-      console.error("Failed to save product:", err);
-      alert(err.message || "Failed to save product");
-    } finally {
-      setIsSubmitting(false);
+      clearError();
     }
   };
 
+  const handleClose = () => {
+    clearError(); // Clear any errors when closing
+    onClose();
+  };
+
   return (
-    <ModalBottomSheet
-      isOpen={isOpen}
-      onClose={onClose}
-      title={product ? "Edit Product" : "Add New Product"}
-      mode={product ? "edit" : "create"}
-      initialData={product}
-      fields={fields}
-      onSubmit={handleSubmit}
-      isSubmitting={isSubmitting}
-      size="lg"
-    />
+    <>
+      {/* Error Display - Shows above the modal */}
+      {isOpen && isError && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[60] max-w-2xl w-full px-4">
+          <ApiErrorAlert error={error} onDismiss={clearError} />
+        </div>
+      )}
+
+      <ModalBottomSheet
+        isOpen={isOpen}
+        onClose={handleClose}
+        title={product ? "Edit Product" : "Add New Product"}
+        mode={product ? "edit" : "create"}
+        initialData={product}
+        fields={fields}
+        onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
+        size="lg"
+      />
+    </>
   );
 }

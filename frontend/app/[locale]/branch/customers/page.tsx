@@ -19,15 +19,16 @@ import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
 import { Button } from "@/components/shared/Button";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { ErrorAlert } from "@/components/shared/ErrorAlert";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { useApiError } from "@/hooks/useApiError";
+import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
 
 export default function CustomersPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
 
   const [customers, setCustomers] = useState<CustomerDto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { error, isError, executeWithErrorHandling, clearError } = useApiError();
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
@@ -68,10 +69,9 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
   }, [currentPage, showActiveOnly]);
 
   const loadCustomers = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    setLoading(true);
 
+    const result = await executeWithErrorHandling(async () => {
       const response = await customerService.getCustomers({
         page: currentPage,
         pageSize,
@@ -79,14 +79,15 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
         isActive: showActiveOnly ? true : undefined,
       });
 
-      setCustomers(response.data);
-      setTotalPages(response.pagination.totalPages);
-    } catch (err: any) {
-      setError(err.message || "Failed to load customers");
-      console.error("Error loading customers:", err);
-    } finally {
-      setLoading(false);
+      return response;
+    });
+
+    if (result) {
+      setCustomers(result.data);
+      setTotalPages(result.pagination.totalPages);
     }
+
+    setLoading(false);
   };
 
   const handleSearch = () => {
@@ -104,11 +105,12 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
       "Delete Customer",
       `Are you sure you want to delete "${customer.nameEn}"? This action cannot be undone.`,
       async () => {
-        try {
-          await customerService.deleteCustomer(customer.id);
+        const result = await executeWithErrorHandling(async () => {
+          return await customerService.deleteCustomer(customer.id);
+        });
+
+        if (result) {
           loadCustomers();
-        } catch (err: any) {
-          setError(`Failed to delete customer: ${err.message}`);
         }
       },
       "danger"
@@ -252,7 +254,7 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
       </div>
 
       {/* Error Message */}
-      {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
+      {isError && <ApiErrorAlert error={error} onRetry={loadCustomers} onDismiss={clearError} />}
 
       {/* Loading State */}
       {loading && <LoadingSpinner size="lg" text="Loading customers..." />}

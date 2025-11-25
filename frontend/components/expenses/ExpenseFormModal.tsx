@@ -10,6 +10,8 @@ import expenseService from "@/services/expense.service";
 import { ExpenseDto, CreateExpenseDto, ExpenseCategoryDto } from "@/types/api.types";
 import { ModalBottomSheet } from "@/components/modals";
 import { FormField } from "@/types/data-table.types";
+import { useApiError } from "@/hooks/useApiError";
+import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
 
 interface ExpenseFormModalProps {
   expense?: ExpenseDto;
@@ -25,6 +27,7 @@ export default function ExpenseFormModal({
   onSuccess,
 }: ExpenseFormModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { error, isError, executeWithErrorHandling, clearError } = useApiError();
 
   // Prepare initial data
   const initialData = expense
@@ -115,7 +118,8 @@ export default function ExpenseFormModal({
 
   const handleSubmit = async (data: any) => {
     setIsSubmitting(true);
-    try {
+
+    const result = await executeWithErrorHandling(async () => {
       const dto: CreateExpenseDto = {
         expenseCategoryId: data.expenseCategoryId,
         amount: Number(data.amount),
@@ -128,31 +132,46 @@ export default function ExpenseFormModal({
       };
 
       if (expense) {
-        await expenseService.updateExpense(expense.id, dto);
+        return await expenseService.updateExpense(expense.id, dto);
       } else {
-        await expenseService.createExpense(dto);
+        return await expenseService.createExpense(dto);
       }
+    });
+
+    setIsSubmitting(false);
+
+    if (result) {
       onSuccess();
       onClose();
-    } catch (err: any) {
-      console.error("Failed to save expense:", err);
-      alert(err.message || "Failed to save expense");
-    } finally {
-      setIsSubmitting(false);
+      clearError();
     }
   };
 
+  const handleClose = () => {
+    clearError();
+    onClose();
+  };
+
   return (
-    <ModalBottomSheet
-      isOpen={true}
-      onClose={onClose}
-      title={expense ? "Edit Expense" : "Add New Expense"}
-      mode={expense ? "edit" : "create"}
-      initialData={initialData}
-      fields={fields}
-      onSubmit={handleSubmit}
-      isSubmitting={isSubmitting}
-      size="md"
-    />
+    <>
+      {/* Error Display */}
+      {isError && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[60] max-w-2xl w-full px-4">
+          <ApiErrorAlert error={error} onDismiss={clearError} />
+        </div>
+      )}
+
+      <ModalBottomSheet
+        isOpen={true}
+        onClose={handleClose}
+        title={expense ? "Edit Expense" : "Add New Expense"}
+        mode={expense ? "edit" : "create"}
+        initialData={initialData}
+        fields={fields}
+        onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
+        size="md"
+      />
+    </>
   );
 }

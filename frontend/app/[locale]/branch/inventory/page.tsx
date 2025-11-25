@@ -20,7 +20,8 @@ import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
 import { Button } from "@/components/shared/Button";
 import { StatusBadge, getStockStatusVariant } from "@/components/shared/StatusBadge";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { ErrorAlert } from "@/components/shared/ErrorAlert";
+import { useApiError } from "@/hooks/useApiError";
+import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
 
 export default function InventoryPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
@@ -28,7 +29,7 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
   const [products, setProducts] = useState<ProductDto[]>([]);
   const [categories, setCategories] = useState<CategoryDto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { error, isError, executeWithErrorHandling, clearError } = useApiError();
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
@@ -66,10 +67,9 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
   }, [selectedCategory, showLowStock, showOutOfStock]);
 
   const loadData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    setLoading(true);
 
+    const result = await executeWithErrorHandling(async () => {
       // Load products with filters
       const productsResponse = await inventoryService.getProducts({
         page: paginationConfig?.currentPage || 1,
@@ -80,19 +80,23 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
         outOfStock: showOutOfStock || undefined,
       });
 
-      setProducts(productsResponse.data);
-
       // Load categories (only once)
+      let categoriesData = categories;
       if (categories.length === 0) {
-        const categoriesData = await inventoryService.getCategories();
-        setCategories(categoriesData);
+        categoriesData = await inventoryService.getCategories();
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to load inventory data");
-      console.error("Failed to load inventory:", err);
-    } finally {
-      setLoading(false);
+
+      return { products: productsResponse.data, categories: categoriesData };
+    });
+
+    if (result) {
+      setProducts(result.products);
+      if (result.categories.length > 0) {
+        setCategories(result.categories);
+      }
     }
+
+    setLoading(false);
   };
 
   /**
@@ -111,11 +115,12 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
       "Delete Product",
       `Are you sure you want to delete "${product.nameEn}"? This action cannot be undone.`,
       async () => {
-        try {
-          await inventoryService.deleteProduct(product.id);
+        const result = await executeWithErrorHandling(async () => {
+          return await inventoryService.deleteProduct(product.id);
+        });
+
+        if (result) {
           loadData();
-        } catch (err: any) {
-          setError(`Failed to delete product: ${err.message}`);
         }
       },
       "danger"
@@ -329,7 +334,7 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
       </div>
 
       {/* Error Message */}
-      {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
+      {isError && <ApiErrorAlert error={error} onRetry={loadData} onDismiss={clearError} />}
 
       {/* Loading State */}
       {loading && <LoadingSpinner size="lg" text="Loading products..." />}

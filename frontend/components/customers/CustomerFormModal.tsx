@@ -10,6 +10,8 @@ import { CustomerDto, CreateCustomerDto, UpdateCustomerDto } from "@/types/api.t
 import customerService from "@/services/customer.service";
 import { ModalBottomSheet } from "@/components/modals";
 import { FormField } from "@/types/data-table.types";
+import { useApiError } from "@/hooks/useApiError";
+import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
 
 interface CustomerFormModalProps {
   isOpen: boolean;
@@ -25,6 +27,7 @@ export default function CustomerFormModal({
   customer,
 }: CustomerFormModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { error, isError, executeWithErrorHandling, clearError } = useApiError();
 
   // Define form fields
   const fields: FormField<any>[] = [
@@ -95,7 +98,8 @@ export default function CustomerFormModal({
 
   const handleSubmit = async (data: CustomerDto) => {
     setIsSubmitting(true);
-    try {
+
+    const result = await executeWithErrorHandling(async () => {
       if (customer) {
         // Update existing customer
         const updateDto: UpdateCustomerDto = {
@@ -109,7 +113,7 @@ export default function CustomerFormModal({
           loyaltyPoints: Number(data.loyaltyPoints),
           isActive: data.isActive,
         };
-        await customerService.updateCustomer(customer.id, updateDto);
+        return await customerService.updateCustomer(customer.id, updateDto);
       } else {
         // Create new customer
         const createDto: CreateCustomerDto = {
@@ -123,32 +127,44 @@ export default function CustomerFormModal({
           loyaltyPoints: Number(data.loyaltyPoints),
           isActive: data.isActive,
         };
-        await customerService.createCustomer(createDto);
+        return await customerService.createCustomer(createDto);
       }
+    });
 
+    setIsSubmitting(false);
+
+    if (result) {
       onSuccess();
       onClose();
-    } catch (err: any) {
-      console.error("Failed to save customer:", err);
-      // Ideally we would show this error in the modal, but ModalBottomSheet doesn't support external errors yet.
-      // We could add a toast notification here if we had a toast system.
-      alert(err.message || "Failed to save customer");
-    } finally {
-      setIsSubmitting(false);
+      clearError();
     }
   };
 
+  const handleClose = () => {
+    clearError();
+    onClose();
+  };
+
   return (
-    <ModalBottomSheet
-      isOpen={isOpen}
-      onClose={onClose}
-      title={customer ? "Edit Customer" : "Add New Customer"}
-      mode={customer ? "edit" : "create"}
-      initialData={customer}
-      fields={fields}
-      onSubmit={handleSubmit}
-      isSubmitting={isSubmitting}
-      size="md"
-    />
+    <>
+      {/* Error Display */}
+      {isOpen && isError && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[60] max-w-2xl w-full px-4">
+          <ApiErrorAlert error={error} onDismiss={clearError} />
+        </div>
+      )}
+
+      <ModalBottomSheet
+        isOpen={isOpen}
+        onClose={handleClose}
+        title={customer ? "Edit Customer" : "Add New Customer"}
+        mode={customer ? "edit" : "create"}
+        initialData={customer}
+        fields={fields}
+        onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
+        size="md"
+      />
+    </>
   );
 }

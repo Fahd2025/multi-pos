@@ -10,6 +10,8 @@ import { CategoryDto } from "@/types/api.types";
 import inventoryService from "@/services/inventory.service";
 import { ModalBottomSheet } from "@/components/modals";
 import { FormField } from "@/types/data-table.types";
+import { useApiError } from "@/hooks/useApiError";
+import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
 
 interface CategoryFormModalProps {
   isOpen: boolean;
@@ -27,6 +29,7 @@ export default function CategoryFormModal({
   categories,
 }: CategoryFormModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { error, isError, executeWithErrorHandling, clearError } = useApiError();
 
   // Get available parent categories (exclude self and children in edit mode)
   const getAvailableParentCategories = () => {
@@ -96,7 +99,8 @@ export default function CategoryFormModal({
 
   const handleSubmit = async (data: any) => {
     setIsSubmitting(true);
-    try {
+
+    const result = await executeWithErrorHandling(async () => {
       const categoryData = {
         code: data.code,
         nameEn: data.nameEn,
@@ -108,32 +112,46 @@ export default function CategoryFormModal({
       };
 
       if (category) {
-        await inventoryService.updateCategory(category.id, categoryData);
+        return await inventoryService.updateCategory(category.id, categoryData);
       } else {
-        await inventoryService.createCategory(categoryData);
+        return await inventoryService.createCategory(categoryData);
       }
+    });
 
+    setIsSubmitting(false);
+
+    if (result) {
       onSuccess();
       onClose();
-    } catch (err: any) {
-      console.error("Failed to save category:", err);
-      alert(err.message || "Failed to save category");
-    } finally {
-      setIsSubmitting(false);
+      clearError();
     }
   };
 
+  const handleClose = () => {
+    clearError();
+    onClose();
+  };
+
   return (
-    <ModalBottomSheet
-      isOpen={isOpen}
-      onClose={onClose}
-      title={category ? "Edit Category" : "Add New Category"}
-      mode={category ? "edit" : "create"}
-      initialData={category}
-      fields={fields}
-      onSubmit={handleSubmit}
-      isSubmitting={isSubmitting}
-      size="md"
-    />
+    <>
+      {/* Error Display */}
+      {isOpen && isError && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[60] max-w-2xl w-full px-4">
+          <ApiErrorAlert error={error} onDismiss={clearError} />
+        </div>
+      )}
+
+      <ModalBottomSheet
+        isOpen={isOpen}
+        onClose={handleClose}
+        title={category ? "Edit Category" : "Add New Category"}
+        mode={category ? "edit" : "create"}
+        initialData={category}
+        fields={fields}
+        onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
+        size="md"
+      />
+    </>
   );
 }
