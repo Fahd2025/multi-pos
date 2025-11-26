@@ -470,10 +470,10 @@
 
 ### Frontend UI for User Story 6
 
-- [ ] T235 [US6] Create users management page in frontend/app/[locale]/head-office/users/page.tsx (head office admin)
-- [ ] T236 [US6] Create user form modal in frontend/components/head-office/UserFormModal.tsx with role selection, branch assignments
-- [ ] T237 [US6] Create user details page in frontend/app/[locale]/head-office/users/[id]/page.tsx showing profile, branch assignments, activity log
-- [ ] T238 [US6] Create branch users page in frontend/app/[locale]/branch/settings/users/page.tsx (branch manager can view/manage branch users)
+- [X] T235 [US6] Create users management page in frontend/app/[locale]/head-office/users/page.tsx (head office admin)
+- [X] T236 [US6] Create user form modal in frontend/components/head-office/UserFormModal.tsx with role selection, branch assignments (SKIPPED - using generic ModalBottomSheet component instead)
+- [X] T237 [US6] Create user details page in frontend/app/[locale]/head-office/users/[id]/page.tsx showing profile, branch assignments, activity log
+- [X] T238 [US6] Create branch users page in frontend/app/[locale]/branch/settings/users/page.tsx (branch manager can view/manage branch users)
 - [ ] T239 [US6] Add role-based UI hiding (hide features not accessible to current user role)
 
 ### Authorization Enforcement
