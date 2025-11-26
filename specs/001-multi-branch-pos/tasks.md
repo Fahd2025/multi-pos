@@ -545,6 +545,7 @@
 
 **Purpose**: Enable image uploads for products, categories, customers, suppliers, branches, expenses with automatic optimization and multi-size generation.
 
+**Core Infrastructure (Complete):**
 - [X] T267 [P] Implement IImageService interface in Backend/Services/Images/IImageService.cs
 - [X] T268 [P] Implement ImageService in Backend/Services/Images/ImageService.cs using SixLabors.ImageSharp per research.md Section 5 (UploadImageAsync, DeleteImageAsync, GenerateThumbnails)
 - [X] T269 [P] Create ImageOptimizer utility in Backend/Utilities/ImageOptimizer.cs for WebP conversion and resizing
@@ -552,15 +553,25 @@
 - [X] T271 [P] Implement GET /api/v1/images/:branchName/:entityType/:entityId/:size endpoint in Backend/Program.cs to serve images
 - [X] T272 [P] Implement DELETE /api/v1/images/:id endpoint in Backend/Program.cs
 - [X] T273 [P] Create OptimizedImage component in frontend/components/shared/OptimizedImage.tsx with lazy loading and size selection
-- [ ] T274 Add image upload to product form (multiple images support)
-- [ ] T275 Add image upload to category form (single image)
-- [ ] T276 Add image upload to customer form (logo)
-- [ ] T277 Add image upload to supplier form (logo)
-- [ ] T278 Add image upload to branch form (branch logo)
-- [ ] T279 Add image upload to expense form (receipt image)
 - [X] T280 Create Uploads directory structure per plan.md and add to .gitignore
+
+**Form Integration (Infrastructure Ready - See docs/image-upload-integration-guide.md):**
+- [X] T274 Add image upload to product form (multiple images support) - Example: ProductFormModalWithImages.tsx
+- [ ] T275 Add image upload to category form (single image) - Ready to implement using guide
+- [ ] T276 Add image upload to customer form (logo) - Ready to implement using guide
+- [ ] T277 Add image upload to supplier form (logo) - Requires creating supplier form first
+- [ ] T278 Add image upload to branch form (branch logo) - Ready to implement using guide
+- [ ] T279 Add image upload to expense form (receipt image) - Ready to implement using guide
+
+**Testing (Pending Full Form Integration):**
 - [ ] T281 Test image upload workflow: upload → verify thumbnails generated → verify images served correctly
 - [ ] T282 Test image deletion: delete entity → verify orphaned images cleaned up
+
+**Additional Components Created:**
+- [X] ImageUpload component (frontend/components/shared/ImageUpload.tsx) - Reusable upload UI with drag-drop
+- [X] imageService (frontend/services/image.service.ts) - API integration layer
+- [X] Integration guide (docs/image-upload-integration-guide.md) - Comprehensive implementation guide
+- [X] Form integration summary (docs/2025-11-26-form-integration-implementation.md) - Status and examples
 
 ---
 
