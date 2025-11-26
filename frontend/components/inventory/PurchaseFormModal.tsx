@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import inventoryService from '@/services/inventory.service';
+import supplierService from '@/services/supplier.service';
 import {
   PurchaseDto,
   SupplierDto,
@@ -89,11 +90,11 @@ export default function PurchaseFormModal({
 
   const loadDropdownData = async () => {
     try {
-      const [suppliersData, productsData] = await Promise.all([
-        inventoryService.getSuppliers(),
+      const [suppliersResponse, productsData] = await Promise.all([
+        supplierService.getSuppliers({ includeInactive: false, pageSize: 1000 }),
         inventoryService.getProducts({ pageSize: 1000 }),
       ]);
-      setSuppliers(suppliersData);
+      setSuppliers(suppliersResponse.data);
       setProducts(productsData.data);
     } catch (err: any) {
       setError(err.message || 'Failed to load dropdown data');
@@ -270,11 +271,16 @@ export default function PurchaseFormModal({
                     } ${isViewMode ? 'bg-gray-100' : ''}`}
                   >
                     <option value="">-- Select Supplier --</option>
-                    {suppliers.map((supplier) => (
-                      <option key={supplier.id} value={supplier.id}>
-                        {supplier.nameEn}
-                      </option>
-                    ))}
+                    {suppliers
+                      .filter((s) => s.isActive)
+                      .map((supplier) => (
+                        <option key={supplier.id} value={supplier.id}>
+                          [{supplier.code}] {supplier.nameEn}
+                          {supplier.totalPurchases > 0
+                            ? ` - ${supplier.totalPurchases} previous order${supplier.totalPurchases > 1 ? 's' : ''}`
+                            : ' - New supplier'}
+                        </option>
+                      ))}
                   </select>
                   {validationErrors.supplierId && (
                     <p className="text-red-500 text-xs mt-1">{validationErrors.supplierId}</p>
