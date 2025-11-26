@@ -545,20 +545,20 @@
 
 **Purpose**: Enable image uploads for products, categories, customers, suppliers, branches, expenses with automatic optimization and multi-size generation.
 
-- [ ] T267 [P] Implement IImageService interface in Backend/Services/Images/IImageService.cs
-- [ ] T268 [P] Implement ImageService in Backend/Services/Images/ImageService.cs using SixLabors.ImageSharp per research.md Section 5 (UploadImageAsync, DeleteImageAsync, GenerateThumbnails)
-- [ ] T269 [P] Create ImageOptimizer utility in Backend/Utilities/ImageOptimizer.cs for WebP conversion and resizing
-- [ ] T270 [P] Implement POST /api/v1/images/upload endpoint in Backend/Program.cs with multipart form data support
-- [ ] T271 [P] Implement GET /api/v1/images/:branchName/:entityType/:entityId/:size endpoint in Backend/Program.cs to serve images
-- [ ] T272 [P] Implement DELETE /api/v1/images/:id endpoint in Backend/Program.cs
-- [ ] T273 [P] Create OptimizedImage component in frontend/components/shared/OptimizedImage.tsx with lazy loading and size selection
+- [X] T267 [P] Implement IImageService interface in Backend/Services/Images/IImageService.cs
+- [X] T268 [P] Implement ImageService in Backend/Services/Images/ImageService.cs using SixLabors.ImageSharp per research.md Section 5 (UploadImageAsync, DeleteImageAsync, GenerateThumbnails)
+- [X] T269 [P] Create ImageOptimizer utility in Backend/Utilities/ImageOptimizer.cs for WebP conversion and resizing
+- [X] T270 [P] Implement POST /api/v1/images/upload endpoint in Backend/Program.cs with multipart form data support
+- [X] T271 [P] Implement GET /api/v1/images/:branchName/:entityType/:entityId/:size endpoint in Backend/Program.cs to serve images
+- [X] T272 [P] Implement DELETE /api/v1/images/:id endpoint in Backend/Program.cs
+- [X] T273 [P] Create OptimizedImage component in frontend/components/shared/OptimizedImage.tsx with lazy loading and size selection
 - [ ] T274 Add image upload to product form (multiple images support)
 - [ ] T275 Add image upload to category form (single image)
 - [ ] T276 Add image upload to customer form (logo)
 - [ ] T277 Add image upload to supplier form (logo)
 - [ ] T278 Add image upload to branch form (branch logo)
 - [ ] T279 Add image upload to expense form (receipt image)
-- [ ] T280 Create Uploads directory structure per plan.md and add to .gitignore
+- [X] T280 Create Uploads directory structure per plan.md and add to .gitignore
 - [ ] T281 Test image upload workflow: upload → verify thumbnails generated → verify images served correctly
 - [ ] T282 Test image deletion: delete entity → verify orphaned images cleaned up
 

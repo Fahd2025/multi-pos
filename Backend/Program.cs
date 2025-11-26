@@ -86,6 +86,7 @@ builder.Services.AddScoped<
     Backend.Services.Suppliers.ISupplierService,
     Backend.Services.Suppliers.SupplierService
 >();
+builder.Services.AddScoped<Backend.Services.Images.IImageService, Backend.Services.Images.ImageService>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<BranchDbContext>(provider =>
@@ -3378,6 +3379,225 @@ app.MapGet(
     )
     .RequireAuthorization()
     .WithName("GetUserAuditTrail")
+    .WithOpenApi();
+
+// ============================================
+// Image Management Endpoints
+// ============================================
+
+// POST /api/v1/images/upload - Upload an image for an entity
+app.MapPost(
+        "/api/v1/images/upload",
+        async (
+            HttpContext httpContext,
+            Backend.Services.Images.IImageService imageService
+        ) =>
+        {
+            try
+            {
+                // Get form data
+                var form = await httpContext.Request.ReadFormAsync();
+                var file = form.Files["image"];
+
+                if (file == null || file.Length == 0)
+                {
+                    return Results.BadRequest(
+                        new
+                        {
+                            success = false,
+                            error = new { code = "NO_FILE", message = "No image file provided" },
+                        }
+                    );
+                }
+
+                // Get parameters
+                var branchName = form["branchName"].ToString();
+                var entityType = form["entityType"].ToString();
+                var entityIdStr = form["entityId"].ToString();
+
+                if (string.IsNullOrWhiteSpace(branchName) || string.IsNullOrWhiteSpace(entityType) || string.IsNullOrWhiteSpace(entityIdStr))
+                {
+                    return Results.BadRequest(
+                        new
+                        {
+                            success = false,
+                            error = new { code = "MISSING_PARAMETERS", message = "branchName, entityType, and entityId are required" },
+                        }
+                    );
+                }
+
+                if (!Guid.TryParse(entityIdStr, out var entityId))
+                {
+                    return Results.BadRequest(
+                        new
+                        {
+                            success = false,
+                            error = new { code = "INVALID_ENTITY_ID", message = "entityId must be a valid GUID" },
+                        }
+                    );
+                }
+
+                // Upload image
+                using var stream = file.OpenReadStream();
+                var result = await imageService.UploadImageAsync(
+                    branchName,
+                    entityType,
+                    entityId,
+                    stream,
+                    file.FileName
+                );
+
+                if (!result.Success)
+                {
+                    return Results.BadRequest(
+                        new
+                        {
+                            success = false,
+                            error = new { code = "UPLOAD_FAILED", message = result.ErrorMessage },
+                        }
+                    );
+                }
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = new
+                        {
+                            originalPath = result.OriginalPath,
+                            thumbnailPaths = result.ThumbnailPaths,
+                        },
+                        message = "Image uploaded successfully",
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("UploadImage")
+    .WithOpenApi()
+    .DisableAntiforgery();
+
+// GET /api/v1/images/{branchName}/{entityType}/{entityId}/{size} - Serve an image
+app.MapGet(
+        "/api/v1/images/{branchName}/{entityType}/{entityId:guid}/{size}",
+        async (
+            string branchName,
+            string entityType,
+            Guid entityId,
+            string size,
+            Backend.Services.Images.IImageService imageService
+        ) =>
+        {
+            try
+            {
+                // Validate size
+                var validSizes = new[] { "original", "large", "medium", "thumb" };
+                if (!validSizes.Contains(size.ToLower()))
+                {
+                    return Results.BadRequest(
+                        new
+                        {
+                            success = false,
+                            error = new { code = "INVALID_SIZE", message = $"Size must be one of: {string.Join(", ", validSizes)}" },
+                        }
+                    );
+                }
+
+                // Check if image exists
+                if (!imageService.ImageExists(branchName, entityType, entityId, size))
+                {
+                    return Results.NotFound(
+                        new
+                        {
+                            success = false,
+                            error = new { code = "NOT_FOUND", message = "Image not found" },
+                        }
+                    );
+                }
+
+                // Get image path
+                var imagePath = imageService.GetImagePath(branchName, entityType, entityId, size);
+
+                if (string.IsNullOrEmpty(imagePath) || !File.Exists(imagePath))
+                {
+                    return Results.NotFound(
+                        new
+                        {
+                            success = false,
+                            error = new { code = "NOT_FOUND", message = "Image file not found" },
+                        }
+                    );
+                }
+
+                // Determine content type
+                var extension = Path.GetExtension(imagePath).ToLower();
+                var contentType = extension switch
+                {
+                    ".webp" => "image/webp",
+                    ".jpg" or ".jpeg" => "image/jpeg",
+                    ".png" => "image/png",
+                    _ => "application/octet-stream",
+                };
+
+                // Serve the image file
+                var fileStream = File.OpenRead(imagePath);
+                return Results.Stream(fileStream, contentType);
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .WithName("ServeImage")
+    .WithOpenApi();
+
+// DELETE /api/v1/images/{branchName}/{entityType}/{entityId} - Delete all images for an entity
+app.MapDelete(
+        "/api/v1/images/{branchName}/{entityType}/{entityId:guid}",
+        async (
+            string branchName,
+            string entityType,
+            Guid entityId,
+            Backend.Services.Images.IImageService imageService
+        ) =>
+        {
+            try
+            {
+                var success = await imageService.DeleteImageAsync(branchName, entityType, entityId);
+
+                if (!success)
+                {
+                    return Results.NotFound(
+                        new
+                        {
+                            success = false,
+                            error = new { code = "NOT_FOUND", message = "Images not found or already deleted" },
+                        }
+                    );
+                }
+
+                return Results.Ok(new { success = true, message = "Images deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("DeleteImage")
     .WithOpenApi();
 
 app.Run();
