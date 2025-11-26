@@ -1,117 +1,106 @@
 /**
- * Expense Form Modal with Receipt Image Upload
- * Create or edit expense with receipt/invoice image upload capability
+ * Supplier Form Modal with Image Upload
+ * Modal for adding/editing suppliers with logo upload capability
  */
 
 "use client";
 
 import { useState } from "react";
-import expenseService from "@/services/expense.service";
+import { SupplierDto, CreateSupplierDto, UpdateSupplierDto } from "@/types/api.types";
+import supplierService from "@/services/supplier.service";
 import imageService from "@/services/image.service";
-import { ExpenseDto, CreateExpenseDto, ExpenseCategoryDto } from "@/types/api.types";
 import { ModalBottomSheet } from "@/components/modals";
 import { ImageUpload } from "@/components/shared/ImageUpload";
 import { FormField } from "@/types/data-table.types";
 import { useApiError } from "@/hooks/useApiError";
 import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
 
-interface ExpenseFormModalProps {
+interface SupplierFormModalProps {
   isOpen: boolean;
-  expense?: ExpenseDto;
-  categories: ExpenseCategoryDto[];
-  branchName: string; // Required for image upload
   onClose: () => void;
   onSuccess: () => void;
+  supplier?: SupplierDto;
+  branchName: string; // Required for image upload
 }
 
-export default function ExpenseFormModal({
+export default function SupplierFormModal({
   isOpen,
-  expense,
-  categories,
-  branchName,
   onClose,
   onSuccess,
-}: ExpenseFormModalProps) {
+  supplier,
+  branchName,
+}: SupplierFormModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
   const { error, isError, executeWithErrorHandling, clearError } = useApiError();
 
-  // Prepare initial data
-  const initialData = expense
-    ? {
-        ...expense,
-        expenseDate: new Date(expense.expenseDate).toISOString().split("T")[0],
-      }
-    : {
-        expenseDate: new Date().toISOString().split("T")[0],
-        amount: 0,
-        paymentMethod: 0,
-      };
-
   const fields: FormField<any>[] = [
     {
-      name: "expenseCategoryId",
-      label: "Category",
-      type: "select",
-      required: true,
-      options: categories.map((cat) => ({
-        label: `${cat.nameEn} / ${cat.nameAr || ""}`,
-        value: cat.id,
-      })),
-    },
-    {
-      name: "amount",
-      label: "Amount",
-      type: "number",
-      required: true,
-      validation: {
-        min: 0.01,
-      },
-    },
-    {
-      name: "expenseDate",
-      label: "Expense Date",
-      type: "date",
-      required: true,
-    },
-    {
-      name: "paymentMethod",
-      label: "Payment Method",
-      type: "select",
-      required: true,
-      options: [
-        { label: "Cash", value: 0 },
-        { label: "Card", value: 1 },
-        { label: "Bank Transfer", value: 2 },
-        { label: "Other", value: 3 },
-      ],
-    },
-    {
-      name: "paymentReference",
-      label: "Payment Reference",
+      name: "code",
+      label: "Supplier Code",
       type: "text",
-      placeholder: "Transaction ID, check number, etc.",
-      validation: {
-        maxLength: 200,
-      },
-    },
-    {
-      name: "descriptionEn",
-      label: "Description (English)",
-      type: "textarea",
       required: true,
+      placeholder: "e.g., SUP001",
+      disabled: !!supplier, // Code cannot be changed in edit mode
+    },
+    {
+      name: "nameEn",
+      label: "Name (English)",
+      type: "text",
+      required: true,
+      placeholder: "Supplier name in English",
+    },
+    {
+      name: "nameAr",
+      label: "Name (Arabic)",
+      type: "text",
+      placeholder: "اسم المورد بالعربية",
+    },
+    {
+      name: "email",
+      label: "Email",
+      type: "email",
+      placeholder: "supplier@example.com",
       validation: {
-        maxLength: 500,
+        pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
       },
     },
     {
-      name: "descriptionAr",
-      label: "Description (Arabic)",
+      name: "phone",
+      label: "Phone",
+      type: "text",
+      placeholder: "+1234567890",
+    },
+    {
+      name: "addressEn",
+      label: "Address (English)",
       type: "textarea",
-      validation: {
-        maxLength: 500,
-      },
+      placeholder: "Street address, city, country",
+    },
+    {
+      name: "addressAr",
+      label: "Address (Arabic)",
+      type: "textarea",
+      placeholder: "العنوان، المدينة، الدولة",
+    },
+    {
+      name: "contactPerson",
+      label: "Contact Person",
+      type: "text",
+      placeholder: "Name of primary contact",
+    },
+    {
+      name: "paymentTerms",
+      label: "Payment Terms",
+      type: "text",
+      placeholder: "e.g., Net 30 days",
+    },
+    {
+      name: "isActive",
+      label: "Active Supplier",
+      type: "checkbox",
+      defaultValue: true,
     },
   ];
 
@@ -119,42 +108,44 @@ export default function ExpenseFormModal({
     setIsSubmitting(true);
 
     const result = await executeWithErrorHandling(async () => {
-      const dto: CreateExpenseDto = {
-        expenseCategoryId: data.expenseCategoryId,
-        amount: Number(data.amount),
-        expenseDate: data.expenseDate,
-        descriptionEn: data.descriptionEn,
-        descriptionAr: data.descriptionAr,
-        paymentMethod: Number(data.paymentMethod),
-        paymentReference: data.paymentReference,
-        receiptImagePath: data.receiptImagePath,
+      const supplierData = {
+        code: data.code,
+        nameEn: data.nameEn,
+        nameAr: data.nameAr || "",
+        email: data.email,
+        phone: data.phone,
+        addressEn: data.addressEn,
+        addressAr: data.addressAr,
+        contactPerson: data.contactPerson,
+        paymentTerms: data.paymentTerms,
+        isActive: data.isActive !== false,
       };
 
-      // 1. Create or update the expense
-      const savedExpense = expense
-        ? await expenseService.updateExpense(expense.id, dto)
-        : await expenseService.createExpense(dto);
+      // 1. Create or update the supplier
+      const savedSupplier = supplier
+        ? await supplierService.updateSupplier(supplier.id, supplierData as UpdateSupplierDto)
+        : await supplierService.createSupplier(supplierData as CreateSupplierDto);
 
-      // 2. Upload receipt images if selected
+      // 2. Upload logo if selected
       if (selectedImages.length > 0 && branchName) {
         setUploadingImages(true);
         try {
-          await imageService.uploadMultipleImages(
+          await imageService.uploadImage(
             branchName,
-            'Expenses',
-            savedExpense.id,
-            selectedImages // Multiple receipt images (up to 3)
+            'Suppliers',
+            savedSupplier.id,
+            selectedImages[0] // Only one logo
           );
-          console.log(`Successfully uploaded ${selectedImages.length} receipt image(s)`);
+          console.log('Successfully uploaded supplier logo');
         } catch (error) {
-          console.error('Error uploading receipt images:', error);
+          console.error('Error uploading logo:', error);
           // Don't fail the whole operation
         } finally {
           setUploadingImages(false);
         }
       }
 
-      return savedExpense;
+      return savedSupplier;
     });
 
     setIsSubmitting(false);
@@ -178,13 +169,13 @@ export default function ExpenseFormModal({
   };
 
   const handleImageRemove = async (imageId: string) => {
-    if (!expense?.id || !branchName) return;
+    if (!supplier?.id || !branchName) return;
 
     try {
-      await imageService.deleteImages(branchName, 'Expenses', expense.id);
-      console.log('Receipt images deleted successfully');
+      await imageService.deleteImages(branchName, 'Suppliers', supplier.id);
+      console.log('Logo deleted successfully');
     } catch (error) {
-      console.error('Error deleting receipt images:', error);
+      console.error('Error deleting logo:', error);
     }
   };
 
@@ -201,13 +192,13 @@ export default function ExpenseFormModal({
       <ModalBottomSheet
         isOpen={isOpen}
         onClose={handleClose}
-        title={expense ? "Edit Expense" : "Add New Expense"}
-        mode={expense ? "edit" : "create"}
-        initialData={initialData}
+        title={supplier ? "Edit Supplier" : "Add New Supplier"}
+        mode={supplier ? "edit" : "create"}
+        initialData={supplier}
         fields={fields}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting || uploadingImages}
-        size="md"
+        size="lg"
       />
 
       {/* Image Upload Section */}
@@ -216,14 +207,14 @@ export default function ExpenseFormModal({
           <div className="max-w-4xl mx-auto">
             <ImageUpload
               branchName={branchName}
-              entityType="Expenses"
-              entityId={expense?.id}
-              currentImages={expense?.images || []}
-              multiple={true}
-              maxFiles={3}
+              entityType="Suppliers"
+              entityId={supplier?.id}
+              currentImages={supplier?.images || []}
+              multiple={false}
+              maxFiles={1}
               onUpload={handleImageUpload}
               onRemove={handleImageRemove}
-              label="Receipt/Invoice Images (Optional, up to 3)"
+              label="Supplier Logo (Optional)"
               className="mb-4"
             />
 
@@ -250,13 +241,13 @@ export default function ExpenseFormModal({
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                <span className="text-sm font-medium">Uploading receipt images...</span>
+                <span className="text-sm font-medium">Uploading logo...</span>
               </div>
             )}
 
             {selectedImages.length > 0 && !uploadingImages && (
               <div className="text-sm text-gray-600 text-center mt-2">
-                {selectedImages.length} receipt image{selectedImages.length > 1 ? 's' : ''} ready to upload
+                Logo ready to upload
               </div>
             )}
           </div>
