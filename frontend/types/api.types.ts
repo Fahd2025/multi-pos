@@ -422,6 +422,9 @@ export interface SupplierDto {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  totalPurchases: number;
+  totalSpent: number;
+  lastPurchaseDate?: string;
 }
 
 export interface CreateSupplierDto {
@@ -434,6 +437,20 @@ export interface CreateSupplierDto {
   addressAr?: string;
   paymentTerms?: string;
   deliveryTerms?: string;
+  isActive?: boolean;
+}
+
+export interface UpdateSupplierDto {
+  code?: string;
+  nameEn?: string;
+  nameAr?: string;
+  email?: string;
+  phone?: string;
+  addressEn?: string;
+  addressAr?: string;
+  paymentTerms?: string;
+  deliveryTerms?: string;
+  isActive?: boolean;
 }
 
 export interface PurchaseDto {
