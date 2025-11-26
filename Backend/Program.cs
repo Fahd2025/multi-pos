@@ -82,6 +82,10 @@ builder.Services.AddScoped<
 >();
 builder.Services.AddScoped<Backend.Services.Users.IUserService, Backend.Services.Users.UserService>();
 builder.Services.AddScoped<Backend.Services.Audit.IAuditService, Backend.Services.Audit.AuditService>();
+builder.Services.AddScoped<
+    Backend.Services.Suppliers.ISupplierService,
+    Backend.Services.Suppliers.SupplierService
+>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<BranchDbContext>(provider =>
@@ -2184,6 +2188,390 @@ app.MapPost(
     )
     .RequireAuthorization()
     .WithName("CreateExpenseCategory")
+    .WithOpenApi();
+
+// ============================================
+// Supplier Endpoints (Manager Only)
+// ============================================
+
+// GET /api/v1/suppliers - Get all suppliers with filtering
+app.MapGet(
+        "/api/v1/suppliers",
+        async (
+            HttpContext httpContext,
+            Backend.Services.Suppliers.ISupplierService supplierService,
+            bool includeInactive = false,
+            string? searchTerm = null,
+            int page = 1,
+            int pageSize = 50
+        ) =>
+        {
+            try
+            {
+                // Check if user has manager role or higher
+                var userRole = httpContext
+                    .User.FindFirst(System.Security.Claims.ClaimTypes.Role)
+                    ?.Value;
+                if (
+                    userRole != "Manager"
+                    && userRole != "Admin"
+                    && httpContext.Items["IsHeadOfficeAdmin"] as bool? != true
+                )
+                {
+                    return Results.Forbid();
+                }
+
+                // Get branch from context
+                var branch =
+                    httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                if (branch == null)
+                {
+                    return Results.BadRequest(
+                        new
+                        {
+                            success = false,
+                            error = new
+                            {
+                                code = "BRANCH_NOT_FOUND",
+                                message = "Branch context not found",
+                            },
+                        }
+                    );
+                }
+
+                var (suppliers, totalCount) = await supplierService.GetSuppliersAsync(
+                    branch.Id,
+                    includeInactive,
+                    searchTerm,
+                    page,
+                    pageSize
+                );
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = suppliers,
+                        pagination = new
+                        {
+                            page,
+                            pageSize,
+                            totalItems = totalCount,
+                            totalPages = (int)Math.Ceiling(totalCount / (double)pageSize),
+                        },
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("GetSuppliers")
+    .WithOpenApi();
+
+// POST /api/v1/suppliers - Create a new supplier
+app.MapPost(
+        "/api/v1/suppliers",
+        async (
+            Backend.Models.DTOs.Suppliers.CreateSupplierDto createDto,
+            HttpContext httpContext,
+            Backend.Services.Suppliers.ISupplierService supplierService
+        ) =>
+        {
+            try
+            {
+                // Check if user has manager role or higher
+                var userRole = httpContext
+                    .User.FindFirst(System.Security.Claims.ClaimTypes.Role)
+                    ?.Value;
+                if (
+                    userRole != "Manager"
+                    && userRole != "Admin"
+                    && httpContext.Items["IsHeadOfficeAdmin"] as bool? != true
+                )
+                {
+                    return Results.Forbid();
+                }
+
+                // Get user ID from context
+                var userId = httpContext.Items["UserId"] as Guid?;
+                if (!userId.HasValue)
+                {
+                    return Results.Unauthorized();
+                }
+
+                // Get branch from context
+                var branch =
+                    httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                if (branch == null)
+                {
+                    return Results.BadRequest(
+                        new
+                        {
+                            success = false,
+                            error = new
+                            {
+                                code = "BRANCH_NOT_FOUND",
+                                message = "Branch context not found",
+                            },
+                        }
+                    );
+                }
+
+                var supplier = await supplierService.CreateSupplierAsync(
+                    branch.Id,
+                    createDto,
+                    userId.Value
+                );
+
+                return Results.Created(
+                    $"/api/v1/suppliers/{supplier.Id}",
+                    new
+                    {
+                        success = true,
+                        data = supplier,
+                        message = "Supplier created successfully",
+                    }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "INVALID_OPERATION", message = ex.Message },
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("CreateSupplier")
+    .WithOpenApi();
+
+// PUT /api/v1/suppliers/:id - Update a supplier
+app.MapPut(
+        "/api/v1/suppliers/{id:guid}",
+        async (
+            Guid id,
+            Backend.Models.DTOs.Suppliers.UpdateSupplierDto updateDto,
+            HttpContext httpContext,
+            Backend.Services.Suppliers.ISupplierService supplierService
+        ) =>
+        {
+            try
+            {
+                // Check if user has manager role or higher
+                var userRole = httpContext
+                    .User.FindFirst(System.Security.Claims.ClaimTypes.Role)
+                    ?.Value;
+                if (
+                    userRole != "Manager"
+                    && userRole != "Admin"
+                    && httpContext.Items["IsHeadOfficeAdmin"] as bool? != true
+                )
+                {
+                    return Results.Forbid();
+                }
+
+                // Get branch from context
+                var branch =
+                    httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                if (branch == null)
+                {
+                    return Results.BadRequest(
+                        new
+                        {
+                            success = false,
+                            error = new
+                            {
+                                code = "BRANCH_NOT_FOUND",
+                                message = "Branch context not found",
+                            },
+                        }
+                    );
+                }
+
+                var supplier = await supplierService.UpdateSupplierAsync(branch.Id, id, updateDto);
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = supplier,
+                        message = "Supplier updated successfully",
+                    }
+                );
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return Results.NotFound(
+                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(
+                    new
+                    {
+                        success = false,
+                        error = new { code = "INVALID_OPERATION", message = ex.Message },
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("UpdateSupplier")
+    .WithOpenApi();
+
+// DELETE /api/v1/suppliers/:id - Delete a supplier
+app.MapDelete(
+        "/api/v1/suppliers/{id:guid}",
+        async (
+            Guid id,
+            HttpContext httpContext,
+            Backend.Services.Suppliers.ISupplierService supplierService
+        ) =>
+        {
+            try
+            {
+                // Check if user has manager role or higher
+                var userRole = httpContext
+                    .User.FindFirst(System.Security.Claims.ClaimTypes.Role)
+                    ?.Value;
+                if (
+                    userRole != "Manager"
+                    && userRole != "Admin"
+                    && httpContext.Items["IsHeadOfficeAdmin"] as bool? != true
+                )
+                {
+                    return Results.Forbid();
+                }
+
+                // Get branch from context
+                var branch =
+                    httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                if (branch == null)
+                {
+                    return Results.BadRequest(
+                        new
+                        {
+                            success = false,
+                            error = new
+                            {
+                                code = "BRANCH_NOT_FOUND",
+                                message = "Branch context not found",
+                            },
+                        }
+                    );
+                }
+
+                await supplierService.DeleteSupplierAsync(branch.Id, id);
+
+                return Results.Ok(
+                    new { success = true, message = "Supplier deleted successfully" }
+                );
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return Results.NotFound(
+                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("DeleteSupplier")
+    .WithOpenApi();
+
+// GET /api/v1/suppliers/:id/history - Get purchase history for a supplier
+app.MapGet(
+        "/api/v1/suppliers/{id:guid}/history",
+        async (
+            Guid id,
+            HttpContext httpContext,
+            Backend.Services.Suppliers.ISupplierService supplierService,
+            int page = 1,
+            int pageSize = 50
+        ) =>
+        {
+            try
+            {
+                // Check if user has manager role or higher
+                var userRole = httpContext
+                    .User.FindFirst(System.Security.Claims.ClaimTypes.Role)
+                    ?.Value;
+                if (
+                    userRole != "Manager"
+                    && userRole != "Admin"
+                    && httpContext.Items["IsHeadOfficeAdmin"] as bool? != true
+                )
+                {
+                    return Results.Forbid();
+                }
+
+                // Get branch from context
+                var branch =
+                    httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                if (branch == null)
+                {
+                    return Results.BadRequest(
+                        new
+                        {
+                            success = false,
+                            error = new
+                            {
+                                code = "BRANCH_NOT_FOUND",
+                                message = "Branch context not found",
+                            },
+                        }
+                    );
+                }
+
+                var purchases = await supplierService.GetSupplierPurchaseHistoryAsync(
+                    branch.Id,
+                    id,
+                    page,
+                    pageSize
+                );
+
+                return Results.Ok(new { success = true, data = purchases });
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("GetSupplierPurchaseHistory")
     .WithOpenApi();
 
 // ============================================

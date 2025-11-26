@@ -503,32 +503,32 @@
 
 ### DTOs for User Story 7
 
-- [ ] T249 [P] [US7] Create SupplierDto in Backend/Models/DTOs/Suppliers/SupplierDto.cs
-- [ ] T250 [P] [US7] Create CreateSupplierDto in Backend/Models/DTOs/Suppliers/CreateSupplierDto.cs
-- [ ] T251 [P] [US7] Create UpdateSupplierDto in Backend/Models/DTOs/Suppliers/UpdateSupplierDto.cs
+- [X] T249 [P] [US7] Create SupplierDto in Backend/Models/DTOs/Suppliers/SupplierDto.cs
+- [X] T250 [P] [US7] Create CreateSupplierDto in Backend/Models/DTOs/Suppliers/CreateSupplierDto.cs
+- [X] T251 [P] [US7] Create UpdateSupplierDto in Backend/Models/DTOs/Suppliers/UpdateSupplierDto.cs
 
 ### Backend Services for User Story 7
 
-- [ ] T252 [US7] Implement ISupplierService interface in Backend/Services/Suppliers/ISupplierService.cs
-- [ ] T253 [US7] Implement SupplierService in Backend/Services/Suppliers/SupplierService.cs with GetSuppliersAsync, CreateSupplierAsync, UpdateSupplierAsync, DeleteSupplierAsync, GetSupplierPurchaseHistoryAsync methods
+- [X] T252 [US7] Implement ISupplierService interface in Backend/Services/Suppliers/ISupplierService.cs
+- [X] T253 [US7] Implement SupplierService in Backend/Services/Suppliers/SupplierService.cs with GetSuppliersAsync, CreateSupplierAsync, UpdateSupplierAsync, DeleteSupplierAsync, GetSupplierPurchaseHistoryAsync methods
 
 ### API Endpoints for User Story 7
 
-- [ ] T254 [US7] Implement GET /api/v1/suppliers endpoint in Backend/Program.cs per contracts/suppliers.md
-- [ ] T255 [US7] Implement POST /api/v1/suppliers endpoint in Backend/Program.cs per contracts/suppliers.md
-- [ ] T256 [US7] Implement PUT /api/v1/suppliers/:id endpoint in Backend/Program.cs per contracts/suppliers.md
-- [ ] T257 [US7] Implement DELETE /api/v1/suppliers/:id endpoint in Backend/Program.cs per contracts/suppliers.md
-- [ ] T258 [US7] Implement GET /api/v1/suppliers/:id/history endpoint in Backend/Program.cs (purchase history)
+- [X] T254 [US7] Implement GET /api/v1/suppliers endpoint in Backend/Program.cs per contracts/suppliers.md
+- [X] T255 [US7] Implement POST /api/v1/suppliers endpoint in Backend/Program.cs per contracts/suppliers.md
+- [X] T256 [US7] Implement PUT /api/v1/suppliers/:id endpoint in Backend/Program.cs per contracts/suppliers.md
+- [X] T257 [US7] Implement DELETE /api/v1/suppliers/:id endpoint in Backend/Program.cs per contracts/suppliers.md
+- [X] T258 [US7] Implement GET /api/v1/suppliers/:id/history endpoint in Backend/Program.cs (purchase history)
 
 ### Frontend Services for User Story 7
 
-- [ ] T259 [US7] Create SupplierService in frontend/services/supplier.service.ts
+- [X] T259 [US7] Create SupplierService in frontend/services/supplier.service.ts
 
 ### Frontend UI for User Story 7
 
-- [ ] T260 [US7] Create suppliers page in frontend/app/[locale]/branch/suppliers/page.tsx
-- [ ] T261 [US7] Create supplier form modal in frontend/components/suppliers/SupplierFormModal.tsx
-- [ ] T262 [US7] Create supplier details page in frontend/app/[locale]/branch/suppliers/[id]/page.tsx with purchase history
+- [X] T260 [US7] Create suppliers page in frontend/app/[locale]/branch/suppliers/page.tsx
+- [X] T261 [US7] Create supplier form modal in frontend/components/suppliers/SupplierFormModal.tsx
+- [X] T262 [US7] Create supplier details page in frontend/app/[locale]/branch/suppliers/[id]/page.tsx with purchase history
 - [ ] T263 [US7] Update purchase form to include supplier selection dropdown
 
 ### Integration & Validation for User Story 7
