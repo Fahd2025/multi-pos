@@ -61,16 +61,16 @@ class CustomerService {
    * Create a new customer
    */
   async createCustomer(customer: CreateCustomerDto): Promise<CustomerDto> {
-    const response = await api.post<CustomerDto>('/api/v1/customers', customer);
-    return response.data;
+    const response = await api.post<{ data: CustomerDto }>('/api/v1/customers', customer);
+    return response.data.data;
   }
 
   /**
    * Update an existing customer
    */
   async updateCustomer(id: string, customer: UpdateCustomerDto): Promise<CustomerDto> {
-    const response = await api.put<CustomerDto>(`/api/v1/customers/${id}`, customer);
-    return response.data;
+    const response = await api.put<{ data: CustomerDto }>(`/api/v1/customers/${id}`, customer);
+    return response.data.data;
   }
 
   /**

@@ -4,16 +4,20 @@
  * Uses existing Modal and Form components
  */
 
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { Modal } from '@/components/shared/Modal';
-import { Input } from '@/components/shared/Form/Input';
-import { Select } from '@/components/shared/Form/Select';
-import { Button } from '@/components/shared/Button';
-import { ImageUpload } from '@/components/shared/ImageUpload';
-import branchService, { CreateBranchDto, UpdateBranchDto, BranchDto } from '@/services/branch.service';
-import imageService from '@/services/image.service';
+import React, { useEffect, useState } from "react";
+import { Modal } from "@/components/shared/Modal";
+import { Input } from "@/components/shared/Form/Input";
+import { Select } from "@/components/shared/Form/Select";
+import { Button } from "@/components/shared/Button";
+import { ImageUpload } from "@/components/shared/ImageUpload";
+import branchService, {
+  CreateBranchDto,
+  UpdateBranchDto,
+  BranchDto,
+} from "@/services/branch.service";
+import imageService from "@/services/image.service";
 
 interface BranchFormModalProps {
   isOpen: boolean;
@@ -37,22 +41,22 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
 
   // Form state
   const [formData, setFormData] = useState({
-    code: '',
-    nameEn: '',
-    nameAr: '',
-    loginName: '',
-    email: '',
-    phone: '',
+    code: "",
+    nameEn: "",
+    nameAr: "",
+    loginName: "",
+    email: "",
+    phone: "",
     databaseProvider: 0, // SQLite by default
-    dbServer: '',
-    dbName: '',
+    dbServer: "",
+    dbName: "",
     dbPort: 0,
-    dbUsername: '',
-    dbPassword: '',
+    dbUsername: "",
+    dbPassword: "",
     trustServerCertificate: false, // For MSSQL
     sslMode: 0, // For PostgreSQL, MySQL: 0=Disable, 1=Require, 2=VerifyCA, 3=VerifyFull
-    language: 'en',
-    currency: 'USD',
+    language: "en",
+    currency: "USD",
     taxRate: 0,
   });
 
@@ -64,18 +68,21 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
         nameEn: branch.nameEn,
         nameAr: branch.nameAr,
         loginName: branch.loginName,
-        email: branch.email || '',
-        phone: branch.phone || '',
-        databaseProvider: ['SQLite', 'MSSQL', 'PostgreSQL', 'MySQL'].indexOf(branch.databaseProvider),
+        email: branch.email || "",
+        phone: branch.phone || "",
+        databaseProvider: ["SQLite", "MSSQL", "PostgreSQL", "MySQL"].indexOf(
+          branch.databaseProvider
+        ),
         dbServer: branch.dbServer,
         dbName: branch.dbName,
         dbPort: branch.dbPort,
-        dbUsername: branch.dbUsername || '',
-        dbPassword: '', // Never populate password for security
+        dbUsername: branch.dbUsername || "",
+        dbPassword: "", // Never populate password for security
         trustServerCertificate: branch.trustServerCertificate || false,
-        sslMode: ['Disable', 'Require', 'VerifyCA', 'VerifyFull'].indexOf(branch.sslMode) !== -1
-          ? ['Disable', 'Require', 'VerifyCA', 'VerifyFull'].indexOf(branch.sslMode)
-          : 0,
+        sslMode:
+          ["Disable", "Require", "VerifyCA", "VerifyFull"].indexOf(branch.sslMode) !== -1
+            ? ["Disable", "Require", "VerifyCA", "VerifyFull"].indexOf(branch.sslMode)
+            : 0,
         language: branch.language,
         currency: branch.currency,
         taxRate: branch.taxRate,
@@ -83,22 +90,22 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
     } else {
       // Reset form for create mode
       setFormData({
-        code: '',
-        nameEn: '',
-        nameAr: '',
-        loginName: '',
-        email: '',
-        phone: '',
+        code: "",
+        nameEn: "",
+        nameAr: "",
+        loginName: "",
+        email: "",
+        phone: "",
         databaseProvider: 0,
-        dbServer: '',
-        dbName: '',
+        dbServer: "",
+        dbName: "",
         dbPort: 0,
-        dbUsername: '',
-        dbPassword: '',
+        dbUsername: "",
+        dbPassword: "",
         trustServerCertificate: false,
         sslMode: 0,
-        language: 'en',
-        currency: 'USD',
+        language: "en",
+        currency: "USD",
         taxRate: 0,
       });
     }
@@ -120,7 +127,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
 
   const handleTestConnection = async () => {
     if (!branch?.id) {
-      setError('Save the branch first to test the connection');
+      setError("Save the branch first to test the connection");
       return;
     }
 
@@ -131,7 +138,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
       const result = await branchService.testConnection(branch.id);
       alert(result.message);
     } catch (err: any) {
-      setError(err.message || 'Connection test failed');
+      setError(err.message || "Connection test failed");
     } finally {
       setTestingConnection(false);
     }
@@ -145,10 +152,10 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
     if (!branch?.id) return;
 
     try {
-      await imageService.deleteImages('HeadOffice', 'Branches', branch.id);
-      console.log('Branch logo deleted successfully');
+      await imageService.deleteImages(branch.code, "Logo", branch.id);
+      console.log("Branch logo deleted successfully");
     } catch (error) {
-      console.error('Error deleting logo:', error);
+      console.error("Error deleting logo:", error);
     }
   };
 
@@ -209,14 +216,14 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
         setUploadingImages(true);
         try {
           await imageService.uploadImage(
-            'HeadOffice', // Special branch name for head office context
-            'Branches',
+            savedBranch.code, // Use branch code for path construction
+            "Logo",
             savedBranch.id,
             selectedImages[0] // Single logo
           );
-          console.log('Successfully uploaded branch logo');
+          console.log("Successfully uploaded branch logo");
         } catch (error) {
-          console.error('Error uploading logo:', error);
+          console.error("Error uploading logo:", error);
           // Don't fail the whole operation
         } finally {
           setUploadingImages(false);
@@ -227,7 +234,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
       onClose();
       setSelectedImages([]);
     } catch (err: any) {
-      setError(err.message || `Failed to ${isEditMode ? 'update' : 'create'} branch`);
+      setError(err.message || `Failed to ${isEditMode ? "update" : "create"} branch`);
     } finally {
       setLoading(false);
     }
@@ -237,7 +244,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isEditMode ? 'Edit Branch' : 'Create New Branch'}
+      title={isEditMode ? "Edit Branch" : "Create New Branch"}
       size="xl"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -257,7 +264,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
             <Input
               label="Branch Code*"
               value={formData.code}
-              onChange={(e) => handleChange('code', e.target.value)}
+              onChange={(e) => handleChange("code", e.target.value)}
               disabled={isEditMode}
               placeholder="B001"
               required
@@ -265,7 +272,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
             <Input
               label="Login Name*"
               value={formData.loginName}
-              onChange={(e) => handleChange('loginName', e.target.value)}
+              onChange={(e) => handleChange("loginName", e.target.value)}
               disabled={isEditMode}
               placeholder="branch001"
               required
@@ -276,14 +283,14 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
             <Input
               label="Name (English)*"
               value={formData.nameEn}
-              onChange={(e) => handleChange('nameEn', e.target.value)}
+              onChange={(e) => handleChange("nameEn", e.target.value)}
               placeholder="Main Branch"
               required
             />
             <Input
               label="Name (Arabic)*"
               value={formData.nameAr}
-              onChange={(e) => handleChange('nameAr', e.target.value)}
+              onChange={(e) => handleChange("nameAr", e.target.value)}
               placeholder="الفرع الرئيسي"
               required
             />
@@ -294,14 +301,14 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
               label="Email"
               type="email"
               value={formData.email}
-              onChange={(e) => handleChange('email', e.target.value)}
+              onChange={(e) => handleChange("email", e.target.value)}
               placeholder="branch@example.com"
             />
             <Input
               label="Phone"
               type="tel"
               value={formData.phone}
-              onChange={(e) => handleChange('phone', e.target.value)}
+              onChange={(e) => handleChange("phone", e.target.value)}
               placeholder="+1234567890"
             />
           </div>
@@ -316,7 +323,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
           <Select
             label="Database Provider*"
             value={formData.databaseProvider}
-            onChange={(e) => handleChange('databaseProvider', parseInt(e.target.value))}
+            onChange={(e) => handleChange("databaseProvider", parseInt(e.target.value))}
             options={branchService.getDatabaseProviderOptions()}
             required
           />
@@ -325,14 +332,14 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
             <Input
               label="Database Server*"
               value={formData.dbServer}
-              onChange={(e) => handleChange('dbServer', e.target.value)}
-              placeholder={formData.databaseProvider === 0 ? './data/branches' : 'localhost'}
+              onChange={(e) => handleChange("dbServer", e.target.value)}
+              placeholder={formData.databaseProvider === 0 ? "./data/branches" : "localhost"}
               required
             />
             <Input
               label="Database Name*"
               value={formData.dbName}
-              onChange={(e) => handleChange('dbName', e.target.value)}
+              onChange={(e) => handleChange("dbName", e.target.value)}
               placeholder="branch_db"
               required
             />
@@ -343,21 +350,21 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
               label="Port*"
               type="number"
               value={formData.dbPort}
-              onChange={(e) => handleChange('dbPort', parseInt(e.target.value))}
+              onChange={(e) => handleChange("dbPort", parseInt(e.target.value))}
               required
             />
             <Input
               label="Username"
               value={formData.dbUsername}
-              onChange={(e) => handleChange('dbUsername', e.target.value)}
+              onChange={(e) => handleChange("dbUsername", e.target.value)}
               placeholder="sa"
             />
             <Input
               label="Password"
               type="password"
               value={formData.dbPassword}
-              onChange={(e) => handleChange('dbPassword', e.target.value)}
-              placeholder={isEditMode ? '(unchanged)' : ''}
+              onChange={(e) => handleChange("dbPassword", e.target.value)}
+              placeholder={isEditMode ? "(unchanged)" : ""}
             />
           </div>
 
@@ -368,7 +375,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
                 type="checkbox"
                 id="trustServerCertificate"
                 checked={formData.trustServerCertificate}
-                onChange={(e) => handleChange('trustServerCertificate', e.target.checked)}
+                onChange={(e) => handleChange("trustServerCertificate", e.target.checked)}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
               />
               <label
@@ -385,12 +392,12 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
             <Select
               label="SSL Mode"
               value={formData.sslMode}
-              onChange={(e) => handleChange('sslMode', parseInt(e.target.value))}
+              onChange={(e) => handleChange("sslMode", parseInt(e.target.value))}
               options={[
-                { value: 0, label: 'Disable (No SSL)' },
-                { value: 1, label: 'Require (Encrypt connection)' },
-                { value: 2, label: 'Verify CA (Verify certificate authority)' },
-                { value: 3, label: 'Verify Full (Full certificate validation)' },
+                { value: 0, label: "Disable (No SSL)" },
+                { value: 1, label: "Require (Encrypt connection)" },
+                { value: 2, label: "Verify CA (Verify certificate authority)" },
+                { value: 3, label: "Verify Full (Full certificate validation)" },
               ]}
             />
           )}
@@ -402,7 +409,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
               disabled={testingConnection}
               variant="secondary"
             >
-              {testingConnection ? 'Testing...' : 'Test Connection'}
+              {testingConnection ? "Testing..." : "Test Connection"}
             </Button>
           )}
         </div>
@@ -417,10 +424,10 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
             <Select
               label="Language*"
               value={formData.language}
-              onChange={(e) => handleChange('language', e.target.value)}
+              onChange={(e) => handleChange("language", e.target.value)}
               options={[
-                { value: 'en', label: 'English' },
-                { value: 'ar', label: 'Arabic' }
+                { value: "en", label: "English" },
+                { value: "ar", label: "Arabic" },
               ]}
               required
             />
@@ -428,7 +435,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
             <Input
               label="Currency*"
               value={formData.currency}
-              onChange={(e) => handleChange('currency', e.target.value)}
+              onChange={(e) => handleChange("currency", e.target.value)}
               placeholder="USD"
               required
             />
@@ -440,7 +447,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
               min="0"
               max="100"
               value={formData.taxRate}
-              onChange={(e) => handleChange('taxRate', parseFloat(e.target.value))}
+              onChange={(e) => handleChange("taxRate", parseFloat(e.target.value))}
               required
             />
           </div>
@@ -448,15 +455,13 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
 
         {/* Branch Logo */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Branch Logo
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Branch Logo</h3>
 
           <ImageUpload
-            branchName="HeadOffice"
-            entityType="Branches"
+            branchName={branch?.code || "HeadOffice"}
+            entityType="Logo"
             entityId={branch?.id}
-            currentImages={branch?.images || []}
+            currentImages={branch?.logoPath ? [branch.logoPath] : []}
             multiple={false}
             maxFiles={1}
             onUpload={handleImageUpload}
@@ -491,19 +496,26 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
           )}
 
           {selectedImages.length > 0 && !uploadingImages && (
-            <div className="text-sm text-gray-600 text-center">
-              Logo ready to upload
-            </div>
+            <div className="text-sm text-gray-600 text-center">Logo ready to upload</div>
           )}
         </div>
 
         {/* Actions */}
         <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <Button type="button" onClick={onClose} variant="secondary" disabled={loading || uploadingImages}>
+          <Button
+            type="button"
+            onClick={onClose}
+            variant="secondary"
+            disabled={loading || uploadingImages}
+          >
             Cancel
           </Button>
           <Button type="submit" disabled={loading || uploadingImages}>
-            {loading || uploadingImages ? 'Saving...' : isEditMode ? 'Update Branch' : 'Create Branch'}
+            {loading || uploadingImages
+              ? "Saving..."
+              : isEditMode
+              ? "Update Branch"
+              : "Create Branch"}
           </Button>
         </div>
       </form>

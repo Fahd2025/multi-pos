@@ -10,7 +10,6 @@ import { use } from "react";
 import inventoryService from "@/services/inventory.service";
 import { ProductDto, CategoryDto } from "@/types/api.types";
 import Link from "next/link";
-import ProductFormModal from "@/components/inventory/ProductFormModal";
 import StockAdjustmentModal from "@/components/inventory/StockAdjustmentModal";
 import { DataTable } from "@/components/data-table";
 import { ConfirmationDialog } from "@/components/modals";
@@ -22,9 +21,12 @@ import { StatusBadge, getStockStatusVariant } from "@/components/shared/StatusBa
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { useApiError } from "@/hooks/useApiError";
 import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
+import ProductFormModalWithImages from "@/components/inventory/ProductFormModalWithImages";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function InventoryPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
+  const { branch } = useAuth();
 
   const [products, setProducts] = useState<ProductDto[]>([]);
   const [categories, setCategories] = useState<CategoryDto[]>([]);
@@ -382,7 +384,7 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
       </div>
 
       {/* Modals */}
-      <ProductFormModal
+      <ProductFormModalWithImages
         isOpen={isProductModalOpen}
         onClose={() => {
           setIsProductModalOpen(false);
@@ -393,6 +395,7 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
         }}
         product={selectedProduct}
         categories={categories}
+        branchName={branch?.branchCode || ""}
       />
 
       <StockAdjustmentModal

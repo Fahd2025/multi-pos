@@ -178,16 +178,16 @@ class BranchService {
    * Create a new branch
    */
   async createBranch(branch: CreateBranchDto): Promise<BranchDto> {
-    const response = await api.post<BranchDto>('/api/v1/branches', branch);
-    return response.data;
+    const response = await api.post<{ data: BranchDto }>('/api/v1/branches', branch);
+    return response.data.data;
   }
 
   /**
    * Update an existing branch
    */
   async updateBranch(id: string, branch: UpdateBranchDto): Promise<BranchDto> {
-    const response = await api.put<BranchDto>(`/api/v1/branches/${id}`, branch);
-    return response.data;
+    const response = await api.put<{ data: BranchDto }>(`/api/v1/branches/${id}`, branch);
+    return response.data.data;
   }
 
   /**

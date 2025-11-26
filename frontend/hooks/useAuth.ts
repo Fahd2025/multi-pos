@@ -15,7 +15,7 @@ interface UseAuthReturn {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  login: (credentials: LoginRequest, loginMode?: 'branch' | 'headoffice') => Promise<void>;
+  login: (credentials: LoginRequest, loginMode?: "branch" | "headoffice") => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   isHeadOfficeAdmin: () => boolean;
@@ -50,48 +50,52 @@ export function useAuth(): UseAuthReturn {
   }, []);
 
   // Login function
-  const login = useCallback(async (credentials: LoginRequest, loginMode: 'branch' | 'headoffice' = 'branch') => {
-    setIsLoading(true);
-    setError(null);
+  const login = useCallback(
+    async (credentials: LoginRequest, loginMode: "branch" | "headoffice" = "branch") => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const response = await authService.login(credentials);
-      setUser(response.user);
+      try {
+        const response = await authService.login(credentials);
+        setUser(response.user);
 
-      // Get current locale from window location (default to 'en')
-      const pathSegments = window.location.pathname.split('/').filter(Boolean);
-      const locale = pathSegments[0] || 'en';
+        // Get current locale from window location (default to 'en')
+        const pathSegments = window.location.pathname.split("/").filter(Boolean);
+        const locale = pathSegments[0] || "en";
 
-      // Handle branch login
-      if (loginMode === 'branch') {
-        // Find selected branch
-        const selectedBranch = response.user.branches.find(
-          (b) => b.branchCode.toLowerCase() === credentials.branchName.toLowerCase()
-        );
+        // Handle branch login
+        if (loginMode === "branch") {
+          // Find selected branch
+          const selectedBranch = response.user.branches.find(
+            (b) => b.branchCode.toLowerCase() === credentials.branchName?.toLowerCase()
+          );
 
-        setBranch(selectedBranch || null);
-        router.push(`/${locale}/branch`);
-      }
-      // Handle head office login
-      else if (loginMode === 'headoffice') {
-        setBranch(null);
-
-        // Verify user is actually a head office admin
-        if (!response.user.isHeadOfficeAdmin) {
-          setError("You don't have permission to access the head office dashboard.");
-          throw new Error("Not authorized for head office access");
+          setBranch(selectedBranch || null);
+          router.push(`/${locale}/branch`);
         }
+        // Handle head office login
+        else if (loginMode === "headoffice") {
+          setBranch(null);
 
-        router.push(`/${locale}/head-office`);
+          // Verify user is actually a head office admin
+          if (!response.user.isHeadOfficeAdmin) {
+            setError("You don't have permission to access the head office dashboard.");
+            throw new Error("Not authorized for head office access");
+          }
+
+          router.push(`/${locale}/head-office`);
+        }
+      } catch (err: any) {
+        const errorMessage =
+          err.response?.data?.message || "Login failed. Please check your credentials.";
+        setError(errorMessage);
+        throw err;
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || "Login failed. Please check your credentials.";
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [router]);
+    },
+    [router]
+  );
 
   // Logout function
   const logout = useCallback(async () => {
@@ -104,8 +108,8 @@ export function useAuth(): UseAuthReturn {
       setBranch(null);
 
       // Get current locale from window location (default to 'en')
-      const pathSegments = window.location.pathname.split('/').filter(Boolean);
-      const locale = pathSegments[0] || 'en';
+      const pathSegments = window.location.pathname.split("/").filter(Boolean);
+      const locale = pathSegments[0] || "en";
 
       router.push(`/${locale}`);
     } catch (err: any) {
@@ -144,10 +148,13 @@ export function useAuth(): UseAuthReturn {
   }, [user]);
 
   // Check if user has specific role
-  const hasRole = useCallback((role: number) => {
-    if (!branch) return false;
-    return branch.role >= role;
-  }, [branch]);
+  const hasRole = useCallback(
+    (role: number) => {
+      if (!branch) return false;
+      return branch.role >= role;
+    },
+    [branch]
+  );
 
   return {
     user,

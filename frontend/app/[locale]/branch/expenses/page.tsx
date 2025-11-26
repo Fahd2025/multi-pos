@@ -20,9 +20,11 @@ import { ErrorAlert } from "@/components/shared/ErrorAlert";
 import { DataTable } from "@/components/data-table";
 import { useDataTable } from "@/hooks/useDataTable";
 import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function ExpensesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
+  const { branch } = useAuth();
 
   const [expenses, setExpenses] = useState<ExpenseDto[]>([]);
   const [categories, setCategories] = useState<ExpenseCategoryDto[]>([]);
@@ -383,8 +385,10 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
       {/* Expense Form Modal */}
       {isModalOpen && (
         <ExpenseFormModal
+          isOpen={isModalOpen}
           expense={selectedExpense}
           categories={categories}
+          branchName={branch?.branchCode || ""}
           onClose={() => {
             setIsModalOpen(false);
             setSelectedExpense(undefined);

@@ -30,7 +30,7 @@ export interface DataTableAction<T> {
   /** Callback when action is clicked */
   onClick: (row: T) => void;
   /** Optional color variant */
-  variant?: 'primary' | 'secondary' | 'danger' | 'success';
+  variant?: "primary" | "secondary" | "danger" | "success";
   /** Optional condition to show/hide action */
   condition?: (row: T) => boolean;
 }
@@ -40,7 +40,7 @@ export interface SortConfig<T> {
   /** Column key to sort by */
   key: keyof T | string;
   /** Sort direction */
-  direction: 'asc' | 'desc';
+  direction: "asc" | "desc";
 }
 
 // Filter configuration
@@ -50,7 +50,7 @@ export interface FilterConfig<T> {
   /** Filter value */
   value: any;
   /** Filter operator */
-  operator?: 'equals' | 'contains' | 'startsWith' | 'endsWith' | 'gt' | 'lt';
+  operator?: "equals" | "contains" | "startsWith" | "endsWith" | "gt" | "lt";
 }
 
 // Pagination configuration
@@ -118,15 +118,15 @@ export interface ModalProps {
   /** Modal content */
   children: React.ReactNode;
   /** Optional size variant */
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  size?: "sm" | "md" | "lg" | "xl" | "full";
   /** Optional CSS class */
   className?: string;
 }
 
 // Modal Bottom Sheet props
-export interface ModalBottomSheetProps<T = any> extends Omit<ModalProps, 'children'> {
+export interface ModalBottomSheetProps<T = any> extends Omit<ModalProps, "children"> {
   /** Form mode: create or edit */
-  mode: 'create' | 'edit';
+  mode: "create" | "edit";
   /** Initial data for edit mode */
   initialData?: T;
   /** Form fields configuration */
@@ -135,6 +135,8 @@ export interface ModalBottomSheetProps<T = any> extends Omit<ModalProps, 'childr
   onSubmit: (data: T) => Promise<void> | void;
   /** Whether form is submitting */
   isSubmitting?: boolean;
+  /** Optional additional content to render after form fields (e.g., image upload) */
+  additionalContent?: React.ReactNode;
 }
 
 // Form field configuration
@@ -144,7 +146,17 @@ export interface FormField<T> {
   /** Field label */
   label: string;
   /** Field type */
-  type: 'text' | 'number' | 'email' | 'password' | 'tel' | 'textarea' | 'select' | 'checkbox' | 'date' | 'datetime-local';
+  type:
+    | "text"
+    | "number"
+    | "email"
+    | "password"
+    | "tel"
+    | "textarea"
+    | "select"
+    | "checkbox"
+    | "date"
+    | "datetime-local";
   /** Placeholder text */
   placeholder?: string;
   /** Whether field is required */
@@ -183,7 +195,7 @@ export interface FeaturedDialogProps<T = any> {
   /** Optional actions (e.g., Edit, Delete) */
   actions?: DialogAction<T>[];
   /** Optional size variant */
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: "sm" | "md" | "lg" | "xl";
   /** Optional custom content to display after fields */
   customContent?: React.ReactNode;
 }
@@ -209,7 +221,7 @@ export interface DialogAction<T> {
   /** Callback when clicked */
   onClick: (data: T) => void;
   /** Color variant */
-  variant?: 'primary' | 'secondary' | 'danger' | 'success';
+  variant?: "primary" | "secondary" | "danger" | "success";
 }
 
 // Confirmation Dialog props
@@ -231,7 +243,7 @@ export interface ConfirmationDialogProps {
   /** Whether action is processing */
   isProcessing?: boolean;
   /** Variant for styling */
-  variant?: 'danger' | 'warning' | 'info' | 'success';
+  variant?: "danger" | "warning" | "info" | "success";
   /** Optional icon */
   icon?: React.ReactNode;
 }

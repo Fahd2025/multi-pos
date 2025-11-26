@@ -128,13 +128,13 @@ export default function CategoryFormModal({
         try {
           await imageService.uploadImage(
             branchName,
-            'Categories',
+            "Categories",
             savedCategory.id,
             selectedImages[0] // Single image
           );
-          console.log('Successfully uploaded category image');
+          console.log("Successfully uploaded category image");
         } catch (error) {
-          console.error('Error uploading image:', error);
+          console.error("Error uploading image:", error);
           // Don't fail the whole operation
         } finally {
           setUploadingImages(false);
@@ -168,10 +168,10 @@ export default function CategoryFormModal({
     if (!category?.id || !branchName) return;
 
     try {
-      await imageService.deleteImages(branchName, 'Categories', category.id);
-      console.log('Category image deleted successfully');
+      await imageService.deleteImages(branchName, "Categories", category.id);
+      console.log("Category image deleted successfully");
     } catch (error) {
-      console.error('Error deleting image:', error);
+      console.error("Error deleting image:", error);
     }
   };
 
@@ -195,17 +195,13 @@ export default function CategoryFormModal({
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting || uploadingImages}
         size="md"
-      />
-
-      {/* Image Upload Section */}
-      {isOpen && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 p-6 z-[45] max-h-[40vh] overflow-y-auto">
-          <div className="max-w-4xl mx-auto">
+        additionalContent={
+          <>
             <ImageUpload
               branchName={branchName}
               entityType="Categories"
               entityId={category?.id}
-              currentImages={category?.images || []}
+              currentImages={category?.imagePath ? [category.imagePath] : []}
               multiple={false}
               maxFiles={1}
               onUpload={handleImageUpload}
@@ -242,13 +238,11 @@ export default function CategoryFormModal({
             )}
 
             {selectedImages.length > 0 && !uploadingImages && (
-              <div className="text-sm text-gray-600 text-center mt-2">
-                Image ready to upload
-              </div>
+              <div className="text-sm text-gray-600 text-center mt-2">Image ready to upload</div>
             )}
-          </div>
-        </div>
-      )}
+          </>
+        }
+      />
     </>
   );
 }

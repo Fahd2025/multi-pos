@@ -59,16 +59,16 @@ class SupplierService {
    * Create a new supplier
    */
   async createSupplier(supplier: CreateSupplierDto): Promise<SupplierDto> {
-    const response = await api.post<SupplierDto>('/api/v1/suppliers', supplier);
-    return response.data;
+    const response = await api.post<{ data: SupplierDto }>('/api/v1/suppliers', supplier);
+    return response.data.data;
   }
 
   /**
    * Update an existing supplier
    */
   async updateSupplier(id: string, supplier: UpdateSupplierDto): Promise<SupplierDto> {
-    const response = await api.put<SupplierDto>(`/api/v1/suppliers/${id}`, supplier);
-    return response.data;
+    const response = await api.put<{ data: SupplierDto }>(`/api/v1/suppliers/${id}`, supplier);
+    return response.data.data;
   }
 
   /**

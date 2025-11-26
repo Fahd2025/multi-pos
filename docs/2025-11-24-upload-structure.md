@@ -31,23 +31,28 @@ Upload/
 ### Structure Breakdown
 
 #### 1. Database Directory
+
 **Path**: `Upload/Branches/[Branch]/Database/`
 
 **Purpose**: Store database-related files
+
 - Database backups (SQLite .db files, SQL dumps)
 - Database exports (CSV, JSON)
 - Migration scripts specific to branch
 - Database restore points
 
 **Example Files**:
+
 - `backup-2025-11-24-143000.db`
 - `export-products-2025-11-24.csv`
 - `migration-v2.0.0.sql`
 
 #### 2. Products Directory
+
 **Path**: `Upload/Branches/[Branch]/Products/[ProductID]/`
 
 **Purpose**: Store product-related files organized by Product ID
+
 - Product main images
 - Product gallery images
 - Product thumbnails
@@ -55,6 +60,7 @@ Upload/
 - Product certificates
 
 **Example Structure**:
+
 ```
 Products/
 └── 550e8400-e29b-41d4-a716-446655440000/
@@ -68,14 +74,17 @@ Products/
 ```
 
 #### 3. Categories Directory
+
 **Path**: `Upload/Branches/[Branch]/Categories/[CategoryID]/`
 
 **Purpose**: Store category-related images and documents
+
 - Category icons
 - Category banners
 - Category thumbnails
 
 **Example Structure**:
+
 ```
 Categories/
 └── 660e8400-e29b-41d4-a716-446655440000/
@@ -85,15 +94,18 @@ Categories/
 ```
 
 #### 4. Customers Directory
+
 **Path**: `Upload/Branches/[Branch]/Customers/[CustomerID]/`
 
 **Purpose**: Store customer-related files
+
 - Customer logos (for business customers)
 - Customer contracts
 - Customer-specific documents
 - ID scans or business licenses (if required)
 
 **Example Structure**:
+
 ```
 Customers/
 └── 770e8400-e29b-41d4-a716-446655440000/
@@ -104,9 +116,11 @@ Customers/
 ```
 
 #### 5. Suppliers Directory
+
 **Path**: `Upload/Branches/[Branch]/Suppliers/[SupplierID]/`
 
 **Purpose**: Store supplier-related files
+
 - Supplier logos
 - Supplier contracts
 - Product catalogs
@@ -114,6 +128,7 @@ Customers/
 - Tax documents
 
 **Example Structure**:
+
 ```
 Suppliers/
 └── 880e8400-e29b-41d4-a716-446655440000/
@@ -125,9 +140,11 @@ Suppliers/
 ```
 
 #### 6. Documents Directory
+
 **Path**: `Upload/Branches/[Branch]/Documents/`
 
 **Purpose**: Store general branch documents
+
 - Branch reports
 - Branch forms and templates
 - Tax documents
@@ -135,6 +152,7 @@ Suppliers/
 - Branch-specific policies
 
 **Example Files**:
+
 - `monthly-report-2025-11.pdf`
 - `tax-return-2025.pdf`
 - `employee-handbook.pdf`
@@ -144,11 +162,13 @@ Suppliers/
 ### Created Directories
 
 Default branch directories created for seeded branches:
+
 - `Upload/Branches/B001/` - Main Branch
 - `Upload/Branches/B002/` - Downtown Branch
 - `Upload/Branches/B003/` - Mall Branch
 
 Each with subdirectories:
+
 - Database/
 - Products/
 - Categories/
@@ -216,7 +236,7 @@ public async Task<string> UploadProductImageAsync(
     }
 
     // Return relative path for storage in database
-    return $"/uploads/{branchLoginName}/products/{productId}/{fileName}";
+    return $"/Upload/{branchLoginName}/products/{productId}/{fileName}";
 }
 ```
 
@@ -230,7 +250,7 @@ app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(
         Path.Combine(Directory.GetCurrentDirectory(), "Upload")),
-    RequestPath = "/uploads"
+    RequestPath = "/Upload"
 });
 ```
 
@@ -258,21 +278,25 @@ public async Task BackupBranchDatabaseAsync(string branchLoginName, string dbPat
 ## File Naming Conventions
 
 ### Product Images
+
 - **Main Image**: `main.[jpg|png|gif|webp]`
 - **Thumbnail**: `thumbnail.[jpg|png|gif|webp]`
 - **Gallery Images**: `gallery-1.[ext]`, `gallery-2.[ext]`, etc.
 
 ### Category Images
+
 - **Icon**: `icon.[png|svg]`
 - **Banner**: `banner.[jpg|png|webp]`
 - **Thumbnail**: `thumbnail.[jpg|png]`
 
 ### Documents
+
 - **Contracts**: `contract-[YYYY-MM-DD].[pdf|docx]`
 - **Certificates**: `certificate-[type].[pdf]`
 - **Reports**: `report-[type]-[YYYY-MM].[pdf|xlsx]`
 
 ### Database Backups
+
 - **Backup**: `backup-[YYYY-MM-DD-HHmmss].[db|sql|dump]`
 - **Export**: `export-[table]-[YYYY-MM-DD].[csv|json|xlsx]`
 
@@ -304,6 +328,7 @@ public static class FileValidator
 ### 2. File Size Limits
 
 Configure appropriate limits:
+
 - **Images**: 5 MB max
 - **Documents**: 10 MB max
 - **Database backups**: 100 MB max
@@ -311,6 +336,7 @@ Configure appropriate limits:
 ### 3. Access Control
 
 Implement branch-level access control:
+
 - Users can only access files from branches they're assigned to
 - HeadOfficeAdmin can access all branch files
 - Cashiers may have limited access to read-only files
@@ -434,17 +460,20 @@ public async Task<Dictionary<string, long>> GetBranchStorageUsageAsync()
 For production environments, consider using cloud storage:
 
 **AWS S3**:
+
 - Scalable storage
 - Built-in CDN via CloudFront
 - Automatic backups
 - Cost-effective
 
 **Azure Blob Storage**:
+
 - Integration with Azure services
 - Geo-replication
 - Lifecycle management
 
 **Google Cloud Storage**:
+
 - Global availability
 - Strong consistency
 - Integrated with Firebase
@@ -452,6 +481,7 @@ For production environments, consider using cloud storage:
 ### 2. CDN Integration
 
 Use a CDN for serving static files:
+
 - Faster delivery globally
 - Reduced server load
 - Better user experience
@@ -459,6 +489,7 @@ Use a CDN for serving static files:
 ### 3. Backup Strategy
 
 Implement 3-2-1 backup rule:
+
 - 3 copies of data
 - 2 different storage types
 - 1 offsite copy
@@ -474,21 +505,25 @@ Implement 3-2-1 backup rule:
 ## Next Steps
 
 1. **Implement File Upload API Endpoints**
+
    - Product image upload endpoint
    - Document upload endpoint
    - File validation and security
 
 2. **Implement File Serving**
+
    - Configure static file serving
    - Implement access control
    - Add CDN support
 
 3. **Add Database Backup Service**
+
    - Automated daily backups
    - Backup rotation (keep last 7 days)
    - Backup verification
 
 4. **Create File Management UI**
+
    - Product image uploader
    - Document manager
    - File browser

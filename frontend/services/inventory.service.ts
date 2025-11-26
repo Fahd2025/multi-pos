@@ -71,16 +71,16 @@ class InventoryService {
    * Create a new product
    */
   async createProduct(product: CreateProductDto): Promise<ProductDto> {
-    const response = await api.post<ProductDto>('/api/v1/products', product);
-    return response.data;
+    const response = await api.post<{ data: ProductDto }>('/api/v1/products', product);
+    return response.data.data;
   }
 
   /**
    * Update an existing product
    */
   async updateProduct(id: string, product: UpdateProductDto): Promise<ProductDto> {
-    const response = await api.put<ProductDto>(`/api/v1/products/${id}`, product);
-    return response.data;
+    const response = await api.put<{ data: ProductDto }>(`/api/v1/products/${id}`, product);
+    return response.data.data;
   }
 
   /**
@@ -94,11 +94,11 @@ class InventoryService {
    * Adjust product stock
    */
   async adjustStock(id: string, adjustment: StockAdjustmentDto): Promise<ProductDto> {
-    const response = await api.post<ProductDto>(
+    const response = await api.post<{ data: ProductDto }>(
       `/api/v1/products/${id}/adjust-stock`,
       adjustment
     );
-    return response.data;
+    return response.data.data;
   }
 
   // ==================== CATEGORIES ====================

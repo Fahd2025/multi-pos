@@ -141,13 +141,13 @@ export default function ExpenseFormModal({
         try {
           await imageService.uploadMultipleImages(
             branchName,
-            'Expenses',
+            "Expenses",
             savedExpense.id,
             selectedImages // Multiple receipt images (up to 3)
           );
           console.log(`Successfully uploaded ${selectedImages.length} receipt image(s)`);
         } catch (error) {
-          console.error('Error uploading receipt images:', error);
+          console.error("Error uploading receipt images:", error);
           // Don't fail the whole operation
         } finally {
           setUploadingImages(false);
@@ -181,10 +181,10 @@ export default function ExpenseFormModal({
     if (!expense?.id || !branchName) return;
 
     try {
-      await imageService.deleteImages(branchName, 'Expenses', expense.id);
-      console.log('Receipt images deleted successfully');
+      await imageService.deleteImages(branchName, "Expenses", expense.id);
+      console.log("Receipt images deleted successfully");
     } catch (error) {
-      console.error('Error deleting receipt images:', error);
+      console.error("Error deleting receipt images:", error);
     }
   };
 
@@ -208,17 +208,13 @@ export default function ExpenseFormModal({
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting || uploadingImages}
         size="md"
-      />
-
-      {/* Image Upload Section */}
-      {isOpen && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 p-6 z-[45] max-h-[40vh] overflow-y-auto">
-          <div className="max-w-4xl mx-auto">
+        additionalContent={
+          <>
             <ImageUpload
               branchName={branchName}
               entityType="Expenses"
               entityId={expense?.id}
-              currentImages={expense?.images || []}
+              currentImages={expense?.receiptImagePath ? [expense.receiptImagePath] : []}
               multiple={true}
               maxFiles={3}
               onUpload={handleImageUpload}
@@ -256,12 +252,13 @@ export default function ExpenseFormModal({
 
             {selectedImages.length > 0 && !uploadingImages && (
               <div className="text-sm text-gray-600 text-center mt-2">
-                {selectedImages.length} receipt image{selectedImages.length > 1 ? 's' : ''} ready to upload
+                {selectedImages.length} receipt image{selectedImages.length > 1 ? "s" : ""} ready to
+                upload
               </div>
             )}
-          </div>
-        </div>
-      )}
+          </>
+        }
+      />
     </>
   );
 }

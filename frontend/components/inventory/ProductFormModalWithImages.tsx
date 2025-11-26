@@ -159,13 +159,13 @@ export default function ProductFormModalWithImages({
         try {
           await imageService.uploadMultipleImages(
             branchName,
-            'Products',
+            "Products",
             savedProduct.id,
             selectedImages
           );
           console.log(`Successfully uploaded ${selectedImages.length} images`);
         } catch (error) {
-          console.error('Error uploading images:', error);
+          console.error("Error uploading images:", error);
           // Don't fail the whole operation if image upload fails
           // The product is already saved
         } finally {
@@ -201,11 +201,11 @@ export default function ProductFormModalWithImages({
     if (!product?.id || !branchName) return;
 
     try {
-      await imageService.deleteImages(branchName, 'Products', product.id);
-      console.log('Images deleted successfully');
+      await imageService.deleteImages(branchName, "Products", product.id);
+      console.log("Images deleted successfully");
       // Optionally refresh the product data here
     } catch (error) {
-      console.error('Error deleting images:', error);
+      console.error("Error deleting images:", error);
     }
   };
 
@@ -229,17 +229,13 @@ export default function ProductFormModalWithImages({
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting || uploadingImages}
         size="lg"
-      />
-
-      {/* Image Upload Section - Appears below the form */}
-      {isOpen && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 p-6 z-[45] max-h-[40vh] overflow-y-auto">
-          <div className="max-w-4xl mx-auto">
+        additionalContent={
+          <>
             <ImageUpload
               branchName={branchName}
               entityType="Products"
               entityId={product?.id}
-              currentImages={product?.images || []}
+              currentImages={product?.images?.map((img) => img.imagePath) || []}
               multiple={true}
               maxFiles={5}
               onUpload={handleImageUpload}
@@ -278,12 +274,12 @@ export default function ProductFormModalWithImages({
             {/* Selected images count */}
             {selectedImages.length > 0 && !uploadingImages && (
               <div className="text-sm text-gray-600 text-center mt-2">
-                {selectedImages.length} image{selectedImages.length > 1 ? 's' : ''} ready to upload
+                {selectedImages.length} image{selectedImages.length > 1 ? "s" : ""} ready to upload
               </div>
             )}
-          </div>
-        </div>
-      )}
+          </>
+        }
+      />
     </>
   );
 }

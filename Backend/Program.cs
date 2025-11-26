@@ -24,6 +24,18 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Ensure the database directory exists before configuring the DbContext
+var dbPath = builder.Configuration.GetConnectionString("HeadOfficeDb");
+if (!string.IsNullOrEmpty(dbPath))
+{
+    var dbFile = dbPath.Replace("Data Source=", "").Replace("data source=", "").Replace("Datasource=", "").Replace("datasource=", "");
+    var dbDirectory = Path.GetDirectoryName(dbFile);
+    if (!string.IsNullOrEmpty(dbDirectory) && !Directory.Exists(dbDirectory))
+    {
+        Directory.CreateDirectory(dbDirectory);
+    }
+}
+
 // Configure Database
 builder.Services.AddDbContext<HeadOfficeDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("HeadOfficeDb"))
@@ -155,6 +167,18 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+// Ensure the database directory exists before seeding
+var connectionString = builder.Configuration.GetConnectionString("HeadOfficeDb");
+if (!string.IsNullOrEmpty(connectionString))
+{
+    var dbFile = connectionString.Replace("Data Source=", "").Replace("data source=", "").Replace("Datasource=", "").Replace("datasource=", "");
+    var dbDirectory = Path.GetDirectoryName(dbFile);
+    if (!string.IsNullOrEmpty(dbDirectory) && !Directory.Exists(dbDirectory))
+    {
+        Directory.CreateDirectory(dbDirectory);
+    }
+}
 
 // Seed database
 using (var scope = app.Services.CreateScope())

@@ -32,10 +32,10 @@
  * ```
  */
 
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { ModalBottomSheetProps, FormField } from '@/types/data-table.types';
+import React, { useState, useEffect } from "react";
+import { ModalBottomSheetProps, FormField } from "@/types/data-table.types";
 
 export function ModalBottomSheet<T = any>({
   isOpen,
@@ -46,8 +46,9 @@ export function ModalBottomSheet<T = any>({
   fields,
   onSubmit,
   isSubmitting = false,
-  size = 'md',
-  className = ''
+  size = "md",
+  className = "",
+  additionalContent,
 }: ModalBottomSheetProps<T>) {
   const [formData, setFormData] = useState<Partial<T>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -56,12 +57,12 @@ export function ModalBottomSheet<T = any>({
   // Initialize form data
   useEffect(() => {
     if (isOpen) {
-      if (mode === 'edit' && initialData) {
+      if (mode === "edit" && initialData) {
         setFormData(initialData);
       } else {
         // Set default values
         const defaultData: Partial<T> = {};
-        fields.forEach(field => {
+        fields.forEach((field) => {
           if (field.defaultValue !== undefined) {
             (defaultData as any)[field.name] = field.defaultValue;
           }
@@ -76,7 +77,7 @@ export function ModalBottomSheet<T = any>({
   // Validate field
   const validateField = (field: FormField<T>, value: any): string | null => {
     // Required validation
-    if (field.required && (value === undefined || value === null || value === '')) {
+    if (field.required && (value === undefined || value === null || value === "")) {
       return `${field.label} is required`;
     }
 
@@ -87,7 +88,7 @@ export function ModalBottomSheet<T = any>({
     if (!validation) return null;
 
     // Min/Max validation for numbers
-    if (field.type === 'number' && typeof value === 'number') {
+    if (field.type === "number" && typeof value === "number") {
       if (validation.min !== undefined && value < validation.min) {
         return `${field.label} must be at least ${validation.min}`;
       }
@@ -97,7 +98,7 @@ export function ModalBottomSheet<T = any>({
     }
 
     // Length validation for strings
-    if (typeof value === 'string') {
+    if (typeof value === "string") {
       if (validation.minLength !== undefined && value.length < validation.minLength) {
         return `${field.label} must be at least ${validation.minLength} characters`;
       }
@@ -107,7 +108,7 @@ export function ModalBottomSheet<T = any>({
     }
 
     // Pattern validation
-    if (validation.pattern && typeof value === 'string') {
+    if (validation.pattern && typeof value === "string") {
       if (!validation.pattern.test(value)) {
         return `${field.label} format is invalid`;
       }
@@ -123,14 +124,14 @@ export function ModalBottomSheet<T = any>({
 
   // Handle input change
   const handleChange = (fieldName: string, value: any) => {
-    setFormData(prev => ({ ...prev, [fieldName]: value }));
+    setFormData((prev) => ({ ...prev, [fieldName]: value }));
 
     // Validate if field has been touched
     if (touched.has(fieldName)) {
-      const field = fields.find(f => f.name === fieldName);
+      const field = fields.find((f) => f.name === fieldName);
       if (field) {
         const error = validateField(field, value);
-        setErrors(prev => {
+        setErrors((prev) => {
           const newErrors = { ...prev };
           if (error) {
             newErrors[fieldName] = error;
@@ -145,14 +146,14 @@ export function ModalBottomSheet<T = any>({
 
   // Handle blur
   const handleBlur = (fieldName: string) => {
-    setTouched(prev => new Set(prev).add(fieldName));
+    setTouched((prev) => new Set(prev).add(fieldName));
 
-    const field = fields.find(f => f.name === fieldName);
+    const field = fields.find((f) => f.name === fieldName);
     if (field) {
       const value = (formData as any)[fieldName];
       const error = validateField(field, value);
       if (error) {
-        setErrors(prev => ({ ...prev, [fieldName]: error }));
+        setErrors((prev) => ({ ...prev, [fieldName]: error }));
       }
     }
   };
@@ -161,7 +162,7 @@ export function ModalBottomSheet<T = any>({
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    fields.forEach(field => {
+    fields.forEach((field) => {
       // Check condition
       if (field.condition && !field.condition(formData)) {
         return;
@@ -183,7 +184,7 @@ export function ModalBottomSheet<T = any>({
     e.preventDefault();
 
     // Mark all fields as touched
-    const allFields = new Set(fields.map(f => f.name as string));
+    const allFields = new Set(fields.map((f) => f.name as string));
     setTouched(allFields);
 
     // Validate
@@ -197,11 +198,11 @@ export function ModalBottomSheet<T = any>({
 
   // Size classes
   const sizeClasses = {
-    sm: 'max-w-md',
-    md: 'max-w-2xl',
-    lg: 'max-w-4xl',
-    xl: 'max-w-6xl',
-    full: 'max-w-full'
+    sm: "max-w-md",
+    md: "max-w-2xl",
+    lg: "max-w-4xl",
+    xl: "max-w-6xl",
+    full: "max-w-full",
   };
 
   if (!isOpen) return null;
@@ -237,13 +238,21 @@ export function ModalBottomSheet<T = any>({
               aria-label="Close modal"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
 
           {/* Form Content */}
-          <form onSubmit={handleSubmit} className="px-6 py-4 max-h-[70vh] sm:max-h-[60vh] overflow-y-auto">
+          <form
+            onSubmit={handleSubmit}
+            className="px-6 py-4 max-h-[70vh] sm:max-h-[60vh] overflow-y-auto"
+          >
             <div className="space-y-4">
               {fields.map((field) => {
                 // Check condition
@@ -252,29 +261,39 @@ export function ModalBottomSheet<T = any>({
                 }
 
                 const fieldName = field.name as string;
-                const value = (formData as any)[fieldName] || '';
+                const value = (formData as any)[fieldName] || "";
                 const error = errors[fieldName];
                 const hasError = touched.has(fieldName) && !!error;
 
                 return (
                   <div key={fieldName}>
-                    <label htmlFor={fieldName} className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor={fieldName}
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
                       {field.label}
                       {field.required && <span className="text-red-500 ml-1">*</span>}
                     </label>
 
                     {/* Text, Email, Password, Number, Date inputs */}
-                    {['text', 'email', 'password', 'number', 'date', 'datetime-local'].includes(field.type) && (
+                    {["text", "email", "password", "number", "date", "datetime-local"].includes(
+                      field.type
+                    ) && (
                       <input
                         type={field.type}
                         id={fieldName}
                         value={value}
-                        onChange={(e) => handleChange(fieldName, field.type === 'number' ? Number(e.target.value) : e.target.value)}
+                        onChange={(e) =>
+                          handleChange(
+                            fieldName,
+                            field.type === "number" ? Number(e.target.value) : e.target.value
+                          )
+                        }
                         onBlur={() => handleBlur(fieldName)}
                         placeholder={field.placeholder}
                         disabled={field.disabled || isSubmitting}
                         className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed ${
-                          hasError ? 'border-red-500' : 'border-gray-300'
+                          hasError ? "border-red-500" : "border-gray-300"
                         }`}
                         aria-invalid={hasError}
                         aria-describedby={hasError ? `${fieldName}-error` : undefined}
@@ -282,7 +301,7 @@ export function ModalBottomSheet<T = any>({
                     )}
 
                     {/* Textarea */}
-                    {field.type === 'textarea' && (
+                    {field.type === "textarea" && (
                       <textarea
                         id={fieldName}
                         value={value}
@@ -292,7 +311,7 @@ export function ModalBottomSheet<T = any>({
                         disabled={field.disabled || isSubmitting}
                         rows={4}
                         className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed ${
-                          hasError ? 'border-red-500' : 'border-gray-300'
+                          hasError ? "border-red-500" : "border-gray-300"
                         }`}
                         aria-invalid={hasError}
                         aria-describedby={hasError ? `${fieldName}-error` : undefined}
@@ -300,7 +319,7 @@ export function ModalBottomSheet<T = any>({
                     )}
 
                     {/* Select */}
-                    {field.type === 'select' && (
+                    {field.type === "select" && (
                       <select
                         id={fieldName}
                         value={value}
@@ -308,7 +327,7 @@ export function ModalBottomSheet<T = any>({
                         onBlur={() => handleBlur(fieldName)}
                         disabled={field.disabled || isSubmitting}
                         className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed ${
-                          hasError ? 'border-red-500' : 'border-gray-300'
+                          hasError ? "border-red-500" : "border-gray-300"
                         }`}
                         aria-invalid={hasError}
                         aria-describedby={hasError ? `${fieldName}-error` : undefined}
@@ -323,7 +342,7 @@ export function ModalBottomSheet<T = any>({
                     )}
 
                     {/* Checkbox */}
-                    {field.type === 'checkbox' && (
+                    {field.type === "checkbox" && (
                       <div className="flex items-center">
                         <input
                           type="checkbox"
@@ -342,7 +361,11 @@ export function ModalBottomSheet<T = any>({
 
                     {/* Error Message */}
                     {hasError && (
-                      <p id={`${fieldName}-error`} className="mt-1 text-sm text-red-500" role="alert">
+                      <p
+                        id={`${fieldName}-error`}
+                        className="mt-1 text-sm text-red-500"
+                        role="alert"
+                      >
                         {error}
                       </p>
                     )}
@@ -350,6 +373,11 @@ export function ModalBottomSheet<T = any>({
                 );
               })}
             </div>
+
+            {/* Additional Content Section (e.g., Image Upload) */}
+            {additionalContent && (
+              <div className="mt-6 pt-6 border-t border-gray-200">{additionalContent}</div>
+            )}
           </form>
 
           {/* Footer */}
@@ -370,10 +398,10 @@ export function ModalBottomSheet<T = any>({
               {isSubmitting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {mode === 'create' ? 'Creating...' : 'Saving...'}
+                  {mode === "create" ? "Creating..." : "Saving..."}
                 </>
               ) : (
-                <>{mode === 'create' ? 'Create' : 'Save'}</>
+                <>{mode === "create" ? "Create" : "Save"}</>
               )}
             </button>
           </div>

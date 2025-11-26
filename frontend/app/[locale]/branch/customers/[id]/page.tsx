@@ -22,6 +22,7 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { ErrorAlert } from "@/components/shared/ErrorAlert";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function CustomerDetailsPage({
   params,
@@ -30,6 +31,7 @@ export default function CustomerDetailsPage({
 }) {
   const { locale, id } = use(params);
   const router = useRouter();
+  const { branch } = useAuth();
 
   const [customer, setCustomer] = useState<CustomerDto | null>(null);
   const [purchaseHistory, setPurchaseHistory] = useState<SaleDto[]>([]);
@@ -340,6 +342,7 @@ export default function CustomerDetailsPage({
           setIsEditModalOpen(false);
         }}
         customer={customer}
+        branchName={branch?.branchCode || ""}
       />
 
       {/* Confirmation Dialog */}

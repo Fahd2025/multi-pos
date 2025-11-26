@@ -13,13 +13,17 @@ Implemented a comprehensive image management system with automatic optimization,
 ### Backend Implementation
 
 #### T267 - IImageService Interface ✅
+
 **File**: `Backend/Services/Images/IImageService.cs`
+
 - Defined service interface for image management operations
 - Methods: `UploadImageAsync`, `DeleteImageAsync`, `GetImagePath`, `ImageExists`
 - Returns `ImageResult` with success status and generated file paths
 
 #### T268 - ImageService Implementation ✅
+
 **File**: `Backend/Services/Images/ImageService.cs`
+
 - Implemented full image upload and processing pipeline
 - Features:
   - File size validation (10MB max)
@@ -30,7 +34,9 @@ Implemented a comprehensive image management system with automatic optimization,
   - Comprehensive error handling and logging
 
 #### T269 - ImageOptimizer Utility ✅
+
 **File**: `Backend/Utilities/ImageOptimizer.cs`
+
 - Static utility class for image processing using SixLabors.ImageSharp
 - Image size configurations:
   - **Original**: Full resolution (95% quality)
@@ -44,7 +50,9 @@ Implemented a comprehensive image management system with automatic optimization,
 ### API Endpoints
 
 #### T270 - POST /api/v1/images/upload ✅
+
 **Endpoint**: `POST /api/v1/images/upload`
+
 - Multipart form data support
 - Parameters: `branchName`, `entityType`, `entityId`, `image` (file)
 - Validates all parameters and file presence
@@ -53,7 +61,9 @@ Implemented a comprehensive image management system with automatic optimization,
 - Anti-forgery disabled for API compatibility
 
 #### T271 - GET /api/v1/images/{branchName}/{entityType}/{entityId}/{size} ✅
+
 **Endpoint**: `GET /api/v1/images/{branchName}/{entityType}/{entityId}/{size}`
+
 - Serves images with proper content types
 - Size validation (original, large, medium, thumb)
 - File existence checking
@@ -61,7 +71,9 @@ Implemented a comprehensive image management system with automatic optimization,
 - No authorization required (public image serving)
 
 #### T272 - DELETE /api/v1/images/{branchName}/{entityType}/{entityId} ✅
+
 **Endpoint**: `DELETE /api/v1/images/{branchName}/{entityType}/{entityId}`
+
 - Deletes all image variants for an entity
 - Recursive directory removal
 - Returns 404 if images don't exist
@@ -70,7 +82,9 @@ Implemented a comprehensive image management system with automatic optimization,
 ### Frontend Implementation
 
 #### T273 - OptimizedImage Component ✅
+
 **File**: `frontend/components/shared/OptimizedImage.tsx`
+
 - React component for displaying images from backend
 - Features:
   - Lazy loading support
@@ -89,11 +103,13 @@ Implemented a comprehensive image management system with automatic optimization,
 
 ### Infrastructure
 
-#### T280 - Uploads Directory Structure ✅
-**Location**: `Uploads/`
+#### T280 - Upload Directory Structure ✅
+
+**Location**: `Upload/`
+
 - Created directory structure:
   ```
-  Uploads/
+  Upload/
   └── Branches/
       └── [BranchName]/
           ├── Products/
@@ -127,6 +143,7 @@ Implemented a comprehensive image management system with automatic optimization,
 Files are named with the pattern: `{baseFileName}-{size}.webp`
 
 Example:
+
 - `product-original.webp`
 - `product-large.webp`
 - `product-medium.webp`
@@ -135,6 +152,7 @@ Example:
 ### Service Registration
 
 Added to `Backend/Program.cs` line 89:
+
 ```csharp
 builder.Services.AddScoped<Backend.Services.Images.IImageService,
     Backend.Services.Images.ImageService>();
@@ -143,15 +161,16 @@ builder.Services.AddScoped<Backend.Services.Images.IImageService,
 ### Configuration
 
 Image storage base path can be configured in `appsettings.json`:
+
 ```json
 {
   "ImageStorage": {
-    "BasePath": "Uploads/Branches"
+    "BasePath": "Upload/Branches"
   }
 }
 ```
 
-Default: `Uploads/Branches` if not specified
+Default: `Upload/Branches` if not specified
 
 ## Usage Examples
 
@@ -182,7 +201,7 @@ if (result.Success)
 ### Frontend - Display Image
 
 ```tsx
-import { OptimizedImage } from '@/components/shared/OptimizedImage';
+import { OptimizedImage } from "@/components/shared/OptimizedImage";
 
 function ProductCard({ product, branch }) {
   return (
@@ -225,7 +244,7 @@ curl http://localhost:5000/api/v1/images/Branch001/Products/550e8400-e29b-41d4-a
 2. `Backend/Services/Images/ImageService.cs` - Service implementation
 3. `Backend/Utilities/ImageOptimizer.cs` - Image processing utility
 4. `frontend/components/shared/OptimizedImage.tsx` - React component
-5. `Uploads/README.md` - Directory documentation
+5. `Upload/README.md` - Directory documentation
 6. `docs/2025-11-26-phase-10-image-management.md` - This file
 
 ### Modified Files
@@ -240,7 +259,7 @@ curl http://localhost:5000/api/v1/images/Branch001/Products/550e8400-e29b-41d4-a
 
 ### Existing Files (No Changes Required)
 
-- `.gitignore` - Already includes `Uploads/` (line 148)
+- `.gitignore` - Already includes `Upload/` (line 148)
 - `Backend/Backend.csproj` - SixLabors.ImageSharp already installed
 
 ## Remaining Tasks (T274-T279, T281-T282)
@@ -248,6 +267,7 @@ curl http://localhost:5000/api/v1/images/Branch001/Products/550e8400-e29b-41d4-a
 The following tasks are pending and represent integration work:
 
 ### Form Integration (T274-T279)
+
 - **T274**: Add image upload to product form (multiple images)
 - **T275**: Add image upload to category form (single image)
 - **T276**: Add image upload to customer form (logo)
@@ -256,6 +276,7 @@ The following tasks are pending and represent integration work:
 - **T279**: Add image upload to expense form (receipt)
 
 These tasks require:
+
 1. Creating or updating form components
 2. Adding file input controls
 3. Implementing upload logic
@@ -263,6 +284,7 @@ These tasks require:
 5. Displaying uploaded images
 
 ### Testing (T281-T282)
+
 - **T281**: Test upload → thumbnail generation → serving
 - **T282**: Test entity deletion → orphaned image cleanup
 
@@ -311,6 +333,7 @@ These tasks require:
 Phase 10 core implementation is **complete**. The image management system provides a robust, performant, and scalable solution for handling images across the multi-branch POS system. The remaining tasks focus on UI integration and testing, which can be implemented incrementally as forms are developed.
 
 **Next Steps**:
+
 1. Test backend endpoints with Postman/curl
 2. Integrate image upload into product form (highest priority)
 3. Verify thumbnail generation works correctly

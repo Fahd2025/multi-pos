@@ -25,18 +25,18 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [X] T001 Install Backend NuGet packages per quickstart.md (EF Core, JWT, ImageSharp, Swashbuckle, xUnit, Moq, FluentAssertions)
-- [X] T002 [P] Install Frontend NPM packages per quickstart.md (Next.js 16, React 19, Tailwind CSS v4, next-intl, SWR, Zod, React Hook Form, Jest, RTL, MSW)
-- [X] T003 [P] Configure TypeScript strict mode in frontend/tsconfig.json
-- [X] T004 [P] Configure ESLint and Prettier in frontend/
-- [X] T005 [P] Configure Tailwind CSS v4 in frontend/tailwind.config.ts
-- [X] T006 [P] Configure Next.js for internationalization in frontend/next.config.js and frontend/i18n.ts
-- [X] T007 [P] Create English translation file in frontend/public/locales/en/common.json
-- [X] T008 [P] Create Arabic translation file in frontend/public/locales/ar/common.json
-- [X] T009 [P] Create Next.js middleware for i18n routing in frontend/middleware.ts
-- [X] T010 [P] Configure C# nullable reference types in Backend/Backend.csproj
-- [X] T011 [P] Create TypeScript enumerations in frontend/types/enums.ts (InvoiceType, PaymentMethod, DiscountType, DatabaseProvider, UserRole, etc.)
-- [X] T012 [P] Create shared constants file in frontend/lib/constants.ts for API routes and static text
+- [x] T001 Install Backend NuGet packages per quickstart.md (EF Core, JWT, ImageSharp, Swashbuckle, xUnit, Moq, FluentAssertions)
+- [x] T002 [P] Install Frontend NPM packages per quickstart.md (Next.js 16, React 19, Tailwind CSS v4, next-intl, SWR, Zod, React Hook Form, Jest, RTL, MSW)
+- [x] T003 [P] Configure TypeScript strict mode in frontend/tsconfig.json
+- [x] T004 [P] Configure ESLint and Prettier in frontend/
+- [x] T005 [P] Configure Tailwind CSS v4 in frontend/tailwind.config.ts
+- [x] T006 [P] Configure Next.js for internationalization in frontend/next.config.js and frontend/i18n.ts
+- [x] T007 [P] Create English translation file in frontend/public/locales/en/common.json
+- [x] T008 [P] Create Arabic translation file in frontend/public/locales/ar/common.json
+- [x] T009 [P] Create Next.js middleware for i18n routing in frontend/middleware.ts
+- [x] T010 [P] Configure C# nullable reference types in Backend/Backend.csproj
+- [x] T011 [P] Create TypeScript enumerations in frontend/types/enums.ts (InvoiceType, PaymentMethod, DiscountType, DatabaseProvider, UserRole, etc.)
+- [x] T012 [P] Create shared constants file in frontend/lib/constants.ts for API routes and static text
 
 ---
 
@@ -48,77 +48,77 @@
 
 ### Database Foundation
 
-- [X] T013 Create HeadOfficeDbContext in Backend/Data/HeadOfficeDbContext.cs with User, Branch, BranchUser, RefreshToken, MainSetting, AuditLog, UserActivityLog entities
-- [X] T014 Create BranchDbContext in Backend/Data/BranchDbContext.cs with Category, Product, ProductImage, Sale, SaleLineItem, Customer, Supplier, Purchase, PurchaseLineItem, Expense, ExpenseCategory, Setting, SyncQueue entities
-- [X] T015 Create DbContextFactory in Backend/Data/DbContextFactory.cs with multi-provider support (SQLite, MSSQL, PostgreSQL, MySQL)
-- [X] T016 Create EF Core migration for HeadOfficeDb using `dotnet ef migrations add InitialCreate --context HeadOfficeDbContext`
-- [X] T017 Apply HeadOfficeDb migration using `dotnet ef database update --context HeadOfficeDbContext`
+- [x] T013 Create HeadOfficeDbContext in Backend/Data/HeadOfficeDbContext.cs with User, Branch, BranchUser, RefreshToken, MainSetting, AuditLog, UserActivityLog entities
+- [x] T014 Create BranchDbContext in Backend/Data/BranchDbContext.cs with Category, Product, ProductImage, Sale, SaleLineItem, Customer, Supplier, Purchase, PurchaseLineItem, Expense, ExpenseCategory, Setting, SyncQueue entities
+- [x] T015 Create DbContextFactory in Backend/Data/DbContextFactory.cs with multi-provider support (SQLite, MSSQL, PostgreSQL, MySQL)
+- [x] T016 Create EF Core migration for HeadOfficeDb using `dotnet ef migrations add InitialCreate --context HeadOfficeDbContext`
+- [x] T017 Apply HeadOfficeDb migration using `dotnet ef database update --context HeadOfficeDbContext`
 
 ### Entity Models - Head Office
 
-- [X] T018 [P] Create Branch entity in Backend/Models/Entities/HeadOffice/Branch.cs per data-model.md
-- [X] T019 [P] Create User entity in Backend/Models/Entities/HeadOffice/User.cs per data-model.md
-- [X] T020 [P] Create BranchUser entity in Backend/Models/Entities/HeadOffice/BranchUser.cs per data-model.md
-- [X] T021 [P] Create RefreshToken entity in Backend/Models/Entities/HeadOffice/RefreshToken.cs per data-model.md
-- [X] T022 [P] Create MainSetting entity in Backend/Models/Entities/HeadOffice/MainSetting.cs per data-model.md
-- [X] T023 [P] Create AuditLog entity in Backend/Models/Entities/HeadOffice/AuditLog.cs per data-model.md
-- [X] T024 [P] Create UserActivityLog entity in Backend/Models/Entities/HeadOffice/UserActivityLog.cs per data-model.md
+- [x] T018 [P] Create Branch entity in Backend/Models/Entities/HeadOffice/Branch.cs per data-model.md
+- [x] T019 [P] Create User entity in Backend/Models/Entities/HeadOffice/User.cs per data-model.md
+- [x] T020 [P] Create BranchUser entity in Backend/Models/Entities/HeadOffice/BranchUser.cs per data-model.md
+- [x] T021 [P] Create RefreshToken entity in Backend/Models/Entities/HeadOffice/RefreshToken.cs per data-model.md
+- [x] T022 [P] Create MainSetting entity in Backend/Models/Entities/HeadOffice/MainSetting.cs per data-model.md
+- [x] T023 [P] Create AuditLog entity in Backend/Models/Entities/HeadOffice/AuditLog.cs per data-model.md
+- [x] T024 [P] Create UserActivityLog entity in Backend/Models/Entities/HeadOffice/UserActivityLog.cs per data-model.md
 
 ### Entity Models - Branch
 
-- [X] T025 [P] Create Category entity in Backend/Models/Entities/Branch/Category.cs per data-model.md
-- [X] T026 [P] Create Product entity in Backend/Models/Entities/Branch/Product.cs per data-model.md
-- [X] T027 [P] Create ProductImage entity in Backend/Models/Entities/Branch/ProductImage.cs per data-model.md
-- [X] T028 [P] Create Sale entity in Backend/Models/Entities/Branch/Sale.cs per data-model.md
-- [X] T029 [P] Create SaleLineItem entity in Backend/Models/Entities/Branch/SaleLineItem.cs per data-model.md
-- [X] T030 [P] Create Customer entity in Backend/Models/Entities/Branch/Customer.cs per data-model.md
-- [X] T031 [P] Create Supplier entity in Backend/Models/Entities/Branch/Supplier.cs per data-model.md
-- [X] T032 [P] Create Purchase entity in Backend/Models/Entities/Branch/Purchase.cs per data-model.md
-- [X] T033 [P] Create PurchaseLineItem entity in Backend/Models/Entities/Branch/PurchaseLineItem.cs per data-model.md
-- [X] T034 [P] Create Expense entity in Backend/Models/Entities/Branch/Expense.cs per data-model.md
-- [X] T035 [P] Create ExpenseCategory entity in Backend/Models/Entities/Branch/ExpenseCategory.cs per data-model.md
-- [X] T036 [P] Create Setting entity in Backend/Models/Entities/Branch/Setting.cs per data-model.md
-- [X] T037 [P] Create SyncQueue entity in Backend/Models/Entities/Branch/SyncQueue.cs per data-model.md
+- [x] T025 [P] Create Category entity in Backend/Models/Entities/Branch/Category.cs per data-model.md
+- [x] T026 [P] Create Product entity in Backend/Models/Entities/Branch/Product.cs per data-model.md
+- [x] T027 [P] Create ProductImage entity in Backend/Models/Entities/Branch/ProductImage.cs per data-model.md
+- [x] T028 [P] Create Sale entity in Backend/Models/Entities/Branch/Sale.cs per data-model.md
+- [x] T029 [P] Create SaleLineItem entity in Backend/Models/Entities/Branch/SaleLineItem.cs per data-model.md
+- [x] T030 [P] Create Customer entity in Backend/Models/Entities/Branch/Customer.cs per data-model.md
+- [x] T031 [P] Create Supplier entity in Backend/Models/Entities/Branch/Supplier.cs per data-model.md
+- [x] T032 [P] Create Purchase entity in Backend/Models/Entities/Branch/Purchase.cs per data-model.md
+- [x] T033 [P] Create PurchaseLineItem entity in Backend/Models/Entities/Branch/PurchaseLineItem.cs per data-model.md
+- [x] T034 [P] Create Expense entity in Backend/Models/Entities/Branch/Expense.cs per data-model.md
+- [x] T035 [P] Create ExpenseCategory entity in Backend/Models/Entities/Branch/ExpenseCategory.cs per data-model.md
+- [x] T036 [P] Create Setting entity in Backend/Models/Entities/Branch/Setting.cs per data-model.md
+- [x] T037 [P] Create SyncQueue entity in Backend/Models/Entities/Branch/SyncQueue.cs per data-model.md
 
 ### Authentication & Security Foundation
 
-- [X] T038 Implement IJwtTokenService interface in Backend/Services/Auth/IJwtTokenService.cs
-- [X] T039 Implement JwtTokenService in Backend/Services/Auth/JwtTokenService.cs with GenerateAccessToken, GenerateRefreshToken, ValidateRefreshToken, RevokeRefreshToken methods
-- [X] T040 Implement IAuthService interface in Backend/Services/Auth/IAuthService.cs
-- [X] T041 Implement AuthService in Backend/Services/Auth/AuthService.cs with LoginAsync, LogoutAsync, RefreshTokenAsync, TechnicalLoginAsync methods
-- [X] T042 Create PasswordHasher utility in Backend/Utilities/PasswordHasher.cs using BCrypt
-- [X] T043 Configure JWT authentication in Backend/Program.cs (AddAuthentication, AddJwtBearer)
-- [X] T044 Configure Swagger with JWT bearer authorization in Backend/Program.cs
-- [X] T045 Seed default admin user (branch: "all", username: "admin", password: "123") in HeadOfficeDb
+- [x] T038 Implement IJwtTokenService interface in Backend/Services/Auth/IJwtTokenService.cs
+- [x] T039 Implement JwtTokenService in Backend/Services/Auth/JwtTokenService.cs with GenerateAccessToken, GenerateRefreshToken, ValidateRefreshToken, RevokeRefreshToken methods
+- [x] T040 Implement IAuthService interface in Backend/Services/Auth/IAuthService.cs
+- [x] T041 Implement AuthService in Backend/Services/Auth/AuthService.cs with LoginAsync, LogoutAsync, RefreshTokenAsync, TechnicalLoginAsync methods
+- [x] T042 Create PasswordHasher utility in Backend/Utilities/PasswordHasher.cs using BCrypt
+- [x] T043 Configure JWT authentication in Backend/Program.cs (AddAuthentication, AddJwtBearer)
+- [x] T044 Configure Swagger with JWT bearer authorization in Backend/Program.cs
+- [x] T045 Seed default admin user (branch: "all", username: "admin", password: "123") in HeadOfficeDb
 
 ### Middleware Foundation
 
-- [X] T046 [P] Create ErrorHandlingMiddleware in Backend/Middleware/ErrorHandlingMiddleware.cs for global exception handling
-- [X] T047 [P] Create BranchContextMiddleware in Backend/Middleware/BranchContextMiddleware.cs to extract branch from JWT and set HttpContext
-- [X] T048 Register middleware in Backend/Program.cs (UseErrorHandling, UseBranchContext)
+- [x] T046 [P] Create ErrorHandlingMiddleware in Backend/Middleware/ErrorHandlingMiddleware.cs for global exception handling
+- [x] T047 [P] Create BranchContextMiddleware in Backend/Middleware/BranchContextMiddleware.cs to extract branch from JWT and set HttpContext
+- [x] T048 Register middleware in Backend/Program.cs (UseErrorHandling, UseBranchContext)
 
 ### Frontend Authentication Foundation
 
-- [X] T049 Create API base client in frontend/services/api.ts with axios configuration and interceptors
-- [X] T050 Create AuthService in frontend/services/auth.service.ts with login, logout, refreshToken, getMe methods per contracts/auth.md
-- [X] T051 Create useAuth custom hook in frontend/hooks/useAuth.ts for authentication state management
-- [X] T052 Create auth helper functions in frontend/lib/auth.ts (token storage, redirect logic)
-- [X] T053 Create login page in frontend/app/page.tsx with branch selection, username, password fields
-- [X] T054 Create root layout in frontend/app/layout.tsx with font configuration
+- [x] T049 Create API base client in frontend/services/api.ts with axios configuration and interceptors
+- [x] T050 Create AuthService in frontend/services/auth.service.ts with login, logout, refreshToken, getMe methods per contracts/auth.md
+- [x] T051 Create useAuth custom hook in frontend/hooks/useAuth.ts for authentication state management
+- [x] T052 Create auth helper functions in frontend/lib/auth.ts (token storage, redirect logic)
+- [x] T053 Create login page in frontend/app/page.tsx with branch selection, username, password fields
+- [x] T054 Create root layout in frontend/app/layout.tsx with font configuration
 
 ### Frontend Type Definitions
 
-- [X] T055 [P] Create API types in frontend/types/api.types.ts (LoginRequest, LoginResponse, ApiResponse, PaginationResponse, etc.)
-- [X] T056 [P] Create entity types in frontend/types/entities.types.ts matching backend entities
+- [x] T055 [P] Create API types in frontend/types/api.types.ts (LoginRequest, LoginResponse, ApiResponse, PaginationResponse, etc.)
+- [x] T056 [P] Create entity types in frontend/types/entities.types.ts matching backend entities
 
 ### Shared UI Components (Foundation)
 
-- [X] T057 [P] Create Button component in frontend/components/shared/Button.tsx
-- [X] T058 [P] Create Modal component in frontend/components/shared/Modal.tsx
-- [X] T059 [P] Create Dialog component in frontend/components/shared/Dialog.tsx
-- [X] T060 [P] Create DataTable component in frontend/components/shared/DataTable.tsx with sorting, filtering, pagination
-- [X] T061 [P] Create Form components in frontend/components/shared/Form/ (Input, Select, Checkbox, FormError, FormLabel)
-- [X] T062 [P] Create Layout components in frontend/components/shared/Layout/ (Header, Sidebar, Footer)
+- [x] T057 [P] Create Button component in frontend/components/shared/Button.tsx
+- [x] T058 [P] Create Modal component in frontend/components/shared/Modal.tsx
+- [x] T059 [P] Create Dialog component in frontend/components/shared/Dialog.tsx
+- [x] T060 [P] Create DataTable component in frontend/components/shared/DataTable.tsx with sorting, filtering, pagination
+- [x] T061 [P] Create Form components in frontend/components/shared/Form/ (Input, Select, Checkbox, FormError, FormLabel)
+- [x] T062 [P] Create Layout components in frontend/components/shared/Layout/ (Header, Sidebar, Footer)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -134,70 +134,70 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [X] T063 [P] [US1] Create SalesServiceTests in Backend.UnitTests/Services/SalesServiceTests.cs with CreateSale_ValidSale_ReturnsSaleWithCalculatedTotals test
-- [X] T064 [P] [US1] Create SalesServiceTests concurrent sales test in Backend.UnitTests/Services/SalesServiceTests.cs for inventory conflict handling
-- [X] T065 [P] [US1] Create sales endpoint integration tests in Backend.IntegrationTests/Endpoints/SalesEndpointsTests.cs testing POST /api/v1/sales, GET /api/v1/sales, GET /api/v1/sales/:id
-- [X] T066 [P] [US1] Create offline sync tests in frontend/__tests__/lib/offline-sync.test.ts testing queue, sync, retry, chronological ordering
-- [X] T067 [P] [US1] Create SalesForm component test in frontend/__tests__/components/SalesForm.test.tsx
+- [x] T063 [P] [US1] Create SalesServiceTests in Backend.UnitTests/Services/SalesServiceTests.cs with CreateSale_ValidSale_ReturnsSaleWithCalculatedTotals test
+- [x] T064 [P] [US1] Create SalesServiceTests concurrent sales test in Backend.UnitTests/Services/SalesServiceTests.cs for inventory conflict handling
+- [x] T065 [P] [US1] Create sales endpoint integration tests in Backend.IntegrationTests/Endpoints/SalesEndpointsTests.cs testing POST /api/v1/sales, GET /api/v1/sales, GET /api/v1/sales/:id
+- [x] T066 [P] [US1] Create offline sync tests in frontend/**tests**/lib/offline-sync.test.ts testing queue, sync, retry, chronological ordering
+- [x] T067 [P] [US1] Create SalesForm component test in frontend/**tests**/components/SalesForm.test.tsx
 
 ### DTOs for User Story 1
 
-- [X] T068 [P] [US1] Create CreateSaleDto in Backend/Models/DTOs/Sales/CreateSaleDto.cs
-- [X] T069 [P] [US1] Create SaleDto in Backend/Models/DTOs/Sales/SaleDto.cs
-- [X] T070 [P] [US1] Create SaleLineItemDto in Backend/Models/DTOs/Sales/SaleLineItemDto.cs
-- [X] T071 [P] [US1] Create VoidSaleDto in Backend/Models/DTOs/Sales/VoidSaleDto.cs
+- [x] T068 [P] [US1] Create CreateSaleDto in Backend/Models/DTOs/Sales/CreateSaleDto.cs
+- [x] T069 [P] [US1] Create SaleDto in Backend/Models/DTOs/Sales/SaleDto.cs
+- [x] T070 [P] [US1] Create SaleLineItemDto in Backend/Models/DTOs/Sales/SaleLineItemDto.cs
+- [x] T071 [P] [US1] Create VoidSaleDto in Backend/Models/DTOs/Sales/VoidSaleDto.cs
 
 ### Backend Services for User Story 1
 
-- [X] T072 [US1] Implement ISalesService interface in Backend/Services/Sales/ISalesService.cs
-- [X] T073 [US1] Implement SalesService in Backend/Services/Sales/SalesService.cs with CreateSaleAsync, GetSalesAsync, GetSaleByIdAsync, VoidSaleAsync, GetSalesStatsAsync methods
-- [X] T074 [US1] Implement InvoiceNumberGenerator utility in Backend/Utilities/InvoiceNumberGenerator.cs for sequential invoice numbers per branch
-- [X] T075 [US1] Add sales business logic: calculate subtotal, tax, discounts, total, update inventory (last-commit-wins), flag negative stock, update customer stats
+- [x] T072 [US1] Implement ISalesService interface in Backend/Services/Sales/ISalesService.cs
+- [x] T073 [US1] Implement SalesService in Backend/Services/Sales/SalesService.cs with CreateSaleAsync, GetSalesAsync, GetSaleByIdAsync, VoidSaleAsync, GetSalesStatsAsync methods
+- [x] T074 [US1] Implement InvoiceNumberGenerator utility in Backend/Utilities/InvoiceNumberGenerator.cs for sequential invoice numbers per branch
+- [x] T075 [US1] Add sales business logic: calculate subtotal, tax, discounts, total, update inventory (last-commit-wins), flag negative stock, update customer stats
 
 ### API Endpoints for User Story 1
 
-- [X] T076 [US1] Implement POST /api/v1/sales endpoint in Backend/Program.cs per contracts/sales.md
-- [X] T077 [US1] Implement GET /api/v1/sales endpoint with filtering and pagination in Backend/Program.cs per contracts/sales.md
-- [X] T078 [US1] Implement GET /api/v1/sales/:id endpoint in Backend/Program.cs per contracts/sales.md
-- [X] T079 [US1] Implement POST /api/v1/sales/:id/void endpoint in Backend/Program.cs per contracts/sales.md (manager only)
-- [X] T080 [US1] Implement GET /api/v1/sales/:id/invoice endpoint in Backend/Program.cs with PDF/HTML/JSON formats
-- [X] T081 [US1] Implement GET /api/v1/sales/stats endpoint in Backend/Program.cs per contracts/sales.md
+- [x] T076 [US1] Implement POST /api/v1/sales endpoint in Backend/Program.cs per contracts/sales.md
+- [x] T077 [US1] Implement GET /api/v1/sales endpoint with filtering and pagination in Backend/Program.cs per contracts/sales.md
+- [x] T078 [US1] Implement GET /api/v1/sales/:id endpoint in Backend/Program.cs per contracts/sales.md
+- [x] T079 [US1] Implement POST /api/v1/sales/:id/void endpoint in Backend/Program.cs per contracts/sales.md (manager only)
+- [x] T080 [US1] Implement GET /api/v1/sales/:id/invoice endpoint in Backend/Program.cs with PDF/HTML/JSON formats
+- [x] T081 [US1] Implement GET /api/v1/sales/stats endpoint in Backend/Program.cs per contracts/sales.md
 
 ### Frontend Services for User Story 1
 
-- [X] T082 [US1] Create SalesService in frontend/services/sales.service.ts with createSale, getSales, getSaleById, voidSale, getInvoice, getSalesStats methods
+- [x] T082 [US1] Create SalesService in frontend/services/sales.service.ts with createSale, getSales, getSaleById, voidSale, getInvoice, getSalesStats methods
 
 ### Offline Sync Implementation for User Story 1
 
-- [X] T083 [US1] Create IndexedDB offline queue in frontend/lib/offline-sync.ts with init, add, getPending, syncAll, syncTransaction methods per research.md Section 3
-- [X] T084 [US1] Create useOfflineSync hook in frontend/hooks/useOfflineSync.ts to manage sync state and trigger background sync
-- [X] T085 [US1] Implement ISyncService interface in Backend/Services/Sync/ISyncService.cs
-- [X] T086 [US1] Implement SyncService in Backend/Services/Sync/SyncService.cs with ProcessOfflineTransaction, ProcessOfflineSale methods (last-commit-wins conflict resolution)
-- [X] T087 [US1] Implement POST /api/v1/sync/transaction endpoint in Backend/Program.cs per contracts/sync.md
-- [X] T088 [US1] Implement POST /api/v1/sync/batch endpoint in Backend/Program.cs for bulk sync
-- [X] T089 [US1] Implement GET /api/v1/sync/status endpoint in Backend/Program.cs
+- [x] T083 [US1] Create IndexedDB offline queue in frontend/lib/offline-sync.ts with init, add, getPending, syncAll, syncTransaction methods per research.md Section 3
+- [x] T084 [US1] Create useOfflineSync hook in frontend/hooks/useOfflineSync.ts to manage sync state and trigger background sync
+- [x] T085 [US1] Implement ISyncService interface in Backend/Services/Sync/ISyncService.cs
+- [x] T086 [US1] Implement SyncService in Backend/Services/Sync/SyncService.cs with ProcessOfflineTransaction, ProcessOfflineSale methods (last-commit-wins conflict resolution)
+- [x] T087 [US1] Implement POST /api/v1/sync/transaction endpoint in Backend/Program.cs per contracts/sync.md
+- [x] T088 [US1] Implement POST /api/v1/sync/batch endpoint in Backend/Program.cs for bulk sync
+- [x] T089 [US1] Implement GET /api/v1/sync/status endpoint in Backend/Program.cs
 
 ### Frontend UI for User Story 1
 
-- [X] T090 [US1] Create branch dashboard layout in frontend/app/[locale]/branch/layout.tsx with navigation
-- [X] T091 [US1] Create branch home page in frontend/app/[locale]/branch/page.tsx
-- [X] T092 [US1] Create sales page in frontend/app/[locale]/branch/sales/page.tsx with product search, line items list, payment section
-- [X] T093 [US1] Create ProductSearch component in frontend/components/sales/ProductSearch.tsx
-- [X] T094 [US1] Create SaleLineItemsList component in frontend/components/sales/SaleLineItemsList.tsx with quantity, discount controls
-- [X] T095 [US1] Create PaymentSection component in frontend/components/sales/PaymentSection.tsx with payment method selection, invoice type selection
-- [X] T096 [US1] Create InvoiceDisplay component in frontend/components/sales/InvoiceDisplay.tsx for Touch and Standard invoice formats
-- [X] T097 [US1] Create SyncStatusIndicator component in frontend/components/shared/SyncStatusIndicator.tsx (green/yellow/red based on online/syncing/offline status)
-- [X] T098 [US1] Add offline detection logic to sales page (navigator.onLine, periodic API ping)
-- [X] T099 [US1] Add automatic sync trigger on connectivity restoration
+- [x] T090 [US1] Create branch dashboard layout in frontend/app/[locale]/branch/layout.tsx with navigation
+- [x] T091 [US1] Create branch home page in frontend/app/[locale]/branch/page.tsx
+- [x] T092 [US1] Create sales page in frontend/app/[locale]/branch/sales/page.tsx with product search, line items list, payment section
+- [x] T093 [US1] Create ProductSearch component in frontend/components/sales/ProductSearch.tsx
+- [x] T094 [US1] Create SaleLineItemsList component in frontend/components/sales/SaleLineItemsList.tsx with quantity, discount controls
+- [x] T095 [US1] Create PaymentSection component in frontend/components/sales/PaymentSection.tsx with payment method selection, invoice type selection
+- [x] T096 [US1] Create InvoiceDisplay component in frontend/components/sales/InvoiceDisplay.tsx for Touch and Standard invoice formats
+- [x] T097 [US1] Create SyncStatusIndicator component in frontend/components/shared/SyncStatusIndicator.tsx (green/yellow/red based on online/syncing/offline status)
+- [x] T098 [US1] Add offline detection logic to sales page (navigator.onLine, periodic API ping)
+- [x] T099 [US1] Add automatic sync trigger on connectivity restoration
 
 ### Integration & Validation for User Story 1
 
-- [X] T100 [US1] Integrate offline queue with sales page: queue transactions when offline, sync when online
-- [X] T101 [US1] Test sales flow end-to-end: select products → apply discounts → process payment → generate invoice (Touch and Standard)
-- [X] T102 [US1] Test offline mode: disconnect network → create sale → reconnect → verify sync
-- [X] T103 [US1] Test concurrent sales conflict: simulate two cashiers selling last unit → verify last-commit-wins → verify negative inventory flag → verify manager alert
-- [X] T104 [US1] Verify invoice reprinting works for both Touch and Standard formats
-- [X] T105 [US1] Verify sale voiding restores inventory correctly
+- [x] T100 [US1] Integrate offline queue with sales page: queue transactions when offline, sync when online
+- [x] T101 [US1] Test sales flow end-to-end: select products → apply discounts → process payment → generate invoice (Touch and Standard)
+- [x] T102 [US1] Test offline mode: disconnect network → create sale → reconnect → verify sync
+- [x] T103 [US1] Test concurrent sales conflict: simulate two cashiers selling last unit → verify last-commit-wins → verify negative inventory flag → verify manager alert
+- [x] T104 [US1] Verify invoice reprinting works for both Touch and Standard formats
+- [x] T105 [US1] Verify sale voiding restores inventory correctly
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently. Sales can be processed online and offline with automatic sync.
 
@@ -211,62 +211,62 @@
 
 ### Tests for User Story 2
 
-- [X] T106 [P] [US2] Create InventoryServiceTests in Backend.UnitTests/Services/InventoryServiceTests.cs testing product CRUD and stock adjustments
-- [X] T107 [P] [US2] Create inventory endpoint integration tests in Backend.IntegrationTests/Endpoints/InventoryEndpointsTests.cs
+- [x] T106 [P] [US2] Create InventoryServiceTests in Backend.UnitTests/Services/InventoryServiceTests.cs testing product CRUD and stock adjustments
+- [x] T107 [P] [US2] Create inventory endpoint integration tests in Backend.IntegrationTests/Endpoints/InventoryEndpointsTests.cs
 
 ### DTOs for User Story 2
 
-- [X] T108 [P] [US2] Create CategoryDto in Backend/Models/DTOs/Inventory/CategoryDto.cs
-- [X] T109 [P] [US2] Create ProductDto in Backend/Models/DTOs/Inventory/ProductDto.cs
-- [X] T110 [P] [US2] Create CreateProductDto in Backend/Models/DTOs/Inventory/CreateProductDto.cs
-- [X] T111 [P] [US2] Create UpdateProductDto in Backend/Models/DTOs/Inventory/UpdateProductDto.cs
-- [X] T112 [P] [US2] Create StockAdjustmentDto in Backend/Models/DTOs/Inventory/StockAdjustmentDto.cs
-- [X] T113 [P] [US2] Create PurchaseDto in Backend/Models/DTOs/Inventory/PurchaseDto.cs
+- [x] T108 [P] [US2] Create CategoryDto in Backend/Models/DTOs/Inventory/CategoryDto.cs
+- [x] T109 [P] [US2] Create ProductDto in Backend/Models/DTOs/Inventory/ProductDto.cs
+- [x] T110 [P] [US2] Create CreateProductDto in Backend/Models/DTOs/Inventory/CreateProductDto.cs
+- [x] T111 [P] [US2] Create UpdateProductDto in Backend/Models/DTOs/Inventory/UpdateProductDto.cs
+- [x] T112 [P] [US2] Create StockAdjustmentDto in Backend/Models/DTOs/Inventory/StockAdjustmentDto.cs
+- [x] T113 [P] [US2] Create PurchaseDto in Backend/Models/DTOs/Inventory/PurchaseDto.cs
 
 ### Backend Services for User Story 2
 
-- [X] T114 [US2] Implement IInventoryService interface in Backend/Services/Inventory/IInventoryService.cs
-- [X] T115 [US2] Implement InventoryService in Backend/Services/Inventory/InventoryService.cs with GetProductsAsync, CreateProductAsync, UpdateProductAsync, DeleteProductAsync, AdjustStockAsync, GetCategoriesAsync, CreateCategoryAsync, CreatePurchaseAsync, CheckLowStockAsync methods
+- [x] T114 [US2] Implement IInventoryService interface in Backend/Services/Inventory/IInventoryService.cs
+- [x] T115 [US2] Implement InventoryService in Backend/Services/Inventory/InventoryService.cs with GetProductsAsync, CreateProductAsync, UpdateProductAsync, DeleteProductAsync, AdjustStockAsync, GetCategoriesAsync, CreateCategoryAsync, CreatePurchaseAsync, CheckLowStockAsync methods
 
 ### API Endpoints for User Story 2
 
-- [X] T116 [US2] Implement GET /api/v1/categories endpoint in Backend/Program.cs
-- [X] T117 [US2] Implement POST /api/v1/categories endpoint in Backend/Program.cs
-- [X] T118 [US2] Implement PUT /api/v1/categories/:id endpoint in Backend/Program.cs
-- [X] T119 [US2] Implement DELETE /api/v1/categories/:id endpoint in Backend/Program.cs
-- [X] T120 [US2] Implement GET /api/v1/products endpoint with filtering, search, pagination in Backend/Program.cs per contracts/products.md
-- [X] T121 [US2] Implement POST /api/v1/products endpoint in Backend/Program.cs per contracts/products.md
-- [X] T122 [US2] Implement PUT /api/v1/products/:id endpoint in Backend/Program.cs per contracts/products.md
-- [X] T123 [US2] Implement DELETE /api/v1/products/:id endpoint in Backend/Program.cs per contracts/products.md
-- [X] T124 [US2] Implement POST /api/v1/products/:id/adjust-stock endpoint in Backend/Program.cs for manual stock adjustments
-- [X] T125 [US2] Implement GET /api/v1/purchases endpoint in Backend/Program.cs
-- [X] T126 [US2] Implement POST /api/v1/purchases endpoint in Backend/Program.cs
-- [X] T127 [US2] Implement POST /api/v1/purchases/:id/receive endpoint in Backend/Program.cs to mark purchase received and update stock
+- [x] T116 [US2] Implement GET /api/v1/categories endpoint in Backend/Program.cs
+- [x] T117 [US2] Implement POST /api/v1/categories endpoint in Backend/Program.cs
+- [x] T118 [US2] Implement PUT /api/v1/categories/:id endpoint in Backend/Program.cs
+- [x] T119 [US2] Implement DELETE /api/v1/categories/:id endpoint in Backend/Program.cs
+- [x] T120 [US2] Implement GET /api/v1/products endpoint with filtering, search, pagination in Backend/Program.cs per contracts/products.md
+- [x] T121 [US2] Implement POST /api/v1/products endpoint in Backend/Program.cs per contracts/products.md
+- [x] T122 [US2] Implement PUT /api/v1/products/:id endpoint in Backend/Program.cs per contracts/products.md
+- [x] T123 [US2] Implement DELETE /api/v1/products/:id endpoint in Backend/Program.cs per contracts/products.md
+- [x] T124 [US2] Implement POST /api/v1/products/:id/adjust-stock endpoint in Backend/Program.cs for manual stock adjustments
+- [x] T125 [US2] Implement GET /api/v1/purchases endpoint in Backend/Program.cs
+- [x] T126 [US2] Implement POST /api/v1/purchases endpoint in Backend/Program.cs
+- [x] T127 [US2] Implement POST /api/v1/purchases/:id/receive endpoint in Backend/Program.cs to mark purchase received and update stock
 
 ### Frontend Services for User Story 2
 
-- [X] T128 [US2] Create InventoryService in frontend/services/inventory.service.ts with product and category CRUD methods
+- [x] T128 [US2] Create InventoryService in frontend/services/inventory.service.ts with product and category CRUD methods
 
 ### Frontend UI for User Story 2
 
-- [X] T129 [US2] Create inventory page in frontend/app/[locale]/branch/inventory/page.tsx with product list, search, filters
-- [X] T130 [US2] Create categories management page in frontend/app/[locale]/branch/inventory/categories/page.tsx
-- [X] T131 [US2] Create product form modal in frontend/components/inventory/ProductFormModal.tsx for add/edit product
-- [X] T132 [US2] Create category form modal in frontend/components/inventory/CategoryFormModal.tsx
-- [X] T133 [US2] Create stock adjustment modal in frontend/components/inventory/StockAdjustmentModal.tsx
-- [X] T134 [US2] Create purchases page in frontend/app/[locale]/branch/purchases/page.tsx
-- [X] T135 [US2] Create purchase form modal in frontend/components/inventory/PurchaseFormModal.tsx
-- [X] T136 [US2] Add low stock badge/indicator to product list
-- [X] T137 [US2] Add inventory dashboard widget showing low stock count, total products, total categories
+- [x] T129 [US2] Create inventory page in frontend/app/[locale]/branch/inventory/page.tsx with product list, search, filters
+- [x] T130 [US2] Create categories management page in frontend/app/[locale]/branch/inventory/categories/page.tsx
+- [x] T131 [US2] Create product form modal in frontend/components/inventory/ProductFormModal.tsx for add/edit product
+- [x] T132 [US2] Create category form modal in frontend/components/inventory/CategoryFormModal.tsx
+- [x] T133 [US2] Create stock adjustment modal in frontend/components/inventory/StockAdjustmentModal.tsx
+- [x] T134 [US2] Create purchases page in frontend/app/[locale]/branch/purchases/page.tsx
+- [x] T135 [US2] Create purchase form modal in frontend/components/inventory/PurchaseFormModal.tsx
+- [x] T136 [US2] Add low stock badge/indicator to product list
+- [x] T137 [US2] Add inventory dashboard widget showing low stock count, total products, total categories
 
 ### Integration & Validation for User Story 2
 
-- [X] T138 [US2] Test category CRUD operations
-- [X] T139 [US2] Test product CRUD operations with category assignment
-- [X] T140 [US2] Test stock adjustment workflow
-- [X] T141 [US2] Test purchase order workflow: create purchase → mark received → verify stock updated
-- [X] T142 [US2] Verify low stock alerts appear when stock < MinStockThreshold
-- [X] T143 [US2] Verify sales (from US1) automatically decrease stock
+- [x] T138 [US2] Test category CRUD operations
+- [x] T139 [US2] Test product CRUD operations with category assignment
+- [x] T140 [US2] Test stock adjustment workflow
+- [x] T141 [US2] Test purchase order workflow: create purchase → mark received → verify stock updated
+- [x] T142 [US2] Verify low stock alerts appear when stock < MinStockThreshold
+- [x] T143 [US2] Verify sales (from US1) automatically decrease stock
 
 **Checkpoint**: User Stories 1 AND 2 should both work independently. Sales update inventory, inventory can be managed separately.
 
@@ -280,39 +280,39 @@
 
 ### Tests for User Story 3
 
-- [X] T144 [P] [US3] Create CustomerServiceTests in Backend.UnitTests/Services/CustomerServiceTests.cs
-- [X] T145 [P] [US3] Create customer endpoint integration tests in Backend.IntegrationTests/Endpoints/CustomerEndpointsTests.cs
+- [x] T144 [P] [US3] Create CustomerServiceTests in Backend.UnitTests/Services/CustomerServiceTests.cs
+- [x] T145 [P] [US3] Create customer endpoint integration tests in Backend.IntegrationTests/Endpoints/CustomerEndpointsTests.cs
 
 ### DTOs for User Story 3
 
-- [X] T146 [P] [US3] Create CustomerDto in Backend/Models/DTOs/Customers/CustomerDto.cs
-- [X] T147 [P] [US3] Create CreateCustomerDto in Backend/Models/DTOs/Customers/CreateCustomerDto.cs
-- [X] T148 [P] [US3] Create UpdateCustomerDto in Backend/Models/DTOs/Customers/UpdateCustomerDto.cs
+- [x] T146 [P] [US3] Create CustomerDto in Backend/Models/DTOs/Customers/CustomerDto.cs
+- [x] T147 [P] [US3] Create CreateCustomerDto in Backend/Models/DTOs/Customers/CreateCustomerDto.cs
+- [x] T148 [P] [US3] Create UpdateCustomerDto in Backend/Models/DTOs/Customers/UpdateCustomerDto.cs
 
 ### Backend Services for User Story 3
 
-- [X] T149 [US3] Implement ICustomerService interface in Backend/Services/Customers/ICustomerService.cs
-- [X] T150 [US3] Implement CustomerService in Backend/Services/Customers/CustomerService.cs with GetCustomersAsync, CreateCustomerAsync, UpdateCustomerAsync, DeleteCustomerAsync, GetCustomerPurchaseHistoryAsync, UpdateCustomerStatsAsync methods
+- [x] T149 [US3] Implement ICustomerService interface in Backend/Services/Customers/ICustomerService.cs
+- [x] T150 [US3] Implement CustomerService in Backend/Services/Customers/CustomerService.cs with GetCustomersAsync, CreateCustomerAsync, UpdateCustomerAsync, DeleteCustomerAsync, GetCustomerPurchaseHistoryAsync, UpdateCustomerStatsAsync methods
 
 ### API Endpoints for User Story 3
 
-- [X] T151 [US3] Implement GET /api/v1/customers endpoint with search, pagination in Backend/Program.cs per contracts/customers.md
-- [X] T152 [US3] Implement POST /api/v1/customers endpoint in Backend/Program.cs per contracts/customers.md
-- [X] T153 [US3] Implement PUT /api/v1/customers/:id endpoint in Backend/Program.cs per contracts/customers.md
-- [X] T154 [US3] Implement DELETE /api/v1/customers/:id endpoint in Backend/Program.cs per contracts/customers.md
-- [X] T155 [US3] Implement GET /api/v1/customers/:id/history endpoint in Backend/Program.cs to retrieve purchase history
+- [x] T151 [US3] Implement GET /api/v1/customers endpoint with search, pagination in Backend/Program.cs per contracts/customers.md
+- [x] T152 [US3] Implement POST /api/v1/customers endpoint in Backend/Program.cs per contracts/customers.md
+- [x] T153 [US3] Implement PUT /api/v1/customers/:id endpoint in Backend/Program.cs per contracts/customers.md
+- [x] T154 [US3] Implement DELETE /api/v1/customers/:id endpoint in Backend/Program.cs per contracts/customers.md
+- [x] T155 [US3] Implement GET /api/v1/customers/:id/history endpoint in Backend/Program.cs to retrieve purchase history
 
 ### Frontend Services for User Story 3
 
-- [X] T156 [US3] Create CustomerService in frontend/services/customer.service.ts with CRUD and history methods
+- [x] T156 [US3] Create CustomerService in frontend/services/customer.service.ts with CRUD and history methods
 
 ### Frontend UI for User Story 3
 
-- [X] T157 [US3] Create customers page in frontend/app/[locale]/branch/customers/page.tsx with customer list, search
-- [X] T158 [US3] Create customer form modal in frontend/components/customers/CustomerFormModal.tsx
-- [X] T159 [US3] Create customer details page in frontend/app/[locale]/branch/customers/[id]/page.tsx showing profile and purchase history
-- [X] T160 [US3] Add customer search/link component to sales page for linking customer to sale
-- [X] T161 [US3] Add customer analytics widget to dashboard (top customers, total customers, new customers this month)
+- [x] T157 [US3] Create customers page in frontend/app/[locale]/branch/customers/page.tsx with customer list, search
+- [x] T158 [US3] Create customer form modal in frontend/components/customers/CustomerFormModal.tsx
+- [x] T159 [US3] Create customer details page in frontend/app/[locale]/branch/customers/[id]/page.tsx showing profile and purchase history
+- [x] T160 [US3] Add customer search/link component to sales page for linking customer to sale
+- [x] T161 [US3] Add customer analytics widget to dashboard (top customers, total customers, new customers this month)
 
 ### Integration & Validation for User Story 3
 
@@ -334,35 +334,35 @@
 
 ### DTOs for User Story 4
 
-- [X] T167 [P] [US4] Create ExpenseDto in Backend/Models/DTOs/Expenses/ExpenseDto.cs
-- [X] T168 [P] [US4] Create CreateExpenseDto in Backend/Models/DTOs/Expenses/CreateExpenseDto.cs
-- [X] T169 [P] [US4] Create ExpenseCategoryDto in Backend/Models/DTOs/Expenses/ExpenseCategoryDto.cs
+- [x] T167 [P] [US4] Create ExpenseDto in Backend/Models/DTOs/Expenses/ExpenseDto.cs
+- [x] T168 [P] [US4] Create CreateExpenseDto in Backend/Models/DTOs/Expenses/CreateExpenseDto.cs
+- [x] T169 [P] [US4] Create ExpenseCategoryDto in Backend/Models/DTOs/Expenses/ExpenseCategoryDto.cs
 
 ### Backend Services for User Story 4
 
-- [X] T170 [US4] Implement IExpenseService interface in Backend/Services/Expenses/IExpenseService.cs
-- [X] T171 [US4] Implement ExpenseService in Backend/Services/Expenses/ExpenseService.cs with GetExpensesAsync, CreateExpenseAsync, UpdateExpenseAsync, DeleteExpenseAsync, ApproveExpenseAsync, GetExpenseCategoriesAsync, CreateExpenseCategoryAsync methods
+- [x] T170 [US4] Implement IExpenseService interface in Backend/Services/Expenses/IExpenseService.cs
+- [x] T171 [US4] Implement ExpenseService in Backend/Services/Expenses/ExpenseService.cs with GetExpensesAsync, CreateExpenseAsync, UpdateExpenseAsync, DeleteExpenseAsync, ApproveExpenseAsync, GetExpenseCategoriesAsync, CreateExpenseCategoryAsync methods
 
 ### API Endpoints for User Story 4
 
-- [X] T172 [US4] Implement GET /api/v1/expenses endpoint with filtering by category, date range in Backend/Program.cs per contracts/expenses.md
-- [X] T173 [US4] Implement POST /api/v1/expenses endpoint in Backend/Program.cs per contracts/expenses.md
-- [X] T174 [US4] Implement PUT /api/v1/expenses/:id endpoint in Backend/Program.cs per contracts/expenses.md
-- [X] T175 [US4] Implement DELETE /api/v1/expenses/:id endpoint in Backend/Program.cs per contracts/expenses.md
-- [X] T176 [US4] Implement POST /api/v1/expenses/:id/approve endpoint in Backend/Program.cs (manager only)
-- [X] T177 [US4] Implement GET /api/v1/expense-categories endpoint in Backend/Program.cs
-- [X] T178 [US4] Implement POST /api/v1/expense-categories endpoint in Backend/Program.cs
+- [x] T172 [US4] Implement GET /api/v1/expenses endpoint with filtering by category, date range in Backend/Program.cs per contracts/expenses.md
+- [x] T173 [US4] Implement POST /api/v1/expenses endpoint in Backend/Program.cs per contracts/expenses.md
+- [x] T174 [US4] Implement PUT /api/v1/expenses/:id endpoint in Backend/Program.cs per contracts/expenses.md
+- [x] T175 [US4] Implement DELETE /api/v1/expenses/:id endpoint in Backend/Program.cs per contracts/expenses.md
+- [x] T176 [US4] Implement POST /api/v1/expenses/:id/approve endpoint in Backend/Program.cs (manager only)
+- [x] T177 [US4] Implement GET /api/v1/expense-categories endpoint in Backend/Program.cs
+- [x] T178 [US4] Implement POST /api/v1/expense-categories endpoint in Backend/Program.cs
 
 ### Frontend Services for User Story 4
 
-- [X] T179 [US4] Create ExpenseService in frontend/services/expense.service.ts
+- [x] T179 [US4] Create ExpenseService in frontend/services/expense.service.ts
 
 ### Frontend UI for User Story 4
 
-- [X] T180 [US4] Create expenses page in frontend/app/[locale]/branch/expenses/page.tsx with expense list, filters
-- [X] T181 [US4] Create expense form modal in frontend/components/expenses/ExpenseFormModal.tsx
-- [X] T182 [US4] Create expense categories page in frontend/app/[locale]/branch/expense-categories/page.tsx
-- [X] T183 [US4] Add expense summary widget to dashboard (total expenses this month, by category breakdown)
+- [x] T180 [US4] Create expenses page in frontend/app/[locale]/branch/expenses/page.tsx with expense list, filters
+- [x] T181 [US4] Create expense form modal in frontend/components/expenses/ExpenseFormModal.tsx
+- [x] T182 [US4] Create expense categories page in frontend/app/[locale]/branch/expense-categories/page.tsx
+- [x] T183 [US4] Add expense summary widget to dashboard (total expenses this month, by category breakdown)
 
 ### Integration & Validation for User Story 4
 
@@ -383,41 +383,41 @@
 
 ### DTOs for User Story 5
 
-- [X] T188 [P] [US5] Create BranchDto in Backend/Models/DTOs/Branches/BranchDto.cs
-- [X] T189 [P] [US5] Create CreateBranchDto in Backend/Models/DTOs/Branches/CreateBranchDto.cs
-- [X] T190 [P] [US5] Create UpdateBranchDto in Backend/Models/DTOs/Branches/UpdateBranchDto.cs
-- [X] T191 [P] [US5] Create BranchSettingsDto in Backend/Models/DTOs/Branches/BranchSettingsDto.cs
+- [x] T188 [P] [US5] Create BranchDto in Backend/Models/DTOs/Branches/BranchDto.cs
+- [x] T189 [P] [US5] Create CreateBranchDto in Backend/Models/DTOs/Branches/CreateBranchDto.cs
+- [x] T190 [P] [US5] Create UpdateBranchDto in Backend/Models/DTOs/Branches/UpdateBranchDto.cs
+- [x] T191 [P] [US5] Create BranchSettingsDto in Backend/Models/DTOs/Branches/BranchSettingsDto.cs
 
 ### Backend Services for User Story 5
 
-- [X] T192 [US5] Implement IBranchService interface in Backend/Services/Branches/IBranchService.cs
-- [X] T193 [US5] Implement BranchService in Backend/Services/Branches/BranchService.cs with GetBranchesAsync, CreateBranchAsync, UpdateBranchAsync, DeleteBranchAsync, GetBranchSettingsAsync, UpdateBranchSettingsAsync, TestDatabaseConnectionAsync, ProvisionBranchDatabaseAsync methods
-- [X] T194 [US5] Add branch database provisioning logic: create database using DbContextFactory, run migrations, seed sample data (categories, products, customers, suppliers)
+- [x] T192 [US5] Implement IBranchService interface in Backend/Services/Branches/IBranchService.cs
+- [x] T193 [US5] Implement BranchService in Backend/Services/Branches/BranchService.cs with GetBranchesAsync, CreateBranchAsync, UpdateBranchAsync, DeleteBranchAsync, GetBranchSettingsAsync, UpdateBranchSettingsAsync, TestDatabaseConnectionAsync, ProvisionBranchDatabaseAsync methods
+- [x] T194 [US5] Add branch database provisioning logic: create database using DbContextFactory, run migrations, seed sample data (categories, products, customers, suppliers)
 
 ### API Endpoints for User Story 5
 
-- [X] T195 [US5] Implement GET /api/v1/branches endpoint in Backend/Program.cs (head office admin only) per contracts/branches.md
-- [X] T196 [US5] Implement POST /api/v1/branches endpoint in Backend/Program.cs (head office admin only) per contracts/branches.md
-- [X] T197 [US5] Implement PUT /api/v1/branches/:id endpoint in Backend/Program.cs (head office admin only) per contracts/branches.md
-- [X] T198 [US5] Implement DELETE /api/v1/branches/:id endpoint in Backend/Program.cs (head office admin only) per contracts/branches.md
-- [X] T199 [US5] Implement GET /api/v1/branches/:id/settings endpoint in Backend/Program.cs per contracts/branches.md
-- [X] T200 [US5] Implement PUT /api/v1/branches/:id/settings endpoint in Backend/Program.cs per contracts/branches.md
-- [X] T201 [US5] Implement POST /api/v1/branches/:id/test-connection endpoint in Backend/Program.cs to validate database connection
+- [x] T195 [US5] Implement GET /api/v1/branches endpoint in Backend/Program.cs (head office admin only) per contracts/branches.md
+- [x] T196 [US5] Implement POST /api/v1/branches endpoint in Backend/Program.cs (head office admin only) per contracts/branches.md
+- [x] T197 [US5] Implement PUT /api/v1/branches/:id endpoint in Backend/Program.cs (head office admin only) per contracts/branches.md
+- [x] T198 [US5] Implement DELETE /api/v1/branches/:id endpoint in Backend/Program.cs (head office admin only) per contracts/branches.md
+- [x] T199 [US5] Implement GET /api/v1/branches/:id/settings endpoint in Backend/Program.cs per contracts/branches.md
+- [x] T200 [US5] Implement PUT /api/v1/branches/:id/settings endpoint in Backend/Program.cs per contracts/branches.md
+- [x] T201 [US5] Implement POST /api/v1/branches/:id/test-connection endpoint in Backend/Program.cs to validate database connection
 
 ### Frontend Services for User Story 5
 
-- [X] T202 [US5] Create BranchService in frontend/services/branch.service.ts
+- [x] T202 [US5] Create BranchService in frontend/services/branch.service.ts
 
 ### Frontend UI for User Story 5
 
-- [X] T203 [US5] Create head office layout in frontend/app/[locale]/head-office/layout.tsx
-- [X] T204 [US5] Create head office home page in frontend/app/[locale]/head-office/page.tsx with multi-branch dashboard (total sales across branches, active branches, total users)
-- [X] T205 [US5] Create branches management page in frontend/app/[locale]/head-office/branches/page.tsx with branch list
-- [X] T206 [US5] Create branch form modal in frontend/components/head-office/BranchFormModal.tsx with database provider selection, connection string builder
-- [X] T207 [US5] Create branch details page in frontend/app/[locale]/head-office/branches/[id]/page.tsx showing branch info, settings, users, database status
-- [X] T208 [US5] Create branch settings form in frontend/components/head-office/BranchSettingsForm.tsx (tax rate, currency, language, date format, timezone)
-- [X] T209 [US5] Create database connection test component in frontend/components/head-office/DatabaseConnectionTest.tsx
-- [X] T210 [US5] Create multi-branch analytics page in frontend/app/[locale]/head-office/analytics/page.tsx with consolidated sales, inventory, revenue charts
+- [x] T203 [US5] Create head office layout in frontend/app/[locale]/head-office/layout.tsx
+- [x] T204 [US5] Create head office home page in frontend/app/[locale]/head-office/page.tsx with multi-branch dashboard (total sales across branches, active branches, total users)
+- [x] T205 [US5] Create branches management page in frontend/app/[locale]/head-office/branches/page.tsx with branch list
+- [x] T206 [US5] Create branch form modal in frontend/components/head-office/BranchFormModal.tsx with database provider selection, connection string builder
+- [x] T207 [US5] Create branch details page in frontend/app/[locale]/head-office/branches/[id]/page.tsx showing branch info, settings, users, database status
+- [x] T208 [US5] Create branch settings form in frontend/components/head-office/BranchSettingsForm.tsx (tax rate, currency, language, date format, timezone)
+- [x] T209 [US5] Create database connection test component in frontend/components/head-office/DatabaseConnectionTest.tsx
+- [x] T210 [US5] Create multi-branch analytics page in frontend/app/[locale]/head-office/analytics/page.tsx with consolidated sales, inventory, revenue charts
 
 ### Integration & Validation for User Story 5
 
@@ -439,42 +439,42 @@
 
 ### DTOs for User Story 6
 
-- [X] T216 [P] [US6] Create UserDto in Backend/Models/DTOs/Users/UserDto.cs
-- [X] T217 [P] [US6] Create CreateUserDto in Backend/Models/DTOs/Users/CreateUserDto.cs
-- [X] T218 [P] [US6] Create UpdateUserDto in Backend/Models/DTOs/Users/UpdateUserDto.cs
-- [X] T219 [P] [US6] Create AssignBranchDto in Backend/Models/DTOs/Users/AssignBranchDto.cs
+- [x] T216 [P] [US6] Create UserDto in Backend/Models/DTOs/Users/UserDto.cs
+- [x] T217 [P] [US6] Create CreateUserDto in Backend/Models/DTOs/Users/CreateUserDto.cs
+- [x] T218 [P] [US6] Create UpdateUserDto in Backend/Models/DTOs/Users/UpdateUserDto.cs
+- [x] T219 [P] [US6] Create AssignBranchDto in Backend/Models/DTOs/Users/AssignBranchDto.cs
 
 ### Backend Services for User Story 6
 
-- [X] T220 [US6] Implement IUserService interface in Backend/Services/Users/IUserService.cs
-- [X] T221 [US6] Implement UserService in Backend/Services/Users/UserService.cs with GetUsersAsync, CreateUserAsync, UpdateUserAsync, DeleteUserAsync, DeactivateUserAsync, AssignBranchAsync, RemoveBranchAssignmentAsync, GetUserActivityAsync methods
-- [X] T222 [US6] Implement IAuditService interface in Backend/Services/Audit/IAuditService.cs
-- [X] T223 [US6] Implement AuditService in Backend/Services/Audit/AuditService.cs with LogAsync, LogActivityAsync, GetUserAuditTrailAsync, GetUserRecentActivityAsync methods (circular buffer for activity logs)
+- [x] T220 [US6] Implement IUserService interface in Backend/Services/Users/IUserService.cs
+- [x] T221 [US6] Implement UserService in Backend/Services/Users/UserService.cs with GetUsersAsync, CreateUserAsync, UpdateUserAsync, DeleteUserAsync, DeactivateUserAsync, AssignBranchAsync, RemoveBranchAssignmentAsync, GetUserActivityAsync methods
+- [x] T222 [US6] Implement IAuditService interface in Backend/Services/Audit/IAuditService.cs
+- [x] T223 [US6] Implement AuditService in Backend/Services/Audit/AuditService.cs with LogAsync, LogActivityAsync, GetUserAuditTrailAsync, GetUserRecentActivityAsync methods (circular buffer for activity logs)
 - [ ] T224 [US6] Integrate AuditService with all critical operations (sales, inventory changes, user management, branch changes)
 
 ### API Endpoints for User Story 6
 
-- [X] T225 [US6] Implement GET /api/v1/users endpoint in Backend/Program.cs with role-based filtering per contracts/users.md
-- [X] T226 [US6] Implement POST /api/v1/users endpoint in Backend/Program.cs (admin only) per contracts/users.md
-- [X] T227 [US6] Implement PUT /api/v1/users/:id endpoint in Backend/Program.cs per contracts/users.md
-- [X] T228 [US6] Implement DELETE /api/v1/users/:id endpoint in Backend/Program.cs (admin only) per contracts/users.md
-- [X] T229 [US6] Implement POST /api/v1/users/:id/assign-branch endpoint in Backend/Program.cs per contracts/users.md
-- [X] T230 [US6] Implement DELETE /api/v1/users/:id/branches/:branchId endpoint in Backend/Program.cs
-- [X] T231 [US6] Implement GET /api/v1/users/:id/activity endpoint in Backend/Program.cs (last 100 activities)
-- [X] T232 [US6] Implement GET /api/v1/audit/logs endpoint in Backend/Program.cs (admin only) per contracts/audit.md
-- [X] T233 [US6] Implement GET /api/v1/audit/user/:userId endpoint in Backend/Program.cs per contracts/audit.md
+- [x] T225 [US6] Implement GET /api/v1/users endpoint in Backend/Program.cs with role-based filtering per contracts/users.md
+- [x] T226 [US6] Implement POST /api/v1/users endpoint in Backend/Program.cs (admin only) per contracts/users.md
+- [x] T227 [US6] Implement PUT /api/v1/users/:id endpoint in Backend/Program.cs per contracts/users.md
+- [x] T228 [US6] Implement DELETE /api/v1/users/:id endpoint in Backend/Program.cs (admin only) per contracts/users.md
+- [x] T229 [US6] Implement POST /api/v1/users/:id/assign-branch endpoint in Backend/Program.cs per contracts/users.md
+- [x] T230 [US6] Implement DELETE /api/v1/users/:id/branches/:branchId endpoint in Backend/Program.cs
+- [x] T231 [US6] Implement GET /api/v1/users/:id/activity endpoint in Backend/Program.cs (last 100 activities)
+- [x] T232 [US6] Implement GET /api/v1/audit/logs endpoint in Backend/Program.cs (admin only) per contracts/audit.md
+- [x] T233 [US6] Implement GET /api/v1/audit/user/:userId endpoint in Backend/Program.cs per contracts/audit.md
 
 ### Frontend Services for User Story 6
 
-- [X] T234 [US6] Create UserService in frontend/services/user.service.ts
+- [x] T234 [US6] Create UserService in frontend/services/user.service.ts
 
 ### Frontend UI for User Story 6
 
-- [X] T235 [US6] Create users management page in frontend/app/[locale]/head-office/users/page.tsx (head office admin)
-- [X] T236 [US6] Create user form modal in frontend/components/head-office/UserFormModal.tsx with role selection, branch assignments (SKIPPED - using generic ModalBottomSheet component instead)
-- [X] T237 [US6] Create user details page in frontend/app/[locale]/head-office/users/[id]/page.tsx showing profile, branch assignments, activity log
-- [X] T238 [US6] Create branch users page in frontend/app/[locale]/branch/settings/users/page.tsx (branch manager can view/manage branch users)
-- [X] T239 [US6] Add role-based UI hiding (hide features not accessible to current user role)
+- [x] T235 [US6] Create users management page in frontend/app/[locale]/head-office/users/page.tsx (head office admin)
+- [x] T236 [US6] Create user form modal in frontend/components/head-office/UserFormModal.tsx with role selection, branch assignments (SKIPPED - using generic ModalBottomSheet component instead)
+- [x] T237 [US6] Create user details page in frontend/app/[locale]/head-office/users/[id]/page.tsx showing profile, branch assignments, activity log
+- [x] T238 [US6] Create branch users page in frontend/app/[locale]/branch/settings/users/page.tsx (branch manager can view/manage branch users)
+- [x] T239 [US6] Add role-based UI hiding (hide features not accessible to current user role)
 
 ### Authorization Enforcement
 
@@ -503,33 +503,33 @@
 
 ### DTOs for User Story 7
 
-- [X] T249 [P] [US7] Create SupplierDto in Backend/Models/DTOs/Suppliers/SupplierDto.cs
-- [X] T250 [P] [US7] Create CreateSupplierDto in Backend/Models/DTOs/Suppliers/CreateSupplierDto.cs
-- [X] T251 [P] [US7] Create UpdateSupplierDto in Backend/Models/DTOs/Suppliers/UpdateSupplierDto.cs
+- [x] T249 [P] [US7] Create SupplierDto in Backend/Models/DTOs/Suppliers/SupplierDto.cs
+- [x] T250 [P] [US7] Create CreateSupplierDto in Backend/Models/DTOs/Suppliers/CreateSupplierDto.cs
+- [x] T251 [P] [US7] Create UpdateSupplierDto in Backend/Models/DTOs/Suppliers/UpdateSupplierDto.cs
 
 ### Backend Services for User Story 7
 
-- [X] T252 [US7] Implement ISupplierService interface in Backend/Services/Suppliers/ISupplierService.cs
-- [X] T253 [US7] Implement SupplierService in Backend/Services/Suppliers/SupplierService.cs with GetSuppliersAsync, CreateSupplierAsync, UpdateSupplierAsync, DeleteSupplierAsync, GetSupplierPurchaseHistoryAsync methods
+- [x] T252 [US7] Implement ISupplierService interface in Backend/Services/Suppliers/ISupplierService.cs
+- [x] T253 [US7] Implement SupplierService in Backend/Services/Suppliers/SupplierService.cs with GetSuppliersAsync, CreateSupplierAsync, UpdateSupplierAsync, DeleteSupplierAsync, GetSupplierPurchaseHistoryAsync methods
 
 ### API Endpoints for User Story 7
 
-- [X] T254 [US7] Implement GET /api/v1/suppliers endpoint in Backend/Program.cs per contracts/suppliers.md
-- [X] T255 [US7] Implement POST /api/v1/suppliers endpoint in Backend/Program.cs per contracts/suppliers.md
-- [X] T256 [US7] Implement PUT /api/v1/suppliers/:id endpoint in Backend/Program.cs per contracts/suppliers.md
-- [X] T257 [US7] Implement DELETE /api/v1/suppliers/:id endpoint in Backend/Program.cs per contracts/suppliers.md
-- [X] T258 [US7] Implement GET /api/v1/suppliers/:id/history endpoint in Backend/Program.cs (purchase history)
+- [x] T254 [US7] Implement GET /api/v1/suppliers endpoint in Backend/Program.cs per contracts/suppliers.md
+- [x] T255 [US7] Implement POST /api/v1/suppliers endpoint in Backend/Program.cs per contracts/suppliers.md
+- [x] T256 [US7] Implement PUT /api/v1/suppliers/:id endpoint in Backend/Program.cs per contracts/suppliers.md
+- [x] T257 [US7] Implement DELETE /api/v1/suppliers/:id endpoint in Backend/Program.cs per contracts/suppliers.md
+- [x] T258 [US7] Implement GET /api/v1/suppliers/:id/history endpoint in Backend/Program.cs (purchase history)
 
 ### Frontend Services for User Story 7
 
-- [X] T259 [US7] Create SupplierService in frontend/services/supplier.service.ts
+- [x] T259 [US7] Create SupplierService in frontend/services/supplier.service.ts
 
 ### Frontend UI for User Story 7
 
-- [X] T260 [US7] Create suppliers page in frontend/app/[locale]/branch/suppliers/page.tsx
-- [X] T261 [US7] Create supplier form modal in frontend/components/suppliers/SupplierFormModal.tsx
-- [X] T262 [US7] Create supplier details page in frontend/app/[locale]/branch/suppliers/[id]/page.tsx with purchase history
-- [X] T263 [US7] Update purchase form to include supplier selection dropdown
+- [x] T260 [US7] Create suppliers page in frontend/app/[locale]/branch/suppliers/page.tsx
+- [x] T261 [US7] Create supplier form modal in frontend/components/suppliers/SupplierFormModal.tsx
+- [x] T262 [US7] Create supplier details page in frontend/app/[locale]/branch/suppliers/[id]/page.tsx with purchase history
+- [x] T263 [US7] Update purchase form to include supplier selection dropdown
 
 ### Integration & Validation for User Story 7
 
@@ -543,42 +543,46 @@
 
 ## Phase 10: Image Management & Optimization
 
-**Purpose**: Enable image uploads for products, categories, customers, suppliers, branches, expenses with automatic optimization and multi-size generation.
+**Purpose**: Enable image Upload for products, categories, customers, suppliers, branches, expenses with automatic optimization and multi-size generation.
 
 **Core Infrastructure (Complete):**
-- [X] T267 [P] Implement IImageService interface in Backend/Services/Images/IImageService.cs
-- [X] T268 [P] Implement ImageService in Backend/Services/Images/ImageService.cs using SixLabors.ImageSharp per research.md Section 5 (UploadImageAsync, DeleteImageAsync, GenerateThumbnails)
-- [X] T269 [P] Create ImageOptimizer utility in Backend/Utilities/ImageOptimizer.cs for WebP conversion and resizing
-- [X] T270 [P] Implement POST /api/v1/images/upload endpoint in Backend/Program.cs with multipart form data support
-- [X] T271 [P] Implement GET /api/v1/images/:branchName/:entityType/:entityId/:size endpoint in Backend/Program.cs to serve images
-- [X] T272 [P] Implement DELETE /api/v1/images/:id endpoint in Backend/Program.cs
-- [X] T273 [P] Create OptimizedImage component in frontend/components/shared/OptimizedImage.tsx with lazy loading and size selection
-- [X] T280 Create Uploads directory structure per plan.md and add to .gitignore
+
+- [x] T267 [P] Implement IImageService interface in Backend/Services/Images/IImageService.cs
+- [x] T268 [P] Implement ImageService in Backend/Services/Images/ImageService.cs using SixLabors.ImageSharp per research.md Section 5 (UploadImageAsync, DeleteImageAsync, GenerateThumbnails)
+- [x] T269 [P] Create ImageOptimizer utility in Backend/Utilities/ImageOptimizer.cs for WebP conversion and resizing
+- [x] T270 [P] Implement POST /api/v1/images/upload endpoint in Backend/Program.cs with multipart form data support
+- [x] T271 [P] Implement GET /api/v1/images/:branchName/:entityType/:entityId/:size endpoint in Backend/Program.cs to serve images
+- [x] T272 [P] Implement DELETE /api/v1/images/:id endpoint in Backend/Program.cs
+- [x] T273 [P] Create OptimizedImage component in frontend/components/shared/OptimizedImage.tsx with lazy loading and size selection
+- [x] T280 Create Upload directory structure per plan.md and add to .gitignore
 
 **Form Integration (6/6 Complete ✅):**
-- [X] T274 Add image upload to product form (multiple images support) - Complete: ProductFormModalWithImages.tsx
-- [X] T275 Add image upload to category form (single image) - Complete: CategoryFormModal.tsx enhanced
-- [X] T276 Add image upload to customer form (logo) - Complete: CustomerFormModal.tsx enhanced
-- [X] T277 Add image upload to supplier form (logo) - Complete: SupplierFormModal.tsx (created form + images)
-- [X] T278 Add image upload to branch form (branch logo) - Complete: BranchFormModal.tsx enhanced (uses HeadOffice context)
-- [X] T279 Add image upload to expense form (receipt image) - Complete: ExpenseFormModal.tsx enhanced (multiple images, 3 max)
+
+- [x] T274 Add image upload to product form (multiple images support) - Complete: ProductFormModalWithImages.tsx
+- [x] T275 Add image upload to category form (single image) - Complete: CategoryFormModal.tsx enhanced
+- [x] T276 Add image upload to customer form (logo) - Complete: CustomerFormModal.tsx enhanced
+- [x] T277 Add image upload to supplier form (logo) - Complete: SupplierFormModal.tsx (created form + images)
+- [x] T278 Add image upload to branch form (branch logo) - Complete: BranchFormModal.tsx enhanced (uses HeadOffice context)
+- [x] T279 Add image upload to expense form (receipt image) - Complete: ExpenseFormModal.tsx enhanced (multiple images, 3 max)
 
 **Testing (Ready for Execution):**
+
 - [ ] T281 Test image upload workflow: upload → verify thumbnails generated → verify images served correctly
 - [ ] T282 Test image deletion: delete entity → verify orphaned images cleaned up
 
 **Additional Components Created:**
-- [X] ImageUpload component (frontend/components/shared/ImageUpload.tsx) - Reusable upload UI with drag-drop
-- [X] imageService (frontend/services/image.service.ts) - API integration layer
-- [X] ProductFormModalWithImages.tsx - Complete example with multiple images (5 max)
-- [X] SupplierFormModal.tsx - Complete form with single logo upload
-- [X] CategoryFormModal.tsx - Enhanced with single image upload
-- [X] CustomerFormModal.tsx - Enhanced with single logo upload
-- [X] BranchFormModal.tsx - Enhanced with single logo upload (HeadOffice context)
-- [X] ExpenseFormModal.tsx - Enhanced with multiple receipt images (3 max)
-- [X] Integration guide (docs/image-upload-integration-guide.md) - Comprehensive implementation guide
-- [X] Form integration summary (docs/2025-11-26-form-integration-implementation.md) - Status and examples
-- [X] Final status document (docs/2025-11-26-phase-10-final-status.md) - Complete phase overview
+
+- [x] ImageUpload component (frontend/components/shared/ImageUpload.tsx) - Reusable upload UI with drag-drop
+- [x] imageService (frontend/services/image.service.ts) - API integration layer
+- [x] ProductFormModalWithImages.tsx - Complete example with multiple images (5 max)
+- [x] SupplierFormModal.tsx - Complete form with single logo upload
+- [x] CategoryFormModal.tsx - Enhanced with single image upload
+- [x] CustomerFormModal.tsx - Enhanced with single logo upload
+- [x] BranchFormModal.tsx - Enhanced with single logo upload (HeadOffice context)
+- [x] ExpenseFormModal.tsx - Enhanced with multiple receipt images (3 max)
+- [x] Integration guide (docs/image-upload-integration-guide.md) - Comprehensive implementation guide
+- [x] Form integration summary (docs/2025-11-26-form-integration-implementation.md) - Status and examples
+- [x] Final status document (docs/2025-11-26-phase-10-final-status.md) - Complete phase overview
 
 **Phase 10 Status: 88% Complete ✅** (Core: 100% | Forms: 100% | Docs: 100% | Testing: 0%)
 Remaining: Testing T281-T282 (~2 hours)
@@ -775,6 +779,7 @@ With multiple developers (3-4 team members):
 
 **Total Tasks**: 323 tasks
 **By Phase**:
+
 - Phase 1 (Setup): 12 tasks
 - Phase 2 (Foundation): 50 tasks
 - Phase 3 (US1 - Sales): 43 tasks

@@ -144,9 +144,9 @@ desktop.ini
 *.cache
 *~
 
-# File uploads (but keep directory structure)
-Uploads/
-/Backend/Uploads/
+# File Upload (but keep directory structure)
+Upload/
+/Backend/Upload/
 
 # Upload directory - exclude actual files but keep structure
 /Backend/Upload/**/*.db

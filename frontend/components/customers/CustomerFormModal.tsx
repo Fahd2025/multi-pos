@@ -144,13 +144,13 @@ export default function CustomerFormModal({
         try {
           await imageService.uploadImage(
             branchName,
-            'Customers',
+            "Customers",
             savedCustomer.id,
             selectedImages[0] // Single logo
           );
-          console.log('Successfully uploaded customer logo');
+          console.log("Successfully uploaded customer logo");
         } catch (error) {
-          console.error('Error uploading logo:', error);
+          console.error("Error uploading logo:", error);
           // Don't fail the whole operation
         } finally {
           setUploadingImages(false);
@@ -184,10 +184,10 @@ export default function CustomerFormModal({
     if (!customer?.id || !branchName) return;
 
     try {
-      await imageService.deleteImages(branchName, 'Customers', customer.id);
-      console.log('Customer logo deleted successfully');
+      await imageService.deleteImages(branchName, "Customers", customer.id);
+      console.log("Customer logo deleted successfully");
     } catch (error) {
-      console.error('Error deleting logo:', error);
+      console.error("Error deleting logo:", error);
     }
   };
 
@@ -211,17 +211,13 @@ export default function CustomerFormModal({
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting || uploadingImages}
         size="md"
-      />
-
-      {/* Image Upload Section */}
-      {isOpen && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 p-6 z-[45] max-h-[40vh] overflow-y-auto">
-          <div className="max-w-4xl mx-auto">
+        additionalContent={
+          <>
             <ImageUpload
               branchName={branchName}
               entityType="Customers"
               entityId={customer?.id}
-              currentImages={customer?.images || []}
+              currentImages={customer?.logoPath ? [customer.logoPath] : []}
               multiple={false}
               maxFiles={1}
               onUpload={handleImageUpload}
@@ -258,13 +254,11 @@ export default function CustomerFormModal({
             )}
 
             {selectedImages.length > 0 && !uploadingImages && (
-              <div className="text-sm text-gray-600 text-center mt-2">
-                Logo ready to upload
-              </div>
+              <div className="text-sm text-gray-600 text-center mt-2">Logo ready to upload</div>
             )}
-          </div>
-        </div>
-      )}
+          </>
+        }
+      />
     </>
   );
 }

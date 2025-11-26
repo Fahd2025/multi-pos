@@ -132,13 +132,13 @@ export default function SupplierFormModal({
         try {
           await imageService.uploadImage(
             branchName,
-            'Suppliers',
+            "Suppliers",
             savedSupplier.id,
             selectedImages[0] // Only one logo
           );
-          console.log('Successfully uploaded supplier logo');
+          console.log("Successfully uploaded supplier logo");
         } catch (error) {
-          console.error('Error uploading logo:', error);
+          console.error("Error uploading logo:", error);
           // Don't fail the whole operation
         } finally {
           setUploadingImages(false);
@@ -172,10 +172,10 @@ export default function SupplierFormModal({
     if (!supplier?.id || !branchName) return;
 
     try {
-      await imageService.deleteImages(branchName, 'Suppliers', supplier.id);
-      console.log('Logo deleted successfully');
+      await imageService.deleteImages(branchName, "Suppliers", supplier.id);
+      console.log("Logo deleted successfully");
     } catch (error) {
-      console.error('Error deleting logo:', error);
+      console.error("Error deleting logo:", error);
     }
   };
 
@@ -199,23 +199,18 @@ export default function SupplierFormModal({
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting || uploadingImages}
         size="lg"
-      />
-
-      {/* Image Upload Section */}
-      {isOpen && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 p-6 z-[45] max-h-[40vh] overflow-y-auto">
-          <div className="max-w-4xl mx-auto">
+        additionalContent={
+          <>
             <ImageUpload
               branchName={branchName}
               entityType="Suppliers"
               entityId={supplier?.id}
-              currentImages={supplier?.images || []}
+              currentImages={supplier?.logoPath ? [supplier.logoPath] : []}
               multiple={false}
               maxFiles={1}
               onUpload={handleImageUpload}
               onRemove={handleImageRemove}
               label="Supplier Logo (Optional)"
-              className="mb-4"
             />
 
             {/* Upload status */}
@@ -246,13 +241,11 @@ export default function SupplierFormModal({
             )}
 
             {selectedImages.length > 0 && !uploadingImages && (
-              <div className="text-sm text-gray-600 text-center mt-2">
-                Logo ready to upload
-              </div>
+              <div className="text-sm text-gray-600 text-center mt-2">Logo ready to upload</div>
             )}
-          </div>
-        </div>
-      )}
+          </>
+        }
+      />
     </>
   );
 }

@@ -91,6 +91,14 @@ public class DbContextFactory
             "Database",
             $"{branch.DbName}.db"
         );
+
+        // Ensure directory exists
+        var dbDirectory = Path.GetDirectoryName(uploadPath);
+        if (!string.IsNullOrEmpty(dbDirectory) && !Directory.Exists(dbDirectory))
+        {
+            Directory.CreateDirectory(dbDirectory);
+        }
+
         return $"Data Source={uploadPath}";
     }
 

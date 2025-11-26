@@ -12,30 +12,36 @@ Build a professional multi-branch POS system with head office and branch dashboa
 ## Technical Context
 
 **Language/Version**:
+
 - Backend: C# 12 with ASP.NET Core 8.0
 - Frontend: TypeScript (strict mode) with Next.js 16, React 19
 
 **Primary Dependencies**:
+
 - Backend: Entity Framework Core 8.0, ASP.NET Core Identity, System.IdentityModel.Tokens.Jwt, Swashbuckle (OpenAPI), ImageSharp (image optimization), Npgsql/MySql.Data/Microsoft.Data.SqlClient/Microsoft.Data.Sqlite (multi-provider support)
 - Frontend: React 19, Next.js 16 (App Router), Tailwind CSS v4, next-intl (internationalization), SWR or React Query (data fetching/caching), Zod (validation), React Hook Form
 
 **Storage**:
+
 - Head Office DB: SQLite (default), configurable to MSSQL/PostgreSQL/MySQL
 - Branch DBs: Per-branch configurable (SQLite/MSSQL/PostgreSQL/MySQL)
 - Local offline cache: IndexedDB (browser) or SQLite (desktop client if needed)
-- File storage: Local filesystem organized as `Uploads/Branches/[BranchName]/[EntityType]/[ID]/`
+- File storage: Local filesystem organized as `Upload/Branches/[BranchName]/[EntityType]/[ID]/`
 
 **Testing**:
+
 - Backend: xUnit, Moq (mocking), FluentAssertions, Microsoft.AspNetCore.Mvc.Testing (integration tests)
 - Frontend: Jest, React Testing Library, MSW (Mock Service Worker for API mocking)
 
 **Target Platform**:
+
 - Backend: Cross-platform (Windows/Linux/macOS) via .NET 8.0
 - Frontend: Modern web browsers (Chrome, Firefox, Safari, Edge - current versions), responsive design for tablets/desktops
 
 **Project Type**: Web application (separate backend API + frontend SPA)
 
 **Performance Goals**:
+
 - Sales transaction completion: <60 seconds for 3-5 products
 - API response time: <2 seconds for common operations
 - Page load: <3 seconds for dashboards/reports
@@ -43,6 +49,7 @@ Build a professional multi-branch POS system with head office and branch dashboa
 - Offline sync: 100 transactions within 2 minutes of reconnection
 
 **Constraints**:
+
 - Offline-first architecture required for branches
 - Bilingual UI (English/Arabic with RTL support)
 - Multi-database provider support via EF Core abstraction
@@ -54,6 +61,7 @@ Build a professional multi-branch POS system with head office and branch dashboa
 - Must support 50 branches, 500 users initially
 
 **Scale/Scope**:
+
 - 50 branches initially (scalable architecture)
 - 500 total users across all branches
 - Estimated 10-20 tables per branch database
@@ -64,13 +72,14 @@ Build a professional multi-branch POS system with head office and branch dashboa
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 ### Principle I: Clean Architecture & Separation of Concerns ✅
 
 **Status**: PASS
 
 **Alignment**:
+
 - Backend will use minimal API pattern with domain-based service separation (Sales, Inventory, Users, Branches)
 - Frontend follows App Router with clear separation: UI components, API services, business logic hooks
 - Data models (EF Core entities) separated from DTOs for API contracts
@@ -83,6 +92,7 @@ Build a professional multi-branch POS system with head office and branch dashboa
 **Status**: PASS
 
 **Alignment**:
+
 - TypeScript strict mode enabled
 - C# nullable reference types will be enabled
 - OpenAPI/Swagger documentation for all endpoints
@@ -97,6 +107,7 @@ Build a professional multi-branch POS system with head office and branch dashboa
 **Status**: PASS
 
 **Alignment**:
+
 - Backend organized by domain (Sales, Inventory, Customers, Branches, Users, Sync)
 - Frontend organized by feature/domain (not by component type)
 - Each service class has single responsibility
@@ -110,6 +121,7 @@ Build a professional multi-branch POS system with head office and branch dashboa
 **Status**: CONDITIONAL PASS (Test strategy to be defined in Phase 1)
 
 **Alignment**:
+
 - Backend testing: xUnit for unit/integration tests
 - Frontend testing: Jest + React Testing Library
 - Test coverage goals: 80%+ for business logic
@@ -122,6 +134,7 @@ Build a professional multi-branch POS system with head office and branch dashboa
 **Status**: CONDITIONAL PASS (Security architecture needs research)
 
 **Alignment**:
+
 - JWT authentication planned
 - Role-based access control (head office admin, branch manager, cashier)
 - Password hashing required
@@ -130,6 +143,7 @@ Build a professional multi-branch POS system with head office and branch dashboa
 - HTTPS in production
 
 **Unknowns** (to be resolved in Phase 0 research):
+
 - JWT refresh token strategy
 - Branch data isolation mechanism (database-level vs application-level)
 - Technical password implementation for admin override
@@ -141,6 +155,7 @@ Build a professional multi-branch POS system with head office and branch dashboa
 **Status**: CONDITIONAL PASS (Offline sync architecture needs research)
 
 **Alignment**:
+
 - Async/await for I/O operations
 - Caching strategy (in-memory or Redis)
 - Database query optimization
@@ -148,6 +163,7 @@ Build a professional multi-branch POS system with head office and branch dashboa
 - Horizontal scaling capability (stateless backend)
 
 **Unknowns** (to be resolved in Phase 0 research):
+
 - Offline sync queue implementation (IndexedDB, local SQLite, or other)
 - Conflict resolution implementation details
 - Database connection pooling strategy for multi-branch/multi-provider
@@ -159,6 +175,7 @@ Build a professional multi-branch POS system with head office and branch dashboa
 **Status**: PASS
 
 **Alignment**:
+
 - C# coding conventions (PascalCase/camelCase)
 - ESLint configured for frontend
 - Code reviews required
@@ -170,6 +187,7 @@ Build a professional multi-branch POS system with head office and branch dashboa
 ### Overall Gate Status: ⚠️ CONDITIONAL PASS
 
 **Proceed to Phase 0 with the following clarifications required**:
+
 1. JWT refresh token and session management strategy
 2. Branch data isolation and security architecture
 3. Offline sync queue and conflict resolution implementation
@@ -348,7 +366,7 @@ frontend/                            # Next.js 16 frontend
 ├── next.config.js
 └── middleware.ts                   # Next.js middleware (auth, i18n)
 
-Uploads/                            # File storage (gitignored)
+Upload/                            # File storage (gitignored)
 └── Branches/
     └── [BranchName]/
         ├── Products/
@@ -362,7 +380,7 @@ Uploads/                            # File storage (gitignored)
         └── BranchLogo/
 ```
 
-**Structure Decision**: Web application architecture with separate Backend (ASP.NET Core) and frontend (Next.js) projects. Backend uses domain-driven folder organization (Services by domain, Models with Entities/DTOs separation). Frontend uses Next.js App Router with feature-based organization and clear separation of UI, business logic, and API services. File uploads organized hierarchically by branch and entity type for isolation and scalability.
+**Structure Decision**: Web application architecture with separate Backend (ASP.NET Core) and frontend (Next.js) projects. Backend uses domain-driven folder organization (Services by domain, Models with Entities/DTOs separation). Frontend uses Next.js App Router with feature-based organization and clear separation of UI, business logic, and API services. File Upload organized hierarchically by branch and entity type for isolation and scalability.
 
 ## Complexity Tracking
 
@@ -381,6 +399,7 @@ No violations detected. All design decisions align with constitution principles.
 **Status**: PASS
 
 **Design Validation**:
+
 - Backend uses domain-driven service organization (Auth, Sales, Inventory, Branches, Users, Sync)
 - Clear separation: Entities (Models/Entities/), DTOs (Models/DTOs/), Services (Services/), Data Access (Data/)
 - Frontend follows App Router with feature-based organization: `app/[locale]/{head-office,branch}/{feature}`
@@ -394,6 +413,7 @@ No violations detected. All design decisions align with constitution principles.
 **Status**: PASS
 
 **Design Validation**:
+
 - All API endpoints documented in OpenAPI format (contracts/ directory)
 - TypeScript strict mode maintained
 - C# nullable reference types planned
@@ -407,6 +427,7 @@ No violations detected. All design decisions align with constitution principles.
 **Status**: PASS
 
 **Design Validation**:
+
 - Each service has single responsibility: AuthService (authentication), SalesService (sales logic), etc.
 - Frontend components organized by feature/domain
 - Reusable UI components in `components/shared/`
@@ -419,6 +440,7 @@ No violations detected. All design decisions align with constitution principles.
 **Status**: PASS (Research complete, test strategy defined)
 
 **Design Validation**:
+
 - Test strategy defined in research.md Section 7
 - Unit tests planned for all business logic services
 - Integration tests for API endpoints
@@ -433,6 +455,7 @@ No violations detected. All design decisions align with constitution principles.
 **Status**: PASS (Research complete, architecture defined)
 
 **Design Validation**:
+
 - JWT refresh token strategy defined (research.md Section 1)
 - Password hashing with BCrypt planned
 - Branch data isolation via separate databases (research.md Section 2)
@@ -442,6 +465,7 @@ No violations detected. All design decisions align with constitution principles.
 - Input validation defined in all API contracts
 
 **Unknowns resolved**:
+
 - ✅ JWT refresh token strategy: 15min access token + 7day refresh token + server-side session tracking
 - ✅ Branch data isolation: Physical database per branch + application-level security middleware
 - ✅ Technical password: Encrypted in MainSettings table, validated against app config
@@ -453,6 +477,7 @@ No violations detected. All design decisions align with constitution principles.
 **Status**: PASS (Research complete, architecture defined)
 
 **Design Validation**:
+
 - Offline sync architecture defined (research.md Section 3): IndexedDB + background sync + last-commit-wins
 - Database connection pooling strategy defined (research.md Section 4): Per-branch context pools, max 100 connections
 - Multi-database provider support via EF Core abstraction
@@ -461,6 +486,7 @@ No violations detected. All design decisions align with constitution principles.
 - Async/await patterns planned for all I/O operations
 
 **Unknowns resolved**:
+
 - ✅ Offline sync queue: IndexedDB (browser), chronological processing, retry logic with exponential backoff
 - ✅ Conflict resolution: Last-commit-wins with inventory discrepancy flagging and manager alerts
 - ✅ Multi-database pooling: Per-branch DbContext pools with factory pattern, health checks before use
@@ -472,6 +498,7 @@ No violations detected. All design decisions align with constitution principles.
 **Status**: PASS
 
 **Design Validation**:
+
 - Code organization documented in project structure (plan.md)
 - XML/JSDoc comments planned for public APIs
 - ESLint configured for frontend, C# conventions for backend
@@ -483,6 +510,7 @@ No violations detected. All design decisions align with constitution principles.
 ### Overall Post-Design Gate Status: ✅ PASS
 
 **All Phase 0 clarifications resolved**:
+
 1. ✅ JWT refresh token and session management strategy → Defined in research.md Section 1
 2. ✅ Branch data isolation and security architecture → Defined in research.md Section 2
 3. ✅ Offline sync queue and conflict resolution implementation → Defined in research.md Section 3
@@ -492,6 +520,7 @@ No violations detected. All design decisions align with constitution principles.
 7. ✅ Test strategy for offline scenarios and concurrent operations → Defined in research.md Section 7
 
 **No unjustified complexity introduced**:
+
 - Two-database architecture (head office + per-branch) justified by requirements (branch data isolation, multi-provider support)
 - Offline sync queue justified by requirement FR-063 (offline operation support)
 - Multi-provider database support justified by requirement FR-033 (configurable database providers)

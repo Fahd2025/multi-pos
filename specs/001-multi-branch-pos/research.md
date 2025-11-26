@@ -15,6 +15,7 @@ This document captures research findings and technology decisions for implementi
 ### Decision
 
 Implement JWT access/refresh token pattern with the following specifications:
+
 - **Access Token**: Short-lived (15 minutes), contains user claims (ID, branch, role)
 - **Refresh Token**: Long-lived (7 days), stored securely, used to obtain new access tokens
 - **Session Management**: Server-side session tracking with automatic 30-minute inactivity timeout
@@ -31,6 +32,7 @@ Implement JWT access/refresh token pattern with the following specifications:
 ### Implementation Approach
 
 **Backend (ASP.NET Core)**:
+
 ```csharp
 // Use System.IdentityModel.Tokens.Jwt
 // Services/Auth/JwtTokenService.cs will handle:
@@ -46,6 +48,7 @@ Implement JWT access/refresh token pattern with the following specifications:
 ```
 
 **Frontend (Next.js)**:
+
 ```typescript
 // services/auth.service.ts
 - Automatically refresh access token when expired (401 response)
@@ -55,6 +58,7 @@ Implement JWT access/refresh token pattern with the following specifications:
 ```
 
 **Database Schema**:
+
 ```sql
 RefreshTokens table:
 - Id (GUID)
@@ -96,6 +100,7 @@ Implement **application-level multi-tenancy** with physical database separation 
 ### Implementation Approach
 
 **Database Architecture**:
+
 ```
 HeadOfficeDB (Provider: SQLite/MSSQL/PostgreSQL/MySQL)
 ├── Branches table (Id, Name, ConnectionString, Provider, etc.)
@@ -117,6 +122,7 @@ BranchDB_Branch002 (Provider: MySQL)
 ```
 
 **Middleware Flow**:
+
 ```csharp
 // Middleware/BranchContextMiddleware.cs
 1. Extract JWT token from request
@@ -128,6 +134,7 @@ BranchDB_Branch002 (Provider: MySQL)
 ```
 
 **Connection Pooling**:
+
 ```csharp
 // Data/DbContextFactory.cs
 - Maintain connection pool per branch database
@@ -151,10 +158,12 @@ BranchDB_Branch002 (Provider: MySQL)
 Implement **client-side offline queue with last-commit-wins conflict resolution**:
 
 **Offline Queue Storage**:
+
 - **Browser**: IndexedDB for persistent storage across sessions
 - **Queue Structure**: Transaction-based with retry logic and error tracking
 
 **Sync Strategy**:
+
 - **Automatic Detection**: Service Worker or polling detects connectivity changes
 - **Background Sync**: Web Background Sync API (with polling fallback)
 - **Batch Processing**: Process queued transactions in chronological order
@@ -171,6 +180,7 @@ Implement **client-side offline queue with last-commit-wins conflict resolution*
 ### Implementation Approach
 
 **Frontend (Next.js)**:
+
 ```typescript
 // lib/offline-sync.ts
 interface QueuedTransaction {
@@ -205,6 +215,7 @@ ObjectStore: "transactions"
 ```
 
 **Backend (ASP.NET Core)**:
+
 ```csharp
 // Services/Sync/SyncService.cs
 public async Task<SyncResult> ProcessOfflineTransaction(QueuedTransaction transaction)
@@ -259,6 +270,7 @@ private async Task ProcessOfflineSale(SaleData saleData)
 ```
 
 **Visual Indicators**:
+
 ```typescript
 // components/shared/SyncStatusIndicator.tsx
 - Green: Online, all synced
@@ -283,12 +295,14 @@ private async Task ProcessOfflineSale(SaleData saleData)
 Use **Entity Framework Core's multi-provider support** with per-branch DbContext pooling:
 
 **Provider Support**:
+
 - SQLite: `Microsoft.EntityFrameworkCore.Sqlite`
 - SQL Server: `Microsoft.EntityFrameworkCore.SqlServer`
 - PostgreSQL: `Npgsql.EntityFrameworkCore.PostgreSQL`
 - MySQL: `Pomelo.EntityFrameworkCore.MySql`
 
 **Connection Strategy**:
+
 - Dynamic provider selection at runtime based on branch configuration
 - Connection string builder with field-level inputs (server, database, user, password, port)
 - DbContext pooling per branch database (reuse connections)
@@ -304,6 +318,7 @@ Use **Entity Framework Core's multi-provider support** with per-branch DbContext
 ### Implementation Approach
 
 **Configuration Model**:
+
 ```csharp
 // Models/Entities/HeadOffice/Branch.cs
 public class Branch
@@ -326,6 +341,7 @@ public class Branch
 ```
 
 **DbContext Factory**:
+
 ```csharp
 // Data/DbContextFactory.cs
 public class DbContextFactory
@@ -379,6 +395,7 @@ public class DbContextFactory
 ```
 
 **Connection String Builder**:
+
 ```csharp
 // Utilities/ConnectionStringBuilder.cs
 public static string BuildConnectionString(Branch branch)
@@ -403,6 +420,7 @@ public static string BuildConnectionString(Branch branch)
 ```
 
 **Health Checks**:
+
 ```csharp
 // Program.cs
 builder.Services.AddHealthChecks()
@@ -446,8 +464,9 @@ public class DatabaseHealthCheck : IHealthCheck
 Implement **server-side image processing pipeline** with filesystem storage:
 
 **Storage Structure**:
+
 ```
-Uploads/
+Upload/
 └── Branches/
     └── [BranchName]/
         └── [EntityType]/  (Products, Categories, Customers, etc.)
@@ -459,6 +478,7 @@ Uploads/
 ```
 
 **Image Processing**:
+
 - **Library**: SixLabors.ImageSharp (cross-platform, high-performance)
 - **Formats**: Accept JPEG, PNG, WebP; convert to WebP for storage (better compression)
 - **Quality**: 85% JPEG/WebP quality (good balance of size vs quality)
@@ -475,6 +495,7 @@ Uploads/
 ### Implementation Approach
 
 **Backend Service**:
+
 ```csharp
 // Services/Images/ImageService.cs
 public interface IImageService
@@ -486,7 +507,7 @@ public interface IImageService
 
 public class ImageService : IImageService
 {
-    private readonly string _uploadBasePath = "Uploads/Branches";
+    private readonly string _uploadBasePath = "Upload/Branches";
 
     public async Task<ImageResult> UploadImageAsync(
         string branchName,
@@ -536,6 +557,7 @@ public class ImageService : IImageService
 ```
 
 **API Endpoint**:
+
 ```csharp
 // Program.cs
 app.MapPost("/api/images/upload", async (
@@ -571,7 +593,7 @@ app.MapGet("/api/images/{branchName}/{entityType}/{entityId}/{size}", (
     Guid entityId,
     string size) =>
 {
-    var path = Path.Combine("Uploads", "Branches", branchName, entityType, entityId.ToString(), $"{size}.jpg");
+    var path = Path.Combine("Upload", "Branches", branchName, entityType, entityId.ToString(), $"{size}.jpg");
 
     if (!File.Exists(path))
         return Results.NotFound();
@@ -581,6 +603,7 @@ app.MapGet("/api/images/{branchName}/{entityType}/{entityId}/{size}", (
 ```
 
 **Frontend Usage**:
+
 ```typescript
 // components/shared/OptimizedImage.tsx
 interface Props {
@@ -588,17 +611,23 @@ interface Props {
   entityType: string;
   entityId: string;
   alt: string;
-  size: 'thumb' | 'medium' | 'large' | 'original';
+  size: "thumb" | "medium" | "large" | "original";
 }
 
-export const OptimizedImage: React.FC<Props> = ({ branchName, entityType, entityId, size, alt }) => {
+export const OptimizedImage: React.FC<Props> = ({
+  branchName,
+  entityType,
+  entityId,
+  size,
+  alt,
+}) => {
   const src = `/api/images/${branchName}/${entityType}/${entityId}/${size}`;
 
   return (
     <img
       src={src}
       alt={alt}
-      loading="lazy"  // Native lazy loading
+      loading="lazy" // Native lazy loading
     />
   );
 };
@@ -620,11 +649,13 @@ export const OptimizedImage: React.FC<Props> = ({ branchName, entityType, entity
 Implement **database-based audit logging** with circular buffer for activity logs:
 
 **Audit Scope**:
+
 - **Security Events**: Login, logout, failed login attempts, password changes, permission changes
 - **Business Events**: Sales, refunds, inventory adjustments, expense creation, price changes
 - **Admin Actions**: User creation/deletion, branch configuration changes, settings updates
 
 **Storage Strategy**:
+
 - **Audit Logs**: Permanent retention in `AuditLog` table (head office DB)
 - **Activity Logs**: Last 100 activities per user in `UserActivityLog` table (circular buffer, per requirement)
 
@@ -638,6 +669,7 @@ Implement **database-based audit logging** with circular buffer for activity log
 ### Implementation Approach
 
 **Database Schema**:
+
 ```sql
 -- Head Office Database
 AuditLog:
@@ -665,6 +697,7 @@ UserActivityLog:
 ```
 
 **Middleware**:
+
 ```csharp
 // Middleware/AuditLoggingMiddleware.cs
 public class AuditLoggingMiddleware
@@ -711,6 +744,7 @@ public class AuditLoggingMiddleware
 ```
 
 **Service**:
+
 ```csharp
 // Services/Audit/AuditService.cs
 public interface IAuditService
@@ -753,6 +787,7 @@ public class AuditService : IAuditService
 ```
 
 **Usage in Services**:
+
 ```csharp
 // Services/Sales/SalesService.cs
 public async Task<Sale> CreateSaleAsync(SaleDto saleDto)
@@ -793,6 +828,7 @@ public async Task<Sale> CreateSaleAsync(SaleDto saleDto)
 Implement **multi-layered testing strategy** with emphasis on offline and concurrency scenarios:
 
 **Test Layers**:
+
 1. **Unit Tests**: Business logic, utilities, conflict resolution algorithms
 2. **Integration Tests**: API endpoints, database operations, multi-provider support
 3. **Offline Simulation Tests**: IndexedDB queue, sync process, connection interruption
@@ -809,15 +845,16 @@ Implement **multi-layered testing strategy** with emphasis on offline and concur
 ### Implementation Approach
 
 **Offline Sync Tests (Frontend)**:
+
 ```typescript
 // __tests__/lib/offline-sync.test.ts
-describe('Offline Sync Queue', () => {
+describe("Offline Sync Queue", () => {
   beforeEach(async () => {
     // Setup IndexedDB mock
     await setupIndexedDBMock();
   });
 
-  test('queues sale transaction when offline', async () => {
+  test("queues sale transaction when offline", async () => {
     // Arrange
     const sale = createMockSale();
     mockNavigatorOnline(false);
@@ -826,13 +863,13 @@ describe('Offline Sync Queue', () => {
     const result = await salesService.createSale(sale);
 
     // Assert
-    expect(result.status).toBe('queued');
+    expect(result.status).toBe("queued");
     const queue = await offlineQueue.getPending();
     expect(queue).toHaveLength(1);
-    expect(queue[0].type).toBe('sale');
+    expect(queue[0].type).toBe("sale");
   });
 
-  test('syncs queued transactions when connectivity restored', async () => {
+  test("syncs queued transactions when connectivity restored", async () => {
     // Arrange
     await offlineQueue.add(createMockSale());
     await offlineQueue.add(createMockSale());
@@ -849,15 +886,15 @@ describe('Offline Sync Queue', () => {
     expect(mockApi).toHaveBeenCalledTimes(2);
   });
 
-  test('retries failed transactions up to 3 times', async () => {
+  test("retries failed transactions up to 3 times", async () => {
     // Arrange
     const sale = createMockSale();
     await offlineQueue.add(sale);
     mockApiResponses([
-      { status: 500 },  // Fail 1
-      { status: 500 },  // Fail 2
-      { status: 500 },  // Fail 3
-      { status: 200 }   // Should not be called (max retries exceeded)
+      { status: 500 }, // Fail 1
+      { status: 500 }, // Fail 2
+      { status: 500 }, // Fail 3
+      { status: 200 }, // Should not be called (max retries exceeded)
     ]);
 
     // Act
@@ -870,11 +907,17 @@ describe('Offline Sync Queue', () => {
     expect(failed[0].retryCount).toBe(3);
   });
 
-  test('processes transactions in chronological order', async () => {
+  test("processes transactions in chronological order", async () => {
     // Arrange
-    const sale1 = createMockSale({ timestamp: new Date('2025-01-21T10:00:00') });
-    const sale2 = createMockSale({ timestamp: new Date('2025-01-21T09:00:00') });
-    const sale3 = createMockSale({ timestamp: new Date('2025-01-21T11:00:00') });
+    const sale1 = createMockSale({
+      timestamp: new Date("2025-01-21T10:00:00"),
+    });
+    const sale2 = createMockSale({
+      timestamp: new Date("2025-01-21T09:00:00"),
+    });
+    const sale3 = createMockSale({
+      timestamp: new Date("2025-01-21T11:00:00"),
+    });
 
     await offlineQueue.add(sale1);
     await offlineQueue.add(sale2);
@@ -891,15 +934,16 @@ describe('Offline Sync Queue', () => {
 
     // Assert
     expect(callOrder).toEqual([
-      new Date('2025-01-21T09:00:00'),
-      new Date('2025-01-21T10:00:00'),
-      new Date('2025-01-21T11:00:00')
+      new Date("2025-01-21T09:00:00"),
+      new Date("2025-01-21T10:00:00"),
+      new Date("2025-01-21T11:00:00"),
     ]);
   });
 });
 ```
 
 **Concurrency Tests (Backend)**:
+
 ```csharp
 // Backend.IntegrationTests/ConcurrencyTests.cs
 [Fact]
@@ -976,6 +1020,7 @@ public async Task MultiProviderSupport_AllProvidersWork()
 ```
 
 **Integration Tests for Offline Sync Backend**:
+
 ```csharp
 // Backend.IntegrationTests/SyncServiceTests.cs
 [Fact]
@@ -1007,6 +1052,7 @@ public async Task ProcessOfflineTransactions_ChronologicalOrder_PreservesInvento
 ```
 
 **Test Coverage Goals**:
+
 - Services (business logic): 80%+
 - Offline queue: 90%+
 - Sync service: 90%+
@@ -1023,15 +1069,15 @@ public async Task ProcessOfflineTransactions_ChronologicalOrder_PreservesInvento
 
 ## Summary of Decisions
 
-| Area | Decision | Key Technology/Approach |
-|------|----------|------------------------|
-| Authentication | JWT access/refresh tokens, HttpOnly cookies | System.IdentityModel.Tokens.Jwt |
-| Data Isolation | Physical DB per branch, application-level security | EF Core multi-provider |
-| Offline Sync | IndexedDB queue, last-commit-wins, background sync | IndexedDB API, Background Sync API |
-| Database Support | SQLite, MSSQL, PostgreSQL, MySQL via EF Core | EF Core 8.0 with provider packages |
-| Image Storage | Filesystem with multi-size thumbnails | SixLabors.ImageSharp |
-| Audit Logging | Database with circular buffer for activity logs | Head Office DB tables |
-| Testing | Multi-layer with offline and concurrency focus | xUnit, Jest, Mock Service Worker |
+| Area             | Decision                                           | Key Technology/Approach            |
+| ---------------- | -------------------------------------------------- | ---------------------------------- |
+| Authentication   | JWT access/refresh tokens, HttpOnly cookies        | System.IdentityModel.Tokens.Jwt    |
+| Data Isolation   | Physical DB per branch, application-level security | EF Core multi-provider             |
+| Offline Sync     | IndexedDB queue, last-commit-wins, background sync | IndexedDB API, Background Sync API |
+| Database Support | SQLite, MSSQL, PostgreSQL, MySQL via EF Core       | EF Core 8.0 with provider packages |
+| Image Storage    | Filesystem with multi-size thumbnails              | SixLabors.ImageSharp               |
+| Audit Logging    | Database with circular buffer for activity logs    | Head Office DB tables              |
+| Testing          | Multi-layer with offline and concurrency focus     | xUnit, Jest, Mock Service Worker   |
 
 ---
 
@@ -1041,7 +1087,7 @@ public async Task ProcessOfflineTransactions_ChronologicalOrder_PreservesInvento
 2. **Phase 2 (Authentication)**: JWT service, user management, RBAC
 3. **Phase 3 (Core Business)**: Sales, inventory, customers (online mode)
 4. **Phase 4 (Offline)**: IndexedDB queue, sync service, conflict resolution
-5. **Phase 5 (Media)**: Image upload/optimization service
+5. **Phase 5 (Media)**: Image Upload/optimization service
 6. **Phase 6 (Audit)**: Audit logging, activity tracking
 7. **Phase 7 (Testing)**: Comprehensive test suite
 
@@ -1049,14 +1095,14 @@ public async Task ProcessOfflineTransactions_ChronologicalOrder_PreservesInvento
 
 ## Risk Mitigation
 
-| Risk | Mitigation |
-|------|------------|
-| Database provider incompatibilities | Use EF Core abstractions; test all providers in CI/CD |
-| Offline sync data loss | Persistent IndexedDB storage; retry logic with exponential backoff |
-| Concurrent inventory conflicts | Last-commit-wins with alerting; manager resolution workflow |
-| Image storage growth | Periodic cleanup of orphaned images; compression with WebP |
-| Session management complexity | Well-tested JWT library; standard refresh token pattern |
-| Multi-branch connection pooling overhead | Pool size tuning; health checks; connection timeout handling |
+| Risk                                     | Mitigation                                                         |
+| ---------------------------------------- | ------------------------------------------------------------------ |
+| Database provider incompatibilities      | Use EF Core abstractions; test all providers in CI/CD              |
+| Offline sync data loss                   | Persistent IndexedDB storage; retry logic with exponential backoff |
+| Concurrent inventory conflicts           | Last-commit-wins with alerting; manager resolution workflow        |
+| Image storage growth                     | Periodic cleanup of orphaned images; compression with WebP         |
+| Session management complexity            | Well-tested JWT library; standard refresh token pattern            |
+| Multi-branch connection pooling overhead | Pool size tuning; health checks; connection timeout handling       |
 
 ---
 

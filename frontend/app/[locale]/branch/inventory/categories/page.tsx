@@ -19,10 +19,11 @@ import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
 import { Button } from "@/components/shared/Button";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { ErrorAlert } from "@/components/shared/ErrorAlert";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function CategoriesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
-
+  const { branch } = useAuth();
   const [categories, setCategories] = useState<CategoryDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -289,6 +290,7 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
         }}
         category={selectedCategory}
         categories={categories}
+        branchName={branch?.branchCode || ""}
       />
 
       {/* Confirmation Dialog */}

@@ -24,6 +24,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Token Lifecycle**:
+
 - Access token: 15 minutes expiry
 - Refresh token: 7 days expiry (HttpOnly cookie)
 - Session timeout: 30 minutes inactivity
@@ -41,7 +42,9 @@ All endpoints are prefixed with `/api/v1/` (e.g., `/api/v1/sales`)
 ```json
 {
   "success": true,
-  "data": { /* response data */ },
+  "data": {
+    /* response data */
+  },
   "message": "Operation successful"
 }
 ```
@@ -54,7 +57,9 @@ All endpoints are prefixed with `/api/v1/` (e.g., `/api/v1/sales`)
   "error": {
     "code": "ERROR_CODE",
     "message": "Human-readable error message",
-    "details": { /* optional additional context */ }
+    "details": {
+      /* optional additional context */
+    }
   }
 }
 ```
@@ -64,7 +69,9 @@ All endpoints are prefixed with `/api/v1/` (e.g., `/api/v1/sales`)
 ```json
 {
   "success": true,
-  "data": [/* array of items */],
+  "data": [
+    /* array of items */
+  ],
   "pagination": {
     "page": 1,
     "pageSize": 20,
@@ -76,18 +83,18 @@ All endpoints are prefixed with `/api/v1/` (e.g., `/api/v1/sales`)
 
 ## HTTP Status Codes
 
-| Code | Meaning | Usage |
-|------|---------|-------|
-| 200 | OK | Successful GET, PUT, PATCH, DELETE |
-| 201 | Created | Successful POST (resource created) |
-| 204 | No Content | Successful DELETE (no response body) |
-| 400 | Bad Request | Invalid input, validation errors |
-| 401 | Unauthorized | Missing or invalid authentication |
-| 403 | Forbidden | Authenticated but lacking permissions |
-| 404 | Not Found | Resource does not exist |
-| 409 | Conflict | Resource conflict (e.g., duplicate SKU) |
-| 422 | Unprocessable Entity | Validation failed |
-| 500 | Internal Server Error | Server-side error |
+| Code | Meaning               | Usage                                   |
+| ---- | --------------------- | --------------------------------------- |
+| 200  | OK                    | Successful GET, PUT, PATCH, DELETE      |
+| 201  | Created               | Successful POST (resource created)      |
+| 204  | No Content            | Successful DELETE (no response body)    |
+| 400  | Bad Request           | Invalid input, validation errors        |
+| 401  | Unauthorized          | Missing or invalid authentication       |
+| 403  | Forbidden             | Authenticated but lacking permissions   |
+| 404  | Not Found             | Resource does not exist                 |
+| 409  | Conflict              | Resource conflict (e.g., duplicate SKU) |
+| 422  | Unprocessable Entity  | Validation failed                       |
+| 500  | Internal Server Error | Server-side error                       |
 
 ## API Endpoint Groups
 
@@ -212,34 +219,35 @@ All endpoints are prefixed with `/api/v1/` (e.g., `/api/v1/sales`)
 
 ### Roles
 
-| Role | Code | Permissions |
-|------|------|-------------|
-| Head Office Admin | `head_office_admin` | Full system access, cross-branch operations |
-| Branch Manager | `branch_manager` | Full branch access, reports, settings |
-| Cashier | `cashier` | Sales, customer lookup, basic inventory view |
+| Role              | Code                | Permissions                                  |
+| ----------------- | ------------------- | -------------------------------------------- |
+| Head Office Admin | `head_office_admin` | Full system access, cross-branch operations  |
+| Branch Manager    | `branch_manager`    | Full branch access, reports, settings        |
+| Cashier           | `cashier`           | Sales, customer lookup, basic inventory view |
 
 ### Endpoint Permissions
 
-| Endpoint | Head Office Admin | Branch Manager | Cashier |
-|----------|-------------------|----------------|---------|
-| Auth endpoints | ✅ | ✅ | ✅ |
-| Branch management | ✅ | ❌ | ❌ |
-| User management (head office) | ✅ | ❌ | ❌ |
-| User management (branch) | ✅ | ✅ | ❌ |
-| Sales (create) | ✅ | ✅ | ✅ |
-| Sales (void) | ✅ | ✅ | ❌ |
-| Products (read) | ✅ | ✅ | ✅ |
-| Products (write) | ✅ | ✅ | ❌ |
-| Customers (read) | ✅ | ✅ | ✅ |
-| Customers (write) | ✅ | ✅ | ❌ |
-| Purchases | ✅ | ✅ | ❌ |
-| Expenses | ✅ | ✅ | ❌ |
-| Reports | ✅ | ✅ | ❌ |
-| Audit logs | ✅ | ✅ (own branch) | ❌ |
+| Endpoint                      | Head Office Admin | Branch Manager  | Cashier |
+| ----------------------------- | ----------------- | --------------- | ------- |
+| Auth endpoints                | ✅                | ✅              | ✅      |
+| Branch management             | ✅                | ❌              | ❌      |
+| User management (head office) | ✅                | ❌              | ❌      |
+| User management (branch)      | ✅                | ✅              | ❌      |
+| Sales (create)                | ✅                | ✅              | ✅      |
+| Sales (void)                  | ✅                | ✅              | ❌      |
+| Products (read)               | ✅                | ✅              | ✅      |
+| Products (write)              | ✅                | ✅              | ❌      |
+| Customers (read)              | ✅                | ✅              | ✅      |
+| Customers (write)             | ✅                | ✅              | ❌      |
+| Purchases                     | ✅                | ✅              | ❌      |
+| Expenses                      | ✅                | ✅              | ❌      |
+| Reports                       | ✅                | ✅              | ❌      |
+| Audit logs                    | ✅                | ✅ (own branch) | ❌      |
 
 ## Request Validation
 
 All POST/PUT endpoints validate:
+
 - Required fields presence
 - Data type correctness
 - Format validation (email, phone, etc.)
@@ -268,7 +276,7 @@ Validation errors return `400 Bad Request` with details:
 
 - Public endpoints: 60 requests/minute per IP
 - Authenticated endpoints: 300 requests/minute per user
-- File uploads: 10 requests/minute per user
+- File Upload: 10 requests/minute per user
 - Sync endpoints: 100 requests/minute per branch
 
 Exceeded limits return `429 Too Many Requests`.
@@ -276,6 +284,7 @@ Exceeded limits return `429 Too Many Requests`.
 ## CORS Configuration
 
 Production CORS settings:
+
 - Allowed Origins: Frontend domain (whitelisted)
 - Allowed Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
 - Allowed Headers: Content-Type, Authorization

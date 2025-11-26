@@ -4,7 +4,7 @@ using Backend.Utilities;
 namespace Backend.Services.Images;
 
 /// <summary>
-/// Service implementation for managing image uploads, storage, and optimization
+/// Service implementation for managing image Upload, storage, and optimization
 /// </summary>
 public class ImageService : IImageService
 {
@@ -14,7 +14,7 @@ public class ImageService : IImageService
 
     public ImageService(IConfiguration configuration, ILogger<ImageService> logger)
     {
-        _uploadBasePath = configuration["ImageStorage:BasePath"] ?? "Uploads/Branches";
+        _uploadBasePath = configuration["ImageStorage:BasePath"] ?? "Upload/Branches";
         _logger = logger;
 
         // Ensure base directory exists
@@ -138,6 +138,13 @@ public class ImageService : IImageService
 
     private string GetEntityDirectory(string branchName, string entityType, Guid entityId)
     {
+        // Special case for Branch Logos: Upload/Branches/{code}/Logo/
+        // We assume branchName passed is the Code, and entityType is "Logo".
+        if (entityType.Equals("Logo", StringComparison.OrdinalIgnoreCase))
+        {
+            return Path.Combine(_uploadBasePath, branchName, entityType);
+        }
+
         return Path.Combine(_uploadBasePath, branchName, entityType, entityId.ToString());
     }
 

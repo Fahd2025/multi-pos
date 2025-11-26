@@ -1,7 +1,7 @@
 namespace Backend.Services.Images;
 
 /// <summary>
-/// Service for managing image uploads, storage, and optimization
+/// Service for managing image Upload, storage, and optimization
 /// </summary>
 public interface IImageService
 {

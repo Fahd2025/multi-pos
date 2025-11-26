@@ -22,9 +22,11 @@ import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useApiError } from "@/hooks/useApiError";
 import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function CustomersPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
+  const { branch } = useAuth();
 
   const [customers, setCustomers] = useState<CustomerDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -286,6 +288,7 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
         }}
         onSuccess={loadCustomers}
         customer={selectedCustomer}
+        branchName={branch?.branchCode || ""}
       />
 
       {/* Confirmation Dialog */}
