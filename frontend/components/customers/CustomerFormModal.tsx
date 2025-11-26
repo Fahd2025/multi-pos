@@ -1,6 +1,6 @@
 /**
- * Customer Form Modal
- * Modal for adding/editing customers using generic ModalBottomSheet
+ * Customer Form Modal with Image Upload
+ * Modal for adding/editing customers with logo upload capability
  */
 
 "use client";
@@ -8,7 +8,9 @@
 import { useState } from "react";
 import { CustomerDto, CreateCustomerDto, UpdateCustomerDto } from "@/types/api.types";
 import customerService from "@/services/customer.service";
+import imageService from "@/services/image.service";
 import { ModalBottomSheet } from "@/components/modals";
+import { ImageUpload } from "@/components/shared/ImageUpload";
 import { FormField } from "@/types/data-table.types";
 import { useApiError } from "@/hooks/useApiError";
 import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
@@ -17,7 +19,8 @@ interface CustomerFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  customer?: CustomerDto; // If provided, edit mode; otherwise, add mode
+  customer?: CustomerDto;
+  branchName: string; // Required for image upload
 }
 
 export default function CustomerFormModal({
@@ -25,8 +28,11 @@ export default function CustomerFormModal({
   onClose,
   onSuccess,
   customer,
+  branchName,
 }: CustomerFormModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
   const { error, isError, executeWithErrorHandling, clearError } = useApiError();
 
   // Define form fields
@@ -100,6 +106,8 @@ export default function CustomerFormModal({
     setIsSubmitting(true);
 
     const result = await executeWithErrorHandling(async () => {
+      let savedCustomer;
+
       if (customer) {
         // Update existing customer
         const updateDto: UpdateCustomerDto = {
@@ -113,7 +121,7 @@ export default function CustomerFormModal({
           loyaltyPoints: Number(data.loyaltyPoints),
           isActive: data.isActive,
         };
-        return await customerService.updateCustomer(customer.id, updateDto);
+        savedCustomer = await customerService.updateCustomer(customer.id, updateDto);
       } else {
         // Create new customer
         const createDto: CreateCustomerDto = {
@@ -127,8 +135,29 @@ export default function CustomerFormModal({
           loyaltyPoints: Number(data.loyaltyPoints),
           isActive: data.isActive,
         };
-        return await customerService.createCustomer(createDto);
+        savedCustomer = await customerService.createCustomer(createDto);
       }
+
+      // Upload logo if selected
+      if (selectedImages.length > 0 && branchName) {
+        setUploadingImages(true);
+        try {
+          await imageService.uploadImage(
+            branchName,
+            'Customers',
+            savedCustomer.id,
+            selectedImages[0] // Single logo
+          );
+          console.log('Successfully uploaded customer logo');
+        } catch (error) {
+          console.error('Error uploading logo:', error);
+          // Don't fail the whole operation
+        } finally {
+          setUploadingImages(false);
+        }
+      }
+
+      return savedCustomer;
     });
 
     setIsSubmitting(false);
@@ -137,12 +166,29 @@ export default function CustomerFormModal({
       onSuccess();
       onClose();
       clearError();
+      setSelectedImages([]);
     }
   };
 
   const handleClose = () => {
     clearError();
+    setSelectedImages([]);
     onClose();
+  };
+
+  const handleImageUpload = (files: File[]) => {
+    setSelectedImages(files);
+  };
+
+  const handleImageRemove = async (imageId: string) => {
+    if (!customer?.id || !branchName) return;
+
+    try {
+      await imageService.deleteImages(branchName, 'Customers', customer.id);
+      console.log('Customer logo deleted successfully');
+    } catch (error) {
+      console.error('Error deleting logo:', error);
+    }
   };
 
   return (
@@ -154,6 +200,7 @@ export default function CustomerFormModal({
         </div>
       )}
 
+      {/* Main Form Modal */}
       <ModalBottomSheet
         isOpen={isOpen}
         onClose={handleClose}
@@ -162,9 +209,62 @@ export default function CustomerFormModal({
         initialData={customer}
         fields={fields}
         onSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
+        isSubmitting={isSubmitting || uploadingImages}
         size="md"
       />
+
+      {/* Image Upload Section */}
+      {isOpen && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 p-6 z-[45] max-h-[40vh] overflow-y-auto">
+          <div className="max-w-4xl mx-auto">
+            <ImageUpload
+              branchName={branchName}
+              entityType="Customers"
+              entityId={customer?.id}
+              currentImages={customer?.images || []}
+              multiple={false}
+              maxFiles={1}
+              onUpload={handleImageUpload}
+              onRemove={handleImageRemove}
+              label="Customer Logo (Optional)"
+              className="mb-4"
+            />
+
+            {/* Upload status */}
+            {uploadingImages && (
+              <div className="flex items-center justify-center space-x-2 text-blue-600 mt-4">
+                <svg
+                  className="animate-spin h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                <span className="text-sm font-medium">Uploading logo...</span>
+              </div>
+            )}
+
+            {selectedImages.length > 0 && !uploadingImages && (
+              <div className="text-sm text-gray-600 text-center mt-2">
+                Logo ready to upload
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }

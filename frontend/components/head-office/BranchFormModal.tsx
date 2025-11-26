@@ -1,6 +1,6 @@
 /**
- * Branch Form Modal
- * Reusable modal for creating/editing branches
+ * Branch Form Modal with Logo Upload
+ * Reusable modal for creating/editing branches with logo upload capability
  * Uses existing Modal and Form components
  */
 
@@ -11,7 +11,9 @@ import { Modal } from '@/components/shared/Modal';
 import { Input } from '@/components/shared/Form/Input';
 import { Select } from '@/components/shared/Form/Select';
 import { Button } from '@/components/shared/Button';
+import { ImageUpload } from '@/components/shared/ImageUpload';
 import branchService, { CreateBranchDto, UpdateBranchDto, BranchDto } from '@/services/branch.service';
+import imageService from '@/services/image.service';
 
 interface BranchFormModalProps {
   isOpen: boolean;
@@ -30,6 +32,8 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [testingConnection, setTestingConnection] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -98,6 +102,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
         taxRate: 0,
       });
     }
+    setSelectedImages([]);
   }, [branch, isOpen]);
 
   // Update default port when database provider changes
@@ -132,12 +137,29 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
     }
   };
 
+  const handleImageUpload = (files: File[]) => {
+    setSelectedImages(files);
+  };
+
+  const handleImageRemove = async (imageId: string) => {
+    if (!branch?.id) return;
+
+    try {
+      await imageService.deleteImages('HeadOffice', 'Branches', branch.id);
+      console.log('Branch logo deleted successfully');
+    } catch (error) {
+      console.error('Error deleting logo:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
+      let savedBranch;
+
       if (isEditMode && branch) {
         // Update branch
         const updateDto: UpdateBranchDto = {
@@ -157,7 +179,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
           currency: formData.currency,
           taxRate: formData.taxRate,
         };
-        await branchService.updateBranch(branch.id, updateDto);
+        savedBranch = await branchService.updateBranch(branch.id, updateDto);
       } else {
         // Create branch
         const createDto: CreateBranchDto = {
@@ -179,11 +201,31 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
           currency: formData.currency,
           taxRate: formData.taxRate,
         };
-        await branchService.createBranch(createDto);
+        savedBranch = await branchService.createBranch(createDto);
+      }
+
+      // Upload logo if selected
+      if (selectedImages.length > 0) {
+        setUploadingImages(true);
+        try {
+          await imageService.uploadImage(
+            'HeadOffice', // Special branch name for head office context
+            'Branches',
+            savedBranch.id,
+            selectedImages[0] // Single logo
+          );
+          console.log('Successfully uploaded branch logo');
+        } catch (error) {
+          console.error('Error uploading logo:', error);
+          // Don't fail the whole operation
+        } finally {
+          setUploadingImages(false);
+        }
       }
 
       onSuccess();
       onClose();
+      setSelectedImages([]);
     } catch (err: any) {
       setError(err.message || `Failed to ${isEditMode ? 'update' : 'create'} branch`);
     } finally {
@@ -404,13 +446,64 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
           </div>
         </div>
 
+        {/* Branch Logo */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            Branch Logo
+          </h3>
+
+          <ImageUpload
+            branchName="HeadOffice"
+            entityType="Branches"
+            entityId={branch?.id}
+            currentImages={branch?.images || []}
+            multiple={false}
+            maxFiles={1}
+            onUpload={handleImageUpload}
+            onRemove={handleImageRemove}
+            label="Branch Logo (Optional)"
+          />
+
+          {uploadingImages && (
+            <div className="flex items-center justify-center space-x-2 text-blue-600">
+              <svg
+                className="animate-spin h-5 w-5"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              <span className="text-sm font-medium">Uploading logo...</span>
+            </div>
+          )}
+
+          {selectedImages.length > 0 && !uploadingImages && (
+            <div className="text-sm text-gray-600 text-center">
+              Logo ready to upload
+            </div>
+          )}
+        </div>
+
         {/* Actions */}
         <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <Button type="button" onClick={onClose} variant="secondary" disabled={loading}>
+          <Button type="button" onClick={onClose} variant="secondary" disabled={loading || uploadingImages}>
             Cancel
           </Button>
-          <Button type="submit" disabled={loading}>
-            {loading ? 'Saving...' : isEditMode ? 'Update Branch' : 'Create Branch'}
+          <Button type="submit" disabled={loading || uploadingImages}>
+            {loading || uploadingImages ? 'Saving...' : isEditMode ? 'Update Branch' : 'Create Branch'}
           </Button>
         </div>
       </form>

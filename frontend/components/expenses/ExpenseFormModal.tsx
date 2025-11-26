@@ -1,32 +1,40 @@
 /**
- * Expense Form Modal Component
- * Create or edit expense using generic ModalBottomSheet
+ * Expense Form Modal with Receipt Image Upload
+ * Create or edit expense with receipt/invoice image upload capability
  */
 
 "use client";
 
 import { useState } from "react";
 import expenseService from "@/services/expense.service";
+import imageService from "@/services/image.service";
 import { ExpenseDto, CreateExpenseDto, ExpenseCategoryDto } from "@/types/api.types";
 import { ModalBottomSheet } from "@/components/modals";
+import { ImageUpload } from "@/components/shared/ImageUpload";
 import { FormField } from "@/types/data-table.types";
 import { useApiError } from "@/hooks/useApiError";
 import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
 
 interface ExpenseFormModalProps {
+  isOpen: boolean;
   expense?: ExpenseDto;
   categories: ExpenseCategoryDto[];
+  branchName: string; // Required for image upload
   onClose: () => void;
   onSuccess: () => void;
 }
 
 export default function ExpenseFormModal({
+  isOpen,
   expense,
   categories,
+  branchName,
   onClose,
   onSuccess,
 }: ExpenseFormModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
   const { error, isError, executeWithErrorHandling, clearError } = useApiError();
 
   // Prepare initial data
@@ -105,15 +113,6 @@ export default function ExpenseFormModal({
         maxLength: 500,
       },
     },
-    {
-      name: "receiptImagePath",
-      label: "Receipt Image Path",
-      type: "text",
-      placeholder: "/uploads/receipts/expense-001.jpg",
-      validation: {
-        maxLength: 500,
-      },
-    },
   ];
 
   const handleSubmit = async (data: any) => {
@@ -131,11 +130,31 @@ export default function ExpenseFormModal({
         receiptImagePath: data.receiptImagePath,
       };
 
-      if (expense) {
-        return await expenseService.updateExpense(expense.id, dto);
-      } else {
-        return await expenseService.createExpense(dto);
+      // 1. Create or update the expense
+      const savedExpense = expense
+        ? await expenseService.updateExpense(expense.id, dto)
+        : await expenseService.createExpense(dto);
+
+      // 2. Upload receipt images if selected
+      if (selectedImages.length > 0 && branchName) {
+        setUploadingImages(true);
+        try {
+          await imageService.uploadMultipleImages(
+            branchName,
+            'Expenses',
+            savedExpense.id,
+            selectedImages // Multiple receipt images (up to 3)
+          );
+          console.log(`Successfully uploaded ${selectedImages.length} receipt image(s)`);
+        } catch (error) {
+          console.error('Error uploading receipt images:', error);
+          // Don't fail the whole operation
+        } finally {
+          setUploadingImages(false);
+        }
       }
+
+      return savedExpense;
     });
 
     setIsSubmitting(false);
@@ -144,34 +163,105 @@ export default function ExpenseFormModal({
       onSuccess();
       onClose();
       clearError();
+      setSelectedImages([]);
     }
   };
 
   const handleClose = () => {
     clearError();
+    setSelectedImages([]);
     onClose();
+  };
+
+  const handleImageUpload = (files: File[]) => {
+    setSelectedImages(files);
+  };
+
+  const handleImageRemove = async (imageId: string) => {
+    if (!expense?.id || !branchName) return;
+
+    try {
+      await imageService.deleteImages(branchName, 'Expenses', expense.id);
+      console.log('Receipt images deleted successfully');
+    } catch (error) {
+      console.error('Error deleting receipt images:', error);
+    }
   };
 
   return (
     <>
       {/* Error Display */}
-      {isError && (
+      {isOpen && isError && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[60] max-w-2xl w-full px-4">
           <ApiErrorAlert error={error} onDismiss={clearError} />
         </div>
       )}
 
+      {/* Main Form Modal */}
       <ModalBottomSheet
-        isOpen={true}
+        isOpen={isOpen}
         onClose={handleClose}
         title={expense ? "Edit Expense" : "Add New Expense"}
         mode={expense ? "edit" : "create"}
         initialData={initialData}
         fields={fields}
         onSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
+        isSubmitting={isSubmitting || uploadingImages}
         size="md"
       />
+
+      {/* Image Upload Section */}
+      {isOpen && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 p-6 z-[45] max-h-[40vh] overflow-y-auto">
+          <div className="max-w-4xl mx-auto">
+            <ImageUpload
+              branchName={branchName}
+              entityType="Expenses"
+              entityId={expense?.id}
+              currentImages={expense?.images || []}
+              multiple={true}
+              maxFiles={3}
+              onUpload={handleImageUpload}
+              onRemove={handleImageRemove}
+              label="Receipt/Invoice Images (Optional, up to 3)"
+              className="mb-4"
+            />
+
+            {/* Upload status */}
+            {uploadingImages && (
+              <div className="flex items-center justify-center space-x-2 text-blue-600 mt-4">
+                <svg
+                  className="animate-spin h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                <span className="text-sm font-medium">Uploading receipt images...</span>
+              </div>
+            )}
+
+            {selectedImages.length > 0 && !uploadingImages && (
+              <div className="text-sm text-gray-600 text-center mt-2">
+                {selectedImages.length} receipt image{selectedImages.length > 1 ? 's' : ''} ready to upload
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
