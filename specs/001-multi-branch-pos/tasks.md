@@ -529,7 +529,7 @@
 - [X] T260 [US7] Create suppliers page in frontend/app/[locale]/branch/suppliers/page.tsx
 - [X] T261 [US7] Create supplier form modal in frontend/components/suppliers/SupplierFormModal.tsx
 - [X] T262 [US7] Create supplier details page in frontend/app/[locale]/branch/suppliers/[id]/page.tsx with purchase history
-- [ ] T263 [US7] Update purchase form to include supplier selection dropdown
+- [X] T263 [US7] Update purchase form to include supplier selection dropdown
 
 ### Integration & Validation for User Story 7
 
