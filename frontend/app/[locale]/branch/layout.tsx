@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import SyncStatusIndicator from '@/components/shared/SyncStatusIndicator';
 import { ThemeSwitcherCompact } from '@/components/shared/ThemeSwitcher';
+import { usePermission } from '@/components/auth/RoleGuard';
 import { use } from 'react';
 
 export default function BranchLayout({
@@ -24,16 +25,27 @@ export default function BranchLayout({
   const { user, logout } = useAuth();
   const { isOnline, status, pendingCount } = useOfflineSync();
   const { locale } = use(params);
+  const { canManage, canViewReports } = usePermission();
 
-  const navigation = [
-    { name: 'Dashboard', href: `/${locale}/branch`, icon: '📊' },
-    { name: 'Sales', href: `/${locale}/branch/sales`, icon: '💳' },
-    { name: 'Inventory', href: `/${locale}/branch/inventory`, icon: '📦' },
-    { name: 'Purchases', href: `/${locale}/branch/purchases`, icon: '🛒' },
-    { name: 'Expenses', href: `/${locale}/branch/expenses`, icon: '💰' },
-    { name: 'Customers', href: `/${locale}/branch/customers`, icon: '👥' },
-    { name: 'Reports', href: `/${locale}/branch/reports`, icon: '📈' },
+  // Navigation items with role-based access
+  const allNavigationItems = [
+    { name: 'Dashboard', href: `/${locale}/branch`, icon: '📊', requiresRole: false },
+    { name: 'Sales', href: `/${locale}/branch/sales`, icon: '💳', requiresRole: false },
+    { name: 'Inventory', href: `/${locale}/branch/inventory`, icon: '📦', requiresManager: true },
+    { name: 'Purchases', href: `/${locale}/branch/purchases`, icon: '🛒', requiresManager: true },
+    { name: 'Expenses', href: `/${locale}/branch/expenses`, icon: '💰', requiresManager: true },
+    { name: 'Customers', href: `/${locale}/branch/customers`, icon: '👥', requiresRole: false },
+    { name: 'Reports', href: `/${locale}/branch/reports`, icon: '📈', requiresManager: true },
+    { name: 'Settings', href: `/${locale}/branch/settings`, icon: '⚙️', requiresManager: true },
   ];
+
+  // Filter navigation based on user role
+  const navigation = allNavigationItems.filter(item => {
+    if (item.requiresManager) {
+      return canManage();
+    }
+    return true; // Show to everyone
+  });
 
   const isActiveLink = (href: string) => {
     if (href === `/${locale}/branch`) {
