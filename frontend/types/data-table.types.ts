@@ -144,7 +144,7 @@ export interface FormField<T> {
   /** Field label */
   label: string;
   /** Field type */
-  type: 'text' | 'number' | 'email' | 'password' | 'textarea' | 'select' | 'checkbox' | 'date' | 'datetime-local';
+  type: 'text' | 'number' | 'email' | 'password' | 'tel' | 'textarea' | 'select' | 'checkbox' | 'date' | 'datetime-local';
   /** Placeholder text */
   placeholder?: string;
   /** Whether field is required */
@@ -184,6 +184,8 @@ export interface FeaturedDialogProps<T = any> {
   actions?: DialogAction<T>[];
   /** Optional size variant */
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  /** Optional custom content to display after fields */
+  customContent?: React.ReactNode;
 }
 
 // Display field configuration

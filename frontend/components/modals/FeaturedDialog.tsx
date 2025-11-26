@@ -44,7 +44,8 @@ export function FeaturedDialog<T = any>({
   data,
   fields,
   actions = [],
-  size = 'md'
+  size = 'md',
+  customContent
 }: FeaturedDialogProps<T>) {
 
   // Size classes
@@ -116,6 +117,13 @@ export function FeaturedDialog<T = any>({
                 );
               })}
             </div>
+
+            {/* Custom Content */}
+            {customContent && (
+              <div className="mt-4">
+                {customContent}
+              </div>
+            )}
           </div>
 
           {/* Footer with Actions */}

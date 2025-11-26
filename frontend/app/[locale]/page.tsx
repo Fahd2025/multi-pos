@@ -6,8 +6,11 @@ import { Input, Select } from '@/components/shared/Form';
 import { Button } from '@/components/shared/Button';
 import { ThemeSwitcherCompact } from '@/components/shared/ThemeSwitcher';
 
+type LoginMode = 'headoffice' | 'branch';
+
 export default function LoginPage() {
   const { login, isLoading, error } = useAuth();
+  const [loginMode, setLoginMode] = useState<LoginMode>('branch');
   const [formData, setFormData] = useState({
     branchName: '',
     username: '',
@@ -18,7 +21,12 @@ export default function LoginPage() {
     e.preventDefault();
 
     try {
-      await login(formData);
+      // For head office login, pass empty string as branchName
+      const loginData = {
+        ...formData,
+        branchName: loginMode === 'headoffice' ? '' : formData.branchName,
+      };
+      await login(loginData, loginMode);
     } catch (err) {
       // Error is handled by useAuth hook
       console.error('Login failed:', err);
@@ -66,22 +74,50 @@ export default function LoginPage() {
 
         {/* Login Form */}
         <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+          {/* Login Mode Tabs */}
+          <div className="flex gap-2 p-1 mb-6 bg-gray-100 dark:bg-gray-700 rounded-lg">
+            <button
+              type="button"
+              onClick={() => setLoginMode('branch')}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                loginMode === 'branch'
+                  ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              }`}
+            >
+              Branch Login
+            </button>
+            <button
+              type="button"
+              onClick={() => setLoginMode('headoffice')}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                loginMode === 'headoffice'
+                  ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              }`}
+            >
+              Head Office
+            </button>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Branch Selection */}
-            <Select
-              label="Branch"
-              name="branchName"
-              value={formData.branchName}
-              onChange={handleChange}
-              placeholder="Select your branch"
-              required
-              options={[
-                { value: 'B001', label: 'Main Branch' },
-                { value: 'B002', label: 'Downtown Branch' },
-                { value: 'B003', label: 'Mall Branch' },
-              ]}
-              helperText="Select the branch you want to access"
-            />
+            {/* Branch Selection - Only show for branch login */}
+            {loginMode === 'branch' && (
+              <Select
+                label="Branch"
+                name="branchName"
+                value={formData.branchName}
+                onChange={handleChange}
+                placeholder="Select your branch"
+                required
+                options={[
+                  { value: 'B001', label: 'Main Branch' },
+                  { value: 'B002', label: 'Downtown Branch' },
+                  { value: 'B003', label: 'Mall Branch' },
+                ]}
+                helperText="Select the branch you want to access"
+              />
+            )}
 
             {/* Username */}
             <Input

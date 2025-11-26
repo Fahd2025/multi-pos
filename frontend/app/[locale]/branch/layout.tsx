@@ -33,6 +33,7 @@ export default function BranchLayout({
     { name: 'Sales', href: `/${locale}/branch/sales`, icon: '💳', requiresRole: false },
     { name: 'Inventory', href: `/${locale}/branch/inventory`, icon: '📦', requiresManager: true },
     { name: 'Purchases', href: `/${locale}/branch/purchases`, icon: '🛒', requiresManager: true },
+    { name: 'Suppliers', href: `/${locale}/branch/suppliers`, icon: '🏢', requiresManager: true },
     { name: 'Expenses', href: `/${locale}/branch/expenses`, icon: '💰', requiresManager: true },
     { name: 'Customers', href: `/${locale}/branch/customers`, icon: '👥', requiresRole: false },
     { name: 'Reports', href: `/${locale}/branch/reports`, icon: '📈', requiresManager: true },

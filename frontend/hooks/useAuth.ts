@@ -15,7 +15,7 @@ interface UseAuthReturn {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  login: (credentials: LoginRequest) => Promise<void>;
+  login: (credentials: LoginRequest, loginMode?: 'branch' | 'headoffice') => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   isHeadOfficeAdmin: () => boolean;
@@ -50,7 +50,7 @@ export function useAuth(): UseAuthReturn {
   }, []);
 
   // Login function
-  const login = useCallback(async (credentials: LoginRequest) => {
+  const login = useCallback(async (credentials: LoginRequest, loginMode: 'branch' | 'headoffice' = 'branch') => {
     setIsLoading(true);
     setError(null);
 
@@ -58,21 +58,32 @@ export function useAuth(): UseAuthReturn {
       const response = await authService.login(credentials);
       setUser(response.user);
 
-      // Find selected branch
-      const selectedBranch = response.user.branches.find(
-        (b) => b.branchCode.toLowerCase() === credentials.branchName.toLowerCase()
-      );
-
-      setBranch(selectedBranch || null);
-
       // Get current locale from window location (default to 'en')
       const pathSegments = window.location.pathname.split('/').filter(Boolean);
       const locale = pathSegments[0] || 'en';
 
-      // Redirect to branch dashboard
-      // Note: Head office functionality will be implemented in a future phase
-      // For now, all users access the branch dashboard
-      router.push(`/${locale}/branch`);
+      // Handle branch login
+      if (loginMode === 'branch') {
+        // Find selected branch
+        const selectedBranch = response.user.branches.find(
+          (b) => b.branchCode.toLowerCase() === credentials.branchName.toLowerCase()
+        );
+
+        setBranch(selectedBranch || null);
+        router.push(`/${locale}/branch`);
+      }
+      // Handle head office login
+      else if (loginMode === 'headoffice') {
+        setBranch(null);
+
+        // Verify user is actually a head office admin
+        if (!response.user.isHeadOfficeAdmin) {
+          setError("You don't have permission to access the head office dashboard.");
+          throw new Error("Not authorized for head office access");
+        }
+
+        router.push(`/${locale}/head-office`);
+      }
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || "Login failed. Please check your credentials.";
       setError(errorMessage);

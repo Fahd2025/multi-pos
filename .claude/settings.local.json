@@ -35,7 +35,10 @@
       "Bash(taskkill:*)",
       "Bash(dir /S /B UploadBranches*.db)",
       "Bash(dir:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(cat:*)",
+      "Bash(sqlite3:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,6 +1,7 @@
 using Backend.Data;
 using Backend.Models.DTOs.Suppliers;
 using Backend.Models.Entities.Branch;
+using Backend.Models.Entities.HeadOffice;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services.Suppliers;
@@ -11,10 +12,25 @@ namespace Backend.Services.Suppliers;
 public class SupplierService : ISupplierService
 {
     private readonly DbContextFactory _dbContextFactory;
+    private readonly HeadOfficeDbContext _headOfficeContext;
 
-    public SupplierService(DbContextFactory dbContextFactory)
+    public SupplierService(DbContextFactory dbContextFactory, HeadOfficeDbContext headOfficeContext)
     {
         _dbContextFactory = dbContextFactory;
+        _headOfficeContext = headOfficeContext;
+    }
+
+    private async Task<Branch> GetBranchAsync(Guid branchId)
+    {
+        var branch = await _headOfficeContext.Branches
+            .FirstOrDefaultAsync(b => b.Id == branchId && b.IsActive);
+
+        if (branch == null)
+        {
+            throw new InvalidOperationException($"Branch with ID '{branchId}' not found or inactive.");
+        }
+
+        return branch;
     }
 
     public async Task<(List<SupplierDto> Suppliers, int TotalCount)> GetSuppliersAsync(
@@ -24,7 +40,8 @@ public class SupplierService : ISupplierService
         int page = 1,
         int pageSize = 50)
     {
-        await using var context = _dbContextFactory.CreateBranchDbContext(branchId);
+        var branch = await GetBranchAsync(branchId);
+        await using var context = _dbContextFactory.CreateBranchContext(branch);
 
         var query = context.Suppliers
             .Include(s => s.Purchases)
@@ -51,43 +68,47 @@ public class SupplierService : ISupplierService
 
         var totalCount = await query.CountAsync();
 
-        var suppliers = await query
+        // Load suppliers with their purchases
+        var suppliersEntities = await query
             .OrderBy(s => s.NameEn)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(s => new SupplierDto
-            {
-                Id = s.Id,
-                Code = s.Code,
-                NameEn = s.NameEn,
-                NameAr = s.NameAr,
-                Email = s.Email,
-                Phone = s.Phone,
-                AddressEn = s.AddressEn,
-                AddressAr = s.AddressAr,
-                LogoPath = s.LogoPath,
-                PaymentTerms = s.PaymentTerms,
-                DeliveryTerms = s.DeliveryTerms,
-                IsActive = s.IsActive,
-                CreatedAt = s.CreatedAt,
-                UpdatedAt = s.UpdatedAt,
-                TotalPurchases = s.Purchases.Count,
-                TotalSpent = s.Purchases
-                    .Where(p => p.Status == Models.Entities.Branch.PaymentStatus.Completed)
-                    .Sum(p => p.TotalAmount),
-                LastPurchaseDate = s.Purchases
-                    .OrderByDescending(p => p.PurchaseDate)
-                    .Select(p => (DateTime?)p.PurchaseDate)
-                    .FirstOrDefault()
-            })
             .ToListAsync();
+
+        // Map to DTOs with calculations done client-side (to avoid SQLite decimal Sum issues)
+        var suppliers = suppliersEntities.Select(s => new SupplierDto
+        {
+            Id = s.Id,
+            Code = s.Code,
+            NameEn = s.NameEn,
+            NameAr = s.NameAr,
+            Email = s.Email,
+            Phone = s.Phone,
+            AddressEn = s.AddressEn,
+            AddressAr = s.AddressAr,
+            LogoPath = s.LogoPath,
+            PaymentTerms = s.PaymentTerms,
+            DeliveryTerms = s.DeliveryTerms,
+            IsActive = s.IsActive,
+            CreatedAt = s.CreatedAt,
+            UpdatedAt = s.UpdatedAt,
+            TotalPurchases = s.Purchases.Count,
+            TotalSpent = s.Purchases
+                .Where(p => p.PaymentStatus == PaymentStatus.Paid)
+                .Sum(p => p.TotalCost),
+            LastPurchaseDate = s.Purchases
+                .OrderByDescending(p => p.PurchaseDate)
+                .Select(p => (DateTime?)p.PurchaseDate)
+                .FirstOrDefault()
+        }).ToList();
 
         return (suppliers, totalCount);
     }
 
     public async Task<SupplierDto?> GetSupplierByIdAsync(Guid branchId, Guid supplierId)
     {
-        await using var context = _dbContextFactory.CreateBranchDbContext(branchId);
+        var branch = await GetBranchAsync(branchId);
+        await using var context = _dbContextFactory.CreateBranchContext(branch);
 
         var supplier = await context.Suppliers
             .Include(s => s.Purchases)
@@ -98,6 +119,7 @@ public class SupplierService : ISupplierService
             return null;
         }
 
+        // Calculate purchase statistics client-side to avoid SQLite decimal Sum issues
         return new SupplierDto
         {
             Id = supplier.Id,
@@ -116,8 +138,8 @@ public class SupplierService : ISupplierService
             UpdatedAt = supplier.UpdatedAt,
             TotalPurchases = supplier.Purchases.Count,
             TotalSpent = supplier.Purchases
-                .Where(p => p.Status == Models.Entities.Branch.PaymentStatus.Completed)
-                .Sum(p => p.TotalAmount),
+                .Where(p => p.PaymentStatus == PaymentStatus.Paid)
+                .Sum(p => p.TotalCost),
             LastPurchaseDate = supplier.Purchases
                 .OrderByDescending(p => p.PurchaseDate)
                 .Select(p => (DateTime?)p.PurchaseDate)
@@ -127,7 +149,8 @@ public class SupplierService : ISupplierService
 
     public async Task<SupplierDto> CreateSupplierAsync(Guid branchId, CreateSupplierDto createDto, Guid createdByUserId)
     {
-        await using var context = _dbContextFactory.CreateBranchDbContext(branchId);
+        var branch = await GetBranchAsync(branchId);
+        await using var context = _dbContextFactory.CreateBranchContext(branch);
 
         // Check if code already exists
         var existingSupplier = await context.Suppliers
@@ -183,7 +206,8 @@ public class SupplierService : ISupplierService
 
     public async Task<SupplierDto> UpdateSupplierAsync(Guid branchId, Guid supplierId, UpdateSupplierDto updateDto)
     {
-        await using var context = _dbContextFactory.CreateBranchDbContext(branchId);
+        var branch = await GetBranchAsync(branchId);
+        await using var context = _dbContextFactory.CreateBranchContext(branch);
 
         var supplier = await context.Suppliers
             .Include(s => s.Purchases)
@@ -223,6 +247,7 @@ public class SupplierService : ISupplierService
 
         await context.SaveChangesAsync();
 
+        // Calculate purchase statistics client-side to avoid SQLite decimal Sum issues
         return new SupplierDto
         {
             Id = supplier.Id,
@@ -241,8 +266,8 @@ public class SupplierService : ISupplierService
             UpdatedAt = supplier.UpdatedAt,
             TotalPurchases = supplier.Purchases.Count,
             TotalSpent = supplier.Purchases
-                .Where(p => p.Status == Models.Entities.Branch.PaymentStatus.Completed)
-                .Sum(p => p.TotalAmount),
+                .Where(p => p.PaymentStatus == PaymentStatus.Paid)
+                .Sum(p => p.TotalCost),
             LastPurchaseDate = supplier.Purchases
                 .OrderByDescending(p => p.PurchaseDate)
                 .Select(p => (DateTime?)p.PurchaseDate)
@@ -252,7 +277,8 @@ public class SupplierService : ISupplierService
 
     public async Task DeleteSupplierAsync(Guid branchId, Guid supplierId)
     {
-        await using var context = _dbContextFactory.CreateBranchDbContext(branchId);
+        var branch = await GetBranchAsync(branchId);
+        await using var context = _dbContextFactory.CreateBranchContext(branch);
 
         var supplier = await context.Suppliers
             .Include(s => s.Purchases)
@@ -281,7 +307,8 @@ public class SupplierService : ISupplierService
 
     public async Task<List<Purchase>> GetSupplierPurchaseHistoryAsync(Guid branchId, Guid supplierId, int page = 1, int pageSize = 50)
     {
-        await using var context = _dbContextFactory.CreateBranchDbContext(branchId);
+        var branch = await GetBranchAsync(branchId);
+        await using var context = _dbContextFactory.CreateBranchContext(branch);
 
         var purchases = await context.Purchases
             .Where(p => p.SupplierId == supplierId)

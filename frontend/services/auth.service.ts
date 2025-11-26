@@ -8,7 +8,7 @@ import { STORAGE_KEYS, API_ROUTES } from "@/lib/constants";
 
 // Types for auth requests and responses
 export interface LoginRequest {
-  branchName: string;
+  branchName?: string; // Optional for head office login
   username: string;
   password: string;
 }
@@ -53,7 +53,7 @@ class AuthService {
       const loginPayload = {
         username: credentials.username,
         password: credentials.password,
-        branchLoginName: credentials.branchName, // Backend expects 'branchLoginName'
+        branchLoginName: credentials.branchName || undefined, // Backend expects 'branchLoginName', send undefined if not provided
       };
 
       const response = await api.post<{ success: boolean; data: LoginResponse; message: string }>(
@@ -68,13 +68,18 @@ class AuthService {
         localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
         localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
 
-        // Find the selected branch from user's branch assignments
-        const selectedBranch = user.branches.find(
-          (b) => b.branchCode.toLowerCase() === credentials.branchName.toLowerCase()
-        );
+        // Find and store the selected branch from user's branch assignments (if branch login)
+        if (credentials.branchName) {
+          const selectedBranch = user.branches.find(
+            (b) => b.branchCode.toLowerCase() === credentials.branchName!.toLowerCase()
+          );
 
-        if (selectedBranch) {
-          localStorage.setItem(STORAGE_KEYS.BRANCH, JSON.stringify(selectedBranch));
+          if (selectedBranch) {
+            localStorage.setItem(STORAGE_KEYS.BRANCH, JSON.stringify(selectedBranch));
+          }
+        } else {
+          // For head office login, clear any existing branch data
+          localStorage.removeItem(STORAGE_KEYS.BRANCH);
         }
       }
 
