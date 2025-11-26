@@ -45,6 +45,8 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
     dbPort: 0,
     dbUsername: '',
     dbPassword: '',
+    trustServerCertificate: false, // For MSSQL
+    sslMode: 0, // For PostgreSQL, MySQL: 0=Disable, 1=Require, 2=VerifyCA, 3=VerifyFull
     language: 'en',
     currency: 'USD',
     taxRate: 0,
@@ -66,6 +68,10 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
         dbPort: branch.dbPort,
         dbUsername: branch.dbUsername || '',
         dbPassword: '', // Never populate password for security
+        trustServerCertificate: branch.trustServerCertificate || false,
+        sslMode: ['Disable', 'Require', 'VerifyCA', 'VerifyFull'].indexOf(branch.sslMode) !== -1
+          ? ['Disable', 'Require', 'VerifyCA', 'VerifyFull'].indexOf(branch.sslMode)
+          : 0,
         language: branch.language,
         currency: branch.currency,
         taxRate: branch.taxRate,
@@ -85,6 +91,8 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
         dbPort: 0,
         dbUsername: '',
         dbPassword: '',
+        trustServerCertificate: false,
+        sslMode: 0,
         language: 'en',
         currency: 'USD',
         taxRate: 0,
@@ -143,6 +151,8 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
           dbPort: formData.dbPort,
           dbUsername: formData.dbUsername || undefined,
           dbPassword: formData.dbPassword || undefined,
+          trustServerCertificate: formData.trustServerCertificate,
+          sslMode: formData.sslMode,
           language: formData.language,
           currency: formData.currency,
           taxRate: formData.taxRate,
@@ -163,6 +173,8 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
           dbPort: formData.dbPort,
           dbUsername: formData.dbUsername || undefined,
           dbPassword: formData.dbPassword || undefined,
+          trustServerCertificate: formData.trustServerCertificate,
+          sslMode: formData.sslMode,
           language: formData.language,
           currency: formData.currency,
           taxRate: formData.taxRate,
@@ -306,6 +318,40 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
               placeholder={isEditMode ? '(unchanged)' : ''}
             />
           </div>
+
+          {/* SSL Configuration - MSSQL */}
+          {formData.databaseProvider === 1 && (
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="trustServerCertificate"
+                checked={formData.trustServerCertificate}
+                onChange={(e) => handleChange('trustServerCertificate', e.target.checked)}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
+              />
+              <label
+                htmlFor="trustServerCertificate"
+                className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
+              >
+                Trust Server Certificate (recommended for development/self-signed certificates)
+              </label>
+            </div>
+          )}
+
+          {/* SSL Configuration - PostgreSQL & MySQL */}
+          {(formData.databaseProvider === 2 || formData.databaseProvider === 3) && (
+            <Select
+              label="SSL Mode"
+              value={formData.sslMode}
+              onChange={(e) => handleChange('sslMode', parseInt(e.target.value))}
+              options={[
+                { value: 0, label: 'Disable (No SSL)' },
+                { value: 1, label: 'Require (Encrypt connection)' },
+                { value: 2, label: 'Verify CA (Verify certificate authority)' },
+                { value: 3, label: 'Verify Full (Full certificate validation)' },
+              ]}
+            />
+          )}
 
           {isEditMode && (
             <Button

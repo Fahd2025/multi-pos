@@ -30,6 +30,8 @@ export interface BranchDto {
   dbPort: number;
   dbUsername?: string;
   dbAdditionalParams?: string;
+  trustServerCertificate: boolean;
+  sslMode: string;
   language: string;
   currency: string;
   timeZone: string;
@@ -66,6 +68,8 @@ export interface CreateBranchDto {
   dbUsername?: string;
   dbPassword?: string;
   dbAdditionalParams?: string;
+  trustServerCertificate?: boolean;
+  sslMode?: number; // 0=Disable, 1=Require, 2=VerifyCA, 3=VerifyFull
   language?: string;
   currency?: string;
   timeZone?: string;
@@ -96,6 +100,8 @@ export interface UpdateBranchDto {
   dbUsername?: string;
   dbPassword?: string;
   dbAdditionalParams?: string;
+  trustServerCertificate?: boolean;
+  sslMode?: number;
   language?: string;
   currency?: string;
   timeZone?: string;

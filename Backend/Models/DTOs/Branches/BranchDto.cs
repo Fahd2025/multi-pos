@@ -26,6 +26,8 @@ public class BranchDto
     public string? DbUsername { get; set; }
     // Note: DbPassword is never returned in responses for security
     public string? DbAdditionalParams { get; set; }
+    public bool TrustServerCertificate { get; set; }
+    public string SslMode { get; set; } = "Disable"; // Converted to string for API response
     public string Language { get; set; } = "en";
     public string Currency { get; set; } = "USD";
     public string TimeZone { get; set; } = "UTC";

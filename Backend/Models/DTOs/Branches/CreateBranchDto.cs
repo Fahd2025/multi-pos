@@ -76,6 +76,12 @@ public class CreateBranchDto
     [StringLength(500, ErrorMessage = "Additional database parameters cannot exceed 500 characters")]
     public string? DbAdditionalParams { get; set; }
 
+    public bool TrustServerCertificate { get; set; } = false;
+
+    [Required(ErrorMessage = "SSL mode is required")]
+    [Range(0, 3, ErrorMessage = "SSL mode must be 0 (Disable), 1 (Require), 2 (VerifyCA), or 3 (VerifyFull)")]
+    public int SslMode { get; set; } = 0;
+
     [Required(ErrorMessage = "Language is required")]
     [StringLength(10, ErrorMessage = "Language code cannot exceed 10 characters")]
     [RegularExpression(@"^(en|ar)$", ErrorMessage = "Language must be 'en' or 'ar'")]

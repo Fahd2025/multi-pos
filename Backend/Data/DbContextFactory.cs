@@ -112,6 +112,12 @@ public class DbContextFactory
             parts.Add("Integrated Security=true");
         }
 
+        // Add SSL configuration
+        if (branch.TrustServerCertificate)
+        {
+            parts.Add("TrustServerCertificate=True");
+        }
+
         if (!string.IsNullOrEmpty(branch.DbAdditionalParams))
         {
             parts.Add(branch.DbAdditionalParams);
@@ -131,6 +137,17 @@ public class DbContextFactory
             $"Password={branch.DbPassword}",
         };
 
+        // Add SSL configuration
+        var sslMode = branch.SslMode switch
+        {
+            Models.Entities.HeadOffice.SslMode.Disable => "Disable",
+            Models.Entities.HeadOffice.SslMode.Require => "Require",
+            Models.Entities.HeadOffice.SslMode.VerifyCA => "VerifyCA",
+            Models.Entities.HeadOffice.SslMode.VerifyFull => "VerifyFull",
+            _ => "Disable"
+        };
+        parts.Add($"SSL Mode={sslMode}");
+
         if (!string.IsNullOrEmpty(branch.DbAdditionalParams))
         {
             parts.Add(branch.DbAdditionalParams);
@@ -149,6 +166,17 @@ public class DbContextFactory
             $"Uid={branch.DbUsername}",
             $"Pwd={branch.DbPassword}",
         };
+
+        // Add SSL configuration
+        var sslMode = branch.SslMode switch
+        {
+            Models.Entities.HeadOffice.SslMode.Disable => "None",
+            Models.Entities.HeadOffice.SslMode.Require => "Required",
+            Models.Entities.HeadOffice.SslMode.VerifyCA => "VerifyCA",
+            Models.Entities.HeadOffice.SslMode.VerifyFull => "VerifyFull",
+            _ => "None"
+        };
+        parts.Add($"SSL Mode={sslMode}");
 
         if (!string.IsNullOrEmpty(branch.DbAdditionalParams))
         {

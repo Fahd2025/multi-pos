@@ -44,12 +44,11 @@ public class BranchService : IBranchService
         if (!string.IsNullOrWhiteSpace(search))
         {
             var searchLower = search.ToLower();
-            query = query.Where(
-                b =>
-                    b.Code.ToLower().Contains(searchLower)
-                    || b.NameEn.ToLower().Contains(searchLower)
-                    || b.NameAr.Contains(searchLower)
-                    || b.LoginName.ToLower().Contains(searchLower)
+            query = query.Where(b =>
+                b.Code.ToLower().Contains(searchLower)
+                || b.NameEn.ToLower().Contains(searchLower)
+                || b.NameAr.Contains(searchLower)
+                || b.LoginName.ToLower().Contains(searchLower)
             );
         }
 
@@ -60,43 +59,42 @@ public class BranchService : IBranchService
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Include(b => b.BranchUsers)
-            .Select(
-                b =>
-                    new BranchDto
-                    {
-                        Id = b.Id,
-                        Code = b.Code,
-                        NameEn = b.NameEn,
-                        NameAr = b.NameAr,
-                        LoginName = b.LoginName,
-                        AddressEn = b.AddressEn,
-                        AddressAr = b.AddressAr,
-                        Email = b.Email,
-                        Phone = b.Phone,
-                        Website = b.Website,
-                        CRN = b.CRN,
-                        TaxNumber = b.TaxNumber,
-                        NationalAddress = b.NationalAddress,
-                        LogoPath = b.LogoPath,
-                        DatabaseProvider = b.DatabaseProvider.ToString(),
-                        DbServer = b.DbServer,
-                        DbName = b.DbName,
-                        DbPort = b.DbPort,
-                        DbUsername = b.DbUsername,
-                        DbAdditionalParams = b.DbAdditionalParams,
-                        Language = b.Language,
-                        Currency = b.Currency,
-                        TimeZone = b.TimeZone,
-                        DateFormat = b.DateFormat,
-                        NumberFormat = b.NumberFormat,
-                        TaxRate = b.TaxRate,
-                        IsActive = b.IsActive,
-                        CreatedAt = b.CreatedAt,
-                        UpdatedAt = b.UpdatedAt,
-                        CreatedBy = b.CreatedBy,
-                        UserCount = b.BranchUsers.Count(bu => bu.IsActive),
-                    }
-            )
+            .Select(b => new BranchDto
+            {
+                Id = b.Id,
+                Code = b.Code,
+                NameEn = b.NameEn,
+                NameAr = b.NameAr,
+                LoginName = b.LoginName,
+                AddressEn = b.AddressEn,
+                AddressAr = b.AddressAr,
+                Email = b.Email,
+                Phone = b.Phone,
+                Website = b.Website,
+                CRN = b.CRN,
+                TaxNumber = b.TaxNumber,
+                NationalAddress = b.NationalAddress,
+                LogoPath = b.LogoPath,
+                DatabaseProvider = b.DatabaseProvider.ToString(),
+                DbServer = b.DbServer,
+                DbName = b.DbName,
+                DbPort = b.DbPort,
+                DbUsername = b.DbUsername,
+                DbAdditionalParams = b.DbAdditionalParams,
+                TrustServerCertificate = b.TrustServerCertificate,
+                SslMode = b.SslMode.ToString(),
+                Language = b.Language,
+                Currency = b.Currency,
+                TimeZone = b.TimeZone,
+                DateFormat = b.DateFormat,
+                NumberFormat = b.NumberFormat,
+                TaxRate = b.TaxRate,
+                IsActive = b.IsActive,
+                CreatedAt = b.CreatedAt,
+                UpdatedAt = b.UpdatedAt,
+                CreatedBy = b.CreatedBy,
+                UserCount = b.BranchUsers.Count(bu => bu.IsActive),
+            })
             .ToListAsync();
 
         return (branches, totalCount);
@@ -135,6 +133,8 @@ public class BranchService : IBranchService
             DbPort = branch.DbPort,
             DbUsername = branch.DbUsername,
             DbAdditionalParams = branch.DbAdditionalParams,
+            TrustServerCertificate = branch.TrustServerCertificate,
+            SslMode = branch.SslMode.ToString(),
             Language = branch.Language,
             Currency = branch.Currency,
             TimeZone = branch.TimeZone,
@@ -152,13 +152,11 @@ public class BranchService : IBranchService
     public async Task<BranchDto> CreateBranchAsync(CreateBranchDto createBranchDto, Guid createdBy)
     {
         // Check for duplicate code
-        if (
-            await _headOfficeContext.Branches.AnyAsync(b =>
-                b.Code == createBranchDto.Code
-            )
-        )
+        if (await _headOfficeContext.Branches.AnyAsync(b => b.Code == createBranchDto.Code))
         {
-            throw new InvalidOperationException($"Branch code '{createBranchDto.Code}' already exists");
+            throw new InvalidOperationException(
+                $"Branch code '{createBranchDto.Code}' already exists"
+            );
         }
 
         // Check for duplicate login name
@@ -168,7 +166,9 @@ public class BranchService : IBranchService
             )
         )
         {
-            throw new InvalidOperationException($"Login name '{createBranchDto.LoginName}' already exists");
+            throw new InvalidOperationException(
+                $"Login name '{createBranchDto.LoginName}' already exists"
+            );
         }
 
         var branch = new Models.Entities.HeadOffice.Branch
@@ -193,6 +193,8 @@ public class BranchService : IBranchService
             DbUsername = createBranchDto.DbUsername,
             DbPassword = createBranchDto.DbPassword, // TODO: Encrypt password
             DbAdditionalParams = createBranchDto.DbAdditionalParams,
+            TrustServerCertificate = createBranchDto.TrustServerCertificate,
+            SslMode = (Backend.Models.Entities.HeadOffice.SslMode)createBranchDto.SslMode,
             Language = createBranchDto.Language,
             Currency = createBranchDto.Currency,
             TimeZone = createBranchDto.TimeZone,
@@ -208,7 +210,41 @@ public class BranchService : IBranchService
         _headOfficeContext.Branches.Add(branch);
         await _headOfficeContext.SaveChangesAsync();
 
-        _logger.LogInformation("Created branch {BranchCode} ({BranchId}) by user {UserId}", branch.Code, branch.Id, createdBy);
+        _logger.LogInformation(
+            "Created branch {BranchCode} ({BranchId}) by user {UserId}",
+            branch.Code,
+            branch.Id,
+            createdBy
+        );
+
+        // Automatically provision database and create default admin
+        try
+        {
+            var (success, message) = await ProvisionBranchDatabaseAsync(branch.Id);
+            if (success)
+            {
+                _logger.LogInformation(
+                    "Auto-provisioned database for newly created branch {BranchCode}",
+                    branch.Code
+                );
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Failed to auto-provision database for branch {BranchCode}: {Message}",
+                    branch.Code,
+                    message
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Error auto-provisioning database for branch {BranchCode}",
+                branch.Code
+            );
+        }
 
         return new BranchDto
         {
@@ -232,6 +268,8 @@ public class BranchService : IBranchService
             DbPort = branch.DbPort,
             DbUsername = branch.DbUsername,
             DbAdditionalParams = branch.DbAdditionalParams,
+            TrustServerCertificate = branch.TrustServerCertificate,
+            SslMode = branch.SslMode.ToString(),
             Language = branch.Language,
             Currency = branch.Currency,
             TimeZone = branch.TimeZone,
@@ -253,6 +291,9 @@ public class BranchService : IBranchService
         {
             throw new KeyNotFoundException($"Branch with ID {id} not found");
         }
+
+        // Track if database settings changed
+        bool dbSettingsChanged = false;
 
         // Update only provided fields
         if (!string.IsNullOrWhiteSpace(updateBranchDto.NameEn))
@@ -309,42 +350,64 @@ public class BranchService : IBranchService
         {
             branch.DatabaseProvider = (DatabaseProvider)updateBranchDto.DatabaseProvider.Value;
             _dbContextFactory.ClearCache(id); // Clear cache when DB config changes
+            dbSettingsChanged = true;
         }
 
         if (!string.IsNullOrWhiteSpace(updateBranchDto.DbServer))
         {
             branch.DbServer = updateBranchDto.DbServer;
             _dbContextFactory.ClearCache(id);
+            dbSettingsChanged = true;
         }
 
         if (!string.IsNullOrWhiteSpace(updateBranchDto.DbName))
         {
             branch.DbName = updateBranchDto.DbName;
             _dbContextFactory.ClearCache(id);
+            dbSettingsChanged = true;
         }
 
         if (updateBranchDto.DbPort.HasValue)
         {
             branch.DbPort = updateBranchDto.DbPort.Value;
             _dbContextFactory.ClearCache(id);
+            dbSettingsChanged = true;
         }
 
         if (updateBranchDto.DbUsername != null)
         {
             branch.DbUsername = updateBranchDto.DbUsername;
             _dbContextFactory.ClearCache(id);
+            dbSettingsChanged = true;
         }
 
         if (updateBranchDto.DbPassword != null)
         {
             branch.DbPassword = updateBranchDto.DbPassword; // TODO: Encrypt password
             _dbContextFactory.ClearCache(id);
+            dbSettingsChanged = true;
         }
 
         if (updateBranchDto.DbAdditionalParams != null)
         {
             branch.DbAdditionalParams = updateBranchDto.DbAdditionalParams;
             _dbContextFactory.ClearCache(id);
+            dbSettingsChanged = true;
+        }
+
+        if (updateBranchDto.TrustServerCertificate.HasValue)
+        {
+            branch.TrustServerCertificate = updateBranchDto.TrustServerCertificate.Value;
+            _dbContextFactory.ClearCache(id);
+            dbSettingsChanged = true;
+        }
+
+        if (updateBranchDto.SslMode.HasValue)
+        {
+            branch.SslMode = (Backend.Models.Entities.HeadOffice.SslMode)
+                updateBranchDto.SslMode.Value;
+            _dbContextFactory.ClearCache(id);
+            dbSettingsChanged = true;
         }
 
         if (updateBranchDto.Language != null)
@@ -388,6 +451,38 @@ public class BranchService : IBranchService
 
         _logger.LogInformation("Updated branch {BranchCode} ({BranchId})", branch.Code, branch.Id);
 
+        // Auto-provision database if database settings changed
+        if (dbSettingsChanged)
+        {
+            try
+            {
+                var (success, message) = await ProvisionBranchDatabaseAsync(id);
+                if (success)
+                {
+                    _logger.LogInformation(
+                        "Auto-provisioned database for updated branch {BranchCode}",
+                        branch.Code
+                    );
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "Failed to auto-provision database for branch {BranchCode}: {Message}",
+                        branch.Code,
+                        message
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error auto-provisioning database for branch {BranchCode}",
+                    branch.Code
+                );
+            }
+        }
+
         var userCount = await _headOfficeContext
             .BranchUsers.Where(bu => bu.BranchId == id && bu.IsActive)
             .CountAsync();
@@ -414,6 +509,8 @@ public class BranchService : IBranchService
             DbPort = branch.DbPort,
             DbUsername = branch.DbUsername,
             DbAdditionalParams = branch.DbAdditionalParams,
+            TrustServerCertificate = branch.TrustServerCertificate,
+            SslMode = branch.SslMode.ToString(),
             Language = branch.Language,
             Currency = branch.Currency,
             TimeZone = branch.TimeZone,
@@ -487,7 +584,11 @@ public class BranchService : IBranchService
 
         await _headOfficeContext.SaveChangesAsync();
 
-        _logger.LogInformation("Updated settings for branch {BranchCode} ({BranchId})", branch.Code, branch.Id);
+        _logger.LogInformation(
+            "Updated settings for branch {BranchCode} ({BranchId})",
+            branch.Code,
+            branch.Id
+        );
 
         return settingsDto;
     }
@@ -505,24 +606,40 @@ public class BranchService : IBranchService
             // Create a branch context to test the connection
             using var branchContext = _dbContextFactory.CreateBranchContext(branch);
 
-            // Try to open connection and query database
-            var canConnect = await branchContext.Database.CanConnectAsync();
+            // Force an actual connection attempt by opening the connection and executing a test query
+            // This will throw detailed exceptions instead of just returning false
+            await using var connection = branchContext.Database.GetDbConnection();
+            await connection.OpenAsync();
 
-            if (canConnect)
-            {
-                _logger.LogInformation("Successfully tested database connection for branch {BranchCode}", branch.Code);
-                return (true, "Database connection successful");
-            }
-            else
-            {
-                _logger.LogWarning("Failed to connect to database for branch {BranchCode}", branch.Code);
-                return (false, "Failed to connect to database");
-            }
+            // Execute a simple test query to verify the connection works
+            using var command = connection.CreateCommand();
+            command.CommandText = "SELECT 1";
+            await command.ExecuteScalarAsync();
+
+            _logger.LogInformation(
+                "Successfully tested database connection for branch {BranchCode}",
+                branch.Code
+            );
+            return (true, "Database connection successful");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error testing database connection for branch {BranchId}", id);
-            return (false, $"Connection test failed: {ex.Message}");
+            // Build detailed error message including inner exceptions
+            var errorMessage = ex.Message;
+            var innerEx = ex.InnerException;
+            while (innerEx != null)
+            {
+                errorMessage += $" -> {innerEx.Message}";
+                innerEx = innerEx.InnerException;
+            }
+
+            _logger.LogError(
+                ex,
+                "Error testing database connection for branch {BranchId}: {ErrorMessage}",
+                id,
+                errorMessage
+            );
+            return (false, errorMessage);
         }
     }
 
@@ -536,12 +653,15 @@ public class BranchService : IBranchService
                 return (false, $"Branch with ID {id} not found");
             }
 
-            _logger.LogInformation("Starting database provisioning for branch {BranchCode}", branch.Code);
+            _logger.LogInformation(
+                "Starting database provisioning for branch {BranchCode}",
+                branch.Code
+            );
 
             // Create a branch context
             using var branchContext = _dbContextFactory.CreateBranchContext(branch);
 
-            // Ensure database is created (for SQLite) or exists (for other providers)
+            // Ensure database directory exists for SQLite
             if (branch.DatabaseProvider == DatabaseProvider.SQLite)
             {
                 // Create directory if it doesn't exist
@@ -560,17 +680,20 @@ public class BranchService : IBranchService
                 }
             }
 
-            // Create database if it doesn't exist
-            await branchContext.Database.EnsureCreatedAsync();
-
-            // Run migrations
+            // Run migrations (this will create the database if it doesn't exist)
             await branchContext.Database.MigrateAsync();
 
             // Seed sample data
             await SeedBranchDataAsync(branchContext, branch);
 
-            _logger.LogInformation("Successfully provisioned database for branch {BranchCode}", branch.Code);
-            return (true, "Database provisioned successfully");
+            // Create default branch admin user
+            await CreateDefaultBranchAdminAsync(branch);
+
+            _logger.LogInformation(
+                "Successfully provisioned database for branch {BranchCode}",
+                branch.Code
+            );
+            return (true, "Database provisioned successfully with default admin user");
         }
         catch (Exception ex)
         {
@@ -579,12 +702,18 @@ public class BranchService : IBranchService
         }
     }
 
-    private async Task SeedBranchDataAsync(BranchDbContext context, Models.Entities.HeadOffice.Branch branch)
+    private async Task SeedBranchDataAsync(
+        BranchDbContext context,
+        Models.Entities.HeadOffice.Branch branch
+    )
     {
         // Check if data already exists
         if (await context.Categories.AnyAsync())
         {
-            _logger.LogInformation("Sample data already exists for branch {BranchCode}", branch.Code);
+            _logger.LogInformation(
+                "Sample data already exists for branch {BranchCode}",
+                branch.Code
+            );
             return;
         }
 
@@ -719,8 +848,162 @@ public class BranchService : IBranchService
 
         context.Products.AddRange(products);
 
+        // Seed sample suppliers
+        var suppliers = new[]
+        {
+            new Supplier
+            {
+                Id = Guid.NewGuid(),
+                Code = "SUP-001",
+                NameEn = "Tech Supplies Inc",
+                NameAr = "شركة اللوازم التقنية",
+                Email = "contact@techsupplies.com",
+                Phone = "+1234567890",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = branch.CreatedBy,
+            },
+            new Supplier
+            {
+                Id = Guid.NewGuid(),
+                Code = "SUP-002",
+                NameEn = "Food Distributors LLC",
+                NameAr = "شركة موزعي الأغذية",
+                Email = "info@fooddist.com",
+                Phone = "+1234567891",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = branch.CreatedBy,
+            },
+            new Supplier
+            {
+                Id = Guid.NewGuid(),
+                Code = "SUP-003",
+                NameEn = "Fashion Wholesale Co",
+                NameAr = "شركة الأزياء بالجملة",
+                Email = "sales@fashionwholesale.com",
+                Phone = "+1234567892",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = branch.CreatedBy,
+            },
+        };
+
+        context.Suppliers.AddRange(suppliers);
+
+        // Seed sample customers
+        var customers = new[]
+        {
+            new Customer
+            {
+                Id = Guid.NewGuid(),
+                Code = "CUST-001",
+                NameEn = "Ahmed Ali",
+                NameAr = "أحمد علي",
+                Email = "ahmed.ali@example.com",
+                Phone = "+9661234567890",
+                TotalPurchases = 0,
+                VisitCount = 0,
+                LastVisitAt = DateTime.UtcNow,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new Customer
+            {
+                Id = Guid.NewGuid(),
+                Code = "CUST-002",
+                NameEn = "Fatima Hassan",
+                NameAr = "فاطمة حسن",
+                Email = "fatima.hassan@example.com",
+                Phone = "+9661234567891",
+                TotalPurchases = 0,
+                VisitCount = 0,
+                LastVisitAt = DateTime.UtcNow,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new Customer
+            {
+                Id = Guid.NewGuid(),
+                Code = "CUST-003",
+                NameEn = "Mohammed Ibrahim",
+                NameAr = "محمد إبراهيم",
+                Email = "mohammed.ibrahim@example.com",
+                Phone = "+9661234567892",
+                TotalPurchases = 0,
+                VisitCount = 0,
+                LastVisitAt = DateTime.UtcNow,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+        };
+
+        context.Customers.AddRange(customers);
+
         await context.SaveChangesAsync();
 
-        _logger.LogInformation("Seeded sample data for branch {BranchCode}: 3 categories, 3 expense categories, 3 products", branch.Code);
+        _logger.LogInformation(
+            "Seeded sample data for branch {BranchCode}: 3 categories, 3 expense categories, 3 products, 3 suppliers, 3 customers",
+            branch.Code
+        );
+    }
+
+    private async Task CreateDefaultBranchAdminAsync(Models.Entities.HeadOffice.Branch branch)
+    {
+        // Check if a user already exists for this branch
+        var existingUser = await _headOfficeContext.BranchUsers.AnyAsync(bu =>
+            bu.BranchId == branch.Id
+        );
+
+        if (existingUser)
+        {
+            _logger.LogInformation(
+                "Branch {BranchCode} already has users, skipping default admin creation",
+                branch.Code
+            );
+            return;
+        }
+
+        _logger.LogInformation("Creating default admin user for branch {BranchCode}", branch.Code);
+
+        // Create the user
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Username = branch.LoginName, // Use branch login name as username
+            PasswordHash = Utilities.PasswordHasher.HashPassword("123"),
+            FullNameEn = $"{branch.NameEn} Admin",
+            Email = branch.Email ?? $"{branch.LoginName}@pos.local",
+            Phone = branch.Phone,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+        };
+
+        _headOfficeContext.Users.Add(user);
+
+        // Create branch user assignment
+        var branchUser = new BranchUser
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            BranchId = branch.Id,
+            IsActive = true,
+        };
+
+        _headOfficeContext.BranchUsers.Add(branchUser);
+        await _headOfficeContext.SaveChangesAsync();
+
+        _logger.LogInformation(
+            "Created default admin user '{Username}' for branch {BranchCode}",
+            user.Username,
+            branch.Code
+        );
     }
 }

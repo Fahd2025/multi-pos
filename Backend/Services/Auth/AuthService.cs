@@ -113,11 +113,17 @@ public class AuthService : IAuthService
             );
         }
 
-        // Head office admin without branch selection (head office mode - not yet implemented)
+        // Head office admin without branch selection (head office mode)
         if (user.IsHeadOfficeAdmin)
         {
-            // For now, require branch selection even for head office admins
-            return null;
+            // Allow head office admin to log in without branch selection
+            return await GenerateLoginResponseAsync(
+                user,
+                null, // No branch context
+                "Admin", // Head office admin role
+                ipAddress,
+                userAgent
+            );
         }
 
         // Regular user without branch selection

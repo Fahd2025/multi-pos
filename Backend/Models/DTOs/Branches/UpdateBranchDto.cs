@@ -61,6 +61,11 @@ public class UpdateBranchDto
     [StringLength(500, ErrorMessage = "Additional database parameters cannot exceed 500 characters")]
     public string? DbAdditionalParams { get; set; }
 
+    public bool? TrustServerCertificate { get; set; }
+
+    [Range(0, 3, ErrorMessage = "SSL mode must be 0 (Disable), 1 (Require), 2 (VerifyCA), or 3 (VerifyFull)")]
+    public int? SslMode { get; set; }
+
     [StringLength(10, ErrorMessage = "Language code cannot exceed 10 characters")]
     [RegularExpression(@"^(en|ar)$", ErrorMessage = "Language must be 'en' or 'ar'")]
     public string? Language { get; set; }

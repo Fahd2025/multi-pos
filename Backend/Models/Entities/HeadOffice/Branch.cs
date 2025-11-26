@@ -73,6 +73,12 @@ public class Branch
     [MaxLength(500)]
     public string? DbAdditionalParams { get; set; }
 
+    // SSL/TLS Configuration
+    public bool TrustServerCertificate { get; set; } = false; // For MSSQL
+
+    [Required]
+    public SslMode SslMode { get; set; } = SslMode.Disable; // For PostgreSQL, MySQL, MariaDB
+
     [Required]
     [MaxLength(10)]
     public string Language { get; set; } = "en";
@@ -117,4 +123,12 @@ public enum DatabaseProvider
     MSSQL = 1,
     PostgreSQL = 2,
     MySQL = 3,
+}
+
+public enum SslMode
+{
+    Disable = 0,
+    Require = 1,
+    VerifyCA = 2,
+    VerifyFull = 3,
 }
