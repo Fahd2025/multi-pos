@@ -26,6 +26,7 @@ export default function HeadOfficeLayout({
     { name: 'Dashboard', href: `/${locale}/head-office`, icon: '📊' },
     { name: 'Branches', href: `/${locale}/head-office/branches`, icon: '🏢' },
     { name: 'Users', href: `/${locale}/head-office/users`, icon: '👥' },
+    { name: 'Audit Logs', href: `/${locale}/head-office/audit-logs`, icon: '📋' },
     { name: 'Analytics', href: `/${locale}/head-office/analytics`, icon: '📈' },
     { name: 'Settings', href: `/${locale}/head-office/settings`, icon: '⚙️' },
   ];
