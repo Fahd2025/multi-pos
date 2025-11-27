@@ -38,6 +38,8 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
   const [testingConnection, setTestingConnection] = useState(false);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [currentLogoPath, setCurrentLogoPath] = useState<string | null>(null); // Track current logo path separately
+  const [shouldBustCache, setShouldBustCache] = useState(false); // Track when to bust image cache
 
   // Form state
   const [formData, setFormData] = useState({
@@ -87,6 +89,8 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
         currency: branch.currency,
         taxRate: branch.taxRate,
       });
+      // Set the current logo path to the branch's logo path
+      setCurrentLogoPath(branch.logoPath || null);
     } else {
       // Reset form for create mode
       setFormData({
@@ -108,8 +112,11 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
         currency: "USD",
         taxRate: 0,
       });
+      setCurrentLogoPath(null);
     }
     setSelectedImages([]);
+    // Reset cache bust flag when form opens
+    setShouldBustCache(false);
   }, [branch, isOpen]);
 
   // Update default port when database provider changes
@@ -146,23 +153,17 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
 
   const handleImageUpload = (files: File[]) => {
     setSelectedImages(files);
+    // Bust cache when new images are added
+    setShouldBustCache(true);
   };
 
   const handleImageRemove = async (imageId: string) => {
-    if (!branch?.id) return;
-
-    try {
-      const success = await imageService.deleteImages(branch.code, "Branches", branch.id);
-      if (success) {
-        console.log("Branch logo deleted successfully");
-      } else {
-        setError("Failed to delete branch logo");
-        console.error("Failed to delete branch logo");
-      }
-    } catch (error) {
-      setError("Error deleting logo: " + (error instanceof Error ? error.message : "Unknown error"));
-      console.error("Error deleting logo:", error);
-    }
+    // Only update the UI state to remove the image visually
+    // The actual deletion from server will happen when the form is submitted
+    setCurrentLogoPath(null);
+    // Bust cache when image is removed
+    setShouldBustCache(true);
+    console.log("Branch logo visually removed, will be deleted on form submit");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -217,8 +218,26 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
         savedBranch = await branchService.createBranch(createDto);
       }
 
-      // Upload logo if selected
+      // Handle logo operations
+      if (isEditMode && branch && branch.logoPath) {
+        // Delete existing logo if user removed it from UI or if uploading a new one to replace it
+        if (currentLogoPath === null || selectedImages.length > 0) {
+          try {
+            const success = await imageService.deleteImages(branch.code, "Branches", branch.id);
+            if (success) {
+              console.log("Successfully deleted old branch logo from server");
+            } else {
+              console.error("Failed to delete old branch logo from server");
+            }
+          } catch (error) {
+            console.error("Error deleting old logo from server:", error);
+            // Don't fail the whole operation
+          }
+        }
+      }
+
       if (selectedImages.length > 0) {
+        // Upload new logo if selected
         setUploadingImages(true);
         try {
           await imageService.uploadImage(
@@ -227,7 +246,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
             savedBranch.id,
             selectedImages[0] // Single logo
           );
-          console.log("Successfully uploaded branch logo");
+          console.log("Successfully uploaded new branch logo");
         } catch (error) {
           console.error("Error uploading logo:", error);
           // Don't fail the whole operation
@@ -239,6 +258,8 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
       onSuccess();
       onClose();
       setSelectedImages([]);
+      // Reset cache bust flag after successful submission
+      setShouldBustCache(false);
     } catch (err: any) {
       setError(err.message || `Failed to ${isEditMode ? "update" : "create"} branch`);
     } finally {
@@ -473,12 +494,13 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
             branchName={branch?.code || "HeadOffice"}
             entityType="Branches"
             entityId={branch?.id}
-            currentImages={branch?.logoPath ? [branch.logoPath] : []}
+            currentImages={currentLogoPath ? [currentLogoPath] : []}
             multiple={false}
             maxFiles={1}
             onUpload={handleImageUpload}
             onRemove={handleImageRemove}
             label="Branch Logo (Optional)"
+            cacheBust={!!selectedImages.length || shouldBustCache} // Bust cache when new images are selected or when explicitly requested
           />
 
           {uploadingImages && (

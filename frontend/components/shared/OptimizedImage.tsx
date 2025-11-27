@@ -14,6 +14,7 @@ interface OptimizedImageProps {
   height?: number;
   priority?: boolean;
   fallbackSrc?: string;
+  cacheBust?: boolean; // Optional parameter to enable cache busting
 }
 
 /**
@@ -31,13 +32,15 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   height,
   priority = false,
   fallbackSrc = '/placeholder-image.png',
+  cacheBust = false,
 }) => {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Construct the image URL from the backend
+  // Construct the image URL from the backend with optional cache busting
   const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-  const imageSrc = `${apiUrl}/api/v1/images/${branchName}/${entityType}/${entityId}/${size}`;
+  const cacheBustParam = cacheBust ? `?t=${Date.now()}` : '';
+  const imageSrc = `${apiUrl}/api/v1/images/${branchName}/${entityType}/${entityId}/${size}${cacheBustParam}`;
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     console.error('Image failed to load:', `${apiUrl}/api/v1/images/${branchName}/${entityType}/${entityId}/${size}`);

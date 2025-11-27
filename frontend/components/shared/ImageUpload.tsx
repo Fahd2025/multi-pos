@@ -15,6 +15,7 @@ interface ImageUploadProps {
   className?: string;
   label?: string;
   accept?: string;
+  cacheBust?: boolean; // Optional parameter to force cache refresh
 }
 
 /**
@@ -32,6 +33,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   className = '',
   label = 'Upload Image',
   accept = 'image/jpeg,image/png,image/webp',
+  cacheBust = false,
 }) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -170,12 +172,14 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
             <div key={index} className="relative group">
               {console.log("Displaying existing image:", { branchName, entityType, entityId, currentImageId: imageId })}
               <OptimizedImage
+                key={`existing-image-${index}-${cacheBust ? 'refresh' : 'normal'}`} // Force re-render when cacheBust changes
                 branchName={branchName}
                 entityType={entityType}
                 entityId={entityId}
                 size="medium"
                 alt={`Image ${index + 1}`}
                 className="w-full h-32 object-cover rounded-lg"
+                cacheBust={cacheBust}
               />
               <button
                 type="button"
