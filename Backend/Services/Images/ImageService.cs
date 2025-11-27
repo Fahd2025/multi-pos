@@ -14,13 +14,16 @@ public class ImageService : IImageService
 
     public ImageService(IConfiguration configuration, ILogger<ImageService> logger)
     {
-        _uploadBasePath = configuration["ImageStorage:BasePath"] ?? "Upload/Branches";
+        // Normalize the path to use correct OS-specific separators
+        var basePath = configuration["ImageStorage:BasePath"] ?? "Upload";
+        _uploadBasePath = Path.GetFullPath(basePath);
         _logger = logger;
 
         // Ensure base directory exists
         if (!Directory.Exists(_uploadBasePath))
         {
             Directory.CreateDirectory(_uploadBasePath);
+            _logger.LogInformation("Created upload base directory: {BasePath}", _uploadBasePath);
         }
     }
 
@@ -99,7 +102,7 @@ public class ImageService : IImageService
             bool deleted = false;
 
             // First try to delete from the new path (with entityId)
-            var newEntityPath = Path.Combine(_uploadBasePath, branchName, "Logo", entityId.ToString());
+            var newEntityPath = Path.Combine(_uploadBasePath, "Branches", branchName, "Logo", entityId.ToString());
             if (Directory.Exists(newEntityPath))
             {
                 Directory.Delete(newEntityPath, recursive: true);
@@ -113,7 +116,7 @@ public class ImageService : IImageService
             if (entityType.Equals("Logo", StringComparison.OrdinalIgnoreCase) ||
                 entityType.Equals("Branches", StringComparison.OrdinalIgnoreCase))
             {
-                var oldEntityPath = Path.Combine(_uploadBasePath, branchName, "Logo");
+                var oldEntityPath = Path.Combine(_uploadBasePath, "Branches", branchName, "Logo");
                 if (Directory.Exists(oldEntityPath))
                 {
                     // Delete files that might belong to this entity in the old directory
@@ -150,7 +153,7 @@ public class ImageService : IImageService
             else
             {
                 // For non-branch entities, use the regular path
-                var entityPath = Path.Combine(_uploadBasePath, branchName, entityType, entityId.ToString());
+                var entityPath = Path.Combine(_uploadBasePath, "Branches", branchName, entityType, entityId.ToString());
                 if (Directory.Exists(entityPath))
                 {
                     Directory.Delete(entityPath, recursive: true);
@@ -176,7 +179,7 @@ public class ImageService : IImageService
         var pattern = $"*-{size}{extension}";
 
         // First check the new path (with entityId) to avoid conflicts
-        var newEntityPath = Path.Combine(_uploadBasePath, branchName, "Logo", entityId.ToString());
+        var newEntityPath = Path.Combine(_uploadBasePath, "Branches", branchName, "Logo", entityId.ToString());
         if (Directory.Exists(newEntityPath))
         {
             var files = Directory.GetFiles(newEntityPath, pattern);
@@ -189,7 +192,7 @@ public class ImageService : IImageService
         if (entityType.Equals("Logo", StringComparison.OrdinalIgnoreCase) ||
             entityType.Equals("Branches", StringComparison.OrdinalIgnoreCase))
         {
-            var oldEntityPath = Path.Combine(_uploadBasePath, branchName, "Logo");
+            var oldEntityPath = Path.Combine(_uploadBasePath, "Branches", branchName, "Logo");
             if (Directory.Exists(oldEntityPath))
             {
                 var files = Directory.GetFiles(oldEntityPath, pattern);
@@ -201,7 +204,7 @@ public class ImageService : IImageService
         else
         {
             // For non-branch entities, use the regular path
-            var entityPath = Path.Combine(_uploadBasePath, branchName, entityType, entityId.ToString());
+            var entityPath = Path.Combine(_uploadBasePath, "Branches", branchName, entityType, entityId.ToString());
             if (Directory.Exists(entityPath))
             {
                 var files = Directory.GetFiles(entityPath, pattern);
@@ -227,10 +230,10 @@ public class ImageService : IImageService
         if (entityType.Equals("Logo", StringComparison.OrdinalIgnoreCase) ||
             entityType.Equals("Branches", StringComparison.OrdinalIgnoreCase))
         {
-            return Path.Combine(_uploadBasePath, branchName, "Logo", entityId.ToString());
+            return Path.Combine(_uploadBasePath, "Branches", branchName, "Logo", entityId.ToString());
         }
 
-        return Path.Combine(_uploadBasePath, branchName, entityType, entityId.ToString());
+        return Path.Combine(_uploadBasePath, "Branches", branchName, entityType, entityId.ToString());
     }
 
     private void DeleteExistingImages(string directoryPath)
