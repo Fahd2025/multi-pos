@@ -3586,6 +3586,7 @@ app.MapPost(
 app.MapGet(
         "/api/v1/images/{branchName}/{entityType}/{entityId:guid}/{size}",
         async (
+            HttpContext context,
             string branchName,
             string entityType,
             Guid entityId,
@@ -3608,21 +3609,32 @@ app.MapGet(
                     );
                 }
 
-                // Check if image exists
-                if (!imageService.ImageExists(branchName, entityType, entityId, size))
+                // For ProductImages, entityId is the imageId, but files are stored under productId
+                // Check if there's a productId query parameter for multi-image entities
+                string imagePath;
+                if (context.Request.Query.TryGetValue("productId", out var productIdStr) &&
+                    Guid.TryParse(productIdStr, out var productId))
                 {
-                    return Results.NotFound(
-                        new
-                        {
-                            success = false,
-                            error = new { code = "NOT_FOUND", message = "Image not found" },
-                        }
+                    // For ProductImages: files are in Products/{productId}/{imageId}-{size}.webp
+                    var baseDir = Path.Combine(
+                        imageService.GetType().GetField("_uploadBasePath",
+                            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                            ?.GetValue(imageService) as string ?? "Upload",
+                        "Branches", branchName, entityType, productId.ToString()
                     );
+
+                    var fileExtension = ".webp";
+                    var pattern = $"{entityId}-{size}{fileExtension}";
+                    var files = Directory.Exists(baseDir) ? Directory.GetFiles(baseDir, pattern) : Array.Empty<string>();
+                    imagePath = files.FirstOrDefault() ?? string.Empty;
+                }
+                else
+                {
+                    // Standard single-image entities
+                    imagePath = imageService.GetImagePath(branchName, entityType, entityId, size);
                 }
 
-                // Get image path
-                var imagePath = imageService.GetImagePath(branchName, entityType, entityId, size);
-
+                // Check if image exists
                 if (string.IsNullOrEmpty(imagePath) || !File.Exists(imagePath))
                 {
                     return Results.NotFound(
@@ -3675,7 +3687,9 @@ app.MapDelete(
             {
                 var success = await imageService.DeleteImageAsync(branchName, entityType, entityId);
 
-                if (!success)
+                // For Products, we need to clean up database records even if files don't exist
+                // For other entities, return 404 if files not found
+                if (!success && entityType.ToLower() != "products")
                 {
                     return Results.NotFound(
                         new
@@ -3693,7 +3707,7 @@ app.MapDelete(
 
                     // For branch-scoped entities, get the BranchDbContext from the factory
                     if (entityTypeLower == "customers" || entityTypeLower == "suppliers" ||
-                        entityTypeLower == "expenses" || entityTypeLower == "categories")
+                        entityTypeLower == "expenses" || entityTypeLower == "categories" || entityTypeLower == "products")
                     {
                         // Get branch from HttpContext
                         var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
@@ -3738,6 +3752,19 @@ app.MapDelete(
                                         await branchDbContext.SaveChangesAsync();
                                     }
                                     break;
+
+                                case "products":
+                                    // For products, delete all ProductImage records
+                                    var productImages = branchDbContext.ProductImages
+                                        .Where(pi => pi.ProductId == entityId)
+                                        .ToList();
+
+                                    if (productImages.Any())
+                                    {
+                                        branchDbContext.ProductImages.RemoveRange(productImages);
+                                        await branchDbContext.SaveChangesAsync();
+                                    }
+                                    break;
                             }
                         }
                     }
@@ -3770,6 +3797,193 @@ app.MapDelete(
     .RequireAuthorization()
     .WithName("DeleteImage")
     .WithOpenApi();
+
+// PATCH /api/v1/images/products/{productId} - Update product images (keep some, delete others, add new)
+app.MapPatch(
+        "/api/v1/images/products/{productId:guid}",
+        async (
+            Guid productId,
+            HttpContext httpContext,
+            Backend.Services.Images.IImageService imageService,
+            Backend.Data.DbContextFactory dbContextFactory
+        ) =>
+        {
+            try
+            {
+                // Get form data
+                var form = await httpContext.Request.ReadFormAsync();
+                var files = form.Files.GetFiles("images");
+                var branchName = form["branchName"].ToString();
+                var imageIdsToKeepStr = form["imageIdsToKeep"].ToString();
+
+                if (string.IsNullOrWhiteSpace(branchName))
+                {
+                    return Results.BadRequest(
+                        new
+                        {
+                            success = false,
+                            error = new { code = "MISSING_BRANCH_NAME", message = "branchName is required" },
+                        }
+                    );
+                }
+
+                // Get branch context
+                var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                if (branch == null)
+                {
+                    return Results.Unauthorized();
+                }
+
+                using var branchDbContext = dbContextFactory.CreateBranchContext(branch);
+
+                // Parse imageIds to keep
+                var imageIdsToKeep = new List<Guid>();
+                if (!string.IsNullOrWhiteSpace(imageIdsToKeepStr))
+                {
+                    imageIdsToKeep = imageIdsToKeepStr
+                        .Split(',')
+                        .Where(s => Guid.TryParse(s.Trim(), out _))
+                        .Select(s => Guid.Parse(s.Trim()))
+                        .ToList();
+                }
+
+                // Get existing ProductImage records
+                var existingImages = branchDbContext.ProductImages
+                    .Where(pi => pi.ProductId == productId)
+                    .ToList();
+
+                // Delete ProductImage records that are NOT in the keep list
+                var imagesToDelete = existingImages
+                    .Where(img => !imageIdsToKeep.Contains(img.Id))
+                    .ToList();
+
+                if (imagesToDelete.Any())
+                {
+                    // Delete files from disk
+                    foreach (var imgToDelete in imagesToDelete)
+                    {
+                        var baseDir = Path.Combine(
+                            imageService.GetType().GetField("_uploadBasePath",
+                                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                                ?.GetValue(imageService) as string ?? "Upload",
+                            "Branches", branchName, "Products", productId.ToString()
+                        );
+
+                        if (Directory.Exists(baseDir))
+                        {
+                            var filesToDelete = Directory.GetFiles(baseDir, $"{imgToDelete.Id}-*.*");
+                            foreach (var file in filesToDelete)
+                            {
+                                try
+                                {
+                                    File.Delete(file);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"Warning: Could not delete file {file}: {ex.Message}");
+                                }
+                            }
+                        }
+                    }
+
+                    // Remove from database
+                    branchDbContext.ProductImages.RemoveRange(imagesToDelete);
+                    await branchDbContext.SaveChangesAsync();
+                }
+
+                // Upload new images
+                var uploadedImages = new List<object>();
+                if (files != null && files.Count > 0)
+                {
+                    // Get the current max display order
+                    var maxDisplayOrder = existingImages
+                        .Where(img => imageIdsToKeep.Contains(img.Id))
+                        .Select(img => img.DisplayOrder)
+                        .DefaultIfEmpty(-1)
+                        .Max();
+
+                    var displayOrder = maxDisplayOrder + 1;
+                    var userId = Guid.Parse(httpContext.User.FindFirst("sub")?.Value ?? Guid.Empty.ToString());
+
+                    foreach (var file in files)
+                    {
+                        if (file.Length == 0) continue;
+
+                        var imageId = Guid.NewGuid();
+
+                        using var stream = file.OpenReadStream();
+                        var result = await imageService.UploadImageWithCustomIdAsync(
+                            branchName,
+                            "Products",
+                            productId,
+                            imageId,
+                            stream,
+                            file.FileName,
+                            skipDelete: true
+                        );
+
+                        if (!result.Success)
+                        {
+                            return Results.BadRequest(
+                                new
+                                {
+                                    success = false,
+                                    error = new { code = "UPLOAD_FAILED", message = $"Failed to upload {file.FileName}: {result.ErrorMessage}" },
+                                }
+                            );
+                        }
+
+                        var productImage = new Backend.Models.Entities.Branch.ProductImage
+                        {
+                            Id = imageId,
+                            ProductId = productId,
+                            ImagePath = imageId.ToString(),
+                            ThumbnailPath = imageId.ToString(),
+                            DisplayOrder = displayOrder++,
+                            UploadedAt = DateTime.UtcNow,
+                            UploadedBy = userId
+                        };
+
+                        branchDbContext.ProductImages.Add(productImage);
+                        uploadedImages.Add(new
+                        {
+                            id = imageId,
+                            imagePath = imageId.ToString(),
+                            thumbnailPath = imageId.ToString(),
+                            displayOrder = productImage.DisplayOrder
+                        });
+                    }
+
+                    await branchDbContext.SaveChangesAsync();
+                }
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = new
+                        {
+                            keptCount = imageIdsToKeep.Count,
+                            deletedCount = imagesToDelete.Count,
+                            uploadedCount = uploadedImages.Count,
+                            uploadedImages = uploadedImages
+                        },
+                        message = $"Updated images: kept {imageIdsToKeep.Count}, deleted {imagesToDelete.Count}, uploaded {uploadedImages.Count}",
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("UpdateProductImages")
+    .WithOpenApi()
+    .DisableAntiforgery();
 
 // POST /api/v1/images/upload-multiple - Upload multiple images for a product
 app.MapPost(

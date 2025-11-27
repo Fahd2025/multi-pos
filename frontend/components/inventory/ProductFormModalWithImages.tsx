@@ -170,34 +170,49 @@ export default function ProductFormModalWithImages({
         : await inventoryService.createProduct(productData as CreateProductDto);
 
       // 2. Handle image operations
-      // The new multi-image upload endpoint handles both deletion and upload in a single atomic operation
-      if (imagesToUpload.length > 0 && branchName) {
+      // Extract imageIds from existing URLs
+      const existingImageIds = imagePreviewUrls
+        .filter(url => !url.startsWith('data:')) // Filter out base64 new images
+        .map(url => {
+          // Extract imageId from URL pattern: /api/v1/images/{branch}/Products/{imageId}/{size}?productId={productId}
+          const match = url.match(/\/images\/[^/]+\/Products\/([^/]+)\//);
+          return match ? match[1] : null;
+        })
+        .filter(Boolean) as string[];
+
+      const originalImageCount = product?.images?.length || 0;
+      const currentPreviewCount = imagePreviewUrls.length;
+      const hasNewImages = imagesToUpload.length > 0;
+      const imagesChanged = originalImageCount !== currentPreviewCount || hasNewImages;
+
+      if (imagesChanged) {
         setUploadingImages(true);
         try {
-          await imageService.uploadMultipleImages(
-            branchName,
-            "Products",
-            savedProduct.id,
-            imagesToUpload
-          );
-          console.log(`Successfully uploaded ${imagesToUpload.length} images`);
-        } catch (error) {
-          console.error("Error uploading images:", error);
-          // Don't fail the whole operation if image upload fails
-          // The product is already saved
-        } finally {
-          setUploadingImages(false);
-        }
-      } else if (imagePreviewUrls.length === 0 && product?.images && product.images.length > 0) {
-        // If all images were removed (no previews and no new uploads), delete existing images
-        try {
-          const success = await imageService.deleteImages(branchName, "Products", savedProduct.id);
-          if (success) {
-            console.log("Successfully deleted all product images from server");
+          if (product && originalImageCount > 0) {
+            // Editing existing product with images - use update endpoint
+            await imageService.updateProductImages(
+              branchName,
+              savedProduct.id,
+              existingImageIds,
+              imagesToUpload
+            );
+            console.log(`Updated product images: kept ${existingImageIds.length}, added ${imagesToUpload.length}`);
+          } else {
+            // New product or product with no existing images - use upload all endpoint
+            if (imagesToUpload.length > 0) {
+              await imageService.uploadMultipleImages(
+                branchName,
+                "Products",
+                savedProduct.id,
+                imagesToUpload
+              );
+              console.log(`Successfully uploaded ${imagesToUpload.length} images`);
+            }
           }
         } catch (error) {
-          console.error("Error deleting images from server:", error);
-          // Don't fail the whole operation
+          console.error("Error updating images:", error);
+        } finally {
+          setUploadingImages(false);
         }
       }
 

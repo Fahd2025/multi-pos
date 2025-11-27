@@ -117,6 +117,39 @@ class ImageService {
   }
 
   /**
+   * Update product images (keep some existing, delete others, add new)
+   * For editing products with partial image changes
+   */
+  async updateProductImages(
+    branchName: string,
+    productId: string,
+    imageIdsToKeep: string[],
+    newFiles: File[]
+  ): Promise<boolean> {
+    try {
+      const formData = new FormData();
+      formData.append('branchName', branchName);
+      formData.append('imageIdsToKeep', imageIdsToKeep.join(','));
+
+      // Append all new files
+      newFiles.forEach((file) => {
+        formData.append('images', file);
+      });
+
+      const response = await api.patch(`/api/v1/images/products/${productId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      return response.data.success === true;
+    } catch (error: any) {
+      console.error('Product images update error:', error);
+      return false;
+    }
+  }
+
+  /**
    * Delete all images for an entity
    */
   async deleteImages(branchName: string, entityType: string, entityId: string): Promise<boolean> {
@@ -146,7 +179,7 @@ class ImageService {
     entityId: string,
     size: 'thumb' | 'medium' | 'large' | 'original' = 'medium'
   ): string {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5062';
     return `${apiUrl}/api/v1/images/${branchName}/${entityType}/${entityId}/${size}`;
   }
 
@@ -161,10 +194,10 @@ class ImageService {
     imageId: string,
     size: 'thumb' | 'medium' | 'large' | 'original' = 'medium'
   ): string {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5062';
     // The backend stores images with imageId as filename in the parentEntityId directory
-    // We need to construct the path to match the backend structure
-    return `${apiUrl}/api/v1/images/${branchName}/${entityType}/${imageId}/${size}`;
+    // Pass productId as query parameter so backend knows where to find the file
+    return `${apiUrl}/api/v1/images/${branchName}/${entityType}/${imageId}/${size}?productId=${parentEntityId}`;
   }
 }
 
