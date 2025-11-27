@@ -69,10 +69,18 @@ class ImageService {
    */
   async deleteImages(branchName: string, entityType: string, entityId: string): Promise<boolean> {
     try {
-      await api.delete(`/api/v1/images/${branchName}/${entityType}/${entityId}`);
-      return true;
+      const response = await api.delete(`/api/v1/images/${branchName}/${entityType}/${entityId}`);
+      // Check if the response indicates success
+      if (response.data && response.data.success === true) {
+        return true;
+      }
+      return false;
     } catch (error: any) {
       console.error('Image deletion error:', error);
+      // Handle 404 as a "success" since image was already deleted
+      if (error.response?.status === 404) {
+        return true; // Image was already deleted, so operation is effectively successful
+      }
       return false;
     }
   }

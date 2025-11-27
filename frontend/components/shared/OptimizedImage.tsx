@@ -36,15 +36,17 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const [isLoading, setIsLoading] = useState(true);
 
   // Construct the image URL from the backend
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
   const imageSrc = `${apiUrl}/api/v1/images/${branchName}/${entityType}/${entityId}/${size}`;
 
-  const handleImageError = () => {
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.error('Image failed to load:', `${apiUrl}/api/v1/images/${branchName}/${entityType}/${entityId}/${size}`);
     setImageError(true);
     setIsLoading(false);
   };
 
   const handleImageLoad = () => {
+    setImageError(false); // Reset error when image loads successfully
     setIsLoading(false);
   };
 

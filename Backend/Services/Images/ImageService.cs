@@ -66,8 +66,8 @@ public class ImageService : IImageService
             // Delete existing images for this entity
             DeleteExistingImages(entityPath);
 
-            // Generate all size variants
-            var baseFileName = Path.GetFileNameWithoutExtension(fileName);
+            // Generate all size variants using entity ID as base filename for consistency
+            var baseFileName = entityId.ToString(); // Use entity ID as base filename to ensure consistency
             var generatedPaths = await ImageOptimizer.GenerateAllVariantsAsync(image, entityPath, baseFileName);
 
             _logger.LogInformation(
@@ -96,18 +96,72 @@ public class ImageService : IImageService
     {
         try
         {
-            var entityPath = GetEntityDirectory(branchName, entityType, entityId);
+            bool deleted = false;
 
-            if (Directory.Exists(entityPath))
+            // First try to delete from the new path (with entityId)
+            var newEntityPath = Path.Combine(_uploadBasePath, branchName, "Logo", entityId.ToString());
+            if (Directory.Exists(newEntityPath))
             {
-                Directory.Delete(entityPath, recursive: true);
+                Directory.Delete(newEntityPath, recursive: true);
                 _logger.LogInformation(
-                    "Deleted images for {EntityType} {EntityId} in branch {BranchName}",
+                    "Deleted images from new path for {EntityType} {EntityId} in branch {BranchName}",
                     entityType, entityId, branchName);
-                return true;
+                deleted = true;
             }
 
-            return false;
+            // Also try to delete from the old path (for backward compatibility)
+            if (entityType.Equals("Logo", StringComparison.OrdinalIgnoreCase) ||
+                entityType.Equals("Branches", StringComparison.OrdinalIgnoreCase))
+            {
+                var oldEntityPath = Path.Combine(_uploadBasePath, branchName, "Logo");
+                if (Directory.Exists(oldEntityPath))
+                {
+                    // Delete files that might belong to this entity in the old directory
+                    var files = Directory.GetFiles(oldEntityPath);
+                    foreach (var file in files)
+                    {
+                        // If filename contains the entity ID or if it's a general logo directory cleanup
+                        if (Path.GetFileNameWithoutExtension(file).Contains(entityId.ToString()))
+                        {
+                            try
+                            {
+                                File.Delete(file);
+                                _logger.LogInformation(
+                                    "Deleted image file {FilePath} for {EntityType} {EntityId}",
+                                    file, entityType, entityId);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogWarning(ex, "Failed to delete image file: {FilePath}", file);
+                            }
+                        }
+                    }
+
+                    // If old directory is now empty, remove it
+                    if (Directory.GetFiles(oldEntityPath).Length == 0 && Directory.GetDirectories(oldEntityPath).Length == 0)
+                    {
+                        Directory.Delete(oldEntityPath);
+                        _logger.LogInformation("Removed empty logo directory: {Path}", oldEntityPath);
+                    }
+
+                    deleted = true;
+                }
+            }
+            else
+            {
+                // For non-branch entities, use the regular path
+                var entityPath = Path.Combine(_uploadBasePath, branchName, entityType, entityId.ToString());
+                if (Directory.Exists(entityPath))
+                {
+                    Directory.Delete(entityPath, recursive: true);
+                    _logger.LogInformation(
+                        "Deleted images for {EntityType} {EntityId} in branch {BranchName}",
+                        entityType, entityId, branchName);
+                    deleted = true;
+                }
+            }
+
+            return deleted;
         }
         catch (Exception ex)
         {
@@ -118,16 +172,46 @@ public class ImageService : IImageService
 
     public string GetImagePath(string branchName, string entityType, Guid entityId, string size)
     {
-        var entityPath = GetEntityDirectory(branchName, entityType, entityId);
         var extension = ImageOptimizer.GetOptimizedExtension();
-
-        // Look for any file with the pattern *-{size}.webp
         var pattern = $"*-{size}{extension}";
-        var files = Directory.Exists(entityPath)
-            ? Directory.GetFiles(entityPath, pattern)
-            : Array.Empty<string>();
 
-        return files.FirstOrDefault() ?? string.Empty;
+        // First check the new path (with entityId) to avoid conflicts
+        var newEntityPath = Path.Combine(_uploadBasePath, branchName, "Logo", entityId.ToString());
+        if (Directory.Exists(newEntityPath))
+        {
+            var files = Directory.GetFiles(newEntityPath, pattern);
+            var path = files.FirstOrDefault();
+            if (!string.IsNullOrEmpty(path))
+                return path;
+        }
+
+        // If not found in new path, try the old path (for backward compatibility)
+        if (entityType.Equals("Logo", StringComparison.OrdinalIgnoreCase) ||
+            entityType.Equals("Branches", StringComparison.OrdinalIgnoreCase))
+        {
+            var oldEntityPath = Path.Combine(_uploadBasePath, branchName, "Logo");
+            if (Directory.Exists(oldEntityPath))
+            {
+                var files = Directory.GetFiles(oldEntityPath, pattern);
+                var path = files.FirstOrDefault();
+                if (!string.IsNullOrEmpty(path))
+                    return path;
+            }
+        }
+        else
+        {
+            // For non-branch entities, use the regular path
+            var entityPath = Path.Combine(_uploadBasePath, branchName, entityType, entityId.ToString());
+            if (Directory.Exists(entityPath))
+            {
+                var files = Directory.GetFiles(entityPath, pattern);
+                var path = files.FirstOrDefault();
+                if (!string.IsNullOrEmpty(path))
+                    return path;
+            }
+        }
+
+        return string.Empty;
     }
 
     public bool ImageExists(string branchName, string entityType, Guid entityId, string size)
@@ -138,18 +222,12 @@ public class ImageService : IImageService
 
     private string GetEntityDirectory(string branchName, string entityType, Guid entityId)
     {
-        // Special case for Branch Logos: Upload/Branches/{code}/Logo/
-        // We assume branchName passed is the Code, and entityType is "Logo" or "Branches".
-        if (entityType.Equals("Logo", StringComparison.OrdinalIgnoreCase))
+        // For Branch Logos and Branches, use the entity-specific directory to avoid conflicts
+        // New uploads will go to Upload/Branches/{branchCode}/Logo/{branchId}/
+        if (entityType.Equals("Logo", StringComparison.OrdinalIgnoreCase) ||
+            entityType.Equals("Branches", StringComparison.OrdinalIgnoreCase))
         {
-            return Path.Combine(_uploadBasePath, branchName, entityType);
-        }
-
-        // Special case for Branches entity type (for branch logos)
-        // Store at Upload/Branches/{code}/Logo/ instead of Upload/Branches/{code}/Branches/{entityId}/
-        if (entityType.Equals("Branches", StringComparison.OrdinalIgnoreCase))
-        {
-            return Path.Combine(_uploadBasePath, branchName, "Logo");
+            return Path.Combine(_uploadBasePath, branchName, "Logo", entityId.ToString());
         }
 
         return Path.Combine(_uploadBasePath, branchName, entityType, entityId.ToString());

@@ -168,6 +168,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {currentImages.map((imageId, index) => (
             <div key={index} className="relative group">
+              {console.log("Displaying existing image:", { branchName, entityType, entityId, currentImageId: imageId })}
               <OptimizedImage
                 branchName={branchName}
                 entityType={entityType}

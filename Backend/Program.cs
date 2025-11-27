@@ -3487,7 +3487,6 @@ app.MapPost(
                 // Update the entity's image path field in the database
                 try
                 {
-                    var imagePath = entityId.ToString(); // Store entity ID as marker
                     var entityTypeLower = entityType.ToLower();
 
                     // For branch-scoped entities, get the BranchDbContext from the factory
@@ -3506,7 +3505,7 @@ app.MapPost(
                                     var customer = await branchDbContext.Customers.FindAsync(entityId);
                                     if (customer != null)
                                     {
-                                        customer.LogoPath = imagePath;
+                                        customer.LogoPath = entityId.ToString(); // Store entity ID to reference the image
                                         await branchDbContext.SaveChangesAsync();
                                     }
                                     break;
@@ -3515,7 +3514,7 @@ app.MapPost(
                                     var supplier = await branchDbContext.Suppliers.FindAsync(entityId);
                                     if (supplier != null)
                                     {
-                                        supplier.LogoPath = imagePath;
+                                        supplier.LogoPath = entityId.ToString(); // Store entity ID to reference the image
                                         await branchDbContext.SaveChangesAsync();
                                     }
                                     break;
@@ -3524,7 +3523,7 @@ app.MapPost(
                                     var expense = await branchDbContext.Expenses.FindAsync(entityId);
                                     if (expense != null)
                                     {
-                                        expense.ReceiptImagePath = imagePath;
+                                        expense.ReceiptImagePath = entityId.ToString(); // Store entity ID to reference the image
                                         await branchDbContext.SaveChangesAsync();
                                     }
                                     break;
@@ -3533,7 +3532,7 @@ app.MapPost(
                                     var category = await branchDbContext.Categories.FindAsync(entityId);
                                     if (category != null)
                                     {
-                                        category.ImagePath = imagePath;
+                                        category.ImagePath = entityId.ToString(); // Store entity ID to reference the image
                                         await branchDbContext.SaveChangesAsync();
                                     }
                                     break;
@@ -3545,7 +3544,8 @@ app.MapPost(
                         var branchEntity = await headOfficeDbContext.Branches.FindAsync(entityId);
                         if (branchEntity != null)
                         {
-                            branchEntity.LogoPath = imagePath;
+                            // For branches, store the entity ID in LogoPath to reference the image
+                            branchEntity.LogoPath = entityId.ToString();
                             await headOfficeDbContext.SaveChangesAsync();
                         }
                     }
@@ -3645,8 +3645,7 @@ app.MapGet(
                 };
 
                 // Serve the image file
-                var fileStream = File.OpenRead(imagePath);
-                return Results.Stream(fileStream, contentType);
+                return Results.File(imagePath, contentType, enableRangeProcessing: true);
             }
             catch (Exception ex)
             {

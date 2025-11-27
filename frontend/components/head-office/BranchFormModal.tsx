@@ -152,9 +152,15 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
     if (!branch?.id) return;
 
     try {
-      await imageService.deleteImages(branch.code, "Branches", branch.id);
-      console.log("Branch logo deleted successfully");
+      const success = await imageService.deleteImages(branch.code, "Branches", branch.id);
+      if (success) {
+        console.log("Branch logo deleted successfully");
+      } else {
+        setError("Failed to delete branch logo");
+        console.error("Failed to delete branch logo");
+      }
     } catch (error) {
+      setError("Error deleting logo: " + (error instanceof Error ? error.message : "Unknown error"));
       console.error("Error deleting logo:", error);
     }
   };
@@ -457,6 +463,12 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Branch Logo</h3>
 
+          {console.log("BranchFormModal ImageUpload props:", {
+            branchCode: branch?.code,
+            entityId: branch?.id,
+            logoPath: branch?.logoPath,
+            currentImages: branch?.logoPath ? [branch.logoPath] : []
+          })}
           <ImageUpload
             branchName={branch?.code || "HeadOffice"}
             entityType="Branches"
