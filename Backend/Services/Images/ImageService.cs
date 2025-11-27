@@ -254,4 +254,77 @@ public class ImageService : IImageService
             }
         }
     }
+
+    public async Task<ImageResult> UploadImageWithCustomIdAsync(
+        string branchName,
+        string entityType,
+        Guid entityId,
+        Guid imageId,
+        Stream imageStream,
+        string fileName,
+        bool skipDelete = true)
+    {
+        try
+        {
+            // Validate file size
+            if (imageStream.Length > MaxFileSize)
+            {
+                return new ImageResult
+                {
+                    Success = false,
+                    ErrorMessage = $"File size exceeds maximum allowed size of {MaxFileSize / (1024 * 1024)}MB"
+                };
+            }
+
+            // Validate image format
+            if (!await ImageOptimizer.IsValidImageAsync(imageStream))
+            {
+                return new ImageResult
+                {
+                    Success = false,
+                    ErrorMessage = "Invalid image format. Only JPEG, PNG, and WebP are supported."
+                };
+            }
+
+            // Reset stream position after validation
+            imageStream.Position = 0;
+
+            // Load image
+            using var image = await Image.LoadAsync(imageStream);
+
+            // Create directory structure (using entityId as the parent folder)
+            var entityPath = GetEntityDirectory(branchName, entityType, entityId);
+            Directory.CreateDirectory(entityPath);
+
+            // Optionally delete existing images for this specific image ID (not all images in the directory)
+            if (!skipDelete)
+            {
+                DeleteExistingImages(entityPath);
+            }
+
+            // Generate all size variants using the specific imageId as base filename
+            var baseFileName = imageId.ToString();
+            var generatedPaths = await ImageOptimizer.GenerateAllVariantsAsync(image, entityPath, baseFileName);
+
+            _logger.LogInformation(
+                "Successfully uploaded and processed image {ImageId} for {EntityType} {EntityId} in branch {BranchName}",
+                imageId, entityType, entityId, branchName);
+
+            return new ImageResult
+            {
+                Success = true,
+                OriginalPath = generatedPaths.FirstOrDefault(),
+                ThumbnailPaths = generatedPaths.Skip(1).ToList()
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error uploading image {ImageId} for {EntityType} {EntityId}", imageId, entityType, entityId);
+            return new ImageResult
+            {
+                Success = false,
+                ErrorMessage = $"Error processing image: {ex.Message}"
+            };
+        }
+    }
 }

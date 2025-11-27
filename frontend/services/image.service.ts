@@ -49,7 +49,7 @@ class ImageService {
   }
 
   /**
-   * Upload multiple images for an entity
+   * Upload multiple images for an entity (optimized for Products)
    */
   async uploadMultipleImages(
     branchName: string,
@@ -57,11 +57,63 @@ class ImageService {
     entityId: string,
     files: File[]
   ): Promise<ImageUploadResult[]> {
-    const uploadPromises = files.map((file) =>
-      this.uploadImage(branchName, entityType, entityId, file)
-    );
+    try {
+      // Use the new multi-image upload endpoint for better performance and no file locking
+      const formData = new FormData();
+      formData.append('branchName', branchName);
+      formData.append('entityType', entityType);
+      formData.append('entityId', entityId);
 
-    return Promise.all(uploadPromises);
+      // Append all files with the same field name
+      files.forEach((file) => {
+        formData.append('images', file);
+      });
+
+      const response = await api.post<{
+        success: boolean;
+        data?: {
+          images: Array<{
+            id: string;
+            imagePath: string;
+            thumbnailPath: string;
+            displayOrder: number;
+          }>;
+          count: number;
+        };
+        error?: {
+          code: string;
+          message: string;
+        };
+        message?: string;
+      }>('/api/v1/images/upload-multiple', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      // Convert the response to match the expected format
+      if (response.data.success && response.data.data) {
+        return response.data.data.images.map((img) => ({
+          success: true,
+          data: {
+            originalPath: img.imagePath,
+            thumbnailPaths: [img.thumbnailPath],
+          },
+        }));
+      }
+
+      // If not successful, return error
+      return [{
+        success: false,
+        error: response.data.error || {
+          code: 'UNKNOWN_ERROR',
+          message: 'Failed to upload images',
+        },
+      }];
+    } catch (error: any) {
+      console.error('Multiple image upload error:', error);
+      throw error;
+    }
   }
 
   /**
@@ -96,6 +148,23 @@ class ImageService {
   ): string {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
     return `${apiUrl}/api/v1/images/${branchName}/${entityType}/${entityId}/${size}`;
+  }
+
+  /**
+   * Get image URL for a specific ProductImage by its unique ID
+   * For multi-image entities where each image has its own ID
+   */
+  getImageUrlByImageId(
+    branchName: string,
+    entityType: string,
+    parentEntityId: string,
+    imageId: string,
+    size: 'thumb' | 'medium' | 'large' | 'original' = 'medium'
+  ): string {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    // The backend stores images with imageId as filename in the parentEntityId directory
+    // We need to construct the path to match the backend structure
+    return `${apiUrl}/api/v1/images/${branchName}/${entityType}/${imageId}/${size}`;
   }
 }
 

@@ -49,6 +49,26 @@ public interface IImageService
     /// <param name="size">Image size</param>
     /// <returns>True if image exists</returns>
     bool ImageExists(string branchName, string entityType, Guid entityId, string size);
+
+    /// <summary>
+    /// Upload an image with a custom filename (for multi-image entities like Products)
+    /// </summary>
+    /// <param name="branchName">Name of the branch</param>
+    /// <param name="entityType">Type of entity (Products, etc.)</param>
+    /// <param name="entityId">ID of the parent entity (ProductId)</param>
+    /// <param name="imageId">Unique ID for this specific image (ProductImage.Id)</param>
+    /// <param name="imageStream">Image file stream</param>
+    /// <param name="fileName">Original file name</param>
+    /// <param name="skipDelete">If true, don't delete existing images before uploading</param>
+    /// <returns>Result containing paths to uploaded image variants</returns>
+    Task<ImageResult> UploadImageWithCustomIdAsync(
+        string branchName,
+        string entityType,
+        Guid entityId,
+        Guid imageId,
+        Stream imageStream,
+        string fileName,
+        bool skipDelete = true);
 }
 
 /// <summary>

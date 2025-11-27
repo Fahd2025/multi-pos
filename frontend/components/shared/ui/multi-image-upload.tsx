@@ -2,7 +2,6 @@
 
 import React, { useState, useCallback } from "react";
 import { Button } from "./button";
-import { Input } from "./input";
 import { Label } from "./label";
 import { Upload, X, Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -190,7 +189,7 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
       </div>
 
       {/* Hidden file input */}
-      <Input
+      <input
         id="multi-image-upload"
         type="file"
         accept="image/*"

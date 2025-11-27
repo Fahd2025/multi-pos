@@ -3771,6 +3771,172 @@ app.MapDelete(
     .WithName("DeleteImage")
     .WithOpenApi();
 
+// POST /api/v1/images/upload-multiple - Upload multiple images for a product
+app.MapPost(
+        "/api/v1/images/upload-multiple",
+        async (
+            HttpContext httpContext,
+            Backend.Services.Images.IImageService imageService,
+            Backend.Data.DbContextFactory dbContextFactory
+        ) =>
+        {
+            try
+            {
+                // Get form data
+                var form = await httpContext.Request.ReadFormAsync();
+                var files = form.Files.GetFiles("images");
+
+                if (files == null || files.Count == 0)
+                {
+                    return Results.BadRequest(
+                        new
+                        {
+                            success = false,
+                            error = new { code = "NO_FILES", message = "No image files provided" },
+                        }
+                    );
+                }
+
+                // Get parameters
+                var branchName = form["branchName"].ToString();
+                var entityType = form["entityType"].ToString();
+                var entityIdStr = form["entityId"].ToString();
+
+                if (string.IsNullOrWhiteSpace(branchName) || string.IsNullOrWhiteSpace(entityType) || string.IsNullOrWhiteSpace(entityIdStr))
+                {
+                    return Results.BadRequest(
+                        new
+                        {
+                            success = false,
+                            error = new { code = "MISSING_PARAMETERS", message = "branchName, entityType, and entityId are required" },
+                        }
+                    );
+                }
+
+                if (!Guid.TryParse(entityIdStr, out var entityId))
+                {
+                    return Results.BadRequest(
+                        new
+                        {
+                            success = false,
+                            error = new { code = "INVALID_ENTITY_ID", message = "entityId must be a valid GUID" },
+                        }
+                    );
+                }
+
+                // Get branch context
+                var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                if (branch == null)
+                {
+                    return Results.Unauthorized();
+                }
+
+                using var branchDbContext = dbContextFactory.CreateBranchContext(branch);
+
+                // Delete all existing ProductImage records for this product
+                var existingImages = branchDbContext.ProductImages
+                    .Where(pi => pi.ProductId == entityId)
+                    .ToList();
+
+                if (existingImages.Any())
+                {
+                    branchDbContext.ProductImages.RemoveRange(existingImages);
+                    await branchDbContext.SaveChangesAsync();
+                }
+
+                // Delete all existing image files from disk
+                await imageService.DeleteImageAsync(branchName, entityType, entityId);
+
+                // Upload each new image and create ProductImage records
+                var uploadedImages = new List<object>();
+                var displayOrder = 0;
+
+                foreach (var file in files)
+                {
+                    if (file.Length == 0) continue;
+
+                    // Generate a unique ID for this image
+                    var imageId = Guid.NewGuid();
+
+                    // Upload the image using the custom ID
+                    using var stream = file.OpenReadStream();
+                    var result = await imageService.UploadImageWithCustomIdAsync(
+                        branchName,
+                        entityType,
+                        entityId,
+                        imageId,
+                        stream,
+                        file.FileName,
+                        skipDelete: true // Don't delete on each upload
+                    );
+
+                    if (!result.Success)
+                    {
+                        // If any upload fails, return error
+                        return Results.BadRequest(
+                            new
+                            {
+                                success = false,
+                                error = new { code = "UPLOAD_FAILED", message = $"Failed to upload {file.FileName}: {result.ErrorMessage}" },
+                            }
+                        );
+                    }
+
+                    // Create ProductImage record in database
+                    // Note: We need to get the current user ID from the httpContext
+                    var userId = Guid.Parse(httpContext.User.FindFirst("sub")?.Value ?? Guid.Empty.ToString());
+
+                    var productImage = new Backend.Models.Entities.Branch.ProductImage
+                    {
+                        Id = imageId,
+                        ProductId = entityId,
+                        ImagePath = imageId.ToString(), // Store the imageId for reference
+                        ThumbnailPath = imageId.ToString(),
+                        DisplayOrder = displayOrder++,
+                        UploadedAt = DateTime.UtcNow,
+                        UploadedBy = userId
+                    };
+
+                    branchDbContext.ProductImages.Add(productImage);
+
+                    uploadedImages.Add(new
+                    {
+                        id = imageId,
+                        imagePath = imageId.ToString(),
+                        thumbnailPath = imageId.ToString(),
+                        displayOrder = productImage.DisplayOrder
+                    });
+                }
+
+                // Save all ProductImage records
+                await branchDbContext.SaveChangesAsync();
+
+                return Results.Ok(
+                    new
+                    {
+                        success = true,
+                        data = new
+                        {
+                            images = uploadedImages,
+                            count = uploadedImages.Count
+                        },
+                        message = $"Successfully uploaded {uploadedImages.Count} image(s)",
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("UploadMultipleImages")
+    .WithOpenApi()
+    .DisableAntiforgery();
+
 app.Run();
 
 // ============================================

@@ -47,9 +47,9 @@ export default function ProductFormModalWithImages({
   useEffect(() => {
     if (product?.images && product.images.length > 0) {
       // Load existing images as preview URLs
-      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5062';
+      // Each ProductImage now has its own ID used as the filename
       const imageUrls = product.images.map((img) =>
-        `${apiUrl}/api/v1/images/${branchName}/Products/${product.id}/medium?path=${encodeURIComponent(img.imagePath)}`
+        imageService.getImageUrlByImageId(branchName, "Products", product.id, img.id, "medium")
       );
       setImagePreviewUrls(imageUrls);
     } else {
@@ -170,27 +170,7 @@ export default function ProductFormModalWithImages({
         : await inventoryService.createProduct(productData as CreateProductDto);
 
       // 2. Handle image operations
-      const originalImageCount = product?.images?.length || 0;
-      const newImageCount = imagesToUpload.length;
-      const imagesChanged = originalImageCount > 0 || newImageCount > 0;
-
-      if (product && product.images && product.images.length > 0 && imagesChanged) {
-        // Delete all existing images when images are modified
-        // Backend API deletes ALL images for an entity
-        try {
-          const success = await imageService.deleteImages(branchName, "Products", savedProduct.id);
-          if (success) {
-            console.log("Successfully deleted old product images from server");
-          } else {
-            console.error("Failed to delete old product images from server");
-          }
-        } catch (error) {
-          console.error("Error deleting old images from server:", error);
-          // Don't fail the whole operation
-        }
-      }
-
-      // 3. Upload new images if any selected
+      // The new multi-image upload endpoint handles both deletion and upload in a single atomic operation
       if (imagesToUpload.length > 0 && branchName) {
         setUploadingImages(true);
         try {
@@ -207,6 +187,17 @@ export default function ProductFormModalWithImages({
           // The product is already saved
         } finally {
           setUploadingImages(false);
+        }
+      } else if (imagePreviewUrls.length === 0 && product?.images && product.images.length > 0) {
+        // If all images were removed (no previews and no new uploads), delete existing images
+        try {
+          const success = await imageService.deleteImages(branchName, "Products", savedProduct.id);
+          if (success) {
+            console.log("Successfully deleted all product images from server");
+          }
+        } catch (error) {
+          console.error("Error deleting images from server:", error);
+          // Don't fail the whole operation
         }
       }
 
@@ -279,18 +270,11 @@ export default function ProductFormModalWithImages({
         size="lg"
         additionalContent={
           <>
-            <ImageUpload
-              branchName={branchName}
-              entityType="Products"
-              entityId={product?.id}
-              currentImages={currentImagePaths}
-              multiple={true}
-              maxFiles={5}
-              onUpload={handleImageUpload}
-              onRemove={handleImageRemove}
-              label="Product Images (Optional)"
-              className="mb-4"
-              cacheBust={true}
+            <MultiImageUpload
+              images={imagePreviewUrls}
+              onChange={handleImagesChange}
+              maxImages={8}
+              maxSize={5}
             />
 
             {/* Upload status indicator */}
@@ -321,9 +305,9 @@ export default function ProductFormModalWithImages({
             )}
 
             {/* Selected images count */}
-            {selectedImages.length > 0 && !uploadingImages && (
+            {imagesToUpload.length > 0 && !uploadingImages && (
               <div className="text-sm text-gray-600 text-center mt-2">
-                {selectedImages.length} image{selectedImages.length > 1 ? "s" : ""} ready to upload
+                {imagesToUpload.length} image{imagesToUpload.length > 1 ? "s" : ""} ready to upload
               </div>
             )}
           </>
