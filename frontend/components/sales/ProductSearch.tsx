@@ -32,7 +32,8 @@ export default function ProductSearch({ onProductSelect }: ProductSearchProps) {
         descriptionEn: 'Ergonomic wireless mouse',
         descriptionAr: 'ماوس لاسلكي مريح',
         categoryId: 'cat1',
-        categoryName: 'Electronics',
+        categoryNameEn: 'Electronics',
+        categoryNameAr: 'إلكترونيات',
         sellingPrice: 29.99,
         costPrice: 15.00,
         stockLevel: 50,
@@ -43,6 +44,7 @@ export default function ProductSearch({ onProductSelect }: ProductSearchProps) {
         images: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        createdBy: '00000000-0000-0000-0000-000000000000',
       },
       {
         id: '2',
@@ -52,7 +54,8 @@ export default function ProductSearch({ onProductSelect }: ProductSearchProps) {
         descriptionEn: 'RGB mechanical keyboard',
         descriptionAr: 'لوحة مفاتيح ميكانيكية RGB',
         categoryId: 'cat1',
-        categoryName: 'Electronics',
+        categoryNameEn: 'Electronics',
+        categoryNameAr: 'إلكترونيات',
         sellingPrice: 89.99,
         costPrice: 45.00,
         stockLevel: 30,
@@ -63,6 +66,7 @@ export default function ProductSearch({ onProductSelect }: ProductSearchProps) {
         images: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        createdBy: '00000000-0000-0000-0000-000000000000',
       },
       {
         id: '3',
@@ -72,7 +76,8 @@ export default function ProductSearch({ onProductSelect }: ProductSearchProps) {
         descriptionEn: 'USB-C charging cable',
         descriptionAr: 'كابل شحن USB-C',
         categoryId: 'cat2',
-        categoryName: 'Accessories',
+        categoryNameEn: 'Accessories',
+        categoryNameAr: 'ملحقات',
         sellingPrice: 9.99,
         costPrice: 3.00,
         stockLevel: 100,
@@ -83,6 +88,7 @@ export default function ProductSearch({ onProductSelect }: ProductSearchProps) {
         images: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        createdBy: '00000000-0000-0000-0000-000000000000',
       },
     ];
 

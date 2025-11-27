@@ -274,7 +274,8 @@ export interface ProductDto {
   descriptionEn?: string;
   descriptionAr?: string;
   categoryId: string;
-  categoryName: string;
+  categoryNameEn?: string;
+  categoryNameAr?: string;
   sellingPrice: number;
   costPrice: number;
   stockLevel: number;
@@ -287,6 +288,7 @@ export interface ProductDto {
   images: ProductImageDto[];
   createdAt: string;
   updatedAt: string;
+  createdBy: string;
 }
 
 export interface ProductImageDto {

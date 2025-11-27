@@ -152,7 +152,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
     if (!branch?.id) return;
 
     try {
-      await imageService.deleteImages(branch.code, "Logo", branch.id);
+      await imageService.deleteImages(branch.code, "Branches", branch.id);
       console.log("Branch logo deleted successfully");
     } catch (error) {
       console.error("Error deleting logo:", error);
@@ -217,7 +217,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
         try {
           await imageService.uploadImage(
             savedBranch.code, // Use branch code for path construction
-            "Logo",
+            "Branches",
             savedBranch.id,
             selectedImages[0] // Single logo
           );
@@ -459,7 +459,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
 
           <ImageUpload
             branchName={branch?.code || "HeadOffice"}
-            entityType="Logo"
+            entityType="Branches"
             entityId={branch?.id}
             currentImages={branch?.logoPath ? [branch.logoPath] : []}
             multiple={false}

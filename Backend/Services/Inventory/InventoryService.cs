@@ -87,9 +87,15 @@ public class InventoryService : IInventoryService
                 CreatedAt = p.CreatedAt,
                 UpdatedAt = p.UpdatedAt,
                 CreatedBy = p.CreatedBy,
-                ImagePaths = p.Images
+                Images = p.Images
                     .OrderBy(i => i.DisplayOrder)
-                    .Select(i => i.ImagePath)
+                    .Select(i => new ProductImageDto
+                    {
+                        Id = i.Id,
+                        ImagePath = i.ImagePath,
+                        ThumbnailPath = i.ThumbnailPath,
+                        DisplayOrder = i.DisplayOrder
+                    })
                     .ToList()
             })
             .ToListAsync();
@@ -131,9 +137,15 @@ public class InventoryService : IInventoryService
             CreatedAt = product.CreatedAt,
             UpdatedAt = product.UpdatedAt,
             CreatedBy = product.CreatedBy,
-            ImagePaths = product.Images
+            Images = product.Images
                 .OrderBy(i => i.DisplayOrder)
-                .Select(i => i.ImagePath)
+                .Select(i => new ProductImageDto
+                {
+                    Id = i.Id,
+                    ImagePath = i.ImagePath,
+                    ThumbnailPath = i.ThumbnailPath,
+                    DisplayOrder = i.DisplayOrder
+                })
                 .ToList()
         };
     }
@@ -299,6 +311,7 @@ public class InventoryService : IInventoryService
         var products = await _context.Products
             .Include(p => p.Category)
             .Include(p => p.Supplier)
+            .Include(p => p.Images)
             .Where(p => p.IsActive && p.StockLevel <= p.MinStockThreshold)
             .OrderBy(p => p.StockLevel)
             .ThenBy(p => p.NameEn)
@@ -308,6 +321,8 @@ public class InventoryService : IInventoryService
                 SKU = p.SKU,
                 NameEn = p.NameEn,
                 NameAr = p.NameAr,
+                DescriptionEn = p.DescriptionEn,
+                DescriptionAr = p.DescriptionAr,
                 CategoryId = p.CategoryId,
                 CategoryNameEn = p.Category.NameEn,
                 CategoryNameAr = p.Category.NameAr,
@@ -318,7 +333,21 @@ public class InventoryService : IInventoryService
                 HasInventoryDiscrepancy = p.HasInventoryDiscrepancy,
                 SupplierId = p.SupplierId,
                 SupplierName = p.Supplier != null ? p.Supplier.NameEn : null,
-                IsActive = p.IsActive
+                Barcode = p.Barcode,
+                IsActive = p.IsActive,
+                CreatedAt = p.CreatedAt,
+                UpdatedAt = p.UpdatedAt,
+                CreatedBy = p.CreatedBy,
+                Images = p.Images
+                    .OrderBy(i => i.DisplayOrder)
+                    .Select(i => new ProductImageDto
+                    {
+                        Id = i.Id,
+                        ImagePath = i.ImagePath,
+                        ThumbnailPath = i.ThumbnailPath,
+                        DisplayOrder = i.DisplayOrder
+                    })
+                    .ToList()
             })
             .ToListAsync();
 

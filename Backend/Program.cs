@@ -3414,7 +3414,9 @@ app.MapPost(
         "/api/v1/images/upload",
         async (
             HttpContext httpContext,
-            Backend.Services.Images.IImageService imageService
+            Backend.Services.Images.IImageService imageService,
+            Backend.Data.DbContextFactory dbContextFactory,
+            Backend.Data.HeadOfficeDbContext headOfficeDbContext
         ) =>
         {
             try
@@ -3480,6 +3482,78 @@ app.MapPost(
                             error = new { code = "UPLOAD_FAILED", message = result.ErrorMessage },
                         }
                     );
+                }
+
+                // Update the entity's image path field in the database
+                try
+                {
+                    var imagePath = entityId.ToString(); // Store entity ID as marker
+                    var entityTypeLower = entityType.ToLower();
+
+                    // For branch-scoped entities, get the BranchDbContext from the factory
+                    if (entityTypeLower == "customers" || entityTypeLower == "suppliers" ||
+                        entityTypeLower == "expenses" || entityTypeLower == "categories")
+                    {
+                        // Get branch from HttpContext
+                        var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                        if (branch != null)
+                        {
+                            using var branchDbContext = dbContextFactory.CreateBranchContext(branch);
+
+                            switch (entityTypeLower)
+                            {
+                                case "customers":
+                                    var customer = await branchDbContext.Customers.FindAsync(entityId);
+                                    if (customer != null)
+                                    {
+                                        customer.LogoPath = imagePath;
+                                        await branchDbContext.SaveChangesAsync();
+                                    }
+                                    break;
+
+                                case "suppliers":
+                                    var supplier = await branchDbContext.Suppliers.FindAsync(entityId);
+                                    if (supplier != null)
+                                    {
+                                        supplier.LogoPath = imagePath;
+                                        await branchDbContext.SaveChangesAsync();
+                                    }
+                                    break;
+
+                                case "expenses":
+                                    var expense = await branchDbContext.Expenses.FindAsync(entityId);
+                                    if (expense != null)
+                                    {
+                                        expense.ReceiptImagePath = imagePath;
+                                        await branchDbContext.SaveChangesAsync();
+                                    }
+                                    break;
+
+                                case "categories":
+                                    var category = await branchDbContext.Categories.FindAsync(entityId);
+                                    if (category != null)
+                                    {
+                                        category.ImagePath = imagePath;
+                                        await branchDbContext.SaveChangesAsync();
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+                    else if (entityTypeLower == "branches")
+                    {
+                        var branchEntity = await headOfficeDbContext.Branches.FindAsync(entityId);
+                        if (branchEntity != null)
+                        {
+                            branchEntity.LogoPath = imagePath;
+                            await headOfficeDbContext.SaveChangesAsync();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log error but don't fail the request since image was uploaded successfully
+                    Console.WriteLine($"Warning: Could not update {entityType} {entityId} image path: {ex.Message}");
                 }
 
                 return Results.Ok(
@@ -3592,7 +3666,10 @@ app.MapDelete(
             string branchName,
             string entityType,
             Guid entityId,
-            Backend.Services.Images.IImageService imageService
+            HttpContext httpContext,
+            Backend.Services.Images.IImageService imageService,
+            Backend.Data.DbContextFactory dbContextFactory,
+            Backend.Data.HeadOfficeDbContext headOfficeDbContext
         ) =>
         {
             try
@@ -3608,6 +3685,77 @@ app.MapDelete(
                             error = new { code = "NOT_FOUND", message = "Images not found or already deleted" },
                         }
                     );
+                }
+
+                // Clear the entity's image path field in the database
+                try
+                {
+                    var entityTypeLower = entityType.ToLower();
+
+                    // For branch-scoped entities, get the BranchDbContext from the factory
+                    if (entityTypeLower == "customers" || entityTypeLower == "suppliers" ||
+                        entityTypeLower == "expenses" || entityTypeLower == "categories")
+                    {
+                        // Get branch from HttpContext
+                        var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                        if (branch != null)
+                        {
+                            using var branchDbContext = dbContextFactory.CreateBranchContext(branch);
+
+                            switch (entityTypeLower)
+                            {
+                                case "customers":
+                                    var customer = await branchDbContext.Customers.FindAsync(entityId);
+                                    if (customer != null)
+                                    {
+                                        customer.LogoPath = null;
+                                        await branchDbContext.SaveChangesAsync();
+                                    }
+                                    break;
+
+                                case "suppliers":
+                                    var supplier = await branchDbContext.Suppliers.FindAsync(entityId);
+                                    if (supplier != null)
+                                    {
+                                        supplier.LogoPath = null;
+                                        await branchDbContext.SaveChangesAsync();
+                                    }
+                                    break;
+
+                                case "expenses":
+                                    var expense = await branchDbContext.Expenses.FindAsync(entityId);
+                                    if (expense != null)
+                                    {
+                                        expense.ReceiptImagePath = null;
+                                        await branchDbContext.SaveChangesAsync();
+                                    }
+                                    break;
+
+                                case "categories":
+                                    var category = await branchDbContext.Categories.FindAsync(entityId);
+                                    if (category != null)
+                                    {
+                                        category.ImagePath = null;
+                                        await branchDbContext.SaveChangesAsync();
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+                    else if (entityTypeLower == "branches")
+                    {
+                        var branchEntity = await headOfficeDbContext.Branches.FindAsync(entityId);
+                        if (branchEntity != null)
+                        {
+                            branchEntity.LogoPath = null;
+                            await headOfficeDbContext.SaveChangesAsync();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log error but don't fail the request since image was deleted successfully
+                    Console.WriteLine($"Warning: Could not clear {entityType} {entityId} image path: {ex.Message}");
                 }
 
                 return Results.Ok(new { success = true, message = "Images deleted successfully" });

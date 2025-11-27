@@ -26,6 +26,6 @@ public class ProductDto
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public Guid CreatedBy { get; set; }
-    public List<string> ImagePaths { get; set; } = new();
+    public List<ProductImageDto> Images { get; set; } = new();
     public bool IsLowStock => StockLevel <= MinStockThreshold;
 }

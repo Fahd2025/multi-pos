@@ -139,10 +139,17 @@ public class ImageService : IImageService
     private string GetEntityDirectory(string branchName, string entityType, Guid entityId)
     {
         // Special case for Branch Logos: Upload/Branches/{code}/Logo/
-        // We assume branchName passed is the Code, and entityType is "Logo".
+        // We assume branchName passed is the Code, and entityType is "Logo" or "Branches".
         if (entityType.Equals("Logo", StringComparison.OrdinalIgnoreCase))
         {
             return Path.Combine(_uploadBasePath, branchName, entityType);
+        }
+
+        // Special case for Branches entity type (for branch logos)
+        // Store at Upload/Branches/{code}/Logo/ instead of Upload/Branches/{code}/Branches/{entityId}/
+        if (entityType.Equals("Branches", StringComparison.OrdinalIgnoreCase))
+        {
+            return Path.Combine(_uploadBasePath, branchName, "Logo");
         }
 
         return Path.Combine(_uploadBasePath, branchName, entityType, entityId.ToString());
