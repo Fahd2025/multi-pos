@@ -15,6 +15,8 @@ Backend/Upload/
     └── [Branch Login Name]/
         ├── Database/          # Branch database files and backups
         │   └── [DbName].db    # Branch SQLite database
+        ├── Logo/              # Branch logo images
+        │   └── [Branch ID]/   # Branch-specific logo (optimized variants)
         ├── Products/          # Product-related files
         │   └── [Product ID]/  # Individual product files (images, docs)
         ├── Categories/        # Category images and documents
@@ -41,6 +43,12 @@ Backend/Upload/
 - For SQLite databases, this is the primary database location
 - Can also store database backups and exports
 - For SQL Server/PostgreSQL/MySQL, only stores backups (actual DB is on server)
+
+### Logo/[Branch ID]/
+- Branch logo images in multiple optimized sizes
+- Automatically generated variants: original, large, medium, thumb
+- Images are optimized and converted to WebP format
+- Each branch has its logo stored under its unique Branch ID
 
 ### Products/[Product ID]/
 - Product images (main image, gallery images)
