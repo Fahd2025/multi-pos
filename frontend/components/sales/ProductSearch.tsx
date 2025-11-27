@@ -189,7 +189,7 @@ export default function ProductSearch({ onProductSelect }: ProductSearchProps) {
                     <p className="text-lg font-bold text-blue-600">
                       ${product.sellingPrice.toFixed(2)}
                     </p>
-                    <p className="text-xs text-gray-500">{product.categoryName}</p>
+                    <p className="text-xs text-gray-500">{product.categoryNameEn}</p>
                   </div>
                 </button>
               ))}

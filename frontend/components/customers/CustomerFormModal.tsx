@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CustomerDto, CreateCustomerDto, UpdateCustomerDto } from "@/types/api.types";
 import customerService from "@/services/customer.service";
 import imageService from "@/services/image.service";
@@ -33,7 +33,18 @@ export default function CustomerFormModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [currentLogoPath, setCurrentLogoPath] = useState<string | null>(null); // Track current logo path separately
   const { error, isError, executeWithErrorHandling, clearError } = useApiError();
+
+  // Initialize currentLogoPath when customer changes
+  useEffect(() => {
+    if (customer?.logoPath) {
+      setCurrentLogoPath(customer.logoPath);
+    } else {
+      setCurrentLogoPath(null);
+    }
+    setSelectedImages([]);
+  }, [customer, isOpen]);
 
   // Define form fields
   const fields: FormField<any>[] = [
@@ -138,6 +149,27 @@ export default function CustomerFormModal({
         savedCustomer = await customerService.createCustomer(createDto);
       }
 
+      // Handle logo operations
+      const logoWasRemoved = currentLogoPath === null && customer?.logoPath;
+      const newLogoSelected = selectedImages.length > 0;
+
+      if (customer && customer.logoPath) {
+        // Delete existing logo if user removed it OR is replacing it with a new one
+        if (logoWasRemoved || newLogoSelected) {
+          try {
+            const success = await imageService.deleteImages(branchName, "Customers", savedCustomer.id);
+            if (success) {
+              console.log("Successfully deleted old customer logo from server");
+            } else {
+              console.error("Failed to delete old customer logo from server");
+            }
+          } catch (error) {
+            console.error("Error deleting old logo from server:", error);
+            // Don't fail the whole operation
+          }
+        }
+      }
+
       // Upload logo if selected
       if (selectedImages.length > 0 && branchName) {
         setUploadingImages(true);
@@ -173,6 +205,7 @@ export default function CustomerFormModal({
   const handleClose = () => {
     clearError();
     setSelectedImages([]);
+    setCurrentLogoPath(customer?.logoPath || null);
     onClose();
   };
 
@@ -181,14 +214,10 @@ export default function CustomerFormModal({
   };
 
   const handleImageRemove = async (imageId: string) => {
-    if (!customer?.id || !branchName) return;
-
-    try {
-      await imageService.deleteImages(branchName, "Customers", customer.id);
-      console.log("Customer logo deleted successfully");
-    } catch (error) {
-      console.error("Error deleting logo:", error);
-    }
+    // Only update the UI state to remove the image visually
+    // The actual deletion from server will happen when the form is submitted
+    setCurrentLogoPath(null);
+    console.log("Customer logo visually removed, will be deleted on form submit");
   };
 
   return (
@@ -217,13 +246,14 @@ export default function CustomerFormModal({
               branchName={branchName}
               entityType="Customers"
               entityId={customer?.id}
-              currentImages={customer?.logoPath ? [customer.logoPath] : []}
+              currentImages={currentLogoPath ? [currentLogoPath] : []}
               multiple={false}
               maxFiles={1}
               onUpload={handleImageUpload}
               onRemove={handleImageRemove}
               label="Customer Logo (Optional)"
               className="mb-4"
+              cacheBust={true}
             />
 
             {/* Upload status */}

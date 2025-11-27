@@ -10,12 +10,12 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProductDto, CategoryDto, CreateProductDto, UpdateProductDto } from "@/types/api.types";
 import inventoryService from "@/services/inventory.service";
 import imageService from "@/services/image.service";
 import { ModalBottomSheet } from "@/components/modals";
-import { ImageUpload } from "@/components/shared/ImageUpload";
+import { MultiImageUpload } from "@/components/shared/ui/multi-image-upload";
 import { FormField } from "@/types/data-table.types";
 import { useApiError } from "@/hooks/useApiError";
 import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
@@ -38,9 +38,25 @@ export default function ProductFormModalWithImages({
   branchName,
 }: ProductFormModalWithImagesProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]); // Base64 strings for MultiImageUpload
+  const [imagesToUpload, setImagesToUpload] = useState<File[]>([]); // Actual files to upload
   const { error, isError, executeWithErrorHandling, clearError } = useApiError();
+
+  // Initialize image preview URLs when product changes
+  useEffect(() => {
+    if (product?.images && product.images.length > 0) {
+      // Load existing images as preview URLs
+      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5062';
+      const imageUrls = product.images.map((img) =>
+        `${apiUrl}/api/v1/images/${branchName}/Products/${product.id}/medium?path=${encodeURIComponent(img.imagePath)}`
+      );
+      setImagePreviewUrls(imageUrls);
+    } else {
+      setImagePreviewUrls([]);
+    }
+    setImagesToUpload([]);
+  }, [product, isOpen, branchName]);
 
   const fields: FormField<any>[] = [
     {
@@ -153,17 +169,38 @@ export default function ProductFormModalWithImages({
         ? await inventoryService.updateProduct(product.id, productData as UpdateProductDto)
         : await inventoryService.createProduct(productData as CreateProductDto);
 
-      // 2. Upload images if any selected
-      if (selectedImages.length > 0 && branchName) {
+      // 2. Handle image operations
+      const originalImageCount = product?.images?.length || 0;
+      const newImageCount = imagesToUpload.length;
+      const imagesChanged = originalImageCount > 0 || newImageCount > 0;
+
+      if (product && product.images && product.images.length > 0 && imagesChanged) {
+        // Delete all existing images when images are modified
+        // Backend API deletes ALL images for an entity
+        try {
+          const success = await imageService.deleteImages(branchName, "Products", savedProduct.id);
+          if (success) {
+            console.log("Successfully deleted old product images from server");
+          } else {
+            console.error("Failed to delete old product images from server");
+          }
+        } catch (error) {
+          console.error("Error deleting old images from server:", error);
+          // Don't fail the whole operation
+        }
+      }
+
+      // 3. Upload new images if any selected
+      if (imagesToUpload.length > 0 && branchName) {
         setUploadingImages(true);
         try {
           await imageService.uploadMultipleImages(
             branchName,
             "Products",
             savedProduct.id,
-            selectedImages
+            imagesToUpload
           );
-          console.log(`Successfully uploaded ${selectedImages.length} images`);
+          console.log(`Successfully uploaded ${imagesToUpload.length} images`);
         } catch (error) {
           console.error("Error uploading images:", error);
           // Don't fail the whole operation if image upload fails
@@ -183,30 +220,41 @@ export default function ProductFormModalWithImages({
       onSuccess();
       onClose();
       clearError();
-      setSelectedImages([]); // Reset selected images
+      setImagesToUpload([]); // Reset selected images
+      setImagePreviewUrls([]);
     }
   };
 
   const handleClose = () => {
     clearError();
-    setSelectedImages([]);
+    setImagesToUpload([]);
+    setImagePreviewUrls(product?.images?.map((img) => img.imagePath) || []);
     onClose();
   };
 
-  const handleImageUpload = (files: File[]) => {
-    setSelectedImages(files);
+  // Convert base64 to File object
+  const base64ToFile = (base64String: string, filename: string): File => {
+    const arr = base64String.split(',');
+    const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
   };
 
-  const handleImageRemove = async (imageId: string) => {
-    if (!product?.id || !branchName) return;
+  const handleImagesChange = (newImages: string[]) => {
+    setImagePreviewUrls(newImages);
 
-    try {
-      await imageService.deleteImages(branchName, "Products", product.id);
-      console.log("Images deleted successfully");
-      // Optionally refresh the product data here
-    } catch (error) {
-      console.error("Error deleting images:", error);
-    }
+    // Convert base64 images to File objects for upload
+    // Filter only new base64 images (not existing URLs)
+    const base64Images = newImages.filter(img => img.startsWith('data:'));
+    const files = base64Images.map((base64, index) =>
+      base64ToFile(base64, `product-image-${Date.now()}-${index}.jpg`)
+    );
+    setImagesToUpload(files);
   };
 
   return (
@@ -235,13 +283,14 @@ export default function ProductFormModalWithImages({
               branchName={branchName}
               entityType="Products"
               entityId={product?.id}
-              currentImages={product?.images?.map((img) => img.imagePath) || []}
+              currentImages={currentImagePaths}
               multiple={true}
               maxFiles={5}
               onUpload={handleImageUpload}
               onRemove={handleImageRemove}
               label="Product Images (Optional)"
               className="mb-4"
+              cacheBust={true}
             />
 
             {/* Upload status indicator */}

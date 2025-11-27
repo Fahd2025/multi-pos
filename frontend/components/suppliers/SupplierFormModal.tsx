@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SupplierDto, CreateSupplierDto, UpdateSupplierDto } from "@/types/api.types";
 import supplierService from "@/services/supplier.service";
 import imageService from "@/services/image.service";
@@ -33,7 +33,18 @@ export default function SupplierFormModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [currentLogoPath, setCurrentLogoPath] = useState<string | null>(null); // Track current logo path separately
   const { error, isError, executeWithErrorHandling, clearError } = useApiError();
+
+  // Initialize currentLogoPath when supplier changes
+  useEffect(() => {
+    if (supplier?.logoPath) {
+      setCurrentLogoPath(supplier.logoPath);
+    } else {
+      setCurrentLogoPath(null);
+    }
+    setSelectedImages([]);
+  }, [supplier, isOpen]);
 
   const fields: FormField<any>[] = [
     {
@@ -126,7 +137,28 @@ export default function SupplierFormModal({
         ? await supplierService.updateSupplier(supplier.id, supplierData as UpdateSupplierDto)
         : await supplierService.createSupplier(supplierData as CreateSupplierDto);
 
-      // 2. Upload logo if selected
+      // 2. Handle logo operations
+      const logoWasRemoved = currentLogoPath === null && supplier?.logoPath;
+      const newLogoSelected = selectedImages.length > 0;
+
+      if (supplier && supplier.logoPath) {
+        // Delete existing logo if user removed it OR is replacing it with a new one
+        if (logoWasRemoved || newLogoSelected) {
+          try {
+            const success = await imageService.deleteImages(branchName, "Suppliers", savedSupplier.id);
+            if (success) {
+              console.log("Successfully deleted old supplier logo from server");
+            } else {
+              console.error("Failed to delete old supplier logo from server");
+            }
+          } catch (error) {
+            console.error("Error deleting old logo from server:", error);
+            // Don't fail the whole operation
+          }
+        }
+      }
+
+      // 3. Upload logo if selected
       if (selectedImages.length > 0 && branchName) {
         setUploadingImages(true);
         try {
@@ -161,6 +193,7 @@ export default function SupplierFormModal({
   const handleClose = () => {
     clearError();
     setSelectedImages([]);
+    setCurrentLogoPath(supplier?.logoPath || null);
     onClose();
   };
 
@@ -169,14 +202,10 @@ export default function SupplierFormModal({
   };
 
   const handleImageRemove = async (imageId: string) => {
-    if (!supplier?.id || !branchName) return;
-
-    try {
-      await imageService.deleteImages(branchName, "Suppliers", supplier.id);
-      console.log("Logo deleted successfully");
-    } catch (error) {
-      console.error("Error deleting logo:", error);
-    }
+    // Only update the UI state to remove the image visually
+    // The actual deletion from server will happen when the form is submitted
+    setCurrentLogoPath(null);
+    console.log("Supplier logo visually removed, will be deleted on form submit");
   };
 
   return (
@@ -205,12 +234,13 @@ export default function SupplierFormModal({
               branchName={branchName}
               entityType="Suppliers"
               entityId={supplier?.id}
-              currentImages={supplier?.logoPath ? [supplier.logoPath] : []}
+              currentImages={currentLogoPath ? [currentLogoPath] : []}
               multiple={false}
               maxFiles={1}
               onUpload={handleImageUpload}
               onRemove={handleImageRemove}
               label="Supplier Logo (Optional)"
+              cacheBust={true}
             />
 
             {/* Upload status */}

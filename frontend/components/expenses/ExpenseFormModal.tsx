@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import expenseService from "@/services/expense.service";
 import imageService from "@/services/image.service";
 import { ExpenseDto, CreateExpenseDto, ExpenseCategoryDto } from "@/types/api.types";
@@ -35,7 +35,18 @@ export default function ExpenseFormModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [currentReceiptPath, setCurrentReceiptPath] = useState<string | null>(null); // Track current receipt path separately
   const { error, isError, executeWithErrorHandling, clearError } = useApiError();
+
+  // Initialize currentReceiptPath when expense changes
+  useEffect(() => {
+    if (expense?.receiptImagePath) {
+      setCurrentReceiptPath(expense.receiptImagePath);
+    } else {
+      setCurrentReceiptPath(null);
+    }
+    setSelectedImages([]);
+  }, [expense, isOpen]);
 
   // Prepare initial data
   const initialData = expense
@@ -135,7 +146,29 @@ export default function ExpenseFormModal({
         ? await expenseService.updateExpense(expense.id, dto)
         : await expenseService.createExpense(dto);
 
-      // 2. Upload receipt images if selected
+      // 2. Handle receipt image operations
+      const imageWasRemoved = currentReceiptPath === null && expense?.receiptImagePath;
+      const imagesWereAdded = selectedImages.length > 0;
+
+      if (expense && expense.receiptImagePath) {
+        // Delete existing receipt images if user removed them OR is uploading new ones to replace them
+        // Note: Backend API deletes ALL images for an entity
+        if (imageWasRemoved || imagesWereAdded) {
+          try {
+            const success = await imageService.deleteImages(branchName, "Expenses", savedExpense.id);
+            if (success) {
+              console.log("Successfully deleted old receipt images from server");
+            } else {
+              console.error("Failed to delete old receipt images from server");
+            }
+          } catch (error) {
+            console.error("Error deleting old receipt images from server:", error);
+            // Don't fail the whole operation
+          }
+        }
+      }
+
+      // 3. Upload receipt images if selected
       if (selectedImages.length > 0 && branchName) {
         setUploadingImages(true);
         try {
@@ -170,6 +203,7 @@ export default function ExpenseFormModal({
   const handleClose = () => {
     clearError();
     setSelectedImages([]);
+    setCurrentReceiptPath(expense?.receiptImagePath || null);
     onClose();
   };
 
@@ -178,14 +212,10 @@ export default function ExpenseFormModal({
   };
 
   const handleImageRemove = async (imageId: string) => {
-    if (!expense?.id || !branchName) return;
-
-    try {
-      await imageService.deleteImages(branchName, "Expenses", expense.id);
-      console.log("Receipt images deleted successfully");
-    } catch (error) {
-      console.error("Error deleting receipt images:", error);
-    }
+    // For expenses, receipt images are typically all related, so remove all
+    // The actual deletion from server will happen when the form is submitted
+    setCurrentReceiptPath(null);
+    console.log("Receipt images visually removed, will be deleted on form submit");
   };
 
   return (
@@ -214,13 +244,14 @@ export default function ExpenseFormModal({
               branchName={branchName}
               entityType="Expenses"
               entityId={expense?.id}
-              currentImages={expense?.receiptImagePath ? [expense.receiptImagePath] : []}
+              currentImages={currentReceiptPath ? [currentReceiptPath] : []}
               multiple={true}
               maxFiles={3}
               onUpload={handleImageUpload}
               onRemove={handleImageRemove}
               label="Receipt/Invoice Images (Optional, up to 3)"
               className="mb-4"
+              cacheBust={true}
             />
 
             {/* Upload status */}

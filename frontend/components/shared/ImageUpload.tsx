@@ -53,10 +53,13 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     // Limit number of files
     const filesToAdd = multiple ? validFiles.slice(0, maxFiles - selectedFiles.length) : [validFiles[0]];
 
+    // Calculate the complete file list that will be stored
+    const updatedFiles = !multiple ? filesToAdd : [...selectedFiles, ...filesToAdd];
+
     if (!multiple) {
       setSelectedFiles(filesToAdd);
     } else {
-      setSelectedFiles([...selectedFiles, ...filesToAdd]);
+      setSelectedFiles(updatedFiles);
     }
 
     // Generate previews
@@ -76,9 +79,10 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       reader.readAsDataURL(file);
     });
 
-    // Call onUpload callback
+    // Call onUpload callback with the complete file list
+    // This ensures parent component has the full list of selected files
     if (onUpload) {
-      onUpload(filesToAdd);
+      onUpload(updatedFiles);
     }
   };
 
@@ -106,6 +110,12 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     const newPreviews = previews.filter((_, i) => i !== index);
     setSelectedFiles(newFiles);
     setPreviews(newPreviews);
+
+    // Notify parent component of the updated file list
+    // This ensures the parent's state stays in sync
+    if (onUpload) {
+      onUpload(newFiles);
+    }
   };
 
   const handleRemoveExisting = (imageId: string) => {
@@ -170,7 +180,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {currentImages.map((imageId, index) => (
             <div key={index} className="relative group">
-              {console.log("Displaying existing image:", { branchName, entityType, entityId, currentImageId: imageId })}
               <OptimizedImage
                 key={`existing-image-${index}-${cacheBust ? 'refresh' : 'normal'}`} // Force re-render when cacheBust changes
                 branchName={branchName}
