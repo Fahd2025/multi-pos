@@ -23,6 +23,8 @@ import { useApiError } from "@/hooks/useApiError";
 import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
 import ProductFormModalWithImages from "@/components/inventory/ProductFormModalWithImages";
 import { useAuth } from "@/hooks/useAuth";
+import { ImageCarousel } from "@/components/shared/ui/image-carousel";
+import { Dialog, DialogContent } from "@/components/shared/ui/dialog";
 
 export default function InventoryPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
@@ -43,6 +45,8 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isStockModalOpen, setIsStockModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductDto | undefined>(undefined);
+  const [isImageCarouselOpen, setIsImageCarouselOpen] = useState(false);
+  const [selectedProductImages, setSelectedProductImages] = useState<string[]>([]);
 
   // Hooks
   const confirmation = useConfirmation();
@@ -154,13 +158,63 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
   // Define table columns
   const columns: DataTableColumn<ProductDto>[] = [
     {
+      key: "rowNumber",
+      label: "#",
+      sortable: false,
+      render: (_, row) => {
+        const index = displayData.findIndex((p) => p.id === row.id);
+        const rowNumber = (paginationConfig?.currentPage - 1) * (paginationConfig?.pageSize || 20) + index + 1;
+        return <span className="text-sm text-gray-600">{rowNumber}</span>;
+      },
+    },
+    {
+      key: "images",
+      label: "Image",
+      sortable: false,
+      render: (_, row) => {
+        const firstImage = row.images?.[0]?.imagePath;
+        const hasMultipleImages = row.images?.length > 1;
+
+        return (
+          <div className="relative w-16 h-16">
+            {firstImage ? (
+              <div
+                className="w-full h-full cursor-pointer relative"
+                onClick={() => {
+                  if (row.images && row.images.length > 0) {
+                    setSelectedProductImages(row.images.map(img => img.imagePath));
+                    setIsImageCarouselOpen(true);
+                  }
+                }}
+              >
+                <img
+                  src={firstImage}
+                  alt={row.nameEn}
+                  className="w-full h-full object-cover rounded border border-gray-200"
+                />
+                {hasMultipleImages && (
+                  <div className="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">
+                    +{row.images.length - 1}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="w-full h-full bg-gray-100 rounded border border-gray-200 flex items-center justify-center text-gray-400 text-xs">
+                No Image
+              </div>
+            )}
+          </div>
+        );
+      },
+    },
+    {
       key: "nameEn",
       label: "Product",
       sortable: true,
       render: (value, row) => (
         <div>
           <div className="text-sm font-medium text-gray-900">{value}</div>
-          {row.nameAr && <div className="text-sm text-gray-500">{row.nameAr}</div>}
+          <div className="text-sm text-gray-500">{getCategoryName(row.categoryId)}</div>
         </div>
       ),
     },
@@ -174,12 +228,6 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
           {row.barcode && <div className="text-sm text-gray-500">{row.barcode}</div>}
         </div>
       ),
-    },
-    {
-      key: "categoryId",
-      label: "Category",
-      sortable: true,
-      render: (value) => <span className="text-sm text-gray-500">{getCategoryName(value)}</span>,
     },
     {
       key: "sellingPrice",
@@ -422,6 +470,17 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
         cancelLabel="Cancel"
         isProcessing={confirmation.isProcessing}
       />
+
+      {/* Image Carousel Modal */}
+      <Dialog open={isImageCarouselOpen} onOpenChange={setIsImageCarouselOpen}>
+        <DialogContent className="max-w-4xl p-0" showCloseButton={false}>
+          <ImageCarousel
+            images={selectedProductImages}
+            alt="Product images"
+            className="w-full h-[600px]"
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
