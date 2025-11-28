@@ -276,6 +276,7 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
           sortConfig={sortConfig ?? undefined}
           onSortChange={handleSortChange}
           emptyMessage="No customers found. Click 'Add Customer' to create one."
+          showRowNumbers
         />
       )}
 
