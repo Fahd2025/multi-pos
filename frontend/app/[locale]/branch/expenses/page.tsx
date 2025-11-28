@@ -21,6 +21,7 @@ import { DataTable } from "@/components/data-table";
 import { useDataTable } from "@/hooks/useDataTable";
 import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
 import { useAuth } from "@/hooks/useAuth";
+import { API_BASE_URL } from "@/lib/constants";
 
 export default function ExpensesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
@@ -178,6 +179,14 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
       default:
         return "Unknown";
     }
+  };
+
+  /**
+   * Construct image URL for expense receipt images
+   */
+  const getExpenseImageUrl = (imageId: string, expenseId: string, size: 'thumb' | 'medium' | 'large' | 'original' = 'thumb') => {
+    const branchCode = branch?.branchCode || 'B001';
+    return `${API_BASE_URL}/api/v1/images/${branchCode}/expenses/${imageId}/${size}`;
   };
 
   // Define columns
@@ -379,6 +388,12 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
           sortConfig={sortConfig ?? undefined}
           onSortChange={handleSortChange}
           emptyMessage="No expenses found. Add your first expense to get started."
+          showRowNumbers
+          imageColumn={{
+            getImageUrl: (row) => row.receiptImagePath ? getExpenseImageUrl(row.receiptImagePath, row.id, 'thumb') : '',
+            getAltText: (row) => `Receipt for ${row.descriptionEn}`,
+            size: 64
+          }}
         />
       )}
 
