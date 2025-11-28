@@ -19,6 +19,8 @@ import supplierService from "@/services/supplier.service";
 import SupplierFormModal from "@/components/suppliers/SupplierFormModal";
 import { useAuth } from "@/hooks/useAuth";
 import { API_BASE_URL } from "@/lib/constants";
+import { ImageCarousel } from "@/components/shared/ui/image-carousel";
+import { Dialog, DialogContent, DialogTitle } from "@/components/shared/ui/dialog";
 
 export default function SuppliersPage() {
   const params = useParams();
@@ -30,6 +32,8 @@ export default function SuppliersPage() {
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<SupplierDto | undefined>(undefined);
+  const [isImageCarouselOpen, setIsImageCarouselOpen] = useState(false);
+  const [selectedSupplierImage, setSelectedSupplierImage] = useState<string>('');
 
   // Initialize hooks
   const {
@@ -406,8 +410,14 @@ export default function SuppliersPage() {
           emptyMessage="No suppliers found. Click 'Add Supplier' to create one."
           showRowNumbers
           imageColumn={{
-            getImageUrl: (row) => row.logoPath ? getSupplierImageUrl(row.logoPath, row.id, 'thumb') : '',
+            getImageUrl: (row) => row.logoPath ? getSupplierImageUrl(row.logoPath, row.id, 'large') : '',
             getAltText: (row) => row.nameEn,
+            onImageClick: (row, images) => {
+              if (images[0]) {
+                setSelectedSupplierImage(images[0]);
+                setIsImageCarouselOpen(true);
+              }
+            },
             size: 64
           }}
         />
@@ -464,6 +474,18 @@ export default function SuppliersPage() {
         onConfirm={confirmation.confirm}
         isProcessing={confirmation.isProcessing}
       />
+
+      {/* Image Carousel Modal */}
+      <Dialog open={isImageCarouselOpen} onOpenChange={setIsImageCarouselOpen}>
+        <DialogContent className="max-w-4xl p-0" showCloseButton={false}>
+          <DialogTitle className="sr-only">Supplier Logo</DialogTitle>
+          <ImageCarousel
+            images={[selectedSupplierImage]}
+            alt="Supplier logo"
+            className="w-full h-[600px]"
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

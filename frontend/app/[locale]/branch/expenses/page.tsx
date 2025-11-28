@@ -22,6 +22,8 @@ import { useDataTable } from "@/hooks/useDataTable";
 import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
 import { useAuth } from "@/hooks/useAuth";
 import { API_BASE_URL } from "@/lib/constants";
+import { ImageCarousel } from "@/components/shared/ui/image-carousel";
+import { Dialog, DialogContent, DialogTitle } from "@/components/shared/ui/dialog";
 
 export default function ExpensesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
@@ -41,6 +43,8 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<ExpenseDto | undefined>(undefined);
+  const [isImageCarouselOpen, setIsImageCarouselOpen] = useState(false);
+  const [selectedExpenseImage, setSelectedExpenseImage] = useState<string>('');
 
   // Hooks
   const confirmation = useConfirmation();
@@ -390,8 +394,14 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
           emptyMessage="No expenses found. Add your first expense to get started."
           showRowNumbers
           imageColumn={{
-            getImageUrl: (row) => row.receiptImagePath ? getExpenseImageUrl(row.receiptImagePath, row.id, 'thumb') : '',
+            getImageUrl: (row) => row.receiptImagePath ? getExpenseImageUrl(row.receiptImagePath, row.id, 'large') : '',
             getAltText: (row) => `Receipt for ${row.descriptionEn}`,
+            onImageClick: (row, images) => {
+              if (images[0]) {
+                setSelectedExpenseImage(images[0]);
+                setIsImageCarouselOpen(true);
+              }
+            },
             size: 64
           }}
         />
@@ -428,6 +438,18 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
         cancelLabel="Cancel"
         isProcessing={confirmation.isProcessing}
       />
+
+      {/* Image Carousel Modal */}
+      <Dialog open={isImageCarouselOpen} onOpenChange={setIsImageCarouselOpen}>
+        <DialogContent className="max-w-4xl p-0" showCloseButton={false}>
+          <DialogTitle className="sr-only">Expense Receipt</DialogTitle>
+          <ImageCarousel
+            images={[selectedExpenseImage]}
+            alt="Expense receipt"
+            className="w-full h-[600px]"
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

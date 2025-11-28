@@ -10,6 +10,14 @@ import Link from 'next/link';
 import { use } from 'react';
 import branchService, { BranchDto } from '@/services/branch.service';
 import { BranchFormModal } from '@/components/head-office/BranchFormModal';
+import { DataTable } from '@/components/data-table';
+import { useDataTable } from '@/hooks/useDataTable';
+import { DataTableColumn, DataTableAction } from '@/types/data-table.types';
+import { useConfirmation } from '@/hooks/useModal';
+import { ConfirmationDialog } from '@/components/modals';
+import { ImageCarousel } from '@/components/shared/ui/image-carousel';
+import { Dialog, DialogContent, DialogTitle } from '@/components/shared/ui/dialog';
+import { API_BASE_URL } from '@/lib/constants';
 
 export default function BranchesManagementPage({
   params,
@@ -28,6 +36,27 @@ export default function BranchesManagementPage({
   const pageSize = 20;
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingBranch, setEditingBranch] = useState<BranchDto | undefined>(undefined);
+
+  // Image carousel states
+  const [isImageCarouselOpen, setIsImageCarouselOpen] = useState(false);
+  const [selectedBranchImage, setSelectedBranchImage] = useState<string>('');
+
+  // Hooks
+  const confirmation = useConfirmation();
+
+  // DataTable hook
+  const {
+    data: displayData,
+    paginationConfig,
+    sortConfig,
+    handlePageChange,
+    handlePageSizeChange,
+    handleSort,
+  } = useDataTable(branches, {
+    pageSize: pageSize,
+    sortable: true,
+    pagination: true,
+  });
 
   useEffect(() => {
     loadBranches();
@@ -65,17 +94,114 @@ export default function BranchesManagementPage({
     setCurrentPage(1); // Reset to first page on filter change
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete branch "${name}"?`)) {
-      return;
-    }
+  const handleDelete = async (branch: BranchDto) => {
+    confirmation.ask(
+      'Delete Branch',
+      `Are you sure you want to delete branch "${branch.nameEn}"? This action cannot be undone.`,
+      async () => {
+        try {
+          await branchService.deleteBranch(branch.id);
+          loadBranches(); // Reload the list
+        } catch (err: any) {
+          setError(`Failed to delete branch: ${err.message}`);
+        }
+      },
+      'danger'
+    );
+  };
 
-    try {
-      await branchService.deleteBranch(id);
-      loadBranches(); // Reload the list
-    } catch (err: any) {
-      alert(`Failed to delete branch: ${err.message}`);
-    }
+  /**
+   * Construct image URL for branch logos
+   */
+  const getBranchImageUrl = (imageId: string, branchId: string, size: 'thumb' | 'medium' | 'large' | 'original' = 'thumb') => {
+    return `${API_BASE_URL}/api/v1/images/head-office/branches/${imageId}/${size}?branchId=${branchId}`;
+  };
+
+  // Define table columns
+  const columns: DataTableColumn<BranchDto>[] = [
+    {
+      key: 'nameEn',
+      label: 'Branch',
+      sortable: true,
+      render: (value, row) => (
+        <div>
+          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{value}</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">{row.loginName}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'code',
+      label: 'Code',
+      sortable: true,
+      render: (value) => <div className="text-sm text-gray-900 dark:text-gray-100">{value}</div>,
+    },
+    {
+      key: 'databaseProvider',
+      label: 'Database',
+      sortable: true,
+      render: (value, row) => (
+        <div>
+          <div className="text-sm text-gray-900 dark:text-gray-100">
+            {branchService.getDatabaseProviderName(value)}
+          </div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">{row.dbName}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'userCount',
+      label: 'Users',
+      sortable: true,
+      render: (value) => <div className="text-sm text-gray-900 dark:text-gray-100">{value}</div>,
+    },
+    {
+      key: 'isActive',
+      label: 'Status',
+      sortable: true,
+      render: (value) => (
+        <span
+          className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+            value
+              ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-400'
+          }`}
+        >
+          {value ? 'Active' : 'Inactive'}
+        </span>
+      ),
+    },
+  ];
+
+  // Define row actions
+  const actions: DataTableAction<BranchDto>[] = [
+    {
+      label: 'View',
+      onClick: (row) => {
+        window.location.href = `/${locale}/head-office/branches/${row.id}`;
+      },
+      variant: 'primary',
+    },
+    {
+      label: 'Edit',
+      onClick: (row) => {
+        setEditingBranch(row);
+      },
+      variant: 'secondary',
+    },
+    {
+      label: 'Delete',
+      onClick: (row) => handleDelete(row),
+      variant: 'danger',
+    },
+  ];
+
+  // Adapter for sort change
+  const handleSortChange = (config: {
+    key: keyof BranchDto | string;
+    direction: 'asc' | 'desc';
+  }) => {
+    handleSort(config.key);
   };
 
   return (
@@ -176,154 +302,38 @@ export default function BranchesManagementPage({
         </div>
       )}
 
-      {/* Branches List */}
+      {/* Branches DataTable */}
       {!loading && !error && (
-        <>
-          {branches.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
-              <div className="text-6xl mb-4">🏢</div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                No branches found
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                {search || filterActive !== undefined
-                  ? 'Try adjusting your search or filters'
-                  : 'Create your first branch to get started'}
-              </p>
-              {!search && filterActive === undefined && (
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                >
-                  + Create Branch
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Branch
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Code
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Database
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Users
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {branches.map((branch) => (
-                    <tr
-                      key={branch.id}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="text-2xl mr-3">🏢</div>
-                          <div>
-                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              {branch.nameEn}
-                            </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                              {branch.loginName}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 dark:text-gray-100">
-                          {branch.code}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 dark:text-gray-100">
-                          {branchService.getDatabaseProviderName(branch.databaseProvider)}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {branch.dbName}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 dark:text-gray-100">
-                          {branch.userCount}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            branch.isActive
-                              ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
-                              : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-400'
-                          }`}
-                        >
-                          {branch.isActive ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                        <Link
-                          href={`/${locale}/head-office/branches/${branch.id}`}
-                          className="text-blue-600 dark:text-blue-400 hover:underline"
-                        >
-                          View
-                        </Link>
-                        <button
-                          onClick={() => setEditingBranch(branch)}
-                          className="text-green-600 dark:text-green-400 hover:underline"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(branch.id, branch.nameEn)}
-                          className="text-red-600 dark:text-red-400 hover:underline"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-              <div className="text-sm text-gray-700 dark:text-gray-300">
-                Page {currentPage} of {totalPages}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
-        </>
+        <DataTable
+          data={displayData}
+          columns={columns}
+          actions={actions}
+          getRowKey={(row) => row.id}
+          pagination
+          paginationConfig={paginationConfig}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          sortable
+          sortConfig={sortConfig ?? undefined}
+          onSortChange={handleSortChange}
+          emptyMessage={
+            search || filterActive !== undefined
+              ? 'No branches found. Try adjusting your search or filters.'
+              : 'No branches found. Click "Create Branch" to create one.'
+          }
+          showRowNumbers
+          imageColumn={{
+            getImageUrl: (row) => row.logoPath ? getBranchImageUrl(row.logoPath, row.id, 'large') : '',
+            getAltText: (row) => row.nameEn,
+            onImageClick: (row, images) => {
+              if (images[0]) {
+                setSelectedBranchImage(images[0]);
+                setIsImageCarouselOpen(true);
+              }
+            },
+            size: 64
+          }}
+        />
       )}
 
       {/* Create/Edit Modal */}
@@ -340,6 +350,31 @@ export default function BranchesManagementPage({
         }}
         branch={editingBranch}
       />
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={confirmation.isOpen}
+        onClose={confirmation.cancel}
+        onConfirm={confirmation.confirm}
+        title={confirmation.title}
+        message={confirmation.message}
+        variant={confirmation.variant}
+        confirmLabel="Confirm"
+        cancelLabel="Cancel"
+        isProcessing={confirmation.isProcessing}
+      />
+
+      {/* Image Carousel Modal */}
+      <Dialog open={isImageCarouselOpen} onOpenChange={setIsImageCarouselOpen}>
+        <DialogContent className="max-w-4xl p-0" showCloseButton={false}>
+          <DialogTitle className="sr-only">Branch Logo</DialogTitle>
+          <ImageCarousel
+            images={[selectedBranchImage]}
+            alt="Branch logo"
+            className="w-full h-[600px]"
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
