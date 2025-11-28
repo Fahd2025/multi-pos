@@ -24,7 +24,7 @@ import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
 import ProductFormModalWithImages from "@/components/inventory/ProductFormModalWithImages";
 import { useAuth } from "@/hooks/useAuth";
 import { ImageCarousel } from "@/components/shared/ui/image-carousel";
-import { Dialog, DialogContent } from "@/components/shared/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/shared/ui/dialog";
 import { API_BASE_URL } from "@/lib/constants";
 
 export default function InventoryPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -487,6 +487,7 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
       {/* Image Carousel Modal */}
       <Dialog open={isImageCarouselOpen} onOpenChange={setIsImageCarouselOpen}>
         <DialogContent className="max-w-4xl p-0" showCloseButton={false}>
+          <DialogTitle className="sr-only">Product Images</DialogTitle>
           <ImageCarousel
             images={selectedProductImages}
             alt="Product images"
