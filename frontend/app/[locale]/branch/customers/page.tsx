@@ -24,6 +24,8 @@ import { useApiError } from "@/hooks/useApiError";
 import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
 import { useAuth } from "@/hooks/useAuth";
 import { API_BASE_URL } from "@/lib/constants";
+import { ImageCarousel } from "@/components/shared/ui/image-carousel";
+import { Dialog, DialogContent, DialogTitle } from "@/components/shared/ui/dialog";
 
 export default function CustomersPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
@@ -45,6 +47,8 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerDto | undefined>(undefined);
+  const [isImageCarouselOpen, setIsImageCarouselOpen] = useState(false);
+  const [selectedCustomerImage, setSelectedCustomerImage] = useState<string>('');
 
   // Modal hooks
   const viewModal = useModal<CustomerDto>();
@@ -287,8 +291,14 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
           emptyMessage="No customers found. Click 'Add Customer' to create one."
           showRowNumbers
           imageColumn={{
-            getImageUrl: (row) => row.logoPath ? getCustomerImageUrl(row.logoPath, row.id, 'thumb') : '',
+            getImageUrl: (row) => row.logoPath ? getCustomerImageUrl(row.logoPath, row.id, 'large') : '',
             getAltText: (row) => row.nameEn,
+            onImageClick: (row, images) => {
+              if (images[0]) {
+                setSelectedCustomerImage(images[0]);
+                setIsImageCarouselOpen(true);
+              }
+            },
             size: 64
           }}
         />
@@ -318,6 +328,18 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
         cancelLabel="Cancel"
         isProcessing={confirmation.isProcessing}
       />
+
+      {/* Image Carousel Modal */}
+      <Dialog open={isImageCarouselOpen} onOpenChange={setIsImageCarouselOpen}>
+        <DialogContent className="max-w-4xl p-0" showCloseButton={false}>
+          <DialogTitle className="sr-only">Customer Logo</DialogTitle>
+          <ImageCarousel
+            images={[selectedCustomerImage]}
+            alt="Customer logo"
+            className="w-full h-[600px]"
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
