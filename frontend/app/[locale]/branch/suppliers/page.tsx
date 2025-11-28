@@ -18,6 +18,7 @@ import { SupplierDto } from "@/types/api.types";
 import supplierService from "@/services/supplier.service";
 import SupplierFormModal from "@/components/suppliers/SupplierFormModal";
 import { useAuth } from "@/hooks/useAuth";
+import { API_BASE_URL } from "@/lib/constants";
 
 export default function SuppliersPage() {
   const params = useParams();
@@ -75,6 +76,14 @@ export default function SuppliersPage() {
     direction: "asc" | "desc";
   }) => {
     handleSort(config.key);
+  };
+
+  /**
+   * Construct image URL for supplier logos
+   */
+  const getSupplierImageUrl = (imageId: string, supplierId: string, size: 'thumb' | 'medium' | 'large' | 'original' = 'thumb') => {
+    const branchCode = branch?.branchCode || 'B001';
+    return `${API_BASE_URL}/api/v1/images/${branchCode}/suppliers/${imageId}/${size}`;
   };
 
   // Define table columns
@@ -396,6 +405,11 @@ export default function SuppliersPage() {
           onSortChange={handleSortChange}
           emptyMessage="No suppliers found. Click 'Add Supplier' to create one."
           showRowNumbers
+          imageColumn={{
+            getImageUrl: (row) => row.logoPath ? getSupplierImageUrl(row.logoPath, row.id, 'thumb') : '',
+            getAltText: (row) => row.nameEn,
+            size: 64
+          }}
         />
       </div>
 
