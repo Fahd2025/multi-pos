@@ -1,7 +1,7 @@
+using System.Text;
 using Backend.Data;
 using Backend.Models.DTOs.Reports;
 using Microsoft.EntityFrameworkCore;
-using System.Text;
 
 namespace Backend.Services.Reports;
 
@@ -25,15 +25,19 @@ public class ReportService : IReportService
     public async Task<SalesReportDto> GenerateSalesReportAsync(
         SalesReportRequestDto request,
         Guid? branchId,
-        bool isHeadOfficeAdmin)
+        bool isHeadOfficeAdmin
+    )
     {
         // Determine which branch to query
-        var targetBranchId = isHeadOfficeAdmin && request.BranchId.HasValue
-            ? request.BranchId.Value
-            : branchId ?? throw new UnauthorizedAccessException("Branch ID is required");
+        var targetBranchId =
+            isHeadOfficeAdmin && request.BranchId.HasValue
+                ? request.BranchId.Value
+                : branchId ?? throw new UnauthorizedAccessException("Branch ID is required");
 
         // Get branch information
-        var branch = await _headOfficeContext.Branches.FirstOrDefaultAsync(b => b.Id == targetBranchId && b.IsActive);
+        var branch = await _headOfficeContext.Branches.FirstOrDefaultAsync(b =>
+            b.Id == targetBranchId && b.IsActive
+        );
         if (branch == null)
         {
             throw new InvalidOperationException("Branch not found");
@@ -54,8 +58,8 @@ public class ReportService : IReportService
             throw new ArgumentException("Date range cannot exceed 1 year");
 
         // Build query
-        var salesQuery = branchDb.Sales
-            .Include(s => s.LineItems)
+        var salesQuery = branchDb
+            .Sales.Include(s => s.LineItems)
             .ThenInclude(li => li.Product)
             .Include(s => s.Customer)
             .Where(s => s.SaleDate >= startDate && s.SaleDate <= endDate);
@@ -69,7 +73,12 @@ public class ReportService : IReportService
 
         if (!string.IsNullOrEmpty(request.PaymentMethod))
         {
-            if (Enum.TryParse<Backend.Models.Entities.Branch.PaymentMethod>(request.PaymentMethod, out var paymentMethod))
+            if (
+                Enum.TryParse<Backend.Models.Entities.Branch.PaymentMethod>(
+                    request.PaymentMethod,
+                    out var paymentMethod
+                )
+            )
             {
                 salesQuery = salesQuery.Where(s => s.PaymentMethod == paymentMethod);
             }
@@ -89,16 +98,13 @@ public class ReportService : IReportService
             .GroupBy(s => s.PaymentMethod.ToString())
             .ToDictionary(
                 g => g.Key,
-                g => new PaymentMethodStatsDto
-                {
-                    Count = g.Count(),
-                    Amount = g.Sum(s => s.Total)
-                }
+                g => new PaymentMethodStatsDto { Count = g.Count(), Amount = g.Sum(s => s.Total) }
             );
 
         var topPaymentMethod = paymentMethodStats
             .OrderByDescending(pm => pm.Value.Count)
-            .FirstOrDefault().Key;
+            .FirstOrDefault()
+            .Key;
 
         // Time series data
         var groupBy = request.GroupBy?.ToLower() ?? "day";
@@ -113,7 +119,7 @@ public class ReportService : IReportService
                 ProductId = g.Key.ProductId,
                 ProductName = g.Key.NameEn,
                 QuantitySold = g.Sum(li => li.Quantity),
-                TotalRevenue = g.Sum(li => li.LineTotal)
+                TotalRevenue = g.Sum(li => li.LineTotal),
             })
             .OrderByDescending(p => p.TotalRevenue)
             .Take(10)
@@ -128,7 +134,7 @@ public class ReportService : IReportService
                 CustomerId = g.Key.CustomerId!.Value,
                 CustomerName = g.Key.NameEn,
                 PurchaseCount = g.Count(),
-                TotalSpent = g.Sum(s => s.Total)
+                TotalSpent = g.Sum(s => s.Total),
             })
             .OrderByDescending(c => c.TotalSpent)
             .Take(10)
@@ -138,18 +144,14 @@ public class ReportService : IReportService
         {
             ReportType = "sales",
             GeneratedAt = DateTime.UtcNow,
-            DateRange = new DateRangeDto
-            {
-                StartDate = startDate,
-                EndDate = endDate
-            },
+            DateRange = new DateRangeDto { StartDate = startDate, EndDate = endDate },
             Filters = new SalesReportFiltersDto
             {
                 BranchId = targetBranchId,
                 BranchName = branch?.NameEn,
                 PaymentMethod = request.PaymentMethod,
                 CashierId = request.CashierId,
-                CustomerId = request.CustomerId
+                CustomerId = request.CustomerId,
             },
             Summary = new SalesReportSummaryDto
             {
@@ -159,11 +161,11 @@ public class ReportService : IReportService
                 TotalDiscount = totalDiscount,
                 AverageSaleValue = averageSaleValue,
                 TopPaymentMethod = topPaymentMethod,
-                SalesByPaymentMethod = paymentMethodStats
+                SalesByPaymentMethod = paymentMethodStats,
             },
             TimeSeriesData = timeSeriesData,
             TopProducts = topProducts,
-            TopCustomers = topCustomers
+            TopCustomers = topCustomers,
         };
     }
 
@@ -173,15 +175,19 @@ public class ReportService : IReportService
     public async Task<InventoryReportDto> GenerateInventoryReportAsync(
         InventoryReportRequestDto request,
         Guid? branchId,
-        bool isHeadOfficeAdmin)
+        bool isHeadOfficeAdmin
+    )
     {
         // Determine which branch to query
-        var targetBranchId = isHeadOfficeAdmin && request.BranchId.HasValue
-            ? request.BranchId.Value
-            : branchId ?? throw new UnauthorizedAccessException("Branch ID is required");
+        var targetBranchId =
+            isHeadOfficeAdmin && request.BranchId.HasValue
+                ? request.BranchId.Value
+                : branchId ?? throw new UnauthorizedAccessException("Branch ID is required");
 
         // Get branch information
-        var branch = await _headOfficeContext.Branches.FirstOrDefaultAsync(b => b.Id == targetBranchId && b.IsActive);
+        var branch = await _headOfficeContext.Branches.FirstOrDefaultAsync(b =>
+            b.Id == targetBranchId && b.IsActive
+        );
         if (branch == null)
         {
             throw new InvalidOperationException("Branch not found");
@@ -191,9 +197,7 @@ public class ReportService : IReportService
         using var branchDb = _dbContextFactory.CreateBranchContext(branch);
 
         // Build query
-        var productsQuery = branchDb.Products
-            .Include(p => p.Category)
-            .AsQueryable();
+        var productsQuery = branchDb.Products.Include(p => p.Category).AsQueryable();
 
         // Apply filters
         if (request.CategoryId.HasValue)
@@ -211,26 +215,30 @@ public class ReportService : IReportService
         var totalProducts = products.Count;
         var totalCategories = products.Select(p => p.CategoryId).Distinct().Count();
         var totalStockValue = products.Sum(p => p.StockLevel * p.SellingPrice);
-        var lowStockCount = products.Count(p => p.StockLevel < p.MinStockThreshold && p.StockLevel >= 0);
+        var lowStockCount = products.Count(p =>
+            p.StockLevel < p.MinStockThreshold && p.StockLevel >= 0
+        );
         var outOfStockCount = products.Count(p => p.StockLevel == 0);
         var negativeStockCount = products.Count(p => p.StockLevel < 0);
         var averageStockValue = totalProducts > 0 ? totalStockValue / totalProducts : 0;
 
         // Map products to DTOs
-        var productDtos = products.Select(p => new InventoryProductDto
-        {
-            ProductId = p.Id,
-            Sku = p.SKU,
-            ProductName = p.NameEn,
-            CategoryName = p.Category?.NameEn,
-            CurrentStock = p.StockLevel,
-            MinStockThreshold = p.MinStockThreshold,
-            UnitPrice = p.SellingPrice,
-            StockValue = p.StockLevel * p.SellingPrice,
-            Status = GetStockStatus(p.StockLevel, p.MinStockThreshold),
-            LastRestockedAt = p.UpdatedAt,
-            DiscrepancyFlag = p.StockLevel < 0
-        }).ToList();
+        var productDtos = products
+            .Select(p => new InventoryProductDto
+            {
+                ProductId = p.Id,
+                Sku = p.SKU,
+                ProductName = p.NameEn,
+                CategoryName = p.Category?.NameEn,
+                CurrentStock = p.StockLevel,
+                MinStockThreshold = p.MinStockThreshold,
+                UnitPrice = p.SellingPrice,
+                StockValue = p.StockLevel * p.SellingPrice,
+                Status = GetStockStatus(p.StockLevel, p.MinStockThreshold),
+                LastRestockedAt = p.UpdatedAt,
+                DiscrepancyFlag = p.StockLevel < 0,
+            })
+            .ToList();
 
         // Stock movements (if requested)
         var stockMovements = new List<StockMovementDto>();
@@ -240,36 +248,45 @@ public class ReportService : IReportService
             var endDate = request.EndDate ?? DateTime.UtcNow;
 
             // Get sales movements
-            var salesMovements = await branchDb.Sales
-                .Where(s => s.SaleDate >= startDate && s.SaleDate <= endDate)
-                .SelectMany(s => s.LineItems.Select(li => new StockMovementDto
-                {
-                    Date = s.SaleDate,
-                    ProductId = li.ProductId,
-                    ProductName = li.Product.NameEn,
-                    Type = "Sale",
-                    QuantityChange = -li.Quantity,
-                    ReferenceId = s.Id.ToString(),
-                    Notes = "Sold via POS"
-                }))
+            var salesMovements = await branchDb
+                .Sales.Where(s => s.SaleDate >= startDate && s.SaleDate <= endDate)
+                .SelectMany(s =>
+                    s.LineItems.Select(li => new StockMovementDto
+                    {
+                        Date = s.SaleDate,
+                        ProductId = li.ProductId,
+                        ProductName = li.Product.NameEn,
+                        Type = "Sale",
+                        QuantityChange = -li.Quantity,
+                        ReferenceId = s.Id.ToString(),
+                        Notes = "Sold via POS",
+                    })
+                )
                 .ToListAsync();
 
             // Get purchase movements
-            var purchaseMovements = await branchDb.Purchases
-                .Where(p => p.PurchaseDate >= startDate && p.PurchaseDate <= endDate && p.ReceivedDate.HasValue)
-                .SelectMany(p => p.LineItems.Select(li => new StockMovementDto
-                {
-                    Date = p.ReceivedDate!.Value,
-                    ProductId = li.ProductId,
-                    ProductName = li.Product.NameEn,
-                    Type = "Purchase",
-                    QuantityChange = li.Quantity,
-                    ReferenceId = p.Id.ToString(),
-                    Notes = $"Restocked from {p.Supplier?.NameEn ?? "Supplier"}"
-                }))
+            var purchaseMovements = await branchDb
+                .Purchases.Where(p =>
+                    p.PurchaseDate >= startDate
+                    && p.PurchaseDate <= endDate
+                    && p.ReceivedDate.HasValue
+                )
+                .SelectMany(p =>
+                    p.LineItems.Select(li => new StockMovementDto
+                    {
+                        Date = p.ReceivedDate!.Value,
+                        ProductId = li.ProductId,
+                        ProductName = li.Product.NameEn,
+                        Type = "Purchase",
+                        QuantityChange = li.Quantity,
+                        ReferenceId = p.Id.ToString(),
+                        Notes = $"Restocked from {p.Supplier.NameEn ?? "Supplier"}",
+                    })
+                )
                 .ToListAsync();
 
-            stockMovements = salesMovements.Concat(purchaseMovements)
+            stockMovements = salesMovements
+                .Concat(purchaseMovements)
                 .OrderByDescending(m => m.Date)
                 .ToList();
         }
@@ -290,7 +307,7 @@ public class ReportService : IReportService
                 CategoryId = request.CategoryId,
                 CategoryName = category?.NameEn,
                 LowStockOnly = request.LowStockOnly,
-                NegativeStockOnly = request.NegativeStockOnly
+                NegativeStockOnly = request.NegativeStockOnly,
             },
             Summary = new InventoryReportSummaryDto
             {
@@ -300,10 +317,10 @@ public class ReportService : IReportService
                 LowStockCount = lowStockCount,
                 OutOfStockCount = outOfStockCount,
                 NegativeStockCount = negativeStockCount,
-                AverageStockValue = averageStockValue
+                AverageStockValue = averageStockValue,
             },
             Products = productDtos,
-            StockMovements = stockMovements
+            StockMovements = stockMovements,
         };
     }
 
@@ -313,15 +330,19 @@ public class ReportService : IReportService
     public async Task<FinancialReportDto> GenerateFinancialReportAsync(
         FinancialReportRequestDto request,
         Guid? branchId,
-        bool isHeadOfficeAdmin)
+        bool isHeadOfficeAdmin
+    )
     {
         // Determine which branch to query
-        var targetBranchId = isHeadOfficeAdmin && request.BranchId.HasValue
-            ? request.BranchId.Value
-            : branchId ?? throw new UnauthorizedAccessException("Branch ID is required");
+        var targetBranchId =
+            isHeadOfficeAdmin && request.BranchId.HasValue
+                ? request.BranchId.Value
+                : branchId ?? throw new UnauthorizedAccessException("Branch ID is required");
 
         // Get branch information
-        var branch = await _headOfficeContext.Branches.FirstOrDefaultAsync(b => b.Id == targetBranchId && b.IsActive);
+        var branch = await _headOfficeContext.Branches.FirstOrDefaultAsync(b =>
+            b.Id == targetBranchId && b.IsActive
+        );
         if (branch == null)
         {
             throw new InvalidOperationException("Branch not found");
@@ -343,16 +364,16 @@ public class ReportService : IReportService
             throw new ArgumentException("Date range cannot exceed 1 year");
 
         // Get sales (revenue)
-        var sales = await branchDb.Sales
-            .Where(s => s.SaleDate >= startDate && s.SaleDate <= endDate)
+        var sales = await branchDb
+            .Sales.Where(s => s.SaleDate >= startDate && s.SaleDate <= endDate)
             .ToListAsync();
 
         var totalRevenue = sales.Sum(s => s.Total);
         var taxCollected = sales.Sum(s => s.TaxAmount);
 
         // Get expenses
-        var expenses = await branchDb.Expenses
-            .Include(e => e.Category)
+        var expenses = await branchDb
+            .Expenses.Include(e => e.Category)
             .Where(e => e.ExpenseDate >= startDate && e.ExpenseDate <= endDate)
             .ToListAsync();
 
@@ -367,11 +388,7 @@ public class ReportService : IReportService
         var averageDailyRevenue = daysDiff > 0 ? totalRevenue / (decimal)daysDiff : 0;
 
         // Revenue breakdown (simplified - all from sales)
-        var revenueBreakdown = new RevenueBreakdownDto
-        {
-            Sales = totalRevenue,
-            Other = 0
-        };
+        var revenueBreakdown = new RevenueBreakdownDto { Sales = totalRevenue, Other = 0 };
 
         // Expense breakdown by category
         var expenseBreakdown = expenses
@@ -380,28 +397,30 @@ public class ReportService : IReportService
             {
                 CategoryName = g.Key,
                 TotalAmount = g.Sum(e => e.Amount),
-                Percentage = totalExpenses > 0 ? (g.Sum(e => e.Amount) / totalExpenses) * 100 : 0
+                Percentage = totalExpenses > 0 ? (g.Sum(e => e.Amount) / totalExpenses) * 100 : 0,
             })
             .OrderByDescending(e => e.TotalAmount)
             .ToList();
 
         // Time series data
         var groupBy = request.GroupBy?.ToLower() ?? "month";
-        var timeSeriesData = GenerateFinancialTimeSeriesData(sales, expenses, groupBy, startDate, endDate);
+        var timeSeriesData = GenerateFinancialTimeSeriesData(
+            sales,
+            expenses,
+            groupBy,
+            startDate,
+            endDate
+        );
 
         return new FinancialReportDto
         {
             ReportType = "financial",
             GeneratedAt = DateTime.UtcNow,
-            DateRange = new DateRangeDto
-            {
-                StartDate = startDate,
-                EndDate = endDate
-            },
+            DateRange = new DateRangeDto { StartDate = startDate, EndDate = endDate },
             Filters = new FinancialReportFiltersDto
             {
                 BranchId = targetBranchId,
-                BranchName = branch?.NameEn
+                BranchName = branch?.NameEn,
             },
             Summary = new FinancialReportSummaryDto
             {
@@ -411,11 +430,11 @@ public class ReportService : IReportService
                 ProfitMargin = profitMargin,
                 NetProfit = netProfit,
                 TaxCollected = taxCollected,
-                AverageDailyRevenue = averageDailyRevenue
+                AverageDailyRevenue = averageDailyRevenue,
             },
             RevenueBreakdown = revenueBreakdown,
             ExpenseBreakdown = expenseBreakdown,
-            TimeSeriesData = timeSeriesData
+            TimeSeriesData = timeSeriesData,
         };
     }
 
@@ -425,7 +444,8 @@ public class ReportService : IReportService
     public async Task<(byte[] FileContent, string ContentType, string FileName)> ExportReportAsync(
         ExportReportRequestDto request,
         Guid? branchId,
-        bool isHeadOfficeAdmin)
+        bool isHeadOfficeAdmin
+    )
     {
         // Validate request
         if (string.IsNullOrEmpty(request.ReportType))
@@ -451,9 +471,13 @@ public class ReportService : IReportService
                     PaymentMethod = GetFilterValue<string>(request.Filters, "paymentMethod"),
                     CashierId = GetFilterValue<Guid?>(request.Filters, "cashierId"),
                     CustomerId = GetFilterValue<Guid?>(request.Filters, "customerId"),
-                    GroupBy = GetFilterValue<string>(request.Filters, "groupBy")
+                    GroupBy = GetFilterValue<string>(request.Filters, "groupBy"),
                 };
-                reportData = await GenerateSalesReportAsync(salesRequest, branchId, isHeadOfficeAdmin);
+                reportData = await GenerateSalesReportAsync(
+                    salesRequest,
+                    branchId,
+                    isHeadOfficeAdmin
+                );
                 break;
 
             case "inventory":
@@ -465,9 +489,13 @@ public class ReportService : IReportService
                     NegativeStockOnly = GetFilterValue<bool>(request.Filters, "negativeStockOnly"),
                     IncludeMovements = GetFilterValue<bool>(request.Filters, "includeMovements"),
                     StartDate = request.StartDate,
-                    EndDate = request.EndDate
+                    EndDate = request.EndDate,
                 };
-                reportData = await GenerateInventoryReportAsync(inventoryRequest, branchId, isHeadOfficeAdmin);
+                reportData = await GenerateInventoryReportAsync(
+                    inventoryRequest,
+                    branchId,
+                    isHeadOfficeAdmin
+                );
                 break;
 
             case "financial":
@@ -476,9 +504,13 @@ public class ReportService : IReportService
                     StartDate = request.StartDate,
                     EndDate = request.EndDate,
                     BranchId = GetFilterValue<Guid?>(request.Filters, "branchId"),
-                    GroupBy = GetFilterValue<string>(request.Filters, "groupBy")
+                    GroupBy = GetFilterValue<string>(request.Filters, "groupBy"),
                 };
-                reportData = await GenerateFinancialReportAsync(financialRequest, branchId, isHeadOfficeAdmin);
+                reportData = await GenerateFinancialReportAsync(
+                    financialRequest,
+                    branchId,
+                    isHeadOfficeAdmin
+                );
                 break;
 
             default:
@@ -507,7 +539,7 @@ public class ReportService : IReportService
                 "text/csv",
                 $"{fileName}.csv"
             ),
-            _ => throw new ArgumentException($"Invalid format: {format}")
+            _ => throw new ArgumentException($"Invalid format: {format}"),
         };
     }
 
@@ -517,47 +549,51 @@ public class ReportService : IReportService
         List<Backend.Models.Entities.Branch.Sale> sales,
         string groupBy,
         DateTime startDate,
-        DateTime endDate)
+        DateTime endDate
+    )
     {
         return groupBy switch
         {
-            "day" => sales.GroupBy(s => s.SaleDate.Date)
+            "day" => sales
+                .GroupBy(s => s.SaleDate.Date)
                 .Select(g => new TimeSeriesDataDto
                 {
                     Period = g.Key.ToString("yyyy-MM-dd"),
                     SalesCount = g.Count(),
                     TotalRevenue = g.Sum(s => s.Total),
                     TotalTax = g.Sum(s => s.TaxAmount),
-                    AverageSaleValue = g.Average(s => s.Total)
+                    AverageSaleValue = g.Average(s => s.Total),
                 })
                 .OrderBy(t => t.Period)
                 .ToList(),
 
-            "week" => sales.GroupBy(s => GetWeekOfYear(s.SaleDate))
+            "week" => sales
+                .GroupBy(s => GetWeekOfYear(s.SaleDate))
                 .Select(g => new TimeSeriesDataDto
                 {
                     Period = g.Key,
                     SalesCount = g.Count(),
                     TotalRevenue = g.Sum(s => s.Total),
                     TotalTax = g.Sum(s => s.TaxAmount),
-                    AverageSaleValue = g.Average(s => s.Total)
+                    AverageSaleValue = g.Average(s => s.Total),
                 })
                 .OrderBy(t => t.Period)
                 .ToList(),
 
-            "month" => sales.GroupBy(s => new { s.SaleDate.Year, s.SaleDate.Month })
+            "month" => sales
+                .GroupBy(s => new { s.SaleDate.Year, s.SaleDate.Month })
                 .Select(g => new TimeSeriesDataDto
                 {
                     Period = $"{g.Key.Year}-{g.Key.Month:D2}",
                     SalesCount = g.Count(),
                     TotalRevenue = g.Sum(s => s.Total),
                     TotalTax = g.Sum(s => s.TaxAmount),
-                    AverageSaleValue = g.Average(s => s.Total)
+                    AverageSaleValue = g.Average(s => s.Total),
                 })
                 .OrderBy(t => t.Period)
                 .ToList(),
 
-            _ => throw new ArgumentException($"Invalid groupBy value: {groupBy}")
+            _ => throw new ArgumentException($"Invalid groupBy value: {groupBy}"),
         };
     }
 
@@ -566,15 +602,20 @@ public class ReportService : IReportService
         List<Backend.Models.Entities.Branch.Expense> expenses,
         string groupBy,
         DateTime startDate,
-        DateTime endDate)
+        DateTime endDate
+    )
     {
         return groupBy switch
         {
-            "day" => Enumerable.Range(0, (int)(endDate - startDate).TotalDays + 1)
+            "day" => Enumerable
+                .Range(0, (int)(endDate - startDate).TotalDays + 1)
                 .Select(offset => startDate.AddDays(offset).Date)
-                .Select(date => {
+                .Select(date =>
+                {
                     var dayRevenue = sales.Where(s => s.SaleDate.Date == date).Sum(s => s.Total);
-                    var dayExpenses = expenses.Where(e => e.ExpenseDate.Date == date).Sum(e => e.Amount);
+                    var dayExpenses = expenses
+                        .Where(e => e.ExpenseDate.Date == date)
+                        .Sum(e => e.Amount);
                     var dayProfit = dayRevenue - dayExpenses;
                     return new FinancialTimeSeriesDto
                     {
@@ -582,15 +623,22 @@ public class ReportService : IReportService
                         Revenue = dayRevenue,
                         Expenses = dayExpenses,
                         Profit = dayProfit,
-                        ProfitMargin = dayRevenue > 0 ? (dayProfit / dayRevenue) * 100 : 0
+                        ProfitMargin = dayRevenue > 0 ? (dayProfit / dayRevenue) * 100 : 0,
                     };
                 })
                 .ToList(),
 
-            "week" => sales.Select(s => GetWeekOfYear(s.SaleDate)).Distinct()
-                .Select(week => {
-                    var weekRevenue = sales.Where(s => GetWeekOfYear(s.SaleDate) == week).Sum(s => s.Total);
-                    var weekExpenses = expenses.Where(e => GetWeekOfYear(e.ExpenseDate) == week).Sum(e => e.Amount);
+            "week" => sales
+                .Select(s => GetWeekOfYear(s.SaleDate))
+                .Distinct()
+                .Select(week =>
+                {
+                    var weekRevenue = sales
+                        .Where(s => GetWeekOfYear(s.SaleDate) == week)
+                        .Sum(s => s.Total);
+                    var weekExpenses = expenses
+                        .Where(e => GetWeekOfYear(e.ExpenseDate) == week)
+                        .Sum(e => e.Amount);
                     var weekProfit = weekRevenue - weekExpenses;
                     return new FinancialTimeSeriesDto
                     {
@@ -598,17 +646,26 @@ public class ReportService : IReportService
                         Revenue = weekRevenue,
                         Expenses = weekExpenses,
                         Profit = weekProfit,
-                        ProfitMargin = weekRevenue > 0 ? (weekProfit / weekRevenue) * 100 : 0
+                        ProfitMargin = weekRevenue > 0 ? (weekProfit / weekRevenue) * 100 : 0,
                     };
                 })
                 .OrderBy(t => t.Period)
                 .ToList(),
 
-            "month" => sales.Select(s => new { s.SaleDate.Year, s.SaleDate.Month }).Distinct()
-                .Select(month => {
-                    var monthRevenue = sales.Where(s => s.SaleDate.Year == month.Year && s.SaleDate.Month == month.Month)
+            "month" => sales
+                .Select(s => new { s.SaleDate.Year, s.SaleDate.Month })
+                .Distinct()
+                .Select(month =>
+                {
+                    var monthRevenue = sales
+                        .Where(s =>
+                            s.SaleDate.Year == month.Year && s.SaleDate.Month == month.Month
+                        )
                         .Sum(s => s.Total);
-                    var monthExpenses = expenses.Where(e => e.ExpenseDate.Year == month.Year && e.ExpenseDate.Month == month.Month)
+                    var monthExpenses = expenses
+                        .Where(e =>
+                            e.ExpenseDate.Year == month.Year && e.ExpenseDate.Month == month.Month
+                        )
                         .Sum(e => e.Amount);
                     var monthProfit = monthRevenue - monthExpenses;
                     return new FinancialTimeSeriesDto
@@ -617,28 +674,35 @@ public class ReportService : IReportService
                         Revenue = monthRevenue,
                         Expenses = monthExpenses,
                         Profit = monthProfit,
-                        ProfitMargin = monthRevenue > 0 ? (monthProfit / monthRevenue) * 100 : 0
+                        ProfitMargin = monthRevenue > 0 ? (monthProfit / monthRevenue) * 100 : 0,
                     };
                 })
                 .OrderBy(t => t.Period)
                 .ToList(),
 
-            _ => throw new ArgumentException($"Invalid groupBy value: {groupBy}")
+            _ => throw new ArgumentException($"Invalid groupBy value: {groupBy}"),
         };
     }
 
     private string GetStockStatus(int currentStock, int minThreshold)
     {
-        if (currentStock < 0) return "Negative Stock";
-        if (currentStock == 0) return "Out of Stock";
-        if (currentStock < minThreshold) return "Low Stock";
+        if (currentStock < 0)
+            return "Negative Stock";
+        if (currentStock == 0)
+            return "Out of Stock";
+        if (currentStock < minThreshold)
+            return "Low Stock";
         return "In Stock";
     }
 
     private string GetWeekOfYear(DateTime date)
     {
         var culture = System.Globalization.CultureInfo.CurrentCulture;
-        var weekNum = culture.Calendar.GetWeekOfYear(date, System.Globalization.CalendarWeekRule.FirstDay, DayOfWeek.Monday);
+        var weekNum = culture.Calendar.GetWeekOfYear(
+            date,
+            System.Globalization.CalendarWeekRule.FirstDay,
+            DayOfWeek.Monday
+        );
         return $"{date.Year}-W{weekNum:D2}";
     }
 
@@ -666,7 +730,8 @@ public class ReportService : IReportService
     {
         // NOTE: This is a placeholder. In production, use a library like QuestPDF, iTextSharp, or PdfSharpCore
         // For now, return a simple text representation
-        var content = $"PDF Export - Report Generated at {DateTime.UtcNow}\n\n{System.Text.Json.JsonSerializer.Serialize(reportData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })}";
+        var content =
+            $"PDF Export - Report Generated at {DateTime.UtcNow}\n\n{System.Text.Json.JsonSerializer.Serialize(reportData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })}";
         return Encoding.UTF8.GetBytes(content);
     }
 
@@ -674,7 +739,8 @@ public class ReportService : IReportService
     {
         // NOTE: This is a placeholder. In production, use a library like EPPlus, NPOI, or ClosedXML
         // For now, return a simple text representation
-        var content = $"Excel Export - Report Generated at {DateTime.UtcNow}\n\n{System.Text.Json.JsonSerializer.Serialize(reportData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })}";
+        var content =
+            $"Excel Export - Report Generated at {DateTime.UtcNow}\n\n{System.Text.Json.JsonSerializer.Serialize(reportData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })}";
         return Encoding.UTF8.GetBytes(content);
     }
 
@@ -685,7 +751,8 @@ public class ReportService : IReportService
         var delimiter = options?.Delimiter ?? ",";
         var includeHeaders = options?.IncludeHeaders ?? true;
 
-        var content = $"CSV Export{delimiter}Report Generated at {DateTime.UtcNow}\n\n{System.Text.Json.JsonSerializer.Serialize(reportData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })}";
+        var content =
+            $"CSV Export{delimiter}Report Generated at {DateTime.UtcNow}\n\n{System.Text.Json.JsonSerializer.Serialize(reportData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })}";
         return Encoding.UTF8.GetBytes(content);
     }
 
