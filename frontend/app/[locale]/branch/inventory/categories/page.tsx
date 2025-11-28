@@ -21,6 +21,8 @@ import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { ErrorAlert } from "@/components/shared/ErrorAlert";
 import { useAuth } from "@/hooks/useAuth";
 import { API_BASE_URL } from "@/lib/constants";
+import { ImageCarousel } from "@/components/shared/ui/image-carousel";
+import { Dialog, DialogContent, DialogTitle } from "@/components/shared/ui/dialog";
 
 export default function CategoriesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
@@ -32,6 +34,8 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
   // Modal states
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<CategoryDto | undefined>(undefined);
+  const [isImageCarouselOpen, setIsImageCarouselOpen] = useState(false);
+  const [selectedCategoryImage, setSelectedCategoryImage] = useState<string>('');
 
   // Hooks
   const confirmation = useConfirmation();
@@ -242,8 +246,14 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
           emptyMessage="No categories found. Click 'Add Category' to create one."
           showRowNumbers
           imageColumn={{
-            getImageUrl: (row) => row.imagePath ? getCategoryImageUrl(row.imagePath, row.id, 'thumb') : '',
+            getImageUrl: (row) => row.imagePath ? getCategoryImageUrl(row.imagePath, row.id, 'large') : '',
             getAltText: (row) => row.nameEn,
+            onImageClick: (row, images) => {
+              if (images[0]) {
+                setSelectedCategoryImage(images[0]);
+                setIsImageCarouselOpen(true);
+              }
+            },
             size: 64
           }}
         />
@@ -320,6 +330,18 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
         cancelLabel="Cancel"
         isProcessing={confirmation.isProcessing}
       />
+
+      {/* Image Carousel Modal */}
+      <Dialog open={isImageCarouselOpen} onOpenChange={setIsImageCarouselOpen}>
+        <DialogContent className="max-w-4xl p-0" showCloseButton={false}>
+          <DialogTitle className="sr-only">Category Image</DialogTitle>
+          <ImageCarousel
+            images={[selectedCategoryImage]}
+            alt="Category image"
+            className="w-full h-[600px]"
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
