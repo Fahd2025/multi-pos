@@ -55,7 +55,9 @@ export function DataTable<T>({
   onSelectionChange,
   getRowKey,
   emptyMessage = 'No data available',
-  className = ''
+  className = '',
+  showRowNumbers = false,
+  imageColumn
 }: DataTableProps<T>) {
 
   // Handle sort click
@@ -134,6 +136,20 @@ export function DataTable<T>({
                 </th>
               )}
 
+              {/* Row Number Column */}
+              {showRowNumbers && (
+                <th className="px-4 py-3 w-16 text-left text-xs font-medium text-gray-700 uppercase tracking-wider" role="columnheader">
+                  #
+                </th>
+              )}
+
+              {/* Image Column */}
+              {imageColumn && (
+                <th className="px-4 py-3 w-20 text-left text-xs font-medium text-gray-700 uppercase tracking-wider" role="columnheader">
+                  Image
+                </th>
+              )}
+
               {/* Data Columns */}
               {columns.map((column) => (
                 <th
@@ -171,7 +187,7 @@ export function DataTable<T>({
             {/* Loading State */}
             {loading && (
               <tr>
-                <td colSpan={columns.length + (selectable ? 1 : 0) + (actions.length > 0 ? 1 : 0)} className="px-6 py-8 text-center">
+                <td colSpan={columns.length + (selectable ? 1 : 0) + (showRowNumbers ? 1 : 0) + (imageColumn ? 1 : 0) + (actions.length > 0 ? 1 : 0)} className="px-6 py-8 text-center">
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                     <span className="ml-3 text-gray-500">Loading...</span>
@@ -183,16 +199,19 @@ export function DataTable<T>({
             {/* Empty State */}
             {!loading && data.length === 0 && (
               <tr>
-                <td colSpan={columns.length + (selectable ? 1 : 0) + (actions.length > 0 ? 1 : 0)} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={columns.length + (selectable ? 1 : 0) + (showRowNumbers ? 1 : 0) + (imageColumn ? 1 : 0) + (actions.length > 0 ? 1 : 0)} className="px-6 py-8 text-center text-gray-500">
                   {emptyMessage}
                 </td>
               </tr>
             )}
 
             {/* Data Rows */}
-            {!loading && data.map((row) => {
+            {!loading && data.map((row, rowIndex) => {
               const rowKey = getRowKey(row);
               const isSelected = selectedRows.has(rowKey);
+              const currentPage = paginationConfig?.currentPage || 0;
+              const pageSize = paginationConfig?.pageSize || 20;
+              const rowNumber = currentPage * pageSize + rowIndex + 1;
 
               return (
                 <tr
@@ -221,6 +240,50 @@ export function DataTable<T>({
                       />
                     </td>
                   )}
+
+                  {/* Row Number Cell */}
+                  {showRowNumbers && (
+                    <td className="px-4 py-4 text-sm text-gray-600" role="cell">
+                      {rowNumber}
+                    </td>
+                  )}
+
+                  {/* Image Cell */}
+                  {imageColumn && (() => {
+                    const imageUrls = imageColumn.getImageUrl(row);
+                    const images = Array.isArray(imageUrls) ? imageUrls : [imageUrls];
+                    const firstImage = images[0];
+                    const hasMultipleImages = images.length > 1;
+                    const imageSize = imageColumn.size || 64;
+
+                    return (
+                      <td className="px-4 py-4" role="cell">
+                        <div className="relative" style={{ width: imageSize, height: imageSize }}>
+                          {firstImage ? (
+                            <div
+                              className={`w-full h-full relative ${imageColumn.onImageClick ? 'cursor-pointer' : ''}`}
+                              onClick={() => imageColumn.onImageClick?.(row, images)}
+                            >
+                              <img
+                                src={firstImage}
+                                alt={imageColumn.getAltText(row)}
+                                className="w-full h-full object-cover rounded border border-gray-200"
+                              />
+                              {hasMultipleImages && (
+                                <div className="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">
+                                  +{images.length - 1}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="w-full h-full bg-gray-100 rounded border border-gray-200 flex items-center justify-center text-gray-400 text-xs">
+                              No Image
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    );
+                  })()}
 
                   {/* Data Cells */}
                   {columns.map((column) => {

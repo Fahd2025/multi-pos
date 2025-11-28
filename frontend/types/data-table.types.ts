@@ -63,6 +63,18 @@ export interface PaginationConfig {
   totalItems: number;
 }
 
+// Image column configuration
+export interface ImageColumnConfig<T> {
+  /** Function to get image URL(s) from row data */
+  getImageUrl: (row: T) => string | string[];
+  /** Function to get alt text for image */
+  getAltText: (row: T) => string;
+  /** Optional callback when image is clicked */
+  onImageClick?: (row: T, images: string[]) => void;
+  /** Image size (default: 64px) */
+  size?: number;
+}
+
 // DataTable props
 export interface DataTableProps<T> {
   /** Array of data to display */
@@ -105,6 +117,10 @@ export interface DataTableProps<T> {
   emptyMessage?: string;
   /** Optional CSS class for table */
   className?: string;
+  /** Show row numbers */
+  showRowNumbers?: boolean;
+  /** Optional image column configuration */
+  imageColumn?: ImageColumnConfig<T>;
 }
 
 // Modal types
