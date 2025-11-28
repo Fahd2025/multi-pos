@@ -226,7 +226,7 @@ app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = Dat
 app.MapPost(
         "/api/v1/auth/login",
         async (
-            Backend.Models.DTOs.Auth.LoginRequest loginRequest,
+            [FromBody] Backend.Models.DTOs.Auth.LoginRequest loginRequest,
             Backend.Services.Auth.IAuthService authService,
             HttpContext httpContext
         ) =>
@@ -464,7 +464,7 @@ app.MapGet(
 app.MapPost(
         "/api/v1/sales",
         async (
-            Backend.Models.DTOs.Sales.CreateSaleDto createSaleDto,
+            [FromBody] Backend.Models.DTOs.Sales.CreateSaleDto createSaleDto,
             HttpContext httpContext,
             Backend.Services.Sales.ISalesService salesService
         ) =>
@@ -672,7 +672,7 @@ app.MapPost(
         "/api/v1/sales/{id:guid}/void",
         async (
             Guid id,
-            Backend.Models.DTOs.Sales.VoidSaleDto voidSaleDto,
+            [FromBody] Backend.Models.DTOs.Sales.VoidSaleDto voidSaleDto,
             HttpContext httpContext,
             Backend.Services.Sales.ISalesService salesService
         ) =>
@@ -926,7 +926,7 @@ app.MapGet(
 app.MapPost(
         "/api/v1/sync/transaction",
         async (
-            SyncTransactionRequest request,
+            [FromBody] SyncTransactionRequest request,
             HttpContext httpContext,
             Backend.Services.Sync.ISyncService syncService
         ) =>
@@ -1003,7 +1003,7 @@ app.MapPost(
 app.MapPost(
         "/api/v1/sync/batch",
         async (
-            SyncBatchRequest request,
+            [FromBody] SyncBatchRequest request,
             HttpContext httpContext,
             Backend.Services.Sync.ISyncService syncService
         ) =>
@@ -1165,7 +1165,7 @@ app.MapGet(
 app.MapPost(
         "/api/v1/categories",
         async (
-            CreateCategoryRequest request,
+            [FromBody] CreateCategoryRequest request,
             HttpContext httpContext,
             Backend.Services.Inventory.IInventoryService inventoryService
         ) =>
@@ -1220,7 +1220,7 @@ app.MapPut(
         "/api/v1/categories/{id:guid}",
         async (
             Guid id,
-            UpdateCategoryRequest request,
+            [FromBody] UpdateCategoryRequest request,
             Backend.Services.Inventory.IInventoryService inventoryService
         ) =>
         {
@@ -1345,7 +1345,7 @@ app.MapGet(
 app.MapPost(
         "/api/v1/products",
         async (
-            Backend.Models.DTOs.Inventory.CreateProductDto dto,
+            [FromBody] Backend.Models.DTOs.Inventory.CreateProductDto dto,
             HttpContext httpContext,
             Backend.Services.Inventory.IInventoryService inventoryService
         ) =>
@@ -1391,7 +1391,7 @@ app.MapPut(
         "/api/v1/products/{id:guid}",
         async (
             Guid id,
-            Backend.Models.DTOs.Inventory.UpdateProductDto dto,
+            [FromBody] Backend.Models.DTOs.Inventory.UpdateProductDto dto,
             Backend.Services.Inventory.IInventoryService inventoryService
         ) =>
         {
@@ -1455,7 +1455,7 @@ app.MapPost(
         "/api/v1/products/{id:guid}/adjust-stock",
         async (
             Guid id,
-            Backend.Models.DTOs.Inventory.StockAdjustmentDto dto,
+            [FromBody] Backend.Models.DTOs.Inventory.StockAdjustmentDto dto,
             HttpContext httpContext,
             Backend.Services.Inventory.IInventoryService inventoryService
         ) =>
@@ -1551,7 +1551,7 @@ app.MapGet(
 app.MapPost(
         "/api/v1/purchases",
         async (
-            Backend.Models.DTOs.Inventory.CreatePurchaseDto dto,
+            [FromBody] Backend.Models.DTOs.Inventory.CreatePurchaseDto dto,
             HttpContext httpContext,
             Backend.Services.Inventory.IInventoryService inventoryService
         ) =>
@@ -1691,7 +1691,7 @@ app.MapGet(
 app.MapPost(
         "/api/v1/customers",
         async (
-            Backend.Models.DTOs.Customers.CreateCustomerDto dto,
+            [FromBody] Backend.Models.DTOs.Customers.CreateCustomerDto dto,
             HttpContext httpContext,
             Backend.Services.Customers.ICustomerService customerService
         ) =>
@@ -1743,7 +1743,7 @@ app.MapPut(
         "/api/v1/customers/{id:guid}",
         async (
             Guid id,
-            Backend.Models.DTOs.Customers.UpdateCustomerDto dto,
+            [FromBody] Backend.Models.DTOs.Customers.UpdateCustomerDto dto,
             Backend.Services.Customers.ICustomerService customerService
         ) =>
         {
@@ -1933,7 +1933,7 @@ app.MapGet(
 app.MapPost(
         "/api/v1/expenses",
         async (
-            Backend.Models.DTOs.Expenses.CreateExpenseDto dto,
+            [FromBody] Backend.Models.DTOs.Expenses.CreateExpenseDto dto,
             HttpContext httpContext,
             Backend.Services.Expenses.IExpenseService expenseService
         ) =>
@@ -1981,7 +1981,7 @@ app.MapPut(
         "/api/v1/expenses/{id:guid}",
         async (
             Guid id,
-            Backend.Models.DTOs.Expenses.CreateExpenseDto dto,
+            [FromBody] Backend.Models.DTOs.Expenses.CreateExpenseDto dto,
             Backend.Services.Expenses.IExpenseService expenseService
         ) =>
         {
@@ -2070,7 +2070,7 @@ app.MapPost(
         "/api/v1/expenses/{id:guid}/approve",
         async (
             Guid id,
-            ApproveExpenseRequest request,
+            [FromBody] ApproveExpenseRequest request,
             HttpContext httpContext,
             Backend.Services.Expenses.IExpenseService expenseService
         ) =>
@@ -2171,7 +2171,7 @@ app.MapGet(
 app.MapPost(
         "/api/v1/expense-categories",
         async (
-            CreateExpenseCategoryRequest request,
+            [FromBody] CreateExpenseCategoryRequest request,
             Backend.Services.Expenses.IExpenseService expenseService
         ) =>
         {
@@ -2304,7 +2304,7 @@ app.MapGet(
 app.MapPost(
         "/api/v1/suppliers",
         async (
-            Backend.Models.DTOs.Suppliers.CreateSupplierDto createDto,
+            [FromBody] Backend.Models.DTOs.Suppliers.CreateSupplierDto createDto,
             HttpContext httpContext,
             Backend.Services.Suppliers.ISupplierService supplierService
         ) =>
@@ -2392,7 +2392,7 @@ app.MapPut(
         "/api/v1/suppliers/{id:guid}",
         async (
             Guid id,
-            Backend.Models.DTOs.Suppliers.UpdateSupplierDto updateDto,
+            [FromBody] Backend.Models.DTOs.Suppliers.UpdateSupplierDto updateDto,
             HttpContext httpContext,
             Backend.Services.Suppliers.ISupplierService supplierService
         ) =>
@@ -2702,7 +2702,7 @@ app.MapGet(
 app.MapPost(
         "/api/v1/branches",
         async (
-            Backend.Models.DTOs.Branches.CreateBranchDto dto,
+            [FromBody] Backend.Models.DTOs.Branches.CreateBranchDto dto,
             Backend.Services.Branches.IBranchService branchService,
             HttpContext httpContext
         ) =>
@@ -2760,7 +2760,7 @@ app.MapPut(
         "/api/v1/branches/{id:guid}",
         async (
             Guid id,
-            Backend.Models.DTOs.Branches.UpdateBranchDto dto,
+            [FromBody] Backend.Models.DTOs.Branches.UpdateBranchDto dto,
             Backend.Services.Branches.IBranchService branchService,
             HttpContext httpContext
         ) =>
@@ -2887,7 +2887,7 @@ app.MapPut(
         "/api/v1/branches/{id:guid}/settings",
         async (
             Guid id,
-            Backend.Models.DTOs.Branches.BranchSettingsDto dto,
+            [FromBody] Backend.Models.DTOs.Branches.BranchSettingsDto dto,
             Backend.Services.Branches.IBranchService branchService,
             HttpContext httpContext
         ) =>
@@ -3042,7 +3042,7 @@ app.MapGet(
 app.MapPost(
         "/api/v1/users",
         async (
-            Backend.Models.DTOs.Users.CreateUserDto createDto,
+            [FromBody] Backend.Models.DTOs.Users.CreateUserDto createDto,
             Backend.Services.Users.IUserService userService,
             HttpContext httpContext
         ) =>
@@ -3088,7 +3088,7 @@ app.MapPut(
         "/api/v1/users/{id:guid}",
         async (
             Guid id,
-            Backend.Models.DTOs.Users.UpdateUserDto updateDto,
+            [FromBody] Backend.Models.DTOs.Users.UpdateUserDto updateDto,
             Backend.Services.Users.IUserService userService,
             HttpContext httpContext
         ) =>
@@ -3176,7 +3176,7 @@ app.MapPost(
         "/api/v1/users/{id:guid}/assign-branch",
         async (
             Guid id,
-            Backend.Models.DTOs.Users.AssignBranchDto assignDto,
+            [FromBody] Backend.Models.DTOs.Users.AssignBranchDto assignDto,
             Backend.Services.Users.IUserService userService,
             HttpContext httpContext
         ) =>
@@ -4354,7 +4354,7 @@ app.MapPost(
         async (
             Backend.Services.Reports.IReportService reportService,
             HttpContext httpContext,
-            Backend.Models.DTOs.Reports.ExportReportRequestDto request
+            [FromBody] Backend.Models.DTOs.Reports.ExportReportRequestDto request
         ) =>
         {
             try
