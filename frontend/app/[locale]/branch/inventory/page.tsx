@@ -25,6 +25,7 @@ import ProductFormModalWithImages from "@/components/inventory/ProductFormModalW
 import { useAuth } from "@/hooks/useAuth";
 import { ImageCarousel } from "@/components/shared/ui/image-carousel";
 import { Dialog, DialogContent } from "@/components/shared/ui/dialog";
+import { API_BASE_URL } from "@/lib/constants";
 
 export default function InventoryPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
@@ -147,7 +148,7 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
    */
   const getImageUrl = (imageId: string, productId: string, size: 'thumb' | 'medium' | 'large' | 'original' = 'thumb') => {
     const branchCode = branch?.branchCode || 'B001';
-    return `/api/v1/images/${branchCode}/products/${imageId}/${size}?productId=${productId}`;
+    return `${API_BASE_URL}/api/v1/images/${branchCode}/products/${imageId}/${size}?productId=${productId}`;
   };
 
   /**
