@@ -143,6 +143,14 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
   };
 
   /**
+   * Construct image URL for product images
+   */
+  const getImageUrl = (imageId: string, productId: string, size: 'thumb' | 'medium' | 'large' | 'original' = 'thumb') => {
+    const branchCode = branch?.branchCode || 'B001';
+    return `/api/v1/images/${branchCode}/products/${imageId}/${size}?productId=${productId}`;
+  };
+
+  /**
    * Get stock status label
    */
   const getStockLabel = (product: ProductDto) => {
@@ -172,7 +180,7 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
       label: "Image",
       sortable: false,
       render: (_, row) => {
-        const firstImage = row.images?.[0]?.imagePath;
+        const firstImage = row.images?.[0];
         const hasMultipleImages = row.images?.length > 1;
 
         return (
@@ -182,13 +190,17 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
                 className="w-full h-full cursor-pointer relative"
                 onClick={() => {
                   if (row.images && row.images.length > 0) {
-                    setSelectedProductImages(row.images.map(img => img.imagePath));
+                    // Map all images to their full-size URLs
+                    const imageUrls = row.images.map(img =>
+                      getImageUrl(img.imagePath, row.id, 'large')
+                    );
+                    setSelectedProductImages(imageUrls);
                     setIsImageCarouselOpen(true);
                   }
                 }}
               >
                 <img
-                  src={firstImage}
+                  src={getImageUrl(firstImage.imagePath, row.id, 'thumb')}
                   alt={row.nameEn}
                   className="w-full h-full object-cover rounded border border-gray-200"
                 />
