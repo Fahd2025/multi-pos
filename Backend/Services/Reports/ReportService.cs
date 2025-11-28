@@ -11,10 +11,12 @@ namespace Backend.Services.Reports;
 public class ReportService : IReportService
 {
     private readonly DbContextFactory _dbContextFactory;
+    private readonly HeadOfficeDbContext _headOfficeContext;
 
-    public ReportService(DbContextFactory dbContextFactory)
+    public ReportService(DbContextFactory dbContextFactory, HeadOfficeDbContext headOfficeContext)
     {
         _dbContextFactory = dbContextFactory;
+        _headOfficeContext = headOfficeContext;
     }
 
     /// <summary>
@@ -30,8 +32,15 @@ public class ReportService : IReportService
             ? request.BranchId.Value
             : branchId ?? throw new UnauthorizedAccessException("Branch ID is required");
 
+        // Get branch information
+        var branch = await _headOfficeContext.Branches.FirstOrDefaultAsync(b => b.Id == targetBranchId && b.IsActive);
+        if (branch == null)
+        {
+            throw new InvalidOperationException("Branch not found");
+        }
+
         // Get branch context
-        var branchDb = await _dbContextFactory.CreateBranchDbContextAsync(targetBranchId);
+        using var branchDb = _dbContextFactory.CreateBranchContext(branch);
 
         // Set default date range (last 30 days)
         var startDate = request.StartDate ?? DateTime.UtcNow.AddDays(-30);
@@ -59,26 +68,31 @@ public class ReportService : IReportService
             salesQuery = salesQuery.Where(s => s.CustomerId == request.CustomerId.Value);
 
         if (!string.IsNullOrEmpty(request.PaymentMethod))
-            salesQuery = salesQuery.Where(s => s.PaymentMethod == request.PaymentMethod);
+        {
+            if (Enum.TryParse<Backend.Models.Entities.Branch.PaymentMethod>(request.PaymentMethod, out var paymentMethod))
+            {
+                salesQuery = salesQuery.Where(s => s.PaymentMethod == paymentMethod);
+            }
+        }
 
         var sales = await salesQuery.ToListAsync();
 
         // Calculate summary statistics
         var totalSales = sales.Count;
-        var totalRevenue = sales.Sum(s => s.TotalAmount);
+        var totalRevenue = sales.Sum(s => s.Total);
         var totalTax = sales.Sum(s => s.TaxAmount);
-        var totalDiscount = sales.Sum(s => s.DiscountAmount);
+        var totalDiscount = sales.Sum(s => s.TotalDiscount);
         var averageSaleValue = totalSales > 0 ? totalRevenue / totalSales : 0;
 
         // Payment method breakdown
         var paymentMethodStats = sales
-            .GroupBy(s => s.PaymentMethod)
+            .GroupBy(s => s.PaymentMethod.ToString())
             .ToDictionary(
                 g => g.Key,
                 g => new PaymentMethodStatsDto
                 {
                     Count = g.Count(),
-                    Amount = g.Sum(s => s.TotalAmount)
+                    Amount = g.Sum(s => s.Total)
                 }
             );
 
@@ -114,15 +128,11 @@ public class ReportService : IReportService
                 CustomerId = g.Key.CustomerId!.Value,
                 CustomerName = g.Key.NameEn,
                 PurchaseCount = g.Count(),
-                TotalSpent = g.Sum(s => s.TotalAmount)
+                TotalSpent = g.Sum(s => s.Total)
             })
             .OrderByDescending(c => c.TotalSpent)
             .Take(10)
             .ToList();
-
-        // Get branch name
-        using var headOfficeDb = _dbContextFactory.CreateHeadOfficeDbContext();
-        var branch = await headOfficeDb.Branches.FindAsync(targetBranchId);
 
         return new SalesReportDto
         {
@@ -170,8 +180,15 @@ public class ReportService : IReportService
             ? request.BranchId.Value
             : branchId ?? throw new UnauthorizedAccessException("Branch ID is required");
 
+        // Get branch information
+        var branch = await _headOfficeContext.Branches.FirstOrDefaultAsync(b => b.Id == targetBranchId && b.IsActive);
+        if (branch == null)
+        {
+            throw new InvalidOperationException("Branch not found");
+        }
+
         // Get branch context
-        var branchDb = await _dbContextFactory.CreateBranchDbContextAsync(targetBranchId);
+        using var branchDb = _dbContextFactory.CreateBranchContext(branch);
 
         // Build query
         var productsQuery = branchDb.Products
@@ -257,9 +274,7 @@ public class ReportService : IReportService
                 .ToList();
         }
 
-        // Get branch and category names
-        using var headOfficeDb = _dbContextFactory.CreateHeadOfficeDbContext();
-        var branch = await headOfficeDb.Branches.FindAsync(targetBranchId);
+        // Get category name
         var category = request.CategoryId.HasValue
             ? await branchDb.Categories.FindAsync(request.CategoryId.Value)
             : null;
@@ -305,8 +320,15 @@ public class ReportService : IReportService
             ? request.BranchId.Value
             : branchId ?? throw new UnauthorizedAccessException("Branch ID is required");
 
+        // Get branch information
+        var branch = await _headOfficeContext.Branches.FirstOrDefaultAsync(b => b.Id == targetBranchId && b.IsActive);
+        if (branch == null)
+        {
+            throw new InvalidOperationException("Branch not found");
+        }
+
         // Get branch context
-        var branchDb = await _dbContextFactory.CreateBranchDbContextAsync(targetBranchId);
+        using var branchDb = _dbContextFactory.CreateBranchContext(branch);
 
         // Set default date range (current month)
         var now = DateTime.UtcNow;
@@ -325,7 +347,7 @@ public class ReportService : IReportService
             .Where(s => s.SaleDate >= startDate && s.SaleDate <= endDate)
             .ToListAsync();
 
-        var totalRevenue = sales.Sum(s => s.TotalAmount);
+        var totalRevenue = sales.Sum(s => s.Total);
         var taxCollected = sales.Sum(s => s.TaxAmount);
 
         // Get expenses
@@ -366,10 +388,6 @@ public class ReportService : IReportService
         // Time series data
         var groupBy = request.GroupBy?.ToLower() ?? "month";
         var timeSeriesData = GenerateFinancialTimeSeriesData(sales, expenses, groupBy, startDate, endDate);
-
-        // Get branch name
-        using var headOfficeDb = _dbContextFactory.CreateHeadOfficeDbContext();
-        var branch = await headOfficeDb.Branches.FindAsync(targetBranchId);
 
         return new FinancialReportDto
         {
@@ -508,9 +526,9 @@ public class ReportService : IReportService
                 {
                     Period = g.Key.ToString("yyyy-MM-dd"),
                     SalesCount = g.Count(),
-                    TotalRevenue = g.Sum(s => s.TotalAmount),
+                    TotalRevenue = g.Sum(s => s.Total),
                     TotalTax = g.Sum(s => s.TaxAmount),
-                    AverageSaleValue = g.Average(s => s.TotalAmount)
+                    AverageSaleValue = g.Average(s => s.Total)
                 })
                 .OrderBy(t => t.Period)
                 .ToList(),
@@ -520,9 +538,9 @@ public class ReportService : IReportService
                 {
                     Period = g.Key,
                     SalesCount = g.Count(),
-                    TotalRevenue = g.Sum(s => s.TotalAmount),
+                    TotalRevenue = g.Sum(s => s.Total),
                     TotalTax = g.Sum(s => s.TaxAmount),
-                    AverageSaleValue = g.Average(s => s.TotalAmount)
+                    AverageSaleValue = g.Average(s => s.Total)
                 })
                 .OrderBy(t => t.Period)
                 .ToList(),
@@ -532,9 +550,9 @@ public class ReportService : IReportService
                 {
                     Period = $"{g.Key.Year}-{g.Key.Month:D2}",
                     SalesCount = g.Count(),
-                    TotalRevenue = g.Sum(s => s.TotalAmount),
+                    TotalRevenue = g.Sum(s => s.Total),
                     TotalTax = g.Sum(s => s.TaxAmount),
-                    AverageSaleValue = g.Average(s => s.TotalAmount)
+                    AverageSaleValue = g.Average(s => s.Total)
                 })
                 .OrderBy(t => t.Period)
                 .ToList(),
@@ -555,7 +573,7 @@ public class ReportService : IReportService
             "day" => Enumerable.Range(0, (int)(endDate - startDate).TotalDays + 1)
                 .Select(offset => startDate.AddDays(offset).Date)
                 .Select(date => {
-                    var dayRevenue = sales.Where(s => s.SaleDate.Date == date).Sum(s => s.TotalAmount);
+                    var dayRevenue = sales.Where(s => s.SaleDate.Date == date).Sum(s => s.Total);
                     var dayExpenses = expenses.Where(e => e.ExpenseDate.Date == date).Sum(e => e.Amount);
                     var dayProfit = dayRevenue - dayExpenses;
                     return new FinancialTimeSeriesDto
@@ -571,7 +589,7 @@ public class ReportService : IReportService
 
             "week" => sales.Select(s => GetWeekOfYear(s.SaleDate)).Distinct()
                 .Select(week => {
-                    var weekRevenue = sales.Where(s => GetWeekOfYear(s.SaleDate) == week).Sum(s => s.TotalAmount);
+                    var weekRevenue = sales.Where(s => GetWeekOfYear(s.SaleDate) == week).Sum(s => s.Total);
                     var weekExpenses = expenses.Where(e => GetWeekOfYear(e.ExpenseDate) == week).Sum(e => e.Amount);
                     var weekProfit = weekRevenue - weekExpenses;
                     return new FinancialTimeSeriesDto
@@ -589,7 +607,7 @@ public class ReportService : IReportService
             "month" => sales.Select(s => new { s.SaleDate.Year, s.SaleDate.Month }).Distinct()
                 .Select(month => {
                     var monthRevenue = sales.Where(s => s.SaleDate.Year == month.Year && s.SaleDate.Month == month.Month)
-                        .Sum(s => s.TotalAmount);
+                        .Sum(s => s.Total);
                     var monthExpenses = expenses.Where(e => e.ExpenseDate.Year == month.Year && e.ExpenseDate.Month == month.Month)
                         .Sum(e => e.Amount);
                     var monthProfit = monthRevenue - monthExpenses;
