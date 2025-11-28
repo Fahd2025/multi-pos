@@ -11,20 +11,20 @@ import reportService, {
 
 type ReportType = 'sales' | 'inventory' | 'financial';
 
-export default function HeadOfficeAnalyticsPage() {
+export default function ReportsPage() {
   const [reportType, setReportType] = useState<ReportType>('sales');
   const [reportData, setReportData] = useState<SalesReport | InventoryReport | FinancialReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Filter states
-  const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [groupBy, setGroupBy] = useState<'day' | 'week' | 'month'>('month');
+  const [groupBy, setGroupBy] = useState<'day' | 'week' | 'month'>('day');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [lowStockOnly, setLowStockOnly] = useState(false);
   const [negativeStockOnly, setNegativeStockOnly] = useState(false);
+  const [includeMovements, setIncludeMovements] = useState(false);
 
   const handleGenerateReport = async () => {
     setLoading(true);
@@ -33,14 +33,11 @@ export default function HeadOfficeAnalyticsPage() {
     try {
       let data: SalesReport | InventoryReport | FinancialReport;
 
-      const branchId = selectedBranchId || undefined;
-
       switch (reportType) {
         case 'sales':
           data = await reportService.generateSalesReport({
             startDate: startDate || undefined,
             endDate: endDate || undefined,
-            branchId,
             paymentMethod: paymentMethod || undefined,
             groupBy,
           });
@@ -48,10 +45,11 @@ export default function HeadOfficeAnalyticsPage() {
 
         case 'inventory':
           data = await reportService.generateInventoryReport({
-            branchId,
             lowStockOnly,
             negativeStockOnly,
-            includeMovements: false,
+            includeMovements,
+            startDate: includeMovements && startDate ? startDate : undefined,
+            endDate: includeMovements && endDate ? endDate : undefined,
           });
           break;
 
@@ -59,7 +57,6 @@ export default function HeadOfficeAnalyticsPage() {
           data = await reportService.generateFinancialReport({
             startDate: startDate || undefined,
             endDate: endDate || undefined,
-            branchId,
             groupBy,
           });
           break;
@@ -86,7 +83,6 @@ export default function HeadOfficeAnalyticsPage() {
         startDate: startDate || undefined,
         endDate: endDate || undefined,
         filters: {
-          branchId: selectedBranchId || undefined,
           paymentMethod: reportType === 'sales' && paymentMethod ? paymentMethod : undefined,
           lowStockOnly: reportType === 'inventory' ? lowStockOnly : undefined,
           negativeStockOnly: reportType === 'inventory' ? negativeStockOnly : undefined,
@@ -115,17 +111,15 @@ export default function HeadOfficeAnalyticsPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-          Head Office Analytics & Consolidated Reports
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Generate comprehensive reports across all branches or for specific branches
+        <h1 className="text-3xl font-bold text-gray-900">Reports & Analytics</h1>
+        <p className="text-gray-600 mt-2">
+          Generate comprehensive reports for sales, inventory, and financial data
         </p>
       </div>
 
       {/* Report Type Selection */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700 mb-6">
-        <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Report Type</h2>
+      <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 mb-6">
+        <h2 className="text-lg font-semibold mb-4">Report Type</h2>
         <div className="flex gap-4">
           <button
             onClick={() => {
@@ -135,7 +129,7 @@ export default function HeadOfficeAnalyticsPage() {
             className={`px-6 py-3 rounded-lg font-medium transition-colors ${
               reportType === 'sales'
                 ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
             Sales Report
@@ -148,7 +142,7 @@ export default function HeadOfficeAnalyticsPage() {
             className={`px-6 py-3 rounded-lg font-medium transition-colors ${
               reportType === 'inventory'
                 ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
             Inventory Report
@@ -161,7 +155,7 @@ export default function HeadOfficeAnalyticsPage() {
             className={`px-6 py-3 rounded-lg font-medium transition-colors ${
               reportType === 'financial'
                 ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
             Financial Report
@@ -170,66 +164,46 @@ export default function HeadOfficeAnalyticsPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700 mb-6">
-        <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Filters</h2>
+      <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 mb-6">
+        <h2 className="text-lg font-semibold mb-4">Filters</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Branch Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Branch (optional)
-            </label>
-            <select
-              value={selectedBranchId}
-              onChange={(e) => setSelectedBranchId(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">All Branches</option>
-              {/* TODO: Load branches from API */}
-              <option value="branch-1">Branch 001</option>
-              <option value="branch-2">Branch 002</option>
-            </select>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Leave blank to see consolidated data from all branches
-            </p>
-          </div>
-
-          {/* Date Range (for sales and financial) */}
-          {reportType !== 'inventory' && (
+          {/* Date Range (for all reports) */}
+          {reportType !== 'inventory' || includeMovements ? (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Start Date
                 </label>
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">End Date</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </>
-          )}
+          ) : null}
 
           {/* Sales-specific filters */}
           {reportType === 'sales' && (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Payment Method
                 </label>
                 <select
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">All</option>
                   <option value="Cash">Cash</option>
@@ -238,11 +212,11 @@ export default function HeadOfficeAnalyticsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Group By</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Group By</label>
                 <select
                   value={groupBy}
                   onChange={(e) => setGroupBy(e.target.value as 'day' | 'week' | 'month')}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="day">Day</option>
                   <option value="week">Week</option>
@@ -263,7 +237,7 @@ export default function HeadOfficeAnalyticsPage() {
                   onChange={(e) => setLowStockOnly(e.target.checked)}
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <label htmlFor="lowStockOnly" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                <label htmlFor="lowStockOnly" className="ml-2 text-sm text-gray-700">
                   Low Stock Only
                 </label>
               </div>
@@ -275,8 +249,20 @@ export default function HeadOfficeAnalyticsPage() {
                   onChange={(e) => setNegativeStockOnly(e.target.checked)}
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <label htmlFor="negativeStockOnly" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                <label htmlFor="negativeStockOnly" className="ml-2 text-sm text-gray-700">
                   Negative Stock Only
+                </label>
+              </div>
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="includeMovements"
+                  checked={includeMovements}
+                  onChange={(e) => setIncludeMovements(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label htmlFor="includeMovements" className="ml-2 text-sm text-gray-700">
+                  Include Movements
                 </label>
               </div>
             </>
@@ -285,11 +271,11 @@ export default function HeadOfficeAnalyticsPage() {
           {/* Financial-specific filters */}
           {reportType === 'financial' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Group By</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Group By</label>
               <select
                 value={groupBy}
                 onChange={(e) => setGroupBy(e.target.value as 'day' | 'week' | 'month')}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="day">Day</option>
                 <option value="week">Week</option>
@@ -312,8 +298,8 @@ export default function HeadOfficeAnalyticsPage() {
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
-          <p className="text-red-800 dark:text-red-300">{error}</p>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <p className="text-red-800">{error}</p>
         </div>
       )}
 
