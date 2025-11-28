@@ -395,6 +395,7 @@ export default function SuppliersPage() {
           sortConfig={sortConfig ?? undefined}
           onSortChange={handleSortChange}
           emptyMessage="No suppliers found. Click 'Add Supplier' to create one."
+          showRowNumbers
         />
       </div>
 

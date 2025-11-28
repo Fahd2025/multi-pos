@@ -167,62 +167,6 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
   // Define table columns
   const columns: DataTableColumn<ProductDto>[] = [
     {
-      key: "rowNumber",
-      label: "#",
-      sortable: false,
-      render: (_, row) => {
-        const index = displayData.findIndex((p) => p.id === row.id);
-        const currentPage = paginationConfig?.currentPage || 1;
-        const pageSize = paginationConfig?.pageSize || 20;
-        const rowNumber = (currentPage - 1) * pageSize + index + 1;
-        return <span className="text-sm text-gray-600">{rowNumber}</span>;
-      },
-    },
-    {
-      key: "images",
-      label: "Image",
-      sortable: false,
-      render: (_, row) => {
-        const firstImage = row.images?.[0];
-        const hasMultipleImages = row.images?.length > 1;
-
-        return (
-          <div className="relative w-16 h-16">
-            {firstImage ? (
-              <div
-                className="w-full h-full cursor-pointer relative"
-                onClick={() => {
-                  if (row.images && row.images.length > 0) {
-                    // Map all images to their full-size URLs
-                    const imageUrls = row.images.map(img =>
-                      getImageUrl(img.imagePath, row.id, 'large')
-                    );
-                    setSelectedProductImages(imageUrls);
-                    setIsImageCarouselOpen(true);
-                  }
-                }}
-              >
-                <img
-                  src={getImageUrl(firstImage.imagePath, row.id, 'thumb')}
-                  alt={row.nameEn}
-                  className="w-full h-full object-cover rounded border border-gray-200"
-                />
-                {hasMultipleImages && (
-                  <div className="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">
-                    +{row.images.length - 1}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="w-full h-full bg-gray-100 rounded border border-gray-200 flex items-center justify-center text-gray-400 text-xs">
-                No Image
-              </div>
-            )}
-          </div>
-        );
-      },
-    },
-    {
       key: "nameEn",
       label: "Product",
       sortable: true,
@@ -419,6 +363,21 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
           sortConfig={sortConfig ?? undefined}
           onSortChange={handleSortChange}
           emptyMessage="No products found. Click 'Add Product' to create one."
+          showRowNumbers
+          imageColumn={{
+            getImageUrl: (row) => {
+              if (row.images && row.images.length > 0) {
+                return row.images.map(img => getImageUrl(img.imagePath, row.id, 'large'));
+              }
+              return [];
+            },
+            getAltText: (row) => row.nameEn,
+            onImageClick: (row, images) => {
+              setSelectedProductImages(images);
+              setIsImageCarouselOpen(true);
+            },
+            size: 64
+          }}
         />
       )}
 
