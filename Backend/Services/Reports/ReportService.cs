@@ -113,7 +113,7 @@ public class ReportService : IReportService
                 ProductId = g.Key.ProductId,
                 ProductName = g.Key.NameEn,
                 QuantitySold = g.Sum(li => li.Quantity),
-                TotalRevenue = g.Sum(li => li.TotalPrice)
+                TotalRevenue = g.Sum(li => li.LineTotal)
             })
             .OrderByDescending(p => p.TotalRevenue)
             .Take(10)
@@ -200,20 +200,20 @@ public class ReportService : IReportService
             productsQuery = productsQuery.Where(p => p.CategoryId == request.CategoryId.Value);
 
         if (request.LowStockOnly)
-            productsQuery = productsQuery.Where(p => p.StockQuantity < p.MinStockThreshold);
+            productsQuery = productsQuery.Where(p => p.StockLevel < p.MinStockThreshold);
 
         if (request.NegativeStockOnly)
-            productsQuery = productsQuery.Where(p => p.StockQuantity < 0);
+            productsQuery = productsQuery.Where(p => p.StockLevel < 0);
 
         var products = await productsQuery.ToListAsync();
 
         // Calculate summary statistics
         var totalProducts = products.Count;
         var totalCategories = products.Select(p => p.CategoryId).Distinct().Count();
-        var totalStockValue = products.Sum(p => p.StockQuantity * p.UnitPrice);
-        var lowStockCount = products.Count(p => p.StockQuantity < p.MinStockThreshold && p.StockQuantity >= 0);
-        var outOfStockCount = products.Count(p => p.StockQuantity == 0);
-        var negativeStockCount = products.Count(p => p.StockQuantity < 0);
+        var totalStockValue = products.Sum(p => p.StockLevel * p.SellingPrice);
+        var lowStockCount = products.Count(p => p.StockLevel < p.MinStockThreshold && p.StockLevel >= 0);
+        var outOfStockCount = products.Count(p => p.StockLevel == 0);
+        var negativeStockCount = products.Count(p => p.StockLevel < 0);
         var averageStockValue = totalProducts > 0 ? totalStockValue / totalProducts : 0;
 
         // Map products to DTOs
@@ -223,13 +223,13 @@ public class ReportService : IReportService
             Sku = p.SKU,
             ProductName = p.NameEn,
             CategoryName = p.Category?.NameEn,
-            CurrentStock = p.StockQuantity,
+            CurrentStock = p.StockLevel,
             MinStockThreshold = p.MinStockThreshold,
-            UnitPrice = p.UnitPrice,
-            StockValue = p.StockQuantity * p.UnitPrice,
-            Status = GetStockStatus(p.StockQuantity, p.MinStockThreshold),
+            UnitPrice = p.SellingPrice,
+            StockValue = p.StockLevel * p.SellingPrice,
+            Status = GetStockStatus(p.StockLevel, p.MinStockThreshold),
             LastRestockedAt = p.UpdatedAt,
-            DiscrepancyFlag = p.StockQuantity < 0
+            DiscrepancyFlag = p.StockLevel < 0
         }).ToList();
 
         // Stock movements (if requested)
@@ -256,10 +256,10 @@ public class ReportService : IReportService
 
             // Get purchase movements
             var purchaseMovements = await branchDb.Purchases
-                .Where(p => p.OrderDate >= startDate && p.OrderDate <= endDate && p.ReceivedAt.HasValue)
+                .Where(p => p.PurchaseDate >= startDate && p.PurchaseDate <= endDate && p.ReceivedDate.HasValue)
                 .SelectMany(p => p.LineItems.Select(li => new StockMovementDto
                 {
-                    Date = p.ReceivedAt!.Value,
+                    Date = p.ReceivedDate!.Value,
                     ProductId = li.ProductId,
                     ProductName = li.Product.NameEn,
                     Type = "Purchase",
