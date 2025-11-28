@@ -113,8 +113,8 @@ export default function BranchesManagementPage({
   /**
    * Construct image URL for branch logos
    */
-  const getBranchImageUrl = (imageId: string, branchId: string, size: 'thumb' | 'medium' | 'large' | 'original' = 'thumb') => {
-    return `${API_BASE_URL}/api/v1/images/head-office/branches/${imageId}/${size}?branchId=${branchId}`;
+  const getBranchImageUrl = (imageId: string, branchCode: string, size: 'thumb' | 'medium' | 'large' | 'original' = 'thumb') => {
+    return `${API_BASE_URL}/api/v1/images/${branchCode}/branches/${imageId}/${size}`;
   };
 
   // Define table columns
@@ -323,7 +323,7 @@ export default function BranchesManagementPage({
           }
           showRowNumbers
           imageColumn={{
-            getImageUrl: (row) => row.logoPath ? getBranchImageUrl(row.logoPath, row.id, 'large') : '',
+            getImageUrl: (row) => row.logoPath ? getBranchImageUrl(row.logoPath, row.code, 'large') : '',
             getAltText: (row) => row.nameEn,
             onImageClick: (row, images) => {
               if (images[0]) {
