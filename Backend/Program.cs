@@ -3,6 +3,7 @@ using Backend.Data;
 using Backend.Middleware;
 using Backend.Services.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -28,7 +29,11 @@ builder.Services.AddCors(options =>
 var dbPath = builder.Configuration.GetConnectionString("HeadOfficeDb");
 if (!string.IsNullOrEmpty(dbPath))
 {
-    var dbFile = dbPath.Replace("Data Source=", "").Replace("data source=", "").Replace("Datasource=", "").Replace("datasource=", "");
+    var dbFile = dbPath
+        .Replace("Data Source=", "")
+        .Replace("data source=", "")
+        .Replace("Datasource=", "")
+        .Replace("datasource=", "");
     var dbDirectory = Path.GetDirectoryName(dbFile);
     if (!string.IsNullOrEmpty(dbDirectory) && !Directory.Exists(dbDirectory))
     {
@@ -92,14 +97,26 @@ builder.Services.AddScoped<
     Backend.Services.Branches.IBranchService,
     Backend.Services.Branches.BranchService
 >();
-builder.Services.AddScoped<Backend.Services.Users.IUserService, Backend.Services.Users.UserService>();
-builder.Services.AddScoped<Backend.Services.Audit.IAuditService, Backend.Services.Audit.AuditService>();
+builder.Services.AddScoped<
+    Backend.Services.Users.IUserService,
+    Backend.Services.Users.UserService
+>();
+builder.Services.AddScoped<
+    Backend.Services.Audit.IAuditService,
+    Backend.Services.Audit.AuditService
+>();
 builder.Services.AddScoped<
     Backend.Services.Suppliers.ISupplierService,
     Backend.Services.Suppliers.SupplierService
 >();
-builder.Services.AddScoped<Backend.Services.Images.IImageService, Backend.Services.Images.ImageService>();
-builder.Services.AddScoped<Backend.Services.Reports.IReportService, Backend.Services.Reports.ReportService>();
+builder.Services.AddScoped<
+    Backend.Services.Images.IImageService,
+    Backend.Services.Images.ImageService
+>();
+builder.Services.AddScoped<
+    Backend.Services.Reports.IReportService,
+    Backend.Services.Reports.ReportService
+>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<BranchDbContext>(provider =>
@@ -173,7 +190,11 @@ var app = builder.Build();
 var connectionString = builder.Configuration.GetConnectionString("HeadOfficeDb");
 if (!string.IsNullOrEmpty(connectionString))
 {
-    var dbFile = connectionString.Replace("Data Source=", "").Replace("data source=", "").Replace("Datasource=", "").Replace("datasource=", "");
+    var dbFile = connectionString
+        .Replace("Data Source=", "")
+        .Replace("data source=", "")
+        .Replace("Datasource=", "")
+        .Replace("datasource=", "");
     var dbDirectory = Path.GetDirectoryName(dbFile);
     if (!string.IsNullOrEmpty(dbDirectory) && !Directory.Exists(dbDirectory))
     {
@@ -1763,7 +1784,11 @@ app.MapPut(
             catch (KeyNotFoundException ex)
             {
                 return Results.NotFound(
-                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                    new
+                    {
+                        success = false,
+                        error = new { code = "NOT_FOUND", message = ex.Message },
+                    }
                 );
             }
             catch (InvalidOperationException ex)
@@ -1804,7 +1829,11 @@ app.MapDelete(
             catch (KeyNotFoundException ex)
             {
                 return Results.NotFound(
-                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                    new
+                    {
+                        success = false,
+                        error = new { code = "NOT_FOUND", message = ex.Message },
+                    }
                 );
             }
             catch (Exception ex)
@@ -1859,7 +1888,11 @@ app.MapGet(
             catch (KeyNotFoundException ex)
             {
                 return Results.NotFound(
-                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                    new
+                    {
+                        success = false,
+                        error = new { code = "NOT_FOUND", message = ex.Message },
+                    }
                 );
             }
             catch (Exception ex)
@@ -1961,7 +1994,11 @@ app.MapPost(
             catch (KeyNotFoundException ex)
             {
                 return Results.NotFound(
-                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                    new
+                    {
+                        success = false,
+                        error = new { code = "NOT_FOUND", message = ex.Message },
+                    }
                 );
             }
             catch (Exception ex)
@@ -2001,7 +2038,11 @@ app.MapPut(
             catch (KeyNotFoundException ex)
             {
                 return Results.NotFound(
-                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                    new
+                    {
+                        success = false,
+                        error = new { code = "NOT_FOUND", message = ex.Message },
+                    }
                 );
             }
             catch (InvalidOperationException ex)
@@ -2040,7 +2081,11 @@ app.MapDelete(
             catch (KeyNotFoundException ex)
             {
                 return Results.NotFound(
-                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                    new
+                    {
+                        success = false,
+                        error = new { code = "NOT_FOUND", message = ex.Message },
+                    }
                 );
             }
             catch (InvalidOperationException ex)
@@ -2116,7 +2161,11 @@ app.MapPost(
             catch (KeyNotFoundException ex)
             {
                 return Results.NotFound(
-                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                    new
+                    {
+                        success = false,
+                        error = new { code = "NOT_FOUND", message = ex.Message },
+                    }
                 );
             }
             catch (InvalidOperationException ex)
@@ -2444,7 +2493,11 @@ app.MapPut(
             catch (KeyNotFoundException ex)
             {
                 return Results.NotFound(
-                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                    new
+                    {
+                        success = false,
+                        error = new { code = "NOT_FOUND", message = ex.Message },
+                    }
                 );
             }
             catch (InvalidOperationException ex)
@@ -2520,7 +2573,11 @@ app.MapDelete(
             catch (KeyNotFoundException ex)
             {
                 return Results.NotFound(
-                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                    new
+                    {
+                        success = false,
+                        error = new { code = "NOT_FOUND", message = ex.Message },
+                    }
                 );
             }
             catch (Exception ex)
@@ -2661,7 +2718,11 @@ app.MapGet(
 // GET /api/v1/branches/:id - Get branch by ID
 app.MapGet(
         "/api/v1/branches/{id:guid}",
-        async (Guid id, Backend.Services.Branches.IBranchService branchService, HttpContext httpContext) =>
+        async (
+            Guid id,
+            Backend.Services.Branches.IBranchService branchService,
+            HttpContext httpContext
+        ) =>
         {
             try
             {
@@ -2679,7 +2740,11 @@ app.MapGet(
                         new
                         {
                             success = false,
-                            error = new { code = "NOT_FOUND", message = $"Branch with ID {id} not found" },
+                            error = new
+                            {
+                                code = "NOT_FOUND",
+                                message = $"Branch with ID {id} not found",
+                            },
                         }
                     );
                 }
@@ -2787,7 +2852,11 @@ app.MapPut(
             catch (KeyNotFoundException ex)
             {
                 return Results.NotFound(
-                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                    new
+                    {
+                        success = false,
+                        error = new { code = "NOT_FOUND", message = ex.Message },
+                    }
                 );
             }
             catch (Exception ex)
@@ -2805,7 +2874,11 @@ app.MapPut(
 // DELETE /api/v1/branches/:id - Delete (soft delete) a branch
 app.MapDelete(
         "/api/v1/branches/{id:guid}",
-        async (Guid id, Backend.Services.Branches.IBranchService branchService, HttpContext httpContext) =>
+        async (
+            Guid id,
+            Backend.Services.Branches.IBranchService branchService,
+            HttpContext httpContext
+        ) =>
         {
             try
             {
@@ -2823,7 +2896,11 @@ app.MapDelete(
                         new
                         {
                             success = false,
-                            error = new { code = "NOT_FOUND", message = $"Branch with ID {id} not found" },
+                            error = new
+                            {
+                                code = "NOT_FOUND",
+                                message = $"Branch with ID {id} not found",
+                            },
                         }
                     );
                 }
@@ -2845,7 +2922,11 @@ app.MapDelete(
 // GET /api/v1/branches/:id/settings - Get branch settings
 app.MapGet(
         "/api/v1/branches/{id:guid}/settings",
-        async (Guid id, Backend.Services.Branches.IBranchService branchService, HttpContext httpContext) =>
+        async (
+            Guid id,
+            Backend.Services.Branches.IBranchService branchService,
+            HttpContext httpContext
+        ) =>
         {
             try
             {
@@ -2863,7 +2944,11 @@ app.MapGet(
                         new
                         {
                             success = false,
-                            error = new { code = "NOT_FOUND", message = $"Branch with ID {id} not found" },
+                            error = new
+                            {
+                                code = "NOT_FOUND",
+                                message = $"Branch with ID {id} not found",
+                            },
                         }
                     );
                 }
@@ -2914,7 +2999,11 @@ app.MapPut(
             catch (KeyNotFoundException ex)
             {
                 return Results.NotFound(
-                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                    new
+                    {
+                        success = false,
+                        error = new { code = "NOT_FOUND", message = ex.Message },
+                    }
                 );
             }
             catch (Exception ex)
@@ -2932,7 +3021,11 @@ app.MapPut(
 // POST /api/v1/branches/:id/test-connection - Test branch database connection
 app.MapPost(
         "/api/v1/branches/{id:guid}/test-connection",
-        async (Guid id, Backend.Services.Branches.IBranchService branchService, HttpContext httpContext) =>
+        async (
+            Guid id,
+            Backend.Services.Branches.IBranchService branchService,
+            HttpContext httpContext
+        ) =>
         {
             try
             {
@@ -2999,7 +3092,13 @@ app.MapGet(
                 Backend.Models.Entities.HeadOffice.UserRole? parsedRole = null;
                 if (!string.IsNullOrWhiteSpace(role))
                 {
-                    if (Enum.TryParse<Backend.Models.Entities.HeadOffice.UserRole>(role, true, out var r))
+                    if (
+                        Enum.TryParse<Backend.Models.Entities.HeadOffice.UserRole>(
+                            role,
+                            true,
+                            out var r
+                        )
+                    )
                     {
                         parsedRole = r;
                     }
@@ -3021,8 +3120,14 @@ app.MapGet(
                         data = new
                         {
                             users,
-                            pagination = new { page, pageSize, totalCount, totalPages = (int)Math.Ceiling((double)totalCount / pageSize) }
-                        }
+                            pagination = new
+                            {
+                                page,
+                                pageSize,
+                                totalCount,
+                                totalPages = (int)Math.Ceiling((double)totalCount / pageSize),
+                            },
+                        },
                     }
                 );
             }
@@ -3068,7 +3173,11 @@ app.MapPost(
             catch (InvalidOperationException ex)
             {
                 return Results.BadRequest(
-                    new { success = false, error = new { code = "VALIDATION_ERROR", message = ex.Message } }
+                    new
+                    {
+                        success = false,
+                        error = new { code = "VALIDATION_ERROR", message = ex.Message },
+                    }
                 );
             }
             catch (Exception ex)
@@ -3115,7 +3224,11 @@ app.MapPut(
             catch (InvalidOperationException ex)
             {
                 return Results.NotFound(
-                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                    new
+                    {
+                        success = false,
+                        error = new { code = "NOT_FOUND", message = ex.Message },
+                    }
                 );
             }
             catch (Exception ex)
@@ -3151,12 +3264,18 @@ app.MapDelete(
 
                 await userService.DeleteUserAsync(id, currentUserId.Value);
 
-                return Results.Ok(new { success = true, message = "User deactivated successfully" });
+                return Results.Ok(
+                    new { success = true, message = "User deactivated successfully" }
+                );
             }
             catch (InvalidOperationException ex)
             {
                 return Results.NotFound(
-                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                    new
+                    {
+                        success = false,
+                        error = new { code = "NOT_FOUND", message = ex.Message },
+                    }
                 );
             }
             catch (Exception ex)
@@ -3197,12 +3316,18 @@ app.MapPost(
 
                 await userService.AssignBranchAsync(id, assignDto, currentUserId.Value);
 
-                return Results.Ok(new { success = true, message = "User assigned to branch successfully" });
+                return Results.Ok(
+                    new { success = true, message = "User assigned to branch successfully" }
+                );
             }
             catch (InvalidOperationException ex)
             {
                 return Results.BadRequest(
-                    new { success = false, error = new { code = "VALIDATION_ERROR", message = ex.Message } }
+                    new
+                    {
+                        success = false,
+                        error = new { code = "VALIDATION_ERROR", message = ex.Message },
+                    }
                 );
             }
             catch (Exception ex)
@@ -3243,12 +3368,18 @@ app.MapDelete(
 
                 await userService.RemoveBranchAssignmentAsync(id, branchId, currentUserId.Value);
 
-                return Results.Ok(new { success = true, message = "Branch assignment removed successfully" });
+                return Results.Ok(
+                    new { success = true, message = "Branch assignment removed successfully" }
+                );
             }
             catch (InvalidOperationException ex)
             {
                 return Results.NotFound(
-                    new { success = false, error = new { code = "NOT_FOUND", message = ex.Message } }
+                    new
+                    {
+                        success = false,
+                        error = new { code = "NOT_FOUND", message = ex.Message },
+                    }
                 );
             }
             catch (Exception ex)
@@ -3266,7 +3397,12 @@ app.MapDelete(
 // GET /api/v1/users/:id/activity - Get user activity log
 app.MapGet(
         "/api/v1/users/{id:guid}/activity",
-        async (Guid id, Backend.Services.Users.IUserService userService, HttpContext httpContext, int? limit = 100) =>
+        async (
+            Guid id,
+            Backend.Services.Users.IUserService userService,
+            HttpContext httpContext,
+            int? limit = 100
+        ) =>
         {
             try
             {
@@ -3345,8 +3481,14 @@ app.MapGet(
                         data = new
                         {
                             logs,
-                            pagination = new { page, pageSize, totalCount, totalPages = (int)Math.Ceiling((double)totalCount / pageSize) }
-                        }
+                            pagination = new
+                            {
+                                page,
+                                pageSize,
+                                totalCount,
+                                totalPages = (int)Math.Ceiling((double)totalCount / pageSize),
+                            },
+                        },
                     }
                 );
             }
@@ -3390,7 +3532,13 @@ app.MapGet(
                     return Results.Forbid();
                 }
 
-                var logs = await auditService.GetUserAuditTrailAsync(userId, fromDate, toDate, page, pageSize);
+                var logs = await auditService.GetUserAuditTrailAsync(
+                    userId,
+                    fromDate,
+                    toDate,
+                    page,
+                    pageSize
+                );
 
                 return Results.Ok(new { success = true, data = logs });
             }
@@ -3442,13 +3590,21 @@ app.MapPost(
                 var entityType = form["entityType"].ToString();
                 var entityIdStr = form["entityId"].ToString();
 
-                if (string.IsNullOrWhiteSpace(branchName) || string.IsNullOrWhiteSpace(entityType) || string.IsNullOrWhiteSpace(entityIdStr))
+                if (
+                    string.IsNullOrWhiteSpace(branchName)
+                    || string.IsNullOrWhiteSpace(entityType)
+                    || string.IsNullOrWhiteSpace(entityIdStr)
+                )
                 {
                     return Results.BadRequest(
                         new
                         {
                             success = false,
-                            error = new { code = "MISSING_PARAMETERS", message = "branchName, entityType, and entityId are required" },
+                            error = new
+                            {
+                                code = "MISSING_PARAMETERS",
+                                message = "branchName, entityType, and entityId are required",
+                            },
                         }
                     );
                 }
@@ -3459,7 +3615,11 @@ app.MapPost(
                         new
                         {
                             success = false,
-                            error = new { code = "INVALID_ENTITY_ID", message = "entityId must be a valid GUID" },
+                            error = new
+                            {
+                                code = "INVALID_ENTITY_ID",
+                                message = "entityId must be a valid GUID",
+                            },
                         }
                     );
                 }
@@ -3491,19 +3651,29 @@ app.MapPost(
                     var entityTypeLower = entityType.ToLower();
 
                     // For branch-scoped entities, get the BranchDbContext from the factory
-                    if (entityTypeLower == "customers" || entityTypeLower == "suppliers" ||
-                        entityTypeLower == "expenses" || entityTypeLower == "categories")
+                    if (
+                        entityTypeLower == "customers"
+                        || entityTypeLower == "suppliers"
+                        || entityTypeLower == "expenses"
+                        || entityTypeLower == "categories"
+                    )
                     {
                         // Get branch from HttpContext
-                        var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                        var branch =
+                            httpContext.Items["Branch"]
+                            as Backend.Models.Entities.HeadOffice.Branch;
                         if (branch != null)
                         {
-                            using var branchDbContext = dbContextFactory.CreateBranchContext(branch);
+                            using var branchDbContext = dbContextFactory.CreateBranchContext(
+                                branch
+                            );
 
                             switch (entityTypeLower)
                             {
                                 case "customers":
-                                    var customer = await branchDbContext.Customers.FindAsync(entityId);
+                                    var customer = await branchDbContext.Customers.FindAsync(
+                                        entityId
+                                    );
                                     if (customer != null)
                                     {
                                         customer.LogoPath = entityId.ToString(); // Store entity ID to reference the image
@@ -3512,7 +3682,9 @@ app.MapPost(
                                     break;
 
                                 case "suppliers":
-                                    var supplier = await branchDbContext.Suppliers.FindAsync(entityId);
+                                    var supplier = await branchDbContext.Suppliers.FindAsync(
+                                        entityId
+                                    );
                                     if (supplier != null)
                                     {
                                         supplier.LogoPath = entityId.ToString(); // Store entity ID to reference the image
@@ -3521,7 +3693,9 @@ app.MapPost(
                                     break;
 
                                 case "expenses":
-                                    var expense = await branchDbContext.Expenses.FindAsync(entityId);
+                                    var expense = await branchDbContext.Expenses.FindAsync(
+                                        entityId
+                                    );
                                     if (expense != null)
                                     {
                                         expense.ReceiptImagePath = entityId.ToString(); // Store entity ID to reference the image
@@ -3530,7 +3704,9 @@ app.MapPost(
                                     break;
 
                                 case "categories":
-                                    var category = await branchDbContext.Categories.FindAsync(entityId);
+                                    var category = await branchDbContext.Categories.FindAsync(
+                                        entityId
+                                    );
                                     if (category != null)
                                     {
                                         category.ImagePath = entityId.ToString(); // Store entity ID to reference the image
@@ -3554,7 +3730,9 @@ app.MapPost(
                 catch (Exception ex)
                 {
                     // Log error but don't fail the request since image was uploaded successfully
-                    Console.WriteLine($"Warning: Could not update {entityType} {entityId} image path: {ex.Message}");
+                    Console.WriteLine(
+                        $"Warning: Could not update {entityType} {entityId} image path: {ex.Message}"
+                    );
                 }
 
                 return Results.Ok(
@@ -3605,7 +3783,11 @@ app.MapGet(
                         new
                         {
                             success = false,
-                            error = new { code = "INVALID_SIZE", message = $"Size must be one of: {string.Join(", ", validSizes)}" },
+                            error = new
+                            {
+                                code = "INVALID_SIZE",
+                                message = $"Size must be one of: {string.Join(", ", validSizes)}",
+                            },
                         }
                     );
                 }
@@ -3613,20 +3795,33 @@ app.MapGet(
                 // For ProductImages, entityId is the imageId, but files are stored under productId
                 // Check if there's a productId query parameter for multi-image entities
                 string imagePath;
-                if (context.Request.Query.TryGetValue("productId", out var productIdStr) &&
-                    Guid.TryParse(productIdStr, out var productId))
+                if (
+                    context.Request.Query.TryGetValue("productId", out var productIdStr)
+                    && Guid.TryParse(productIdStr, out var productId)
+                )
                 {
                     // For ProductImages: files are in Products/{productId}/{imageId}-{size}.webp
                     var baseDir = Path.Combine(
-                        imageService.GetType().GetField("_uploadBasePath",
-                            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                            ?.GetValue(imageService) as string ?? "Upload",
-                        "Branches", branchName, entityType, productId.ToString()
+                        imageService
+                            .GetType()
+                            .GetField(
+                                "_uploadBasePath",
+                                System.Reflection.BindingFlags.NonPublic
+                                    | System.Reflection.BindingFlags.Instance
+                            )
+                            ?.GetValue(imageService) as string
+                            ?? "Upload",
+                        "Branches",
+                        branchName,
+                        entityType,
+                        productId.ToString()
                     );
 
                     var fileExtension = ".webp";
                     var pattern = $"{entityId}-{size}{fileExtension}";
-                    var files = Directory.Exists(baseDir) ? Directory.GetFiles(baseDir, pattern) : Array.Empty<string>();
+                    var files = Directory.Exists(baseDir)
+                        ? Directory.GetFiles(baseDir, pattern)
+                        : Array.Empty<string>();
                     imagePath = files.FirstOrDefault() ?? string.Empty;
                 }
                 else
@@ -3696,7 +3891,11 @@ app.MapDelete(
                         new
                         {
                             success = false,
-                            error = new { code = "NOT_FOUND", message = "Images not found or already deleted" },
+                            error = new
+                            {
+                                code = "NOT_FOUND",
+                                message = "Images not found or already deleted",
+                            },
                         }
                     );
                 }
@@ -3707,19 +3906,30 @@ app.MapDelete(
                     var entityTypeLower = entityType.ToLower();
 
                     // For branch-scoped entities, get the BranchDbContext from the factory
-                    if (entityTypeLower == "customers" || entityTypeLower == "suppliers" ||
-                        entityTypeLower == "expenses" || entityTypeLower == "categories" || entityTypeLower == "products")
+                    if (
+                        entityTypeLower == "customers"
+                        || entityTypeLower == "suppliers"
+                        || entityTypeLower == "expenses"
+                        || entityTypeLower == "categories"
+                        || entityTypeLower == "products"
+                    )
                     {
                         // Get branch from HttpContext
-                        var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                        var branch =
+                            httpContext.Items["Branch"]
+                            as Backend.Models.Entities.HeadOffice.Branch;
                         if (branch != null)
                         {
-                            using var branchDbContext = dbContextFactory.CreateBranchContext(branch);
+                            using var branchDbContext = dbContextFactory.CreateBranchContext(
+                                branch
+                            );
 
                             switch (entityTypeLower)
                             {
                                 case "customers":
-                                    var customer = await branchDbContext.Customers.FindAsync(entityId);
+                                    var customer = await branchDbContext.Customers.FindAsync(
+                                        entityId
+                                    );
                                     if (customer != null)
                                     {
                                         customer.LogoPath = null;
@@ -3728,7 +3938,9 @@ app.MapDelete(
                                     break;
 
                                 case "suppliers":
-                                    var supplier = await branchDbContext.Suppliers.FindAsync(entityId);
+                                    var supplier = await branchDbContext.Suppliers.FindAsync(
+                                        entityId
+                                    );
                                     if (supplier != null)
                                     {
                                         supplier.LogoPath = null;
@@ -3737,7 +3949,9 @@ app.MapDelete(
                                     break;
 
                                 case "expenses":
-                                    var expense = await branchDbContext.Expenses.FindAsync(entityId);
+                                    var expense = await branchDbContext.Expenses.FindAsync(
+                                        entityId
+                                    );
                                     if (expense != null)
                                     {
                                         expense.ReceiptImagePath = null;
@@ -3746,7 +3960,9 @@ app.MapDelete(
                                     break;
 
                                 case "categories":
-                                    var category = await branchDbContext.Categories.FindAsync(entityId);
+                                    var category = await branchDbContext.Categories.FindAsync(
+                                        entityId
+                                    );
                                     if (category != null)
                                     {
                                         category.ImagePath = null;
@@ -3756,8 +3972,8 @@ app.MapDelete(
 
                                 case "products":
                                     // For products, delete all ProductImage records
-                                    var productImages = branchDbContext.ProductImages
-                                        .Where(pi => pi.ProductId == entityId)
+                                    var productImages = branchDbContext
+                                        .ProductImages.Where(pi => pi.ProductId == entityId)
                                         .ToList();
 
                                     if (productImages.Any())
@@ -3782,7 +3998,9 @@ app.MapDelete(
                 catch (Exception ex)
                 {
                     // Log error but don't fail the request since image was deleted successfully
-                    Console.WriteLine($"Warning: Could not clear {entityType} {entityId} image path: {ex.Message}");
+                    Console.WriteLine(
+                        $"Warning: Could not clear {entityType} {entityId} image path: {ex.Message}"
+                    );
                 }
 
                 return Results.Ok(new { success = true, message = "Images deleted successfully" });
@@ -3823,13 +4041,18 @@ app.MapPatch(
                         new
                         {
                             success = false,
-                            error = new { code = "MISSING_BRANCH_NAME", message = "branchName is required" },
+                            error = new
+                            {
+                                code = "MISSING_BRANCH_NAME",
+                                message = "branchName is required",
+                            },
                         }
                     );
                 }
 
                 // Get branch context
-                var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                var branch =
+                    httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
                 if (branch == null)
                 {
                     return Results.Unauthorized();
@@ -3849,8 +4072,8 @@ app.MapPatch(
                 }
 
                 // Get existing ProductImage records
-                var existingImages = branchDbContext.ProductImages
-                    .Where(pi => pi.ProductId == productId)
+                var existingImages = branchDbContext
+                    .ProductImages.Where(pi => pi.ProductId == productId)
                     .ToList();
 
                 // Delete ProductImage records that are NOT in the keep list
@@ -3864,15 +4087,27 @@ app.MapPatch(
                     foreach (var imgToDelete in imagesToDelete)
                     {
                         var baseDir = Path.Combine(
-                            imageService.GetType().GetField("_uploadBasePath",
-                                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                                ?.GetValue(imageService) as string ?? "Upload",
-                            "Branches", branchName, "Products", productId.ToString()
+                            imageService
+                                .GetType()
+                                .GetField(
+                                    "_uploadBasePath",
+                                    System.Reflection.BindingFlags.NonPublic
+                                        | System.Reflection.BindingFlags.Instance
+                                )
+                                ?.GetValue(imageService) as string
+                                ?? "Upload",
+                            "Branches",
+                            branchName,
+                            "Products",
+                            productId.ToString()
                         );
 
                         if (Directory.Exists(baseDir))
                         {
-                            var filesToDelete = Directory.GetFiles(baseDir, $"{imgToDelete.Id}-*.*");
+                            var filesToDelete = Directory.GetFiles(
+                                baseDir,
+                                $"{imgToDelete.Id}-*.*"
+                            );
                             foreach (var file in filesToDelete)
                             {
                                 try
@@ -3881,7 +4116,9 @@ app.MapPatch(
                                 }
                                 catch (Exception ex)
                                 {
-                                    Console.WriteLine($"Warning: Could not delete file {file}: {ex.Message}");
+                                    Console.WriteLine(
+                                        $"Warning: Could not delete file {file}: {ex.Message}"
+                                    );
                                 }
                             }
                         }
@@ -3904,11 +4141,14 @@ app.MapPatch(
                         .Max();
 
                     var displayOrder = maxDisplayOrder + 1;
-                    var userId = Guid.Parse(httpContext.User.FindFirst("sub")?.Value ?? Guid.Empty.ToString());
+                    var userId = Guid.Parse(
+                        httpContext.User.FindFirst("sub")?.Value ?? Guid.Empty.ToString()
+                    );
 
                     foreach (var file in files)
                     {
-                        if (file.Length == 0) continue;
+                        if (file.Length == 0)
+                            continue;
 
                         var imageId = Guid.NewGuid();
 
@@ -3929,7 +4169,11 @@ app.MapPatch(
                                 new
                                 {
                                     success = false,
-                                    error = new { code = "UPLOAD_FAILED", message = $"Failed to upload {file.FileName}: {result.ErrorMessage}" },
+                                    error = new
+                                    {
+                                        code = "UPLOAD_FAILED",
+                                        message = $"Failed to upload {file.FileName}: {result.ErrorMessage}",
+                                    },
                                 }
                             );
                         }
@@ -3942,17 +4186,19 @@ app.MapPatch(
                             ThumbnailPath = imageId.ToString(),
                             DisplayOrder = displayOrder++,
                             UploadedAt = DateTime.UtcNow,
-                            UploadedBy = userId
+                            UploadedBy = userId,
                         };
 
                         branchDbContext.ProductImages.Add(productImage);
-                        uploadedImages.Add(new
-                        {
-                            id = imageId,
-                            imagePath = imageId.ToString(),
-                            thumbnailPath = imageId.ToString(),
-                            displayOrder = productImage.DisplayOrder
-                        });
+                        uploadedImages.Add(
+                            new
+                            {
+                                id = imageId,
+                                imagePath = imageId.ToString(),
+                                thumbnailPath = imageId.ToString(),
+                                displayOrder = productImage.DisplayOrder,
+                            }
+                        );
                     }
 
                     await branchDbContext.SaveChangesAsync();
@@ -3967,7 +4213,7 @@ app.MapPatch(
                             keptCount = imageIdsToKeep.Count,
                             deletedCount = imagesToDelete.Count,
                             uploadedCount = uploadedImages.Count,
-                            uploadedImages = uploadedImages
+                            uploadedImages = uploadedImages,
                         },
                         message = $"Updated images: kept {imageIdsToKeep.Count}, deleted {imagesToDelete.Count}, uploaded {uploadedImages.Count}",
                     }
@@ -4017,13 +4263,21 @@ app.MapPost(
                 var entityType = form["entityType"].ToString();
                 var entityIdStr = form["entityId"].ToString();
 
-                if (string.IsNullOrWhiteSpace(branchName) || string.IsNullOrWhiteSpace(entityType) || string.IsNullOrWhiteSpace(entityIdStr))
+                if (
+                    string.IsNullOrWhiteSpace(branchName)
+                    || string.IsNullOrWhiteSpace(entityType)
+                    || string.IsNullOrWhiteSpace(entityIdStr)
+                )
                 {
                     return Results.BadRequest(
                         new
                         {
                             success = false,
-                            error = new { code = "MISSING_PARAMETERS", message = "branchName, entityType, and entityId are required" },
+                            error = new
+                            {
+                                code = "MISSING_PARAMETERS",
+                                message = "branchName, entityType, and entityId are required",
+                            },
                         }
                     );
                 }
@@ -4034,13 +4288,18 @@ app.MapPost(
                         new
                         {
                             success = false,
-                            error = new { code = "INVALID_ENTITY_ID", message = "entityId must be a valid GUID" },
+                            error = new
+                            {
+                                code = "INVALID_ENTITY_ID",
+                                message = "entityId must be a valid GUID",
+                            },
                         }
                     );
                 }
 
                 // Get branch context
-                var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                var branch =
+                    httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
                 if (branch == null)
                 {
                     return Results.Unauthorized();
@@ -4049,8 +4308,8 @@ app.MapPost(
                 using var branchDbContext = dbContextFactory.CreateBranchContext(branch);
 
                 // Delete all existing ProductImage records for this product
-                var existingImages = branchDbContext.ProductImages
-                    .Where(pi => pi.ProductId == entityId)
+                var existingImages = branchDbContext
+                    .ProductImages.Where(pi => pi.ProductId == entityId)
                     .ToList();
 
                 if (existingImages.Any())
@@ -4068,7 +4327,8 @@ app.MapPost(
 
                 foreach (var file in files)
                 {
-                    if (file.Length == 0) continue;
+                    if (file.Length == 0)
+                        continue;
 
                     // Generate a unique ID for this image
                     var imageId = Guid.NewGuid();
@@ -4092,14 +4352,20 @@ app.MapPost(
                             new
                             {
                                 success = false,
-                                error = new { code = "UPLOAD_FAILED", message = $"Failed to upload {file.FileName}: {result.ErrorMessage}" },
+                                error = new
+                                {
+                                    code = "UPLOAD_FAILED",
+                                    message = $"Failed to upload {file.FileName}: {result.ErrorMessage}",
+                                },
                             }
                         );
                     }
 
                     // Create ProductImage record in database
                     // Note: We need to get the current user ID from the httpContext
-                    var userId = Guid.Parse(httpContext.User.FindFirst("sub")?.Value ?? Guid.Empty.ToString());
+                    var userId = Guid.Parse(
+                        httpContext.User.FindFirst("sub")?.Value ?? Guid.Empty.ToString()
+                    );
 
                     var productImage = new Backend.Models.Entities.Branch.ProductImage
                     {
@@ -4109,18 +4375,20 @@ app.MapPost(
                         ThumbnailPath = imageId.ToString(),
                         DisplayOrder = displayOrder++,
                         UploadedAt = DateTime.UtcNow,
-                        UploadedBy = userId
+                        UploadedBy = userId,
                     };
 
                     branchDbContext.ProductImages.Add(productImage);
 
-                    uploadedImages.Add(new
-                    {
-                        id = imageId,
-                        imagePath = imageId.ToString(),
-                        thumbnailPath = imageId.ToString(),
-                        displayOrder = productImage.DisplayOrder
-                    });
+                    uploadedImages.Add(
+                        new
+                        {
+                            id = imageId,
+                            imagePath = imageId.ToString(),
+                            thumbnailPath = imageId.ToString(),
+                            displayOrder = productImage.DisplayOrder,
+                        }
+                    );
                 }
 
                 // Save all ProductImage records
@@ -4130,11 +4398,7 @@ app.MapPost(
                     new
                     {
                         success = true,
-                        data = new
-                        {
-                            images = uploadedImages,
-                            count = uploadedImages.Count
-                        },
+                        data = new { images = uploadedImages, count = uploadedImages.Count },
                         message = $"Successfully uploaded {uploadedImages.Count} image(s)",
                     }
                 );
@@ -4187,7 +4451,7 @@ app.MapGet(
                     CashierId = cashierId,
                     CustomerId = customerId,
                     PaymentMethod = paymentMethod,
-                    GroupBy = groupBy
+                    GroupBy = groupBy,
                 };
 
                 var report = await reportService.GenerateSalesReportAsync(
@@ -4205,7 +4469,11 @@ app.MapGet(
             catch (ArgumentException ex)
             {
                 return Results.BadRequest(
-                    new { success = false, error = new { code = "VALIDATION_ERROR", message = ex.Message } }
+                    new
+                    {
+                        success = false,
+                        error = new { code = "VALIDATION_ERROR", message = ex.Message },
+                    }
                 );
             }
             catch (Exception ex)
@@ -4253,7 +4521,7 @@ app.MapGet(
                     NegativeStockOnly = negativeStockOnly ?? false,
                     IncludeMovements = includeMovements ?? false,
                     StartDate = startDate,
-                    EndDate = endDate
+                    EndDate = endDate,
                 };
 
                 var report = await reportService.GenerateInventoryReportAsync(
@@ -4271,7 +4539,11 @@ app.MapGet(
             catch (ArgumentException ex)
             {
                 return Results.BadRequest(
-                    new { success = false, error = new { code = "VALIDATION_ERROR", message = ex.Message } }
+                    new
+                    {
+                        success = false,
+                        error = new { code = "VALIDATION_ERROR", message = ex.Message },
+                    }
                 );
             }
             catch (Exception ex)
@@ -4313,7 +4585,7 @@ app.MapGet(
                     StartDate = startDate,
                     EndDate = endDate,
                     BranchId = branchId,
-                    GroupBy = groupBy
+                    GroupBy = groupBy,
                 };
 
                 var report = await reportService.GenerateFinancialReportAsync(
@@ -4331,7 +4603,11 @@ app.MapGet(
             catch (ArgumentException ex)
             {
                 return Results.BadRequest(
-                    new { success = false, error = new { code = "VALIDATION_ERROR", message = ex.Message } }
+                    new
+                    {
+                        success = false,
+                        error = new { code = "VALIDATION_ERROR", message = ex.Message },
+                    }
                 );
             }
             catch (Exception ex)
@@ -4380,7 +4656,11 @@ app.MapPost(
             catch (ArgumentException ex)
             {
                 return Results.BadRequest(
-                    new { success = false, error = new { code = "VALIDATION_ERROR", message = ex.Message } }
+                    new
+                    {
+                        success = false,
+                        error = new { code = "VALIDATION_ERROR", message = ex.Message },
+                    }
                 );
             }
             catch (Exception ex)
