@@ -172,7 +172,9 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
       sortable: false,
       render: (_, row) => {
         const index = displayData.findIndex((p) => p.id === row.id);
-        const rowNumber = (paginationConfig?.currentPage - 1) * (paginationConfig?.pageSize || 20) + index + 1;
+        const currentPage = paginationConfig?.currentPage || 1;
+        const pageSize = paginationConfig?.pageSize || 20;
+        const rowNumber = (currentPage - 1) * pageSize + index + 1;
         return <span className="text-sm text-gray-600">{rowNumber}</span>;
       },
     },
