@@ -99,6 +99,7 @@ builder.Services.AddScoped<
     Backend.Services.Suppliers.SupplierService
 >();
 builder.Services.AddScoped<Backend.Services.Images.IImageService, Backend.Services.Images.ImageService>();
+builder.Services.AddScoped<Backend.Services.Reports.IReportService, Backend.Services.Reports.ReportService>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<BranchDbContext>(provider =>
@@ -4150,6 +4151,251 @@ app.MapPost(
     .WithName("UploadMultipleImages")
     .WithOpenApi()
     .DisableAntiforgery();
+
+// ============================================
+// Reports Endpoints
+// ============================================
+
+// GET /api/v1/reports/sales - Generate sales report
+app.MapGet(
+        "/api/v1/reports/sales",
+        async (
+            Backend.Services.Reports.IReportService reportService,
+            HttpContext httpContext,
+            DateTime? startDate,
+            DateTime? endDate,
+            Guid? branchId,
+            Guid? cashierId,
+            Guid? customerId,
+            string? paymentMethod,
+            string? groupBy
+        ) =>
+        {
+            try
+            {
+                var userId = Guid.Parse(httpContext.User.FindFirst("sub")?.Value ?? string.Empty);
+                var userBranchId = httpContext.Items["BranchId"] as Guid?;
+                var isHeadOfficeAdmin = bool.Parse(
+                    httpContext.User.FindFirst("IsHeadOfficeAdmin")?.Value ?? "false"
+                );
+
+                var request = new Backend.Models.DTOs.Reports.SalesReportRequestDto
+                {
+                    StartDate = startDate,
+                    EndDate = endDate,
+                    BranchId = branchId,
+                    CashierId = cashierId,
+                    CustomerId = customerId,
+                    PaymentMethod = paymentMethod,
+                    GroupBy = groupBy
+                };
+
+                var report = await reportService.GenerateSalesReportAsync(
+                    request,
+                    userBranchId,
+                    isHeadOfficeAdmin
+                );
+
+                return Results.Ok(new { success = true, data = report });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Results.Forbid();
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "VALIDATION_ERROR", message = ex.Message } }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(
+                    detail: ex.Message,
+                    statusCode: 500,
+                    title: "Internal Server Error"
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("GetSalesReport")
+    .WithOpenApi();
+
+// GET /api/v1/reports/inventory - Generate inventory report
+app.MapGet(
+        "/api/v1/reports/inventory",
+        async (
+            Backend.Services.Reports.IReportService reportService,
+            HttpContext httpContext,
+            Guid? branchId,
+            Guid? categoryId,
+            bool? lowStockOnly,
+            bool? negativeStockOnly,
+            bool? includeMovements,
+            DateTime? startDate,
+            DateTime? endDate
+        ) =>
+        {
+            try
+            {
+                var userId = Guid.Parse(httpContext.User.FindFirst("sub")?.Value ?? string.Empty);
+                var userBranchId = httpContext.Items["BranchId"] as Guid?;
+                var isHeadOfficeAdmin = bool.Parse(
+                    httpContext.User.FindFirst("IsHeadOfficeAdmin")?.Value ?? "false"
+                );
+
+                var request = new Backend.Models.DTOs.Reports.InventoryReportRequestDto
+                {
+                    BranchId = branchId,
+                    CategoryId = categoryId,
+                    LowStockOnly = lowStockOnly ?? false,
+                    NegativeStockOnly = negativeStockOnly ?? false,
+                    IncludeMovements = includeMovements ?? false,
+                    StartDate = startDate,
+                    EndDate = endDate
+                };
+
+                var report = await reportService.GenerateInventoryReportAsync(
+                    request,
+                    userBranchId,
+                    isHeadOfficeAdmin
+                );
+
+                return Results.Ok(new { success = true, data = report });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Results.Forbid();
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "VALIDATION_ERROR", message = ex.Message } }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(
+                    detail: ex.Message,
+                    statusCode: 500,
+                    title: "Internal Server Error"
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("GetInventoryReport")
+    .WithOpenApi();
+
+// GET /api/v1/reports/financial - Generate financial report
+app.MapGet(
+        "/api/v1/reports/financial",
+        async (
+            Backend.Services.Reports.IReportService reportService,
+            HttpContext httpContext,
+            DateTime? startDate,
+            DateTime? endDate,
+            Guid? branchId,
+            string? groupBy
+        ) =>
+        {
+            try
+            {
+                var userId = Guid.Parse(httpContext.User.FindFirst("sub")?.Value ?? string.Empty);
+                var userBranchId = httpContext.Items["BranchId"] as Guid?;
+                var isHeadOfficeAdmin = bool.Parse(
+                    httpContext.User.FindFirst("IsHeadOfficeAdmin")?.Value ?? "false"
+                );
+
+                var request = new Backend.Models.DTOs.Reports.FinancialReportRequestDto
+                {
+                    StartDate = startDate,
+                    EndDate = endDate,
+                    BranchId = branchId,
+                    GroupBy = groupBy
+                };
+
+                var report = await reportService.GenerateFinancialReportAsync(
+                    request,
+                    userBranchId,
+                    isHeadOfficeAdmin
+                );
+
+                return Results.Ok(new { success = true, data = report });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Results.Forbid();
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "VALIDATION_ERROR", message = ex.Message } }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(
+                    detail: ex.Message,
+                    statusCode: 500,
+                    title: "Internal Server Error"
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("GetFinancialReport")
+    .WithOpenApi();
+
+// POST /api/v1/reports/export - Export report to PDF/Excel/CSV
+app.MapPost(
+        "/api/v1/reports/export",
+        async (
+            Backend.Services.Reports.IReportService reportService,
+            HttpContext httpContext,
+            Backend.Models.DTOs.Reports.ExportReportRequestDto request
+        ) =>
+        {
+            try
+            {
+                var userId = Guid.Parse(httpContext.User.FindFirst("sub")?.Value ?? string.Empty);
+                var userBranchId = httpContext.Items["BranchId"] as Guid?;
+                var isHeadOfficeAdmin = bool.Parse(
+                    httpContext.User.FindFirst("IsHeadOfficeAdmin")?.Value ?? "false"
+                );
+
+                var (fileContent, contentType, fileName) = await reportService.ExportReportAsync(
+                    request,
+                    userBranchId,
+                    isHeadOfficeAdmin
+                );
+
+                return Results.File(fileContent, contentType, fileName);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Results.Forbid();
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(
+                    new { success = false, error = new { code = "VALIDATION_ERROR", message = ex.Message } }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(
+                    detail: ex.Message,
+                    statusCode: 500,
+                    title: "Internal Server Error"
+                );
+            }
+        }
+    )
+    .RequireAuthorization()
+    .WithName("ExportReport")
+    .WithOpenApi();
 
 app.Run();
 
