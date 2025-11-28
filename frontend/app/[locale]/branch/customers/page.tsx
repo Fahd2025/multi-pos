@@ -23,6 +23,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { useApiError } from "@/hooks/useApiError";
 import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
 import { useAuth } from "@/hooks/useAuth";
+import { API_BASE_URL } from "@/lib/constants";
 
 export default function CustomersPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
@@ -117,6 +118,14 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
       },
       "danger"
     );
+  };
+
+  /**
+   * Construct image URL for customer logos
+   */
+  const getCustomerImageUrl = (imageId: string, customerId: string, size: 'thumb' | 'medium' | 'large' | 'original' = 'thumb') => {
+    const branchCode = branch?.branchCode || 'B001';
+    return `${API_BASE_URL}/api/v1/images/${branchCode}/customers/${imageId}/${size}`;
   };
 
   // Define table columns
@@ -277,6 +286,11 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
           onSortChange={handleSortChange}
           emptyMessage="No customers found. Click 'Add Customer' to create one."
           showRowNumbers
+          imageColumn={{
+            getImageUrl: (row) => row.logoPath ? getCustomerImageUrl(row.logoPath, row.id, 'thumb') : '',
+            getAltText: (row) => row.nameEn,
+            size: 64
+          }}
         />
       )}
 
