@@ -387,6 +387,53 @@ Comprehensive documentation including:
 
 Code follows existing patterns in the codebase and should build successfully.
 
+## Bug Fixes Applied
+
+### Fix 1: DbContextFactory Method Calls and Dependencies (Commit b1d9d0b)
+**Date**: November 28, 2025
+**Errors Fixed**: 17 compilation errors
+
+**Issues**:
+1. Incorrect method name: `CreateBranchDbContextAsync` → `CreateBranchContext`
+2. Missing dependency: HeadOfficeDbContext not injected
+3. Wrong property: `Sale.TotalAmount` → `Sale.Total`
+4. Payment method string comparison issue
+
+**Changes**:
+- Added `HeadOfficeDbContext` to ReportService constructor
+- Updated all `CreateBranchDbContextAsync` calls to synchronous `CreateBranchContext(branch)`
+- Added branch retrieval from HeadOfficeDbContext before creating branch context
+- Changed all `Sale.TotalAmount` references to `Sale.Total`
+- Implemented proper enum parsing for PaymentMethod using `Enum.TryParse<PaymentMethod>()`
+
+**Files Modified**: Backend/Services/Reports/ReportService.cs
+
+### Fix 2: Entity Property Names (Commit 9926043)
+**Date**: November 28, 2025
+**Errors Fixed**: 18 compilation errors
+
+**Issues**:
+1. `SaleLineItem.TotalPrice` doesn't exist → should be `LineTotal`
+2. `Product.StockQuantity` doesn't exist → should be `StockLevel`
+3. `Product.UnitPrice` doesn't exist → should be `SellingPrice`
+4. `Purchase.OrderDate` doesn't exist → should be `PurchaseDate`
+5. `Purchase.ReceivedAt` doesn't exist → should be `ReceivedDate`
+
+**Changes**:
+- Line 116: `li.TotalPrice` → `li.LineTotal` (1 occurrence)
+- Lines 203-232: `p.StockQuantity` → `p.StockLevel` (14 occurrences)
+- Lines 213, 228-229: `p.UnitPrice` → `p.SellingPrice` (2 occurrences)
+- Line 259: `p.OrderDate` → `p.PurchaseDate` (1 occurrence)
+- Lines 259, 262: `p.ReceivedAt` → `p.ReceivedDate` (2 occurrences)
+
+**Verification**:
+All property names verified against actual entity model definitions in:
+- Backend/Models/Entities/Branch/SaleLineItem.cs
+- Backend/Models/Entities/Branch/Product.cs
+- Backend/Models/Entities/Branch/Purchase.cs
+
+**Files Modified**: Backend/Services/Reports/ReportService.cs
+
 ## Future Enhancements
 
 ### Phase 11.1: Production Export Libraries
