@@ -20,6 +20,7 @@ import { Button } from "@/components/shared/Button";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { ErrorAlert } from "@/components/shared/ErrorAlert";
 import { useAuth } from "@/hooks/useAuth";
+import { API_BASE_URL } from "@/lib/constants";
 
 export default function CategoriesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
@@ -110,6 +111,14 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
    */
   const getRootCategories = () => {
     return categories.filter((c) => !c.parentCategoryId);
+  };
+
+  /**
+   * Construct image URL for category images
+   */
+  const getCategoryImageUrl = (imageId: string, categoryId: string, size: 'thumb' | 'medium' | 'large' | 'original' = 'thumb') => {
+    const branchCode = branch?.branchCode || 'B001';
+    return `${API_BASE_URL}/api/v1/images/${branchCode}/categories/${imageId}/${size}`;
   };
 
   // Define table columns
@@ -231,6 +240,12 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
           sortConfig={sortConfig ?? undefined}
           onSortChange={handleSortChange}
           emptyMessage="No categories found. Click 'Add Category' to create one."
+          showRowNumbers
+          imageColumn={{
+            getImageUrl: (row) => row.imagePath ? getCategoryImageUrl(row.imagePath, row.id, 'thumb') : '',
+            getAltText: (row) => row.nameEn,
+            size: 64
+          }}
         />
       )}
 
