@@ -33,8 +33,8 @@ export default function ProductSearch({ onProductSelect }: ProductSearchProps) {
         pageSize: 100, // Get enough products for search
       });
 
-      // Ensure we always have an array (handle undefined/null responses)
-      const items = response?.items || [];
+      // Response has 'data' property, not 'items'
+      const items = response?.data || [];
       setProducts(items);
 
       // If searching, show results immediately
@@ -98,7 +98,8 @@ export default function ProductSearch({ onProductSelect }: ProductSearchProps) {
             pageSize: 1,
           });
 
-          const items = response?.items || [];
+          // Response has 'data' property, not 'items'
+          const items = response?.data || [];
           if (items.length > 0) {
             handleProductSelect(items[0]);
           }
