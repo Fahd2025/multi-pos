@@ -21,7 +21,7 @@ import { SaleLineItem } from '@/components/sales/SaleLineItemsList';
 
 export default function POSPage({ params }: { params: Promise<{ locale: string }> }) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, branch } = useAuth();
   const { isOnline, queueTransaction } = useOfflineSync();
 
   // Layout state
@@ -54,9 +54,9 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
       updatedItems[existingIndex].quantity += 1;
       setLineItems(updatedItems);
     } else {
-      // Build product image URL
-      const productImage = product.images && product.images.length > 0 && user?.branches[0]
-        ? `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000'}/api/v1/images/${user.branches[0].branchCode}/products/${product.images[0].imagePath}/thumb?productId=${product.id}`
+      // Build product image URL using current branch context
+      const productImage = product.images && product.images.length > 0 && branch
+        ? `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000'}/api/v1/images/${branch.branchCode}/products/${product.images[0].imagePath}/thumb?productId=${product.id}`
         : undefined;
 
       const newItem: SaleLineItem = {

@@ -105,7 +105,7 @@ export default function ShoppingCart({
       </div>
 
       {/* Cart Items */}
-      <div ref={cartItemsRef} className="flex-1 overflow-y-auto">
+      <div ref={cartItemsRef} className="flex-1 overflow-y-auto overflow-x-hidden">
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-6 text-center animate-fadeIn">
             <span className="text-6xl mb-4 animate-scaleIn">🛒</span>
