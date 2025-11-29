@@ -52,9 +52,6 @@ export default function SalesStatistics({
     fetchStats();
   }, [dateFrom, dateTo]);
 
-  // Calculate total VAT (assuming 15% tax rate)
-  const totalVAT = stats ? stats.todayRevenue * 0.15 : 0;
-
   if (loading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
@@ -92,19 +89,27 @@ export default function SalesStatistics({
     return null;
   }
 
+  // Safely extract values with defaults
+  const todayRevenue = stats.todayRevenue ?? 0;
+  const totalRevenue = stats.totalRevenue ?? 0;
+  const todaySales = stats.todaySales ?? 0;
+  const totalSales = stats.totalSales ?? 0;
+  const averageOrderValue = stats.averageOrderValue ?? 0;
+  const vatAmount = todayRevenue * 0.15;
+
   const statCards = [
     {
       id: 'revenue',
       label: 'Total Revenue',
-      value: `$${stats.todayRevenue.toFixed(2)}`,
+      value: `$${todayRevenue.toFixed(2)}`,
       icon: '💰',
       color: 'blue',
-      trend: stats.todayRevenue > 0 ? '+' + ((stats.todayRevenue / (stats.totalRevenue || 1)) * 100).toFixed(1) + '%' : null,
+      trend: todayRevenue > 0 && totalRevenue > 0 ? '+' + ((todayRevenue / totalRevenue) * 100).toFixed(1) + '%' : null,
     },
     {
       id: 'vat',
       label: 'Total VAT',
-      value: `$${totalVAT.toFixed(2)}`,
+      value: `$${vatAmount.toFixed(2)}`,
       icon: '📊',
       color: 'green',
       subtext: '15% of revenue',
@@ -112,15 +117,15 @@ export default function SalesStatistics({
     {
       id: 'transactions',
       label: 'Total Transactions',
-      value: stats.todaySales.toString(),
+      value: todaySales.toString(),
       icon: '🧾',
       color: 'purple',
-      subtext: `${stats.totalSales} all-time`,
+      subtext: `${totalSales} all-time`,
     },
     {
       id: 'average',
       label: 'Average Transaction',
-      value: `$${stats.averageOrderValue.toFixed(2)}`,
+      value: `$${averageOrderValue.toFixed(2)}`,
       icon: '📈',
       color: 'orange',
       subtext: 'Per order',
