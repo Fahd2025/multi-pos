@@ -133,9 +133,9 @@ export default function ProductGrid({
           >
             {/* Product Image */}
             <div className="aspect-square bg-gray-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden relative">
-              {product.imageUrls && product.imageUrls.length > 0 ? (
+              {product.images && product.images.length > 0 ? (
                 <img
-                  src={product.imageUrls[0]}
+                  src={product.images[0].imagePath}
                   alt={product.nameEn}
                   className="w-full h-full object-cover"
                 />
