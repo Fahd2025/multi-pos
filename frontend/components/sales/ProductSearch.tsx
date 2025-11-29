@@ -33,11 +33,13 @@ export default function ProductSearch({ onProductSelect }: ProductSearchProps) {
         pageSize: 100, // Get enough products for search
       });
 
-      setProducts(response.items);
+      // Ensure we always have an array (handle undefined/null responses)
+      const items = response?.items || [];
+      setProducts(items);
 
       // If searching, show results immediately
       if (search && search.trim() !== '') {
-        setFilteredProducts(response.items);
+        setFilteredProducts(items);
         setShowResults(true);
       }
     } catch (err: any) {
@@ -96,8 +98,9 @@ export default function ProductSearch({ onProductSelect }: ProductSearchProps) {
             pageSize: 1,
           });
 
-          if (response.items.length > 0) {
-            handleProductSelect(response.items[0]);
+          const items = response?.items || [];
+          if (items.length > 0) {
+            handleProductSelect(items[0]);
           }
         } catch (err) {
           console.error('Product not found:', err);
@@ -142,7 +145,7 @@ export default function ProductSearch({ onProductSelect }: ProductSearchProps) {
             <div className="p-4 text-center text-gray-500">
               <div className="animate-pulse">Searching products...</div>
             </div>
-          ) : filteredProducts.length === 0 ? (
+          ) : !filteredProducts || filteredProducts.length === 0 ? (
             <div className="p-4 text-center text-gray-500">
               No products found for "{searchQuery}"
             </div>
