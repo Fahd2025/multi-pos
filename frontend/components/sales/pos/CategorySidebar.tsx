@@ -14,6 +14,7 @@ interface Category {
   nameAr: string;
   description?: string;
   productCount?: number;
+  imagePath?: string;
 }
 
 interface CategorySidebarProps {
@@ -86,17 +87,22 @@ export default function CategorySidebar({
         selectedCategoryId === null
           ? 'bg-blue-600 text-white shadow-md'
           : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-      } ${isHorizontal ? 'px-6 py-3 min-w-[140px] text-center' : 'px-4 py-3'}`}
+      } ${isHorizontal ? 'px-4 py-2 min-w-[140px] text-center' : 'px-3 py-3'}`}
     >
-      <div className={`flex items-center gap-2 ${isHorizontal ? 'justify-center' : ''}`}>
-        <span className="text-xl">📦</span>
-        <span>All Products</span>
-      </div>
-      {!isHorizontal && (
-        <div className="text-xs mt-1 opacity-75">
-          View all items
+      <div className={`flex items-center gap-3 ${isHorizontal ? 'justify-center' : ''}`}>
+        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+          <span className="text-xl">📦</span>
         </div>
-      )}
+        {!isHorizontal && (
+          <div className="flex-1">
+            <span className="font-semibold">All Products</span>
+            <div className="text-xs mt-0.5 opacity-75">
+              View all items
+            </div>
+          </div>
+        )}
+        {isHorizontal && <span>All Products</span>}
+      </div>
     </button>
   );
 
@@ -111,17 +117,35 @@ export default function CategorySidebar({
           isSelected
             ? 'bg-blue-600 text-white shadow-md'
             : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-        } ${isHorizontal ? 'px-6 py-3 min-w-[140px] text-center' : 'px-4 py-3'}`}
+        } ${isHorizontal ? 'px-4 py-2 min-w-[140px] text-center' : 'px-3 py-3'}`}
       >
-        <div className={`flex items-center gap-2 ${isHorizontal ? 'justify-center' : ''}`}>
-          <span className="text-xl">🏷️</span>
-          <span className="truncate">{category.nameEn}</span>
-        </div>
-        {!isHorizontal && category.productCount !== undefined && (
-          <div className="text-xs mt-1 opacity-75">
-            {category.productCount} items
+        <div className={`flex items-center gap-3 ${isHorizontal ? 'justify-center' : ''}`}>
+          {/* Category Image */}
+          <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0 shadow-sm">
+            {category.imagePath ? (
+              <img
+                src={category.imagePath}
+                alt={category.nameEn}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-xl">🏷️</span>
+            )}
           </div>
-        )}
+
+          {!isHorizontal && (
+            <div className="flex-1 min-w-0">
+              <span className="font-semibold truncate block">{category.nameEn}</span>
+              {category.productCount !== undefined && (
+                <div className="text-xs mt-0.5 opacity-75">
+                  {category.productCount} items
+                </div>
+              )}
+            </div>
+          )}
+
+          {isHorizontal && <span className="truncate">{category.nameEn}</span>}
+        </div>
       </button>
     );
   });
