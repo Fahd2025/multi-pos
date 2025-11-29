@@ -91,19 +91,19 @@ export default function ShoppingCart({
                   {/* Product Name & Remove Button */}
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 pr-2">
-                      <h4 className="font-semibold text-gray-900 text-sm leading-tight">
+                      <h4 className="font-semibold text-gray-900 text-base leading-tight">
                         {item.productName}
                       </h4>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-sm text-gray-500 mt-1">
                         ${item.unitPrice.toFixed(2)} each
                       </p>
                     </div>
                     <button
                       onClick={() => onRemoveItem(index)}
-                      className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded transition-all duration-200 hover:scale-110 active:scale-95"
+                      className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95 touch-manipulation min-w-[40px] min-h-[40px] flex items-center justify-center"
                       title="Remove item"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
@@ -114,7 +114,7 @@ export default function ShoppingCart({
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => onUpdateQuantity(index, Math.max(1, item.quantity - 1))}
-                        className="w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-md font-bold text-gray-700 touch-manipulation active:scale-95 transition-all duration-150 hover:shadow-md"
+                        className="w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold text-gray-700 text-xl touch-manipulation active:scale-95 transition-all duration-150 hover:shadow-md"
                       >
                         −
                       </button>
@@ -123,11 +123,11 @@ export default function ShoppingCart({
                         value={item.quantity}
                         onChange={(e) => onUpdateQuantity(index, parseInt(e.target.value) || 1)}
                         min="1"
-                        className="w-14 text-center border border-gray-300 rounded-md py-1.5 font-semibold transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:scale-105"
+                        className="w-16 h-10 text-center border-2 border-gray-300 rounded-lg py-1.5 font-semibold text-lg transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                       <button
                         onClick={() => onUpdateQuantity(index, item.quantity + 1)}
-                        className="w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-md font-bold text-gray-700 touch-manipulation active:scale-95 transition-all duration-150 hover:shadow-md"
+                        className="w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold text-gray-700 text-xl touch-manipulation active:scale-95 transition-all duration-150 hover:shadow-md"
                       >
                         +
                       </button>
@@ -170,7 +170,7 @@ export default function ShoppingCart({
           <div className="p-4 pt-0">
             <button
               onClick={onCheckout}
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-4 rounded-lg font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200 touch-manipulation active:scale-95 hover:scale-[1.02]"
+              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-5 rounded-xl font-bold text-xl shadow-lg hover:shadow-xl transition-all duration-200 touch-manipulation active:scale-95 hover:scale-[1.02] min-h-[60px]"
             >
               Proceed to Checkout
             </button>
