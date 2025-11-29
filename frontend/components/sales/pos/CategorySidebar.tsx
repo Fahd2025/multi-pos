@@ -7,6 +7,8 @@
 
 import { useState, useEffect } from 'react';
 import inventoryService from '@/services/inventory.service';
+import { useAuth } from '@/hooks/useAuth';
+import { buildCategoryImageUrl } from '@/lib/image-utils';
 
 interface Category {
   id: string;
@@ -28,6 +30,7 @@ export default function CategorySidebar({
   onCategorySelect,
   isHorizontal = false,
 }: CategorySidebarProps) {
+  const { branch } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -122,9 +125,14 @@ export default function CategorySidebar({
         <div className={`flex items-center gap-3 ${isHorizontal ? 'justify-center' : ''}`}>
           {/* Category Image */}
           <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0 shadow-sm">
-            {category.imagePath ? (
+            {category.imagePath && branch ? (
               <img
-                src={category.imagePath}
+                src={buildCategoryImageUrl(
+                  branch.branchCode,
+                  category.imagePath,
+                  category.id,
+                  'thumb'
+                )}
                 alt={category.nameEn}
                 className="w-full h-full object-cover"
               />
