@@ -35,6 +35,7 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
   const [lineItems, setLineItems] = useState<SaleLineItem[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [lastUpdatedItemIndex, setLastUpdatedItemIndex] = useState<number | undefined>(undefined);
 
   // Dialog state
   const [showCheckoutDialog, setShowCheckoutDialog] = useState(false);
@@ -50,9 +51,11 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
     const existingIndex = lineItems.findIndex((item) => item.productId === product.id);
 
     if (existingIndex >= 0) {
+      // Update existing item quantity
       const updatedItems = [...lineItems];
       updatedItems[existingIndex].quantity += 1;
       setLineItems(updatedItems);
+      setLastUpdatedItemIndex(existingIndex);
     } else {
       // Build product image URL using current branch context
       const productImage = product.images && product.images.length > 0 && branch
@@ -70,6 +73,7 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
         productImage,
       };
       setLineItems([...lineItems, newItem]);
+      setLastUpdatedItemIndex(undefined); // New item will scroll to bottom
     }
   };
 
@@ -77,6 +81,7 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
     const updatedItems = [...lineItems];
     updatedItems[index].quantity = Math.max(1, quantity);
     setLineItems(updatedItems);
+    setLastUpdatedItemIndex(index);
   };
 
   const handleRemoveItem = (index: number) => {
@@ -366,6 +371,7 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
                   onRemoveItem={handleRemoveItem}
                   onCheckout={handleCheckout}
                   onClearCart={handleClearCart}
+                  lastUpdatedIndex={lastUpdatedItemIndex}
                 />
               </div>
             )}
@@ -444,6 +450,7 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
                     onRemoveItem={handleRemoveItem}
                     onCheckout={handleCheckout}
                     onClearCart={handleClearCart}
+                    lastUpdatedIndex={lastUpdatedItemIndex}
                   />
                 </div>
               )}
