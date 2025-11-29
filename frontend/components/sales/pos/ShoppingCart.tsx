@@ -5,6 +5,7 @@
 
 'use client';
 
+import { useRef, useEffect, useState } from 'react';
 import { SaleLineItem } from '../SaleLineItemsList';
 import { DiscountType } from '@/types/enums';
 
@@ -23,6 +24,44 @@ export default function ShoppingCart({
   onCheckout,
   onClearCart,
 }: ShoppingCartProps) {
+  const cartItemsRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
+  const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
+  const previousItemsLength = useRef(items.length);
+
+  // Auto-scroll to new or updated items
+  useEffect(() => {
+    if (items.length > previousItemsLength.current) {
+      // New item added - scroll to bottom
+      if (cartItemsRef.current) {
+        setTimeout(() => {
+          cartItemsRef.current?.scrollTo({
+            top: cartItemsRef.current.scrollHeight,
+            behavior: 'smooth',
+          });
+        }, 100);
+      }
+    } else if (items.length === previousItemsLength.current && items.length > 0) {
+      // Quantity updated - scroll to last modified item
+      const lastIndex = items.length - 1;
+      if (itemRefs.current[lastIndex]) {
+        itemRefs.current[lastIndex]?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+        });
+      }
+    }
+    previousItemsLength.current = items.length;
+  }, [items]);
+
+  const handleRemove = (index: number) => {
+    setDeletingIndex(index);
+    setTimeout(() => {
+      onRemoveItem(index);
+      setDeletingIndex(null);
+    }, 300); // Match animation duration
+  };
+
   const calculateLineTotal = (item: SaleLineItem): number => {
     let discountedPrice = item.unitPrice;
 
@@ -66,7 +105,7 @@ export default function ShoppingCart({
       </div>
 
       {/* Cart Items */}
-      <div className="flex-1 overflow-y-auto">
+      <div ref={cartItemsRef} className="flex-1 overflow-y-auto">
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-6 text-center animate-fadeIn">
             <span className="text-6xl mb-4 animate-scaleIn">🛒</span>
@@ -81,63 +120,95 @@ export default function ShoppingCart({
           <div className="divide-y divide-gray-200">
             {items.map((item, index) => {
               const lineTotal = calculateLineTotal(item);
+              const isDeleting = deletingIndex === index;
 
               return (
                 <div
                   key={index}
-                  className="p-4 hover:bg-gray-50 transition-all duration-200 animate-slideDown"
+                  ref={(el) => {
+                    itemRefs.current[index] = el;
+                  }}
+                  className={`p-4 transition-all duration-300 animate-slideDown ${
+                    isDeleting
+                      ? 'animate-delete-item bg-red-100 translate-x-full opacity-0'
+                      : 'hover:bg-gray-50'
+                  }`}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  {/* Product Name & Remove Button */}
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1 pr-2">
-                      <h4 className="font-semibold text-gray-900 text-base leading-tight">
-                        {item.productName}
-                      </h4>
-                      <p className="text-sm text-gray-500 mt-1">
-                        ${item.unitPrice.toFixed(2)} each
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => onRemoveItem(index)}
-                      className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95 touch-manipulation min-w-[40px] min-h-[40px] flex items-center justify-center"
-                      title="Remove item"
-                    >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-
-                  {/* Quantity Controls */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => onUpdateQuantity(index, Math.max(1, item.quantity - 1))}
-                        className="w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold text-gray-700 text-xl touch-manipulation active:scale-95 transition-all duration-150 hover:shadow-md"
-                      >
-                        −
-                      </button>
-                      <input
-                        type="number"
-                        value={item.quantity}
-                        onChange={(e) => onUpdateQuantity(index, parseInt(e.target.value) || 1)}
-                        min="1"
-                        className="w-16 h-10 text-center border-2 border-gray-300 rounded-lg py-1.5 font-semibold text-lg transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                      <button
-                        onClick={() => onUpdateQuantity(index, item.quantity + 1)}
-                        className="w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold text-gray-700 text-xl touch-manipulation active:scale-95 transition-all duration-150 hover:shadow-md"
-                      >
-                        +
-                      </button>
+                  <div className="flex gap-3">
+                    {/* Product Image */}
+                    <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                      {item.productImage ? (
+                        <img
+                          src={item.productImage}
+                          alt={item.productName}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-2xl">
+                          📦
+                        </div>
+                      )}
                     </div>
 
-                    {/* Line Total */}
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-gray-900 transition-all duration-300">
-                        ${lineTotal.toFixed(2)}
-                      </p>
+                    {/* Product Details */}
+                    <div className="flex-1 min-w-0">
+                      {/* Product Name & Remove Button */}
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1 pr-2">
+                          <h4 className="font-semibold text-gray-900 text-base leading-tight">
+                            {item.productName}
+                          </h4>
+                          <p className="text-sm text-gray-500 mt-1">
+                            ${item.unitPrice.toFixed(2)} each
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleRemove(index)}
+                          disabled={isDeleting}
+                          className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95 touch-manipulation min-w-[40px] min-h-[40px] flex items-center justify-center disabled:opacity-50"
+                          title="Remove item"
+                        >
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+
+                      {/* Quantity Controls */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => onUpdateQuantity(index, Math.max(1, item.quantity - 1))}
+                            disabled={isDeleting}
+                            className="w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold text-gray-700 text-xl touch-manipulation active:scale-95 transition-all duration-150 hover:shadow-md disabled:opacity-50"
+                          >
+                            −
+                          </button>
+                          <input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) => onUpdateQuantity(index, parseInt(e.target.value) || 1)}
+                            disabled={isDeleting}
+                            min="1"
+                            className="w-16 h-10 text-center border-2 border-gray-300 rounded-lg py-1.5 font-semibold text-lg transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+                          />
+                          <button
+                            onClick={() => onUpdateQuantity(index, item.quantity + 1)}
+                            disabled={isDeleting}
+                            className="w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold text-gray-700 text-xl touch-manipulation active:scale-95 transition-all duration-150 hover:shadow-md disabled:opacity-50"
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        {/* Line Total */}
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-gray-900 transition-all duration-300">
+                            ${lineTotal.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

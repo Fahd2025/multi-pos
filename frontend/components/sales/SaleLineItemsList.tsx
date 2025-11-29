@@ -17,6 +17,7 @@ export interface SaleLineItem {
   unitPrice: number;
   discountType: DiscountType;
   discountValue: number;
+  productImage?: string; // Add product image URL
 }
 
 interface SaleLineItemsListProps {
