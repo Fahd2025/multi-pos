@@ -68,8 +68,8 @@ export default function ShoppingCart({
       {/* Cart Items */}
       <div className="flex-1 overflow-y-auto">
         {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-            <span className="text-6xl mb-4">🛒</span>
+          <div className="flex flex-col items-center justify-center h-full p-6 text-center animate-fadeIn">
+            <span className="text-6xl mb-4 animate-scaleIn">🛒</span>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               Cart is empty
             </h3>
@@ -83,7 +83,11 @@ export default function ShoppingCart({
               const lineTotal = calculateLineTotal(item);
 
               return (
-                <div key={index} className="p-4 hover:bg-gray-50 transition-colors">
+                <div
+                  key={index}
+                  className="p-4 hover:bg-gray-50 transition-all duration-200 animate-slideDown"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
                   {/* Product Name & Remove Button */}
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 pr-2">
@@ -96,7 +100,7 @@ export default function ShoppingCart({
                     </div>
                     <button
                       onClick={() => onRemoveItem(index)}
-                      className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded"
+                      className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded transition-all duration-200 hover:scale-110 active:scale-95"
                       title="Remove item"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,7 +114,7 @@ export default function ShoppingCart({
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => onUpdateQuantity(index, Math.max(1, item.quantity - 1))}
-                        className="w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-md font-bold text-gray-700 touch-manipulation active:scale-95"
+                        className="w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-md font-bold text-gray-700 touch-manipulation active:scale-95 transition-all duration-150 hover:shadow-md"
                       >
                         −
                       </button>
@@ -119,11 +123,11 @@ export default function ShoppingCart({
                         value={item.quantity}
                         onChange={(e) => onUpdateQuantity(index, parseInt(e.target.value) || 1)}
                         min="1"
-                        className="w-14 text-center border border-gray-300 rounded-md py-1.5 font-semibold"
+                        className="w-14 text-center border border-gray-300 rounded-md py-1.5 font-semibold transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:scale-105"
                       />
                       <button
                         onClick={() => onUpdateQuantity(index, item.quantity + 1)}
-                        className="w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-md font-bold text-gray-700 touch-manipulation active:scale-95"
+                        className="w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-md font-bold text-gray-700 touch-manipulation active:scale-95 transition-all duration-150 hover:shadow-md"
                       >
                         +
                       </button>
@@ -131,7 +135,7 @@ export default function ShoppingCart({
 
                     {/* Line Total */}
                     <div className="text-right">
-                      <p className="text-lg font-bold text-gray-900">
+                      <p className="text-lg font-bold text-gray-900 transition-all duration-300">
                         ${lineTotal.toFixed(2)}
                       </p>
                     </div>
@@ -145,18 +149,18 @@ export default function ShoppingCart({
 
       {/* Order Summary */}
       {items.length > 0 && (
-        <div className="border-t border-gray-200 bg-gray-50">
+        <div className="border-t border-gray-200 bg-gray-50 animate-fadeIn">
           {/* Subtotal, Tax, Total */}
           <div className="p-4 space-y-2">
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-sm transition-all duration-300">
               <span className="text-gray-600">Subtotal:</span>
               <span className="font-medium text-gray-900">${subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-sm transition-all duration-300">
               <span className="text-gray-600">Tax (15%):</span>
               <span className="font-medium text-gray-900">${tax.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-lg font-bold border-t border-gray-300 pt-2">
+            <div className="flex justify-between text-lg font-bold border-t border-gray-300 pt-2 transition-all duration-300">
               <span>Total:</span>
               <span className="text-blue-600">${total.toFixed(2)}</span>
             </div>
@@ -166,7 +170,7 @@ export default function ShoppingCart({
           <div className="p-4 pt-0">
             <button
               onClick={onCheckout}
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-4 rounded-lg font-bold text-lg shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-95"
+              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-4 rounded-lg font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200 touch-manipulation active:scale-95 hover:scale-[1.02]"
             >
               Proceed to Checkout
             </button>
