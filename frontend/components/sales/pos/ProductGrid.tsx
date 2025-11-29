@@ -8,6 +8,8 @@
 import { useState, useEffect } from 'react';
 import { ProductDto } from '@/types/api.types';
 import inventoryService from '@/services/inventory.service';
+import { useAuth } from '@/hooks/useAuth';
+import { buildProductImageUrl } from '@/lib/image-utils';
 
 interface ProductGridProps {
   selectedCategoryId: string | null;
@@ -20,6 +22,7 @@ export default function ProductGrid({
   searchQuery,
   onProductSelect,
 }: ProductGridProps) {
+  const { branch } = useAuth();
   const [products, setProducts] = useState<ProductDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -133,9 +136,14 @@ export default function ProductGrid({
           >
             {/* Product Image */}
             <div className="aspect-square bg-gray-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden relative">
-              {product.images && product.images.length > 0 ? (
+              {product.images && product.images.length > 0 && branch ? (
                 <img
-                  src={product.images[0].imagePath}
+                  src={buildProductImageUrl(
+                    branch.branchCode,
+                    product.images[0].imagePath,
+                    product.id,
+                    'thumb'
+                  )}
                   alt={product.nameEn}
                   className="w-full h-full object-cover"
                 />
