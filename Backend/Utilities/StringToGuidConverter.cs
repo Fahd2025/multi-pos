@@ -14,14 +14,28 @@ public class StringToGuidConverter : JsonConverter<Guid>
         if (reader.TokenType == JsonTokenType.String)
         {
             var stringValue = reader.GetString();
+
+            // Allow empty strings to fail gracefully
+            if (string.IsNullOrWhiteSpace(stringValue))
+            {
+                throw new JsonException($"Cannot convert empty or whitespace string to Guid.");
+            }
+
             if (Guid.TryParse(stringValue, out var guid))
             {
                 return guid;
             }
-            throw new JsonException($"Unable to convert \"{stringValue}\" to Guid.");
+
+            throw new JsonException($"Unable to convert \"{stringValue}\" to Guid. Expected a valid GUID format (e.g., '550e8400-e29b-41d4-a716-446655440000').");
         }
 
-        throw new JsonException($"Unexpected token type: {reader.TokenType}. Expected String.");
+        // Handle number tokens - reject them with a clear message
+        if (reader.TokenType == JsonTokenType.Number)
+        {
+            throw new JsonException($"Cannot convert number to Guid. Expected a string in GUID format, but received a number.");
+        }
+
+        throw new JsonException($"Unexpected token type: {reader.TokenType}. Expected String token for Guid deserialization.");
     }
 
     public override void Write(Utf8JsonWriter writer, Guid value, JsonSerializerOptions options)
