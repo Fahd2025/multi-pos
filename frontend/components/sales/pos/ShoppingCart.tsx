@@ -15,6 +15,7 @@ interface ShoppingCartProps {
   onRemoveItem: (index: number) => void;
   onCheckout: () => void;
   onClearCart: () => void;
+  lastUpdatedIndex?: number; // Index of the last updated item
 }
 
 export default function ShoppingCart({
@@ -23,6 +24,7 @@ export default function ShoppingCart({
   onRemoveItem,
   onCheckout,
   onClearCart,
+  lastUpdatedIndex,
 }: ShoppingCartProps) {
   const cartItemsRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
@@ -41,18 +43,19 @@ export default function ShoppingCart({
           });
         }, 100);
       }
-    } else if (items.length === previousItemsLength.current && items.length > 0) {
-      // Quantity updated - scroll to last modified item
-      const lastIndex = items.length - 1;
-      if (itemRefs.current[lastIndex]) {
-        itemRefs.current[lastIndex]?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
-        });
+    } else if (items.length === previousItemsLength.current && items.length > 0 && lastUpdatedIndex !== undefined) {
+      // Quantity updated - scroll to the updated item
+      if (itemRefs.current[lastUpdatedIndex]) {
+        setTimeout(() => {
+          itemRefs.current[lastUpdatedIndex]?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',
+          });
+        }, 100);
       }
     }
     previousItemsLength.current = items.length;
-  }, [items]);
+  }, [items, lastUpdatedIndex]);
 
   const handleRemove = (index: number) => {
     setDeletingIndex(index);
