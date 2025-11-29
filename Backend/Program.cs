@@ -127,6 +127,10 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     options.SerializerOptions.PropertyNameCaseInsensitive = true;
+
+    // Add custom converters for Guid to handle string-to-Guid conversion
+    options.SerializerOptions.Converters.Add(new Backend.Utilities.StringToGuidConverter());
+    options.SerializerOptions.Converters.Add(new Backend.Utilities.StringToNullableGuidConverter());
 });
 
 // Configure Swagger/OpenAPI
