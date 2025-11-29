@@ -26,6 +26,7 @@ export default function ProductGrid({
   const [products, setProducts] = useState<ProductDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [clickedProductId, setClickedProductId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -57,6 +58,17 @@ export default function ProductGrid({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleProductClick = (product: ProductDto) => {
+    if (product.stockLevel <= 0) return;
+
+    // Trigger visual feedback
+    setClickedProductId(product.id);
+    setTimeout(() => setClickedProductId(null), 400);
+
+    // Add to cart
+    onProductSelect(product);
   };
 
   if (loading) {
@@ -122,17 +134,18 @@ export default function ProductGrid({
         const isOutOfStock = product.stockLevel <= 0;
         const isLowStock =
           product.stockLevel > 0 && product.stockLevel < product.minStockThreshold;
+        const isClicked = clickedProductId === product.id;
 
         return (
           <button
             key={product.id}
-            onClick={() => !isOutOfStock && onProductSelect(product)}
+            onClick={() => handleProductClick(product)}
             disabled={isOutOfStock}
-            className={`group relative bg-white border-2 rounded-lg p-3 md:p-4 transition-all duration-200 touch-manipulation ${
+            className={`group relative bg-white border-2 rounded-xl p-4 md:p-5 transition-all duration-200 touch-manipulation min-h-[200px] md:min-h-[240px] ${
               isOutOfStock
                 ? 'border-gray-200 opacity-50 cursor-not-allowed'
                 : 'border-gray-200 hover:border-blue-500 hover:shadow-lg active:scale-95 cursor-pointer'
-            }`}
+            } ${isClicked ? 'animate-pulse-once' : ''}`}
           >
             {/* Product Image */}
             <div className="aspect-square bg-gray-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden relative">

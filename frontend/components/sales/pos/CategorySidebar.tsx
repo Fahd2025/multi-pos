@@ -86,25 +86,25 @@ export default function CategorySidebar({
   const allCategoriesButton = (
     <button
       onClick={() => onCategorySelect(null)}
-      className={`w-full text-left rounded-lg font-medium transition-all touch-manipulation active:scale-95 ${
+      className={`w-full text-left rounded-xl font-medium transition-all touch-manipulation active:scale-95 min-h-[64px] ${
         selectedCategoryId === null
           ? 'bg-blue-600 text-white shadow-md'
-          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-      } ${isHorizontal ? 'px-4 py-2 min-w-[140px] text-center' : 'px-3 py-3'}`}
+          : 'bg-white text-gray-700 hover:bg-gray-100 border-2 border-gray-200'
+      } ${isHorizontal ? 'px-5 py-3 min-w-[160px] text-center' : 'px-4 py-3'}`}
     >
       <div className={`flex items-center gap-3 ${isHorizontal ? 'justify-center' : ''}`}>
-        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-          <span className="text-xl">📦</span>
+        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+          <span className="text-2xl">📦</span>
         </div>
         {!isHorizontal && (
           <div className="flex-1">
-            <span className="font-semibold">All Products</span>
+            <span className="font-semibold text-base">All Products</span>
             <div className="text-xs mt-0.5 opacity-75">
               View all items
             </div>
           </div>
         )}
-        {isHorizontal && <span>All Products</span>}
+        {isHorizontal && <span className="text-base">All Products</span>}
       </div>
     </button>
   );
@@ -116,15 +116,15 @@ export default function CategorySidebar({
       <button
         key={category.id}
         onClick={() => onCategorySelect(category.id)}
-        className={`w-full text-left rounded-lg font-medium transition-all touch-manipulation active:scale-95 ${
+        className={`w-full text-left rounded-xl font-medium transition-all touch-manipulation active:scale-95 min-h-[64px] ${
           isSelected
             ? 'bg-blue-600 text-white shadow-md'
-            : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-        } ${isHorizontal ? 'px-4 py-2 min-w-[140px] text-center' : 'px-3 py-3'}`}
+            : 'bg-white text-gray-700 hover:bg-gray-100 border-2 border-gray-200'
+        } ${isHorizontal ? 'px-5 py-3 min-w-[160px] text-center' : 'px-4 py-3'}`}
       >
         <div className={`flex items-center gap-3 ${isHorizontal ? 'justify-center' : ''}`}>
           {/* Category Image */}
-          <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0 shadow-sm">
+          <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0 shadow-sm">
             {category.imagePath && branch ? (
               <img
                 src={buildCategoryImageUrl(
@@ -137,13 +137,13 @@ export default function CategorySidebar({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <span className="text-xl">🏷️</span>
+              <span className="text-2xl">🏷️</span>
             )}
           </div>
 
           {!isHorizontal && (
             <div className="flex-1 min-w-0">
-              <span className="font-semibold truncate block">{category.nameEn}</span>
+              <span className="font-semibold text-base truncate block">{category.nameEn}</span>
               {category.productsCount !== undefined && (
                 <div className="text-xs mt-0.5 opacity-75">
                   {category.productsCount} items
@@ -152,7 +152,7 @@ export default function CategorySidebar({
             </div>
           )}
 
-          {isHorizontal && <span className="truncate">{category.nameEn}</span>}
+          {isHorizontal && <span className="text-base truncate">{category.nameEn}</span>}
         </div>
       </button>
     );

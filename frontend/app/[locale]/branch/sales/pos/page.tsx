@@ -65,9 +65,6 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
       };
       setLineItems([...lineItems, newItem]);
     }
-
-    setSuccess(`Added ${product.nameEn} to cart`);
-    setTimeout(() => setSuccess(null), 2000);
   };
 
   const handleUpdateQuantity = (index: number, quantity: number) => {
@@ -165,10 +162,10 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push('/branch/sales')}
-              className="text-gray-600 hover:text-gray-900"
+              className="p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all touch-manipulation active:scale-95 min-w-[48px] min-h-[48px] flex items-center justify-center"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
             <div>
@@ -194,14 +191,14 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
             {/* Shopping Cart Toggle */}
             <button
               onClick={() => setIsCartVisible(!isCartVisible)}
-              className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              className="relative p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all touch-manipulation active:scale-95 min-w-[48px] min-h-[48px] flex items-center justify-center"
               title={isCartVisible ? 'Hide cart' : 'Show cart'}
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
               {lineItems.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1">
                   {lineItems.reduce((sum, item) => sum + item.quantity, 0)}
                 </span>
               )}
@@ -210,9 +207,9 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
             {/* Settings Button */}
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all touch-manipulation active:scale-95 min-w-[48px] min-h-[48px] flex items-center justify-center"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
@@ -306,10 +303,10 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
             {/* Mobile Category Button */}
             <button
               onClick={() => setIsMobileCategoryOpen(true)}
-              className="md:hidden fixed bottom-4 left-4 z-20 bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 transition-colors"
+              className="md:hidden fixed bottom-6 left-6 z-20 bg-blue-600 text-white rounded-full p-5 shadow-lg hover:bg-blue-700 transition-all active:scale-95 touch-manipulation min-w-[64px] min-h-[64px] flex items-center justify-center"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
 
@@ -325,10 +322,10 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
                     <h2 className="text-lg font-bold text-gray-900">Categories</h2>
                     <button
                       onClick={() => setIsMobileCategoryOpen(false)}
-                      className="p-2 hover:bg-gray-100 rounded-lg"
+                      className="p-3 hover:bg-gray-100 rounded-lg transition-all touch-manipulation active:scale-95 min-w-[48px] min-h-[48px] flex items-center justify-center"
                     >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
                   </div>
@@ -382,10 +379,10 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
             {/* Mobile Category Button */}
             <button
               onClick={() => setIsMobileCategoryOpen(true)}
-              className="md:hidden fixed bottom-4 left-4 z-20 bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 transition-colors"
+              className="md:hidden fixed bottom-6 left-6 z-20 bg-blue-600 text-white rounded-full p-5 shadow-lg hover:bg-blue-700 transition-all active:scale-95 touch-manipulation min-w-[64px] min-h-[64px] flex items-center justify-center"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
 
@@ -401,10 +398,10 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
                     <h2 className="text-lg font-bold text-gray-900">Categories</h2>
                     <button
                       onClick={() => setIsMobileCategoryOpen(false)}
-                      className="p-2 hover:bg-gray-100 rounded-lg"
+                      className="p-3 hover:bg-gray-100 rounded-lg transition-all touch-manipulation active:scale-95 min-w-[48px] min-h-[48px] flex items-center justify-center"
                     >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
                   </div>
