@@ -1,6 +1,6 @@
 /**
  * Point of Sale Page
- * Full POS interface for processing transactions with offline support
+ * Full-page POS interface with category sidebar, product grid, and shopping cart
  */
 
 'use client';
@@ -10,38 +10,47 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import salesService from '@/services/sales.service';
-import ProductSearch from '@/components/sales/ProductSearch';
-import SaleLineItemsList, { SaleLineItem } from '@/components/sales/SaleLineItemsList';
-import PaymentSection from '@/components/sales/PaymentSection';
+import CategorySidebar from '@/components/sales/pos/CategorySidebar';
+import ProductGrid from '@/components/sales/pos/ProductGrid';
+import ShoppingCart from '@/components/sales/pos/ShoppingCart';
+import CheckoutDialog from '@/components/sales/pos/CheckoutDialog';
 import InvoiceDisplay from '@/components/sales/InvoiceDisplay';
 import { CreateSaleDto, ProductDto, SaleDto } from '@/types/api.types';
 import { InvoiceType, PaymentMethod, DiscountType } from '@/types/enums';
+import { SaleLineItem } from '@/components/sales/SaleLineItemsList';
 
 export default function POSPage({ params }: { params: Promise<{ locale: string }> }) {
   const router = useRouter();
   const { user } = useAuth();
   const { isOnline, queueTransaction } = useOfflineSync();
 
+  // Layout state
+  const [sidebarPosition, setSidebarPosition] = useState<'left' | 'top'>('left');
+  const [showSettings, setShowSettings] = useState(false);
+
+  // Cart state
   const [lineItems, setLineItems] = useState<SaleLineItem[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Dialog state
+  const [showCheckoutDialog, setShowCheckoutDialog] = useState(false);
+  const [showInvoiceDialog, setShowInvoiceDialog] = useState(false);
+  const [completedSale, setCompletedSale] = useState<SaleDto | null>(null);
+
+  // Processing state
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [completedSale, setCompletedSale] = useState<SaleDto | null>(null);
-
-  // Default tax rate (should come from branch settings in production)
-  const TAX_RATE = 15;
 
   const handleProductSelect = (product: ProductDto) => {
-    // Check if product already in cart
     const existingIndex = lineItems.findIndex((item) => item.productId === product.id);
 
     if (existingIndex >= 0) {
-      // Increase quantity if already in cart
       const updatedItems = [...lineItems];
       updatedItems[existingIndex].quantity += 1;
       setLineItems(updatedItems);
     } else {
-      // Add new item to cart
       const newItem: SaleLineItem = {
         productId: product.id,
         productName: product.nameEn,
@@ -54,7 +63,6 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
       setLineItems([...lineItems, newItem]);
     }
 
-    setError(null);
     setSuccess(`Added ${product.nameEn} to cart`);
     setTimeout(() => setSuccess(null), 2000);
   };
@@ -65,45 +73,29 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
     setLineItems(updatedItems);
   };
 
-  const handleUpdateDiscount = (
-    index: number,
-    discountType: DiscountType,
-    discountValue: number
-  ) => {
-    const updatedItems = [...lineItems];
-    updatedItems[index].discountType = discountType;
-    updatedItems[index].discountValue = discountValue;
-    setLineItems(updatedItems);
-  };
-
   const handleRemoveItem = (index: number) => {
     setLineItems(lineItems.filter((_, i) => i !== index));
   };
 
-  const calculateSubtotal = (): number => {
-    return lineItems.reduce((sum, item) => {
-      let discountedPrice = item.unitPrice;
-
-      if (item.discountType === DiscountType.Percentage) {
-        discountedPrice = item.unitPrice * (1 - item.discountValue / 100);
-      } else if (item.discountType === DiscountType.FixedAmount) {
-        discountedPrice = item.unitPrice - item.discountValue;
-      }
-
-      return sum + discountedPrice * item.quantity;
-    }, 0);
+  const handleClearCart = () => {
+    if (confirm('Are you sure you want to clear the cart?')) {
+      setLineItems([]);
+    }
   };
 
-  const handleCompleteSale = async (
-    paymentMethod: PaymentMethod,
-    invoiceType: InvoiceType,
-    paymentReference?: string
-  ) => {
+  const handleCheckout = () => {
     if (lineItems.length === 0) {
-      setError('Please add at least one item to the sale');
+      setError('Cart is empty');
+      setTimeout(() => setError(null), 3000);
       return;
     }
+    setShowCheckoutDialog(true);
+  };
 
+  const handleConfirmCheckout = async (
+    invoiceType: InvoiceType,
+    paymentMethod: PaymentMethod
+  ) => {
     try {
       setProcessing(true);
       setError(null);
@@ -119,18 +111,18 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
           discountValue: item.discountValue,
         })),
         paymentMethod,
-        paymentReference,
+        paymentReference: undefined,
         notes: undefined,
       };
 
       if (isOnline) {
-        // Process sale online
         const sale = await salesService.createSale(saleData);
         setCompletedSale(sale);
         setSuccess(`Sale completed! Transaction ID: ${sale.transactionId}`);
         setLineItems([]);
+        setShowCheckoutDialog(false);
+        setShowInvoiceDialog(true);
       } else {
-        // Queue for offline sync
         if (!user) throw new Error('User not authenticated');
 
         await queueTransaction({
@@ -143,6 +135,7 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
 
         setSuccess('Sale queued for sync when online');
         setLineItems([]);
+        setShowCheckoutDialog(false);
       }
     } catch (err: any) {
       console.error('Failed to complete sale:', err);
@@ -153,93 +146,192 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
   };
 
   const handleCloseInvoice = () => {
+    setShowInvoiceDialog(false);
     setCompletedSale(null);
   };
 
-  const subtotal = calculateSubtotal();
-
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Point of Sale</h1>
-            <p className="text-gray-600 mt-1">Process sales transactions</p>
+    <div className="fixed inset-0 flex flex-col bg-gray-100">
+      {/* Top Bar */}
+      <div className="bg-white border-b border-gray-200 shadow-sm z-10">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.push('/branch/sales')}
+              className="text-gray-600 hover:text-gray-900"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Point of Sale</h1>
+              <p className="text-xs text-gray-600">
+                {isOnline ? '🟢 Online' : '🔴 Offline'}
+              </p>
+            </div>
           </div>
+
+          {/* Search Bar */}
+          <div className="flex-1 max-w-md mx-4">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search products..."
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          {/* Settings Button */}
           <button
-            onClick={() => router.push('/branch/sales')}
-            className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+            onClick={() => setShowSettings(!showSettings)}
+            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
           >
-            ← Back to Sales
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
           </button>
         </div>
 
-        {/* Offline Warning */}
-        {!isOnline && (
-          <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-yellow-800 font-medium">
-              ⚠️ You are offline. Sales will be queued and synced when connection is restored.
-            </p>
-          </div>
-        )}
-
-        {/* Error Display */}
-        {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-800 font-medium">{error}</p>
-          </div>
-        )}
-
-        {/* Success Display */}
-        {success && (
-          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
-            <p className="text-green-800 font-medium">{success}</p>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Product Search & Line Items */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Product Search */}
-            <div className="bg-white border border-gray-200 rounded-lg p-4 md:p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Search Products
-              </h3>
-              <ProductSearch onProductSelect={handleProductSelect} />
+        {/* Settings Panel */}
+        {showSettings && (
+          <div className="border-t border-gray-200 bg-gray-50 p-4">
+            <div className="max-w-md">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Category Sidebar Position
+              </label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setSidebarPosition('left')}
+                  className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                    sidebarPosition === 'left'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+                  }`}
+                >
+                  Left Sidebar
+                </button>
+                <button
+                  onClick={() => setSidebarPosition('top')}
+                  className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                    sidebarPosition === 'top'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+                  }`}
+                >
+                  Top Bar
+                </button>
+              </div>
             </div>
-
-            {/* Line Items List */}
-            <SaleLineItemsList
-              items={lineItems}
-              onUpdateQuantity={handleUpdateQuantity}
-              onUpdateDiscount={handleUpdateDiscount}
-              onRemoveItem={handleRemoveItem}
-            />
           </div>
+        )}
 
-          {/* Right Column - Payment Section */}
-          <div>
-            <PaymentSection
-              subtotal={subtotal}
-              taxRate={TAX_RATE}
-              onCompleteSale={handleCompleteSale}
-              processing={processing}
-              isOnline={isOnline}
-            />
+        {/* Status Messages */}
+        {error && (
+          <div className="border-t border-red-200 bg-red-50 px-4 py-2">
+            <p className="text-sm text-red-800 font-medium">{error}</p>
           </div>
-        </div>
-
-        {/* Invoice Display Modal */}
-        {completedSale && (
-          <InvoiceDisplay
-            sale={completedSale}
-            onClose={handleCloseInvoice}
-            onPrint={() => {
-              salesService.printInvoice(completedSale.id).catch(console.error);
-            }}
-          />
+        )}
+        {success && (
+          <div className="border-t border-green-200 bg-green-50 px-4 py-2">
+            <p className="text-sm text-green-800 font-medium">{success}</p>
+          </div>
         )}
       </div>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-hidden">
+        {sidebarPosition === 'left' ? (
+          /* Left Sidebar Layout */
+          <div className="h-full flex">
+            {/* Category Sidebar */}
+            <div className="w-64 bg-gray-50 border-r border-gray-200 overflow-y-auto">
+              <CategorySidebar
+                selectedCategoryId={selectedCategoryId}
+                onCategorySelect={setSelectedCategoryId}
+                isHorizontal={false}
+              />
+            </div>
+
+            {/* Product Grid */}
+            <div className="flex-1 overflow-y-auto p-4">
+              <ProductGrid
+                selectedCategoryId={selectedCategoryId}
+                searchQuery={searchQuery}
+                onProductSelect={handleProductSelect}
+              />
+            </div>
+
+            {/* Shopping Cart */}
+            <div className="w-96">
+              <ShoppingCart
+                items={lineItems}
+                onUpdateQuantity={handleUpdateQuantity}
+                onRemoveItem={handleRemoveItem}
+                onCheckout={handleCheckout}
+                onClearCart={handleClearCart}
+              />
+            </div>
+          </div>
+        ) : (
+          /* Top Bar Layout */
+          <div className="h-full flex flex-col">
+            {/* Category Top Bar */}
+            <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 overflow-x-auto">
+              <CategorySidebar
+                selectedCategoryId={selectedCategoryId}
+                onCategorySelect={setSelectedCategoryId}
+                isHorizontal={true}
+              />
+            </div>
+
+            {/* Product Grid & Cart */}
+            <div className="flex-1 overflow-hidden flex">
+              {/* Product Grid */}
+              <div className="flex-1 overflow-y-auto p-4">
+                <ProductGrid
+                  selectedCategoryId={selectedCategoryId}
+                  searchQuery={searchQuery}
+                  onProductSelect={handleProductSelect}
+                />
+              </div>
+
+              {/* Shopping Cart */}
+              <div className="w-96">
+                <ShoppingCart
+                  items={lineItems}
+                  onUpdateQuantity={handleUpdateQuantity}
+                  onRemoveItem={handleRemoveItem}
+                  onCheckout={handleCheckout}
+                  onClearCart={handleClearCart}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Checkout Dialog */}
+      <CheckoutDialog
+        isOpen={showCheckoutDialog}
+        onClose={() => setShowCheckoutDialog(false)}
+        items={lineItems}
+        onConfirmCheckout={handleConfirmCheckout}
+        processing={processing}
+      />
+
+      {/* Invoice Display */}
+      {completedSale && showInvoiceDialog && (
+        <InvoiceDisplay
+          sale={completedSale}
+          onClose={handleCloseInvoice}
+          onPrint={() => {
+            salesService.printInvoice(completedSale.id).catch(console.error);
+          }}
+        />
+      )}
     </div>
   );
 }
