@@ -182,7 +182,7 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
                 p-2 sm:p-3
                 text-gray-600
                 hover:text-gray-900
-                mouse:hover:bg-gray-100
+                hover:bg-gray-100
                 rounded-lg
                 transition-all
                 touch-manipulation
@@ -235,7 +235,7 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
                 relative p-2 sm:p-3
                 text-gray-600
                 hover:text-gray-900
-                mouse:hover:bg-gray-100
+                hover:bg-gray-100
                 rounded-lg
                 transition-all
                 touch-manipulation
@@ -266,7 +266,7 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
                 p-2 sm:p-3
                 text-gray-600
                 hover:text-gray-900
-                mouse:hover:bg-gray-100
+                hover:bg-gray-100
                 rounded-lg
                 transition-all
                 touch-manipulation
