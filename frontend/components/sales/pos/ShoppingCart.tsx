@@ -29,7 +29,22 @@ export default function ShoppingCart({
   const cartItemsRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
+  const [updatingIndex, setUpdatingIndex] = useState<number | null>(null);
   const previousItemsLength = useRef(items.length);
+  const previousQuantities = useRef<{ [key: number]: number }>({});
+
+  // Track quantity changes for animation
+  useEffect(() => {
+    items.forEach((item, index) => {
+      if (previousQuantities.current[index] !== undefined &&
+          previousQuantities.current[index] !== item.quantity) {
+        // Quantity changed, trigger animation
+        setUpdatingIndex(index);
+        setTimeout(() => setUpdatingIndex(null), 600); // Match animation duration
+      }
+      previousQuantities.current[index] = item.quantity;
+    });
+  }, [items]);
 
   // Auto-scroll to new or updated items
   useEffect(() => {
@@ -124,6 +139,7 @@ export default function ShoppingCart({
             {items.map((item, index) => {
               const lineTotal = calculateLineTotal(item);
               const isDeleting = deletingIndex === index;
+              const isUpdating = updatingIndex === index;
 
               return (
                 <div
@@ -131,10 +147,12 @@ export default function ShoppingCart({
                   ref={(el) => {
                     itemRefs.current[index] = el;
                   }}
-                  className={`p-4 transition-all duration-300 animate-slideDown ${
+                  className={`p-4 transition-all duration-300 animate-slideDown rounded-lg ${
                     isDeleting
                       ? 'animate-delete-item bg-red-100 translate-x-full opacity-0'
-                      : 'hover:bg-gray-50'
+                      : isUpdating
+                      ? 'animate-quantity-update border-2'
+                      : 'hover:bg-gray-50 border-2 border-transparent'
                   }`}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
