@@ -68,14 +68,14 @@ function SidebarContent({
         >
           {/* Branch Logo */}
           <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-md">
-            {user?.branches[0]?.branchNameEn?.charAt(0) || "M"}
+            {user?.branches?.[0]?.branchNameEn?.charAt(0) || "M"}
           </div>
 
           {/* Branch Name - Hidden when collapsed on desktop */}
           {(!isSidebarCollapsed || isMobile) && (
             <div className="flex-1 min-w-0">
               <h2 className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">
-                {user?.branches[0]?.branchNameEn || "Multi-POS"}
+                {user?.branches?.[0]?.branchNameEn || "Multi-POS"}
               </h2>
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate">Branch System</p>
             </div>

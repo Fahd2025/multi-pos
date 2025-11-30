@@ -8,8 +8,8 @@
 
 import React, { useEffect, useState } from "react";
 import { Modal } from "@/components/shared/Modal";
-import { Input } from "@/components/shared/Form/Input";
-import { Select } from "@/components/shared/Form/Select";
+import { Input } from "@/components/shared/Input";
+import { Select } from "@/components/shared/Select";
 import { Button } from "@/components/shared/Button";
 import { ImageUpload } from "@/components/shared/ImageUpload";
 import branchService, {

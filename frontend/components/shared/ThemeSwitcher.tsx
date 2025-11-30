@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { observer } from 'mobx-react-lite';
-import { useTheme } from '@/components/providers/ThemeProvider';
-import { SunIcon, MoonIcon, ComputerDesktopIcon } from '@heroicons/react/24/outline';
-import { Theme } from '@/stores/ThemeStore';
+import { useState, useEffect } from "react";
+import { observer } from "mobx-react-lite";
+import { useTheme } from "@/providers/ThemeProvider";
+import { SunIcon, MoonIcon, ComputerDesktopIcon } from "@heroicons/react/24/outline";
+import { Theme } from "@/stores/ThemeStore";
 
 export const ThemeSwitcher = observer(() => {
   const themeStore = useTheme();
@@ -15,8 +15,8 @@ export const ThemeSwitcher = observer(() => {
   }, []);
 
   const themes: Array<{ value: Theme; icon: typeof SunIcon; label: string }> = [
-    { value: 'light', icon: SunIcon, label: 'Light' },
-    { value: 'dark', icon: MoonIcon, label: 'Dark' },
+    { value: "light", icon: SunIcon, label: "Light" },
+    { value: "dark", icon: MoonIcon, label: "Dark" },
   ];
 
   // Show placeholder during SSR to prevent hydration mismatch
@@ -49,8 +49,8 @@ export const ThemeSwitcher = observer(() => {
             flex items-center gap-2 px-3 py-2 rounded-md transition-all
             ${
               themeStore.theme === value
-                ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                ? "bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
             }
           `}
           title={label}
@@ -64,7 +64,7 @@ export const ThemeSwitcher = observer(() => {
   );
 });
 
-ThemeSwitcher.displayName = 'ThemeSwitcher';
+ThemeSwitcher.displayName = "ThemeSwitcher";
 
 // Alternative compact version - icon only toggle
 export const ThemeSwitcherCompact = observer(() => {
@@ -103,4 +103,4 @@ export const ThemeSwitcherCompact = observer(() => {
   );
 });
 
-ThemeSwitcherCompact.displayName = 'ThemeSwitcherCompact';
+ThemeSwitcherCompact.displayName = "ThemeSwitcherCompact";

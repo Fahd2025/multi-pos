@@ -40,7 +40,8 @@
       "Bash(sqlite3:*)",
       "Bash(npm run dev:*)",
       "Bash(timeout /t 5)",
-      "Bash(timeout 60 npm run build:*)"
+      "Bash(timeout 60 npm run build:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

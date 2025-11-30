@@ -10,8 +10,8 @@
 
 import React, { useState, useEffect } from "react";
 import { use } from "react";
-import { DataTable } from "@/components/data-table";
-import { ModalBottomSheet, FeaturedDialog, ConfirmationDialog } from "@/components/modals";
+import { DataTable } from "@/components/shared";
+import { ModalBottomSheet, FeaturedDialog, ConfirmationDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { useModal, useConfirmation } from "@/hooks/useModal";
 import {

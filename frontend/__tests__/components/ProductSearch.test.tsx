@@ -3,41 +3,41 @@
  * Testing product search functionality for sales transactions
  */
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import ProductSearch from '@/components/sales/ProductSearch';
-import { ProductDto } from '@/types/api.types';
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import "@testing-library/jest-dom";
+import ProductSearch from "@/components/branch/sales/ProductSearch";
+import { ProductDto } from "@/types/api.types";
 
-describe('ProductSearch Component', () => {
+describe("ProductSearch Component", () => {
   const mockOnProductSelect = jest.fn();
 
   beforeEach(() => {
     mockOnProductSelect.mockClear();
   });
 
-  it('should render search input', () => {
+  it("should render search input", () => {
     render(<ProductSearch onProductSelect={mockOnProductSelect} />);
 
     const searchInput = screen.getByPlaceholderText(/search/i);
     expect(searchInput).toBeInTheDocument();
   });
 
-  it('should show no results when search query is empty', async () => {
+  it("should show no results when search query is empty", async () => {
     render(<ProductSearch onProductSelect={mockOnProductSelect} />);
 
     const searchInput = screen.getByPlaceholderText(/search/i);
 
     // Initially no results should be shown
-    expect(screen.queryByRole('list')).not.toBeInTheDocument();
+    expect(screen.queryByRole("list")).not.toBeInTheDocument();
   });
 
-  it('should filter products by name when typing', async () => {
+  it("should filter products by name when typing", async () => {
     render(<ProductSearch onProductSelect={mockOnProductSelect} />);
 
     const searchInput = screen.getByPlaceholderText(/search/i);
 
     // Type 'mouse' to search
-    fireEvent.change(searchInput, { target: { value: 'mouse' } });
+    fireEvent.change(searchInput, { target: { value: "mouse" } });
 
     // Wait for filtering to occur
     await waitFor(() => {
@@ -48,39 +48,39 @@ describe('ProductSearch Component', () => {
     expect(screen.queryByText(/mechanical keyboard/i)).not.toBeInTheDocument();
   });
 
-  it('should filter products by barcode', async () => {
+  it("should filter products by barcode", async () => {
     render(<ProductSearch onProductSelect={mockOnProductSelect} />);
 
     const searchInput = screen.getByPlaceholderText(/search/i);
 
     // Search by barcode
-    fireEvent.change(searchInput, { target: { value: '123456789' } });
+    fireEvent.change(searchInput, { target: { value: "123456789" } });
 
     await waitFor(() => {
       expect(screen.getByText(/wireless mouse/i)).toBeInTheDocument();
     });
   });
 
-  it('should filter products by SKU', async () => {
+  it("should filter products by SKU", async () => {
     render(<ProductSearch onProductSelect={mockOnProductSelect} />);
 
     const searchInput = screen.getByPlaceholderText(/search/i);
 
     // Search by SKU
-    fireEvent.change(searchInput, { target: { value: 'SKU002' } });
+    fireEvent.change(searchInput, { target: { value: "SKU002" } });
 
     await waitFor(() => {
       expect(screen.getByText(/mechanical keyboard/i)).toBeInTheDocument();
     });
   });
 
-  it('should call onProductSelect when a product is clicked', async () => {
+  it("should call onProductSelect when a product is clicked", async () => {
     render(<ProductSearch onProductSelect={mockOnProductSelect} />);
 
     const searchInput = screen.getByPlaceholderText(/search/i);
 
     // Search for a product
-    fireEvent.change(searchInput, { target: { value: 'mouse' } });
+    fireEvent.change(searchInput, { target: { value: "mouse" } });
 
     await waitFor(() => {
       expect(screen.getByText(/wireless mouse/i)).toBeInTheDocument();
@@ -94,19 +94,19 @@ describe('ProductSearch Component', () => {
     expect(mockOnProductSelect).toHaveBeenCalledTimes(1);
     expect(mockOnProductSelect).toHaveBeenCalledWith(
       expect.objectContaining({
-        id: '1',
-        nameEn: 'Wireless Mouse',
+        id: "1",
+        nameEn: "Wireless Mouse",
       })
     );
   });
 
-  it('should clear search results after selecting a product', async () => {
+  it("should clear search results after selecting a product", async () => {
     render(<ProductSearch onProductSelect={mockOnProductSelect} />);
 
     const searchInput = screen.getByPlaceholderText(/search/i);
 
     // Search and select
-    fireEvent.change(searchInput, { target: { value: 'mouse' } });
+    fireEvent.change(searchInput, { target: { value: "mouse" } });
 
     await waitFor(() => {
       expect(screen.getByText(/wireless mouse/i)).toBeInTheDocument();
@@ -117,19 +117,19 @@ describe('ProductSearch Component', () => {
 
     // Search input should be cleared
     await waitFor(() => {
-      expect(searchInput).toHaveValue('');
+      expect(searchInput).toHaveValue("");
     });
 
     // Results should be hidden
     expect(screen.queryByText(/wireless mouse/i)).not.toBeInTheDocument();
   });
 
-  it('should display product price and stock level', async () => {
+  it("should display product price and stock level", async () => {
     render(<ProductSearch onProductSelect={mockOnProductSelect} />);
 
     const searchInput = screen.getByPlaceholderText(/search/i);
 
-    fireEvent.change(searchInput, { target: { value: 'mouse' } });
+    fireEvent.change(searchInput, { target: { value: "mouse" } });
 
     await waitFor(() => {
       // Should show price
@@ -146,66 +146,66 @@ describe('ProductSearch Component', () => {
     const searchInput = screen.getByPlaceholderText(/search/i);
 
     // Search for non-existent product
-    fireEvent.change(searchInput, { target: { value: 'nonexistentproduct123' } });
+    fireEvent.change(searchInput, { target: { value: "nonexistentproduct123" } });
 
     await waitFor(() => {
       expect(screen.getByText(/no products found/i)).toBeInTheDocument();
     });
   });
 
-  it('should handle search with multiple matching products', async () => {
+  it("should handle search with multiple matching products", async () => {
     render(<ProductSearch onProductSelect={mockOnProductSelect} />);
 
     const searchInput = screen.getByPlaceholderText(/search/i);
 
     // Search for 'USB' which should match 'USB Cable'
-    fireEvent.change(searchInput, { target: { value: 'usb' } });
+    fireEvent.change(searchInput, { target: { value: "usb" } });
 
     await waitFor(() => {
       expect(screen.getByText(/usb cable/i)).toBeInTheDocument();
     });
   });
 
-  it('should be case-insensitive in search', async () => {
+  it("should be case-insensitive in search", async () => {
     render(<ProductSearch onProductSelect={mockOnProductSelect} />);
 
     const searchInput = screen.getByPlaceholderText(/search/i);
 
     // Search with different cases
-    fireEvent.change(searchInput, { target: { value: 'MOUSE' } });
+    fireEvent.change(searchInput, { target: { value: "MOUSE" } });
 
     await waitFor(() => {
       expect(screen.getByText(/wireless mouse/i)).toBeInTheDocument();
     });
   });
 
-  it('should handle rapid search input changes', async () => {
+  it("should handle rapid search input changes", async () => {
     render(<ProductSearch onProductSelect={mockOnProductSelect} />);
 
     const searchInput = screen.getByPlaceholderText(/search/i);
 
     // Rapidly change search
-    fireEvent.change(searchInput, { target: { value: 'k' } });
-    fireEvent.change(searchInput, { target: { value: 'ke' } });
-    fireEvent.change(searchInput, { target: { value: 'key' } });
-    fireEvent.change(searchInput, { target: { value: 'keyb' } });
-    fireEvent.change(searchInput, { target: { value: 'keyboard' } });
+    fireEvent.change(searchInput, { target: { value: "k" } });
+    fireEvent.change(searchInput, { target: { value: "ke" } });
+    fireEvent.change(searchInput, { target: { value: "key" } });
+    fireEvent.change(searchInput, { target: { value: "keyb" } });
+    fireEvent.change(searchInput, { target: { value: "keyboard" } });
 
     await waitFor(() => {
       expect(screen.getByText(/mechanical keyboard/i)).toBeInTheDocument();
     });
   });
 
-  it('should highlight low stock products', async () => {
+  it("should highlight low stock products", async () => {
     render(<ProductSearch onProductSelect={mockOnProductSelect} />);
 
     const searchInput = screen.getByPlaceholderText(/search/i);
 
     // Search for products
-    fireEvent.change(searchInput, { target: { value: 'mouse' } });
+    fireEvent.change(searchInput, { target: { value: "mouse" } });
 
     await waitFor(() => {
-      const productElement = screen.getByText(/wireless mouse/i).closest('div');
+      const productElement = screen.getByText(/wireless mouse/i).closest("div");
 
       // Check if stock level (50) is above threshold (10)
       // Should not have low stock warning
@@ -213,12 +213,12 @@ describe('ProductSearch Component', () => {
     });
   });
 
-  it('should display products with correct formatting', async () => {
+  it("should display products with correct formatting", async () => {
     render(<ProductSearch onProductSelect={mockOnProductSelect} />);
 
     const searchInput = screen.getByPlaceholderText(/search/i);
 
-    fireEvent.change(searchInput, { target: { value: 'cable' } });
+    fireEvent.change(searchInput, { target: { value: "cable" } });
 
     await waitFor(() => {
       // Should display name
@@ -232,7 +232,7 @@ describe('ProductSearch Component', () => {
     });
   });
 
-  it('should close results when clicking outside', async () => {
+  it("should close results when clicking outside", async () => {
     const { container } = render(
       <div>
         <ProductSearch onProductSelect={mockOnProductSelect} />
@@ -243,14 +243,14 @@ describe('ProductSearch Component', () => {
     const searchInput = screen.getByPlaceholderText(/search/i);
 
     // Open results
-    fireEvent.change(searchInput, { target: { value: 'mouse' } });
+    fireEvent.change(searchInput, { target: { value: "mouse" } });
 
     await waitFor(() => {
       expect(screen.getByText(/wireless mouse/i)).toBeInTheDocument();
     });
 
     // Click outside
-    const outsideElement = screen.getByTestId('outside-element');
+    const outsideElement = screen.getByTestId("outside-element");
     fireEvent.click(outsideElement);
 
     // Results should be closed
@@ -259,23 +259,23 @@ describe('ProductSearch Component', () => {
     });
   });
 
-  it('should support keyboard navigation', async () => {
+  it("should support keyboard navigation", async () => {
     render(<ProductSearch onProductSelect={mockOnProductSelect} />);
 
     const searchInput = screen.getByPlaceholderText(/search/i);
 
     // Search for products
-    fireEvent.change(searchInput, { target: { value: 'e' } }); // Matches all products
+    fireEvent.change(searchInput, { target: { value: "e" } }); // Matches all products
 
     await waitFor(() => {
       expect(screen.getByText(/wireless mouse/i)).toBeInTheDocument();
     });
 
     // Simulate down arrow key
-    fireEvent.keyDown(searchInput, { key: 'ArrowDown', code: 'ArrowDown' });
+    fireEvent.keyDown(searchInput, { key: "ArrowDown", code: "ArrowDown" });
 
     // Simulate enter key to select
-    fireEvent.keyDown(searchInput, { key: 'Enter', code: 'Enter' });
+    fireEvent.keyDown(searchInput, { key: "Enter", code: "Enter" });
 
     // Should select first product
     await waitFor(() => {

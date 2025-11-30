@@ -10,9 +10,9 @@ import { use } from "react";
 import Link from "next/link";
 import inventoryService from "@/services/inventory.service";
 import { CategoryDto } from "@/types/api.types";
-import CategoryFormModal from "@/components/inventory/CategoryFormModal";
-import { DataTable } from "@/components/data-table";
-import { ConfirmationDialog } from "@/components/modals";
+import CategoryFormModal from "@/components/branch/inventory/CategoryFormModal";
+import { DataTable } from "@/components/shared";
+import { ConfirmationDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { useConfirmation } from "@/hooks/useModal";
 import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
@@ -21,8 +21,8 @@ import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { ErrorAlert } from "@/components/shared/ErrorAlert";
 import { useAuth } from "@/hooks/useAuth";
 import { API_BASE_URL } from "@/lib/constants";
-import { ImageCarousel } from "@/components/shared/ui/image-carousel";
-import { Dialog, DialogContent, DialogTitle } from "@/components/shared/ui/dialog";
+import { ImageCarousel } from "@/components/shared/image-carousel";
+import { Dialog, DialogContent, DialogTitle } from "@/components/shared/RadixDialog";
 
 export default function CategoriesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);

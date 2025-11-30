@@ -7,11 +7,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import SalesStatistics from "@/components/sales/SalesStatistics";
-import SalesTable from "@/components/sales/SalesTable";
-import NewInvoiceModal from "@/components/sales/NewInvoiceModal";
-import ProductGridModal from "@/components/sales/ProductGridModal";
+import SalesStatistics from "@/components/branch/sales/SalesStatistics";
+import SalesTable from "@/components/branch/sales/SalesTable";
+import NewInvoiceModal from "@/components/branch/sales/NewInvoiceModal";
+import ProductGridModal from "@/components/branch/sales/ProductGridModal";
 import { ProductDto, SaleDto } from "@/types/api.types";
+import { PageHeader, ActionCard, InfoBanner, Button } from "@/components/shared";
 
 export default function SalesPage({ params }: { params: Promise<{ locale: string }> }) {
   const router = useRouter();
@@ -50,35 +51,33 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
   return (
     <div>
       <div>
-        {/* Header */}
-        <div className="mb-6 md:mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
-                Sales Management
-              </h1>
-              <p className="text-gray-600 mt-1">Track sales performance and manage transactions</p>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button
+        <PageHeader
+          title="Sales Management"
+          description="Track sales performance and manage transactions"
+          actions={
+            <>
+              <Button
                 onClick={handleGoToPOS}
-                className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200 touch-manipulation active:scale-95"
+                variant="primary"
+                size="lg"
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
               >
                 <span className="mr-2 text-xl">🛒</span>
                 Go to Point of Sale
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setShowNewInvoiceModal(true)}
-                className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200 touch-manipulation active:scale-95"
+                variant="primary"
+                size="lg"
+                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
               >
                 <span className="mr-2 text-xl">📄</span>
                 New Invoice
-              </button>
-            </div>
-          </div>
-        </div>
+              </Button>
+            </>
+          }
+          className="mb-6 md:mb-8"
+        />
 
         {/* Date Range Filter */}
         <div className="mb-6 bg-white border border-gray-200 rounded-lg p-4 md:p-5 shadow-sm">
@@ -123,41 +122,41 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
 
         {/* Quick Actions Cards (Mobile Friendly) */}
         <div className="mb-6 md:mb-8 grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-          <button
+          <ActionCard
+            title="Full POS"
+            description="Complete interface"
+            icon="🏪"
+            layout="vertical"
+            hoverBorderColor="border-blue-500"
             onClick={handleGoToPOS}
-            className="bg-white border-2 border-gray-200 hover:border-blue-500 rounded-lg p-4 md:p-5 text-center transition-all hover:shadow-md touch-manipulation active:scale-95"
-          >
-            <span className="text-3xl md:text-4xl mb-2 block">🏪</span>
-            <h3 className="font-semibold text-gray-900 text-sm md:text-base">Full POS</h3>
-            <p className="text-xs text-gray-500 mt-1">Complete interface</p>
-          </button>
+          />
 
-          <button
+          <ActionCard
+            title="Quick Invoice"
+            description="Fast entry"
+            icon="⚡"
+            layout="vertical"
+            hoverBorderColor="border-green-500"
             onClick={() => setShowNewInvoiceModal(true)}
-            className="bg-white border-2 border-gray-200 hover:border-green-500 rounded-lg p-4 md:p-5 text-center transition-all hover:shadow-md touch-manipulation active:scale-95"
-          >
-            <span className="text-3xl md:text-4xl mb-2 block">⚡</span>
-            <h3 className="font-semibold text-gray-900 text-sm md:text-base">Quick Invoice</h3>
-            <p className="text-xs text-gray-500 mt-1">Fast entry</p>
-          </button>
+          />
 
-          <button
+          <ActionCard
+            title="Product Grid"
+            description="Visual selection"
+            icon="🎯"
+            layout="vertical"
+            hoverBorderColor="border-purple-500"
             onClick={() => setShowProductGridModal(true)}
-            className="bg-white border-2 border-gray-200 hover:border-purple-500 rounded-lg p-4 md:p-5 text-center transition-all hover:shadow-md touch-manipulation active:scale-95"
-          >
-            <span className="text-3xl md:text-4xl mb-2 block">🎯</span>
-            <h3 className="font-semibold text-gray-900 text-sm md:text-base">Product Grid</h3>
-            <p className="text-xs text-gray-500 mt-1">Visual selection</p>
-          </button>
+          />
 
-          <button
+          <ActionCard
+            title="Reports"
+            description="Analytics"
+            icon="📊"
+            layout="vertical"
+            hoverBorderColor="border-orange-500"
             onClick={() => router.push("/branch/reports")}
-            className="bg-white border-2 border-gray-200 hover:border-orange-500 rounded-lg p-4 md:p-5 text-center transition-all hover:shadow-md touch-manipulation active:scale-95"
-          >
-            <span className="text-3xl md:text-4xl mb-2 block">📊</span>
-            <h3 className="font-semibold text-gray-900 text-sm md:text-base">Reports</h3>
-            <p className="text-xs text-gray-500 mt-1">Analytics</p>
-          </button>
+          />
         </div>
 
         {/* Sales Transactions Table */}
@@ -175,29 +174,22 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
         </div>
 
         {/* Help Section */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 md:p-6">
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">💡</span>
-            <div className="flex-1">
-              <h3 className="font-semibold text-blue-900 mb-2">Quick Tips</h3>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>
-                  • Use <strong>Go to Point of Sale</strong> for full transaction interface with
-                  product search
-                </li>
-                <li>
-                  • Use <strong>New Invoice</strong> for quick sales with barcode scanner or
-                  dropdown
-                </li>
-                <li>
-                  • Use <strong>Product Grid</strong> for visual product selection with images
-                </li>
-                <li>• Click on any transaction in the table to view details</li>
-                <li>• Use filters to search by date, payment method, and status</li>
-              </ul>
-            </div>
-          </div>
-        </div>
+        <InfoBanner variant="info" title="Quick Tips" icon="💡">
+          <ul className="space-y-1">
+            <li>
+              • Use <strong>Go to Point of Sale</strong> for full transaction interface with product
+              search
+            </li>
+            <li>
+              • Use <strong>New Invoice</strong> for quick sales with barcode scanner or dropdown
+            </li>
+            <li>
+              • Use <strong>Product Grid</strong> for visual product selection with images
+            </li>
+            <li>• Click on any transaction in the table to view details</li>
+            <li>• Use filters to search by date, payment method, and status</li>
+          </ul>
+        </InfoBanner>
       </div>
 
       {/* Modals */}

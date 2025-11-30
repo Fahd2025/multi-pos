@@ -2,8 +2,7 @@
 
 import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { Input, Select } from "@/components/shared/Form";
-import { Button } from "@/components/shared/Button";
+import { Input, Select, Button, Icon, ErrorAlert } from "@/components/shared";
 import { ThemeSwitcherCompact } from "@/components/shared/ThemeSwitcher";
 
 type LoginMode = "headoffice" | "branch";
@@ -50,19 +49,7 @@ export default function LoginPage() {
         {/* Header */}
         <div className="text-center">
           <div className="mx-auto h-16 w-16 bg-blue-600 rounded-xl flex items-center justify-center mb-4">
-            <svg
-              className="h-10 w-10 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
+            <Icon name="cart" size="xl" className="text-white" strokeWidth={2} />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Multi-Branch POS</h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -127,16 +114,7 @@ export default function LoginPage() {
               placeholder="Enter your username"
               required
               autoComplete="username"
-              leftIcon={
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-              }
+              leftIcon={<Icon name="user" size="md" />}
             />
 
             {/* Password */}
@@ -149,39 +127,11 @@ export default function LoginPage() {
               placeholder="Enter your password"
               required
               autoComplete="current-password"
-              leftIcon={
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                  />
-                </svg>
-              }
+              leftIcon={<Icon name="lock" size="md" />}
             />
 
             {/* Error Message */}
-            {error && (
-              <div className="rounded-lg bg-red-50 border border-red-200 p-4">
-                <div className="flex items-center">
-                  <svg
-                    className="h-5 w-5 text-red-400 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <p className="text-sm text-red-800">{error}</p>
-                </div>
-              </div>
-            )}
+            {error && <ErrorAlert message={error} />}
 
             {/* Submit Button */}
             <Button type="submit" variant="primary" size="lg" isFullWidth isLoading={isLoading}>

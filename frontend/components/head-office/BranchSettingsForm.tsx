@@ -6,8 +6,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Input } from '@/components/shared/Form/Input';
-import { Select } from '@/components/shared/Form/Select';
+import { Input } from '@/components/shared/Input';
+import { Select } from '@/components/shared/Select';
 import { Button } from '@/components/shared/Button';
 import branchService, { BranchDto, BranchSettingsDto } from '@/services/branch.service';
 import { ErrorAlert } from '@/components/shared/ErrorAlert';

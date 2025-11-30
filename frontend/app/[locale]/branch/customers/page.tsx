@@ -10,9 +10,9 @@ import { use } from "react";
 import customerService from "@/services/customer.service";
 import { CustomerDto } from "@/types/api.types";
 import Link from "next/link";
-import CustomerFormModal from "@/components/customers/CustomerFormModal";
-import { DataTable } from "@/components/data-table";
-import { ModalBottomSheet, FeaturedDialog, ConfirmationDialog } from "@/components/modals";
+import CustomerFormModal from "@/components/branch/customers/CustomerFormModal";
+import { DataTable } from "@/components/shared";
+import { ModalBottomSheet, FeaturedDialog, ConfirmationDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { useModal, useConfirmation } from "@/hooks/useModal";
 import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
@@ -24,8 +24,8 @@ import { useApiError } from "@/hooks/useApiError";
 import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
 import { useAuth } from "@/hooks/useAuth";
 import { API_BASE_URL } from "@/lib/constants";
-import { ImageCarousel } from "@/components/shared/ui/image-carousel";
-import { Dialog, DialogContent, DialogTitle } from "@/components/shared/ui/dialog";
+import { ImageCarousel } from "@/components/shared/image-carousel";
+import { Dialog, DialogContent, DialogTitle } from "@/components/shared/RadixDialog";
 
 export default function CustomersPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);

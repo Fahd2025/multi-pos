@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import ReportViewer from "@/components/reports/ReportViewer";
+import ReportViewer from "@/components/branch/reports/ReportViewer";
 import reportService, {
   SalesReport,
   InventoryReport,

@@ -10,13 +10,13 @@ import Link from "next/link";
 import { use } from "react";
 import branchService, { BranchDto } from "@/services/branch.service";
 import { BranchFormModal } from "@/components/head-office/BranchFormModal";
-import { DataTable } from "@/components/data-table";
+import { DataTable } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
 import { useConfirmation } from "@/hooks/useModal";
-import { ConfirmationDialog } from "@/components/modals";
-import { ImageCarousel } from "@/components/shared/ui/image-carousel";
-import { Dialog, DialogContent, DialogTitle } from "@/components/shared/ui/dialog";
+import { ConfirmationDialog } from "@/components/shared";
+import { ImageCarousel } from "@/components/shared/image-carousel";
+import { Dialog, DialogContent, DialogTitle } from "@/components/shared/RadixDialog";
 import { API_BASE_URL } from "@/lib/constants";
 
 export default function BranchesManagementPage({

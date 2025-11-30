@@ -11,7 +11,7 @@ import Link from "next/link";
 import expenseService from "@/services/expense.service";
 import { ExpenseCategoryDto } from "@/types/api.types";
 import { Button } from "@/components/shared/Button";
-import { DataTable } from "@/components/data-table";
+import { DataTable } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { DataTableColumn } from "@/types/data-table.types";
 

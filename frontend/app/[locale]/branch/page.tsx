@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import salesService from "@/services/sales.service";
 import inventoryService from "@/services/inventory.service";
 import { SalesStatsDto } from "@/types/api.types";
+import { LoadingSpinner, ErrorAlert, StatCard, ActionCard, PageHeader, Button } from "@/components/shared";
 
 export default function BranchHomePage({ params }: { params: Promise<{ locale: string }> }) {
   const router = useRouter();
@@ -83,211 +84,131 @@ export default function BranchHomePage({ params }: { params: Promise<{ locale: s
   if (isLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
-        </div>
+        <LoadingSpinner size="lg" text="Loading dashboard..." />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-        <h3 className="text-red-800 font-medium">Error Loading Dashboard</h3>
-        <p className="text-red-600 mt-2">{error}</p>
-        <button
-          onClick={loadStats}
-          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-        >
+      <div className="space-y-4">
+        <ErrorAlert message={error} />
+        <Button onClick={loadStats} variant="primary">
           Retry
-        </button>
+        </Button>
       </div>
     );
   }
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Branch Dashboard</h1>
-          <p className="text-gray-600 mt-1">Welcome back, {user?.fullNameEn || user?.username}</p>
-        </div>
-        <button
-          onClick={() => router.push(`/${locale}/branch/sales`)}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm"
-        >
-          💳 New Sale
-        </button>
-      </div>
+      <PageHeader
+        title="Branch Dashboard"
+        description={`Welcome back, ${user?.fullNameEn || user?.username}`}
+        actions={
+          <Button
+            onClick={() => router.push(`/${locale}/branch/sales`)}
+            variant="primary"
+            size="lg"
+          >
+            💳 New Sale
+          </Button>
+        }
+        className="mb-6"
+      />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* Today's Sales */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 font-medium">Today's Sales</p>
-              <p className="text-2xl font-bold text-gray-900 mt-2">
-                ${stats?.todayRevenue?.toFixed(2) || "0.00"}
-              </p>
-              <p className="text-sm text-gray-500 mt-1">{stats?.todaySales || 0} transactions</p>
-            </div>
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-              <span className="text-2xl">💵</span>
-            </div>
-          </div>
-        </div>
+        <StatCard
+          title="Today's Sales"
+          value={`$${stats?.todayRevenue?.toFixed(2) || "0.00"}`}
+          description={`${stats?.todaySales || 0} transactions`}
+          icon="💵"
+          iconBgColor="bg-green-100 dark:bg-green-900/20"
+        />
 
-        {/* Total Sales (Month) */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 font-medium">This Month</p>
-              <p className="text-2xl font-bold text-gray-900 mt-2">
-                ${stats?.totalRevenue?.toFixed(2) || "0.00"}
-              </p>
-              <p className="text-sm text-gray-500 mt-1">{stats?.totalSales || 0} transactions</p>
-            </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <span className="text-2xl">📊</span>
-            </div>
-          </div>
-        </div>
+        <StatCard
+          title="This Month"
+          value={`$${stats?.totalRevenue?.toFixed(2) || "0.00"}`}
+          description={`${stats?.totalSales || 0} transactions`}
+          icon="📊"
+          iconBgColor="bg-blue-100 dark:bg-blue-900/20"
+        />
 
-        {/* Average Order Value */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 font-medium">Avg. Order Value</p>
-              <p className="text-2xl font-bold text-gray-900 mt-2">
-                ${stats?.averageOrderValue?.toFixed(2) || "0.00"}
-              </p>
-              <p className="text-sm text-gray-500 mt-1">per transaction</p>
-            </div>
-            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-              <span className="text-2xl">📈</span>
-            </div>
-          </div>
-        </div>
+        <StatCard
+          title="Avg. Order Value"
+          value={`$${stats?.averageOrderValue?.toFixed(2) || "0.00"}`}
+          description="per transaction"
+          icon="📈"
+          iconBgColor="bg-purple-100 dark:bg-purple-900/20"
+        />
 
-        {/* Top Products */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 font-medium">Top Product</p>
-              <p className="text-lg font-bold text-gray-900 mt-2 truncate">
-                {stats?.topProducts?.[0]?.productName || "No data"}
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                {stats?.topProducts?.[0]?.quantitySold || 0} sold
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-              <span className="text-2xl">🏆</span>
-            </div>
-          </div>
-        </div>
+        <StatCard
+          title="Top Product"
+          value={stats?.topProducts?.[0]?.productName || "No data"}
+          description={`${stats?.topProducts?.[0]?.quantitySold || 0} sold`}
+          icon="🏆"
+          iconBgColor="bg-orange-100 dark:bg-orange-900/20"
+          valueSize="md"
+        />
       </div>
 
       {/* Inventory Overview */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Inventory Status</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Inventory Status</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Low Stock Alert */}
-          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 font-medium">Low Stock Alerts</p>
-                <p className="text-2xl font-bold text-yellow-600 mt-2">{inventoryStats.lowStock}</p>
-                <p className="text-sm text-gray-500 mt-1">products need attention</p>
-              </div>
-              <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-                <span className="text-2xl">⚠️</span>
-              </div>
-            </div>
-          </div>
+          <StatCard
+            title="Low Stock Alerts"
+            value={inventoryStats.lowStock}
+            description="products need attention"
+            icon="⚠️"
+            iconBgColor="bg-yellow-100 dark:bg-yellow-900/20"
+            valueColor="text-yellow-600 dark:text-yellow-400"
+          />
 
-          {/* Total Products */}
-          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 font-medium">Total Products</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">
-                  {inventoryStats.totalProducts}
-                </p>
-                <p className="text-sm text-gray-500 mt-1">in inventory</p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                <span className="text-2xl">📦</span>
-              </div>
-            </div>
-          </div>
+          <StatCard
+            title="Total Products"
+            value={inventoryStats.totalProducts}
+            description="in inventory"
+            icon="📦"
+            iconBgColor="bg-green-100 dark:bg-green-900/20"
+          />
 
-          {/* Total Categories */}
-          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 font-medium">Categories</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">
-                  {inventoryStats.totalCategories}
-                </p>
-                <p className="text-sm text-gray-500 mt-1">product groups</p>
-              </div>
-              <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
-                <span className="text-2xl">🏷️</span>
-              </div>
-            </div>
-          </div>
+          <StatCard
+            title="Categories"
+            value={inventoryStats.totalCategories}
+            description="product groups"
+            icon="🏷️"
+            iconBgColor="bg-indigo-100 dark:bg-indigo-900/20"
+          />
         </div>
       </div>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <button
+        <ActionCard
+          title="Process Sale"
+          description="Create new transaction"
+          icon="💳"
+          iconBgColor="bg-blue-100 dark:bg-blue-900/20"
           onClick={() => router.push(`/${locale}/branch/sales`)}
-          className="bg-white border border-gray-200 rounded-lg p-6 hover:bg-gray-50 transition-colors text-left shadow-sm"
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">💳</span>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">Process Sale</h3>
-              <p className="text-sm text-gray-600 mt-1">Create new transaction</p>
-            </div>
-          </div>
-        </button>
+        />
 
-        <button
+        <ActionCard
+          title="Manage Inventory"
+          description="View and update stock"
+          icon="📦"
+          iconBgColor="bg-green-100 dark:bg-green-900/20"
           onClick={() => router.push(`/${locale}/branch/inventory`)}
-          className="bg-white border border-gray-200 rounded-lg p-6 hover:bg-gray-50 transition-colors text-left shadow-sm"
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">📦</span>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">Manage Inventory</h3>
-              <p className="text-sm text-gray-600 mt-1">View and update stock</p>
-            </div>
-          </div>
-        </button>
+        />
 
-        <button
+        <ActionCard
+          title="View Reports"
+          description="Analytics and insights"
+          icon="📈"
+          iconBgColor="bg-purple-100 dark:bg-purple-900/20"
           onClick={() => router.push(`/${locale}/branch/reports`)}
-          className="bg-white border border-gray-200 rounded-lg p-6 hover:bg-gray-50 transition-colors text-left shadow-sm"
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">📈</span>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">View Reports</h3>
-              <p className="text-sm text-gray-600 mt-1">Analytics and insights</p>
-            </div>
-          </div>
-        </button>
+        />
       </div>
     </div>
   );

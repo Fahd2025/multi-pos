@@ -1,357 +1,563 @@
 /**
  * DataTable Component
- * Reusable data table with sorting, filtering, and pagination
+ *
+ * A generic, reusable data table component with pagination, sorting, filtering, and row selection.
+ * Uses TypeScript generics to work with any data type while maintaining type safety.
+ *
+ * Features:
+ * - Customizable columns with optional render functions
+ * - Client-side sorting on sortable columns
+ * - Pagination with configurable page sizes
+ * - Row selection (single or multiple)
+ * - Custom row actions
+ * - Loading and empty states
+ * - Responsive design with Tailwind CSS
+ * - Full accessibility support
+ *
+ * @example
+ * ```tsx
+ * <DataTable
+ *   data={products}
+ *   columns={[
+ *     { key: 'name', label: 'Product Name', sortable: true },
+ *     { key: 'price', label: 'Price', render: (value) => `$${value}` }
+ *   ]}
+ *   actions={[
+ *     { label: 'Edit', onClick: (row) => handleEdit(row), variant: 'primary' },
+ *     { label: 'Delete', onClick: (row) => handleDelete(row), variant: 'danger' }
+ *   ]}
+ *   getRowKey={(row) => row.id}
+ *   pagination
+ *   sortable
+ * />
+ * ```
  */
 
-"use client";
+'use client';
 
-import React, { useState, useMemo } from 'react';
-import { Button, IconButton } from './Button';
-
-export interface Column<T> {
-  key: string;
-  header: string;
-  accessor?: (row: T) => any;
-  cell?: (row: T) => React.ReactNode;
-  sortable?: boolean;
-  width?: string;
-}
-
-export interface DataTableProps<T> {
-  data: T[];
-  columns: Column<T>[];
-  keyExtractor: (row: T) => string | number;
-  isLoading?: boolean;
-  emptyMessage?: string;
-  pageSize?: number;
-  showPagination?: boolean;
-  onRowClick?: (row: T) => void;
-  className?: string;
-}
+import React from 'react';
+import { DataTableProps } from '@/types/data-table.types';
+import { ExpansionTile, ExpansionTileDetail, ExpansionTileAction } from './ExpansionTile';
 
 export function DataTable<T>({
   data,
   columns,
-  keyExtractor,
-  isLoading = false,
+  actions = [],
+  loading = false,
+  pagination = true,
+  paginationConfig,
+  onPageChange,
+  onPageSizeChange,
+  sortable = true,
+  sortConfig,
+  onSortChange,
+  selectable = false,
+  selectedRows = new Set(),
+  onSelectionChange,
+  getRowKey,
   emptyMessage = 'No data available',
-  pageSize = 10,
-  showPagination = true,
-  onRowClick,
   className = '',
+  showRowNumbers = false,
+  imageColumn
 }: DataTableProps<T>) {
-  const [sortColumn, setSortColumn] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [currentPage, setCurrentPage] = useState(1);
 
-  // Sorting logic
-  const sortedData = useMemo(() => {
-    if (!sortColumn) return data;
+  // Handle sort click
+  const handleSort = (columnKey: keyof T | string) => {
+    if (!sortable || !onSortChange) return;
 
-    return [...data].sort((a, b) => {
-      const column = columns.find((col) => col.key === sortColumn);
-      if (!column) return 0;
-
-      const aValue = column.accessor ? column.accessor(a) : (a as any)[sortColumn];
-      const bValue = column.accessor ? column.accessor(b) : (b as any)[sortColumn];
-
-      if (aValue === bValue) return 0;
-
-      const comparison = aValue > bValue ? 1 : -1;
-      return sortDirection === 'asc' ? comparison : -comparison;
-    });
-  }, [data, sortColumn, sortDirection, columns]);
-
-  // Pagination logic
-  const totalPages = Math.ceil(sortedData.length / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedData = showPagination ? sortedData.slice(startIndex, endIndex) : sortedData;
-
-  // Handle sort
-  const handleSort = (columnKey: string) => {
-    if (sortColumn === columnKey) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    if (sortConfig?.key === columnKey) {
+      // Toggle direction
+      onSortChange({
+        key: columnKey,
+        direction: sortConfig.direction === 'asc' ? 'desc' : 'asc'
+      });
     } else {
-      setSortColumn(columnKey);
-      setSortDirection('asc');
+      // New sort
+      onSortChange({ key: columnKey, direction: 'asc' });
     }
   };
 
-  // Handle pagination
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+  // Handle select all
+  const handleSelectAll = () => {
+    if (!onSelectionChange) return;
+
+    if (selectedRows.size === data.length) {
+      // Deselect all
+      onSelectionChange(new Set());
+    } else {
+      // Select all
+      const allKeys = data.map(row => getRowKey(row));
+      onSelectionChange(new Set(allKeys));
+    }
   };
 
-  // Get cell value
-  const getCellValue = (row: T, column: Column<T>) => {
-    if (column.cell) {
-      return column.cell(row);
+  // Render sort icon
+  const renderSortIcon = (columnKey: keyof T | string) => {
+    if (sortConfig?.key !== columnKey) {
+      return (
+        <svg className="w-4 h-4 ml-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+        </svg>
+      );
     }
-    if (column.accessor) {
-      return column.accessor(row);
-    }
-    return (row as any)[column.key];
-  };
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="w-full bg-white rounded-lg shadow overflow-hidden">
-        <div className="animate-pulse">
-          <div className="h-12 bg-gray-200"></div>
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-16 bg-gray-100 border-t border-gray-200"></div>
-          ))}
-        </div>
-      </div>
+    return sortConfig.direction === 'asc' ? (
+      <svg className="w-4 h-4 ml-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+      </svg>
+    ) : (
+      <svg className="w-4 h-4 ml-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
     );
-  }
+  };
 
-  // Empty state
-  if (data.length === 0) {
-    return (
-      <div className="w-full bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              {columns.map((column) => (
-                <th
-                  key={column.key}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  style={{ width: column.width }}
-                >
-                  {column.header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-        </table>
-        <div className="text-center py-12">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-            />
-          </svg>
-          <p className="mt-2 text-sm text-gray-500">{emptyMessage}</p>
-        </div>
-      </div>
-    );
-  }
+  // Calculate pagination info
+  const totalPages = paginationConfig ? Math.ceil(paginationConfig.totalItems / paginationConfig.pageSize) : 0;
+  const startItem = paginationConfig ? paginationConfig.currentPage * paginationConfig.pageSize + 1 : 0;
+  const endItem = paginationConfig ? Math.min((paginationConfig.currentPage + 1) * paginationConfig.pageSize, paginationConfig.totalItems) : 0;
 
   return (
-    <div className={`w-full ${className}`}>
-      {/* Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            {/* Header */}
-            <thead className="bg-gray-50">
-              <tr>
-                {columns.map((column) => (
-                  <th
-                    key={column.key}
-                    className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                      column.sortable ? 'cursor-pointer select-none hover:bg-gray-100' : ''
-                    }`}
-                    style={{ width: column.width }}
-                    onClick={() => column.sortable && handleSort(column.key)}
+    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 ${className}`}>
+      {/* Mobile View - ExpansionTile (hidden on md and above) */}
+      <div className="md:hidden">
+        {/* Loading State */}
+        {loading && (
+          <div className="px-6 py-8 text-center">
+            <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
+              <span className="ml-3 text-gray-500 dark:text-gray-400">Loading...</span>
+            </div>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!loading && data.length === 0 && (
+          <div className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+            {emptyMessage}
+          </div>
+        )}
+
+        {/* Data as ExpansionTiles */}
+        {!loading && data.length > 0 && (
+          <div className="p-4 space-y-3">
+            {data.map((row, rowIndex) => {
+              const rowKey = getRowKey(row);
+              const currentPage = paginationConfig?.currentPage || 0;
+              const pageSize = paginationConfig?.pageSize || 20;
+              const rowNumber = showRowNumbers ? currentPage * pageSize + rowIndex + 1 : undefined;
+
+              // Build details array from columns
+              const details: ExpansionTileDetail[] = columns.map((column) => {
+                const value = (row as any)[column.key];
+                const content = column.render ? column.render(value, row) : value;
+                return {
+                  label: column.label,
+                  value: content,
+                };
+              });
+
+              // Build title and subtitle (use first two columns)
+              const titleColumn = columns[0];
+              const titleValue = titleColumn ? (row as any)[titleColumn.key] : '';
+              const title = typeof titleValue === 'string' ? titleValue : String(titleValue);
+
+              const subtitleColumn = columns[1];
+              const subtitleValue = subtitleColumn ? (row as any)[subtitleColumn.key] : '';
+              const subtitle = typeof subtitleValue === 'string' ? subtitleValue : String(subtitleValue);
+
+              // Build image URLs
+              let imageUrls: string[] = [];
+              if (imageColumn) {
+                const urls = imageColumn.getImageUrl(row);
+                imageUrls = Array.isArray(urls) ? urls : [urls];
+              }
+
+              // Build actions
+              const tileActions: ExpansionTileAction[] = actions
+                .filter((action) => !action.condition || action.condition(row))
+                .map((action) => ({
+                  label: action.label,
+                  onClick: () => action.onClick(row),
+                  variant: action.variant,
+                  icon: action.icon,
+                }));
+
+              // Get badge (look for status or similar column)
+              const statusColumn = columns.find(
+                (col) =>
+                  String(col.key).toLowerCase().includes('status') ||
+                  String(col.key).toLowerCase().includes('active')
+              );
+              const badge = statusColumn
+                ? statusColumn.render
+                  ? statusColumn.render((row as any)[statusColumn.key], row)
+                  : (row as any)[statusColumn.key]
+                : undefined;
+
+              return (
+                <ExpansionTile
+                  key={String(rowKey)}
+                  title={title}
+                  subtitle={columns.length > 1 ? subtitle : undefined}
+                  badge={badge}
+                  imageUrl={imageUrls.length > 0 ? imageUrls : undefined}
+                  imageAlt={imageColumn?.getAltText(row)}
+                  details={details}
+                  actions={tileActions}
+                  rowNumber={rowNumber}
+                  onImageClick={
+                    imageColumn?.onImageClick
+                      ? (images) => imageColumn.onImageClick?.(row, images)
+                      : undefined
+                  }
+                />
+              );
+            })}
+          </div>
+        )}
+
+        {/* Pagination for Mobile */}
+        {pagination && paginationConfig && onPageChange && totalPages > 0 && (
+          <div className="px-4 py-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex flex-col gap-3">
+              {/* Pagination Info */}
+              <p className="text-sm text-gray-700 dark:text-gray-300 text-center">
+                Showing <span className="font-medium">{startItem}</span> to{' '}
+                <span className="font-medium">{endItem}</span> of{' '}
+                <span className="font-medium">{paginationConfig.totalItems}</span> results
+              </p>
+
+              {/* Page Size Selector */}
+              {onPageSizeChange && (
+                <div className="flex items-center justify-center gap-2">
+                  <label htmlFor="page-size-mobile" className="text-sm text-gray-700 dark:text-gray-300">
+                    Per page:
+                  </label>
+                  <select
+                    id="page-size-mobile"
+                    value={paginationConfig.pageSize}
+                    onChange={(e) => onPageSizeChange(Number(e.target.value))}
+                    className="border border-gray-300 dark:border-gray-600 rounded px-3 py-1.5 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400"
                   >
-                    <div className="flex items-center gap-2">
-                      <span>{column.header}</span>
-                      {column.sortable && (
-                        <span className="flex flex-col">
-                          <svg
-                            className={`h-3 w-3 ${
-                              sortColumn === column.key && sortDirection === 'asc'
-                                ? 'text-blue-600'
-                                : 'text-gray-400'
-                            }`}
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" />
-                          </svg>
-                          <svg
-                            className={`h-3 w-3 -mt-1 ${
-                              sortColumn === column.key && sortDirection === 'desc'
-                                ? 'text-blue-600'
-                                : 'text-gray-400'
-                            }`}
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" />
-                          </svg>
-                        </span>
-                      )}
-                    </div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                </div>
+              )}
 
-            {/* Body */}
-            <tbody className="bg-white divide-y divide-gray-200">
-              {paginatedData.map((row) => (
-                <tr
-                  key={keyExtractor(row)}
-                  className={`${
-                    onRowClick
-                      ? 'cursor-pointer hover:bg-gray-50 transition-colors'
-                      : ''
-                  }`}
-                  onClick={() => onRowClick?.(row)}
-                >
-                  {columns.map((column) => (
-                    <td
-                      key={column.key}
-                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
-                    >
-                      {getCellValue(row, column)}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        {showPagination && totalPages > 1 && (
-          <div className="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
-            <div className="flex items-center justify-between">
-              {/* Results info */}
-              <div className="flex-1 flex justify-between sm:hidden">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
+              {/* Pagination Controls */}
+              <div className="flex items-center justify-between gap-3">
+                <button
+                  onClick={() => onPageChange(paginationConfig.currentPage - 1)}
+                  disabled={paginationConfig.currentPage === 0}
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                  aria-label="Previous page"
                 >
                   Previous
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
+                </button>
+
+                <span className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                  <span className="font-medium">{paginationConfig.currentPage + 1}</span> /{' '}
+                  <span className="font-medium">{totalPages}</span>
+                </span>
+
+                <button
+                  onClick={() => onPageChange(paginationConfig.currentPage + 1)}
+                  disabled={paginationConfig.currentPage >= totalPages - 1}
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                  aria-label="Next page"
                 >
                   Next
-                </Button>
-              </div>
-              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm text-gray-700">
-                    Showing{' '}
-                    <span className="font-medium">{startIndex + 1}</span> to{' '}
-                    <span className="font-medium">
-                      {Math.min(endIndex, sortedData.length)}
-                    </span>{' '}
-                    of <span className="font-medium">{sortedData.length}</span> results
-                  </p>
-                </div>
-                <div>
-                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                    {/* Previous button */}
-                    <IconButton
-                      icon={
-                        <svg
-                          className="h-5 w-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 19l-7-7 7-7"
-                          />
-                        </svg>
-                      }
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      aria-label="Previous page"
-                      variant="secondary"
-                      className="rounded-l-md"
-                    />
-
-                    {/* Page numbers */}
-                    {[...Array(totalPages)].map((_, index) => {
-                      const page = index + 1;
-                      // Show first, last, current, and adjacent pages
-                      if (
-                        page === 1 ||
-                        page === totalPages ||
-                        Math.abs(page - currentPage) <= 1
-                      ) {
-                        return (
-                          <button
-                            key={page}
-                            onClick={() => handlePageChange(page)}
-                            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                              page === currentPage
-                                ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                            }`}
-                          >
-                            {page}
-                          </button>
-                        );
-                      }
-                      // Show ellipsis
-                      if (page === currentPage - 2 || page === currentPage + 2) {
-                        return (
-                          <span
-                            key={page}
-                            className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
-                          >
-                            ...
-                          </span>
-                        );
-                      }
-                      return null;
-                    })}
-
-                    {/* Next button */}
-                    <IconButton
-                      icon={
-                        <svg
-                          className="h-5 w-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 5l7 7-7 7"
-                          />
-                        </svg>
-                      }
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                      aria-label="Next page"
-                      variant="secondary"
-                      className="rounded-r-md"
-                    />
-                  </nav>
-                </div>
+                </button>
               </div>
             </div>
           </div>
         )}
       </div>
+
+      {/* Desktop View - Table (hidden on small screens, shown on md and above) */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full" role="table">
+          <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+            <tr role="row">
+              {/* Selection Column */}
+              {selectable && (
+                <th className="px-4 py-3 w-12" role="columnheader">
+                  <input
+                    type="checkbox"
+                    checked={data.length > 0 && selectedRows.size === data.length}
+                    onChange={handleSelectAll}
+                    className="w-4 h-4 text-blue-600 dark:text-blue-400 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                    aria-label="Select all rows"
+                  />
+                </th>
+              )}
+
+              {/* Row Number Column */}
+              {showRowNumbers && (
+                <th className="px-4 py-3 w-16 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider" role="columnheader">
+                  #
+                </th>
+              )}
+
+              {/* Image Column */}
+              {imageColumn && (
+                <th className="px-4 py-3 w-20 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider" role="columnheader">
+                  Image
+                </th>
+              )}
+
+              {/* Data Columns */}
+              {columns.map((column) => (
+                <th
+                  key={String(column.key)}
+                  className={`px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider ${column.className || ''}`}
+                  style={{ width: column.width }}
+                  role="columnheader"
+                  aria-sort={sortConfig?.key === column.key ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
+                >
+                  {column.sortable !== false && sortable ? (
+                    <button
+                      onClick={() => handleSort(column.key)}
+                      className="flex items-center hover:text-gray-900 dark:hover:text-gray-100 focus:outline-none focus:text-gray-900 dark:focus:text-gray-100 transition-colors"
+                      aria-label={`Sort by ${column.label}`}
+                    >
+                      {column.label}
+                      {renderSortIcon(column.key)}
+                    </button>
+                  ) : (
+                    <span>{column.label}</span>
+                  )}
+                </th>
+              ))}
+
+              {/* Actions Column */}
+              {actions.length > 0 && (
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider" role="columnheader">
+                  Actions
+                </th>
+              )}
+            </tr>
+          </thead>
+
+          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            {/* Loading State */}
+            {loading && (
+              <tr>
+                <td colSpan={columns.length + (selectable ? 1 : 0) + (showRowNumbers ? 1 : 0) + (imageColumn ? 1 : 0) + (actions.length > 0 ? 1 : 0)} className="px-6 py-8 text-center">
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
+                    <span className="ml-3 text-gray-500 dark:text-gray-400">Loading...</span>
+                  </div>
+                </td>
+              </tr>
+            )}
+
+            {/* Empty State */}
+            {!loading && data.length === 0 && (
+              <tr>
+                <td colSpan={columns.length + (selectable ? 1 : 0) + (showRowNumbers ? 1 : 0) + (imageColumn ? 1 : 0) + (actions.length > 0 ? 1 : 0)} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                  {emptyMessage}
+                </td>
+              </tr>
+            )}
+
+            {/* Data Rows */}
+            {!loading && data.map((row, rowIndex) => {
+              const rowKey = getRowKey(row);
+              const isSelected = selectedRows.has(rowKey);
+              const currentPage = paginationConfig?.currentPage || 0;
+              const pageSize = paginationConfig?.pageSize || 20;
+              const rowNumber = currentPage * pageSize + rowIndex + 1;
+
+              return (
+                <tr
+                  key={String(rowKey)}
+                  className={`hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${isSelected ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+                  role="row"
+                  aria-selected={isSelected}
+                >
+                  {/* Selection Cell */}
+                  {selectable && onSelectionChange && (
+                    <td className="px-4 py-4" role="cell">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => {
+                          const newSet = new Set(selectedRows);
+                          if (isSelected) {
+                            newSet.delete(rowKey);
+                          } else {
+                            newSet.add(rowKey);
+                          }
+                          onSelectionChange(newSet);
+                        }}
+                        className="w-4 h-4 text-blue-600 dark:text-blue-400 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                        aria-label={`Select row ${rowKey}`}
+                      />
+                    </td>
+                  )}
+
+                  {/* Row Number Cell */}
+                  {showRowNumbers && (
+                    <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400" role="cell">
+                      {rowNumber}
+                    </td>
+                  )}
+
+                  {/* Image Cell */}
+                  {imageColumn && (() => {
+                    const imageUrls = imageColumn.getImageUrl(row);
+                    const images = Array.isArray(imageUrls) ? imageUrls : [imageUrls];
+                    const firstImage = images[0];
+                    const hasMultipleImages = images.length > 1;
+                    const imageSize = imageColumn.size || 64;
+
+                    return (
+                      <td className="px-4 py-4" role="cell">
+                        <div className="relative" style={{ width: imageSize, height: imageSize }}>
+                          {firstImage ? (
+                            <div
+                              className={`w-full h-full relative ${imageColumn.onImageClick ? 'cursor-pointer' : ''}`}
+                              onClick={() => imageColumn.onImageClick?.(row, images)}
+                            >
+                              <img
+                                src={firstImage}
+                                alt={imageColumn.getAltText(row)}
+                                className="w-full h-full object-cover rounded border border-gray-200"
+                              />
+                              {hasMultipleImages && (
+                                <div className="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">
+                                  +{images.length - 1}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="w-full h-full bg-gray-100 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 flex items-center justify-center text-gray-400 dark:text-gray-500 text-xs">
+                              No Image
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    );
+                  })()}
+
+                  {/* Data Cells */}
+                  {columns.map((column) => {
+                    const value = (row as any)[column.key];
+                    const content = column.render ? column.render(value, row) : value;
+
+                    return (
+                      <td
+                        key={String(column.key)}
+                        className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 ${column.className || ''}`}
+                        role="cell"
+                      >
+                        {content}
+                      </td>
+                    );
+                  })}
+
+                  {/* Actions Cell */}
+                  {actions.length > 0 && (
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" role="cell">
+                      <div className="flex items-center justify-end gap-2">
+                        {actions.map((action, index) => {
+                          // Check if action should be shown
+                          if (action.condition && !action.condition(row)) {
+                            return null;
+                          }
+
+                          const variantClasses = {
+                            primary: 'text-blue-600 hover:text-blue-900',
+                            secondary: 'text-gray-600 hover:text-gray-900',
+                            danger: 'text-red-600 hover:text-red-900',
+                            success: 'text-green-600 hover:text-green-900'
+                          };
+
+                          return (
+                            <button
+                              key={index}
+                              onClick={() => action.onClick(row)}
+                              className={`${variantClasses[action.variant || 'primary']} hover:underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded px-2 py-1 transition-colors`}
+                              aria-label={`${action.label} row ${rowKey}`}
+                            >
+                              {action.icon && <span className="mr-1">{action.icon}</span>}
+                              {action.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      {pagination && paginationConfig && onPageChange && totalPages > 0 && (
+        <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+          {/* Pagination Info */}
+          <div className="flex items-center gap-4">
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              Showing <span className="font-medium">{startItem}</span> to <span className="font-medium">{endItem}</span> of{' '}
+              <span className="font-medium">{paginationConfig.totalItems}</span> results
+            </p>
+
+            {/* Page Size Selector */}
+            {onPageSizeChange && (
+              <div className="flex items-center gap-2">
+                <label htmlFor="page-size" className="text-sm text-gray-700 dark:text-gray-300">
+                  Per page:
+                </label>
+                <select
+                  id="page-size"
+                  value={paginationConfig.pageSize}
+                  onChange={(e) => onPageSizeChange(Number(e.target.value))}
+                  className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+            )}
+          </div>
+
+          {/* Pagination Controls */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onPageChange(paginationConfig.currentPage - 1)}
+              disabled={paginationConfig.currentPage === 0}
+              className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+              aria-label="Previous page"
+            >
+              Previous
+            </button>
+
+            <span className="text-sm text-gray-700 dark:text-gray-300">
+              Page <span className="font-medium">{paginationConfig.currentPage + 1}</span> of{' '}
+              <span className="font-medium">{totalPages}</span>
+            </span>
+
+            <button
+              onClick={() => onPageChange(paginationConfig.currentPage + 1)}
+              disabled={paginationConfig.currentPage >= totalPages - 1}
+              className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+              aria-label="Next page"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

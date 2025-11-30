@@ -9,7 +9,7 @@
 
 import React, { useState, useEffect } from "react";
 import { use } from "react";
-import { DataTable } from "@/components/data-table";
+import { DataTable } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { DataTableColumn } from "@/types/data-table.types";
 import { AuditLogDto, getAuditLogs } from "@/services/user.service";

@@ -10,20 +10,20 @@ import { use } from "react";
 import Link from "next/link";
 import expenseService from "@/services/expense.service";
 import { ExpenseDto, ExpenseCategoryDto } from "@/types/api.types";
-import ExpenseFormModal from "@/components/expenses/ExpenseFormModal";
-import { ConfirmationDialog } from "@/components/modals";
+import ExpenseFormModal from "@/components/branch/expenses/ExpenseFormModal";
+import { ConfirmationDialog } from "@/components/shared";
 import { useConfirmation } from "@/hooks/useModal";
 import { Button } from "@/components/shared/Button";
 import { StatusBadge, getApprovalStatusVariant } from "@/components/shared/StatusBadge";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { ErrorAlert } from "@/components/shared/ErrorAlert";
-import { DataTable } from "@/components/data-table";
+import { DataTable } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
 import { useAuth } from "@/hooks/useAuth";
 import { API_BASE_URL } from "@/lib/constants";
-import { ImageCarousel } from "@/components/shared/ui/image-carousel";
-import { Dialog, DialogContent, DialogTitle } from "@/components/shared/ui/dialog";
+import { ImageCarousel } from "@/components/shared/image-carousel";
+import { Dialog, DialogContent, DialogTitle } from "@/components/shared/RadixDialog";
 
 export default function ExpensesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);

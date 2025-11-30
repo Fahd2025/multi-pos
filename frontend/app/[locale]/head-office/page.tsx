@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { use } from 'react';
 import branchService, { BranchDto } from '@/services/branch.service';
+import { LoadingSpinner, ErrorAlert, StatCard, ActionCard, PageHeader, Button } from '@/components/shared';
 
 interface DashboardStats {
   totalBranches: number;
@@ -72,111 +73,74 @@ export default function HeadOfficeDashboard({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading dashboard...</p>
-        </div>
+        <LoadingSpinner size="lg" text="Loading dashboard..." />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-        <p className="text-red-800 dark:text-red-400">{error}</p>
-        <button
-          onClick={loadDashboardData}
-          className="mt-2 text-sm text-red-600 dark:text-red-400 hover:underline"
-        >
+      <div className="space-y-4">
+        <ErrorAlert message={error} />
+        <Button onClick={loadDashboardData} variant="primary">
           Try Again
-        </button>
+        </Button>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-          Head Office Dashboard
-        </h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
-          Overview of all branches and key metrics
-        </p>
-      </div>
+      <PageHeader
+        title="Head Office Dashboard"
+        description="Overview of all branches and key metrics"
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Total Branches */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Branches</p>
-              <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
-                {stats.totalBranches}
-              </p>
-            </div>
-            <div className="text-4xl">🏢</div>
-          </div>
-          <div className="mt-4 flex items-center text-sm">
-            <span className="text-green-600 dark:text-green-400 font-medium">
-              {stats.activeBranches} Active
-            </span>
-            <span className="mx-2 text-gray-400">•</span>
-            <span className="text-gray-600 dark:text-gray-400">
-              {stats.inactiveBranches} Inactive
-            </span>
-          </div>
-        </div>
+        <StatCard
+          title="Total Branches"
+          value={stats.totalBranches}
+          icon="🏢"
+          valueSize="lg"
+          footer={
+            <>
+              <span className="text-green-600 dark:text-green-400 font-medium">
+                {stats.activeBranches} Active
+              </span>
+              <span className="mx-2 text-gray-400">•</span>
+              <span className="text-gray-600 dark:text-gray-400">
+                {stats.inactiveBranches} Inactive
+              </span>
+            </>
+          }
+        />
 
-        {/* Active Branches */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Active Branches</p>
-              <p className="mt-2 text-3xl font-bold text-green-600 dark:text-green-400">
-                {stats.activeBranches}
-              </p>
-            </div>
-            <div className="text-4xl">✅</div>
-          </div>
-          <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-            Currently operational
-          </div>
-        </div>
+        <StatCard
+          title="Active Branches"
+          value={stats.activeBranches}
+          description="Currently operational"
+          icon="✅"
+          valueColor="text-green-600 dark:text-green-400"
+          valueSize="lg"
+        />
 
-        {/* Total Users */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Users</p>
-              <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
-                {stats.totalUsers}
-              </p>
-            </div>
-            <div className="text-4xl">👥</div>
-          </div>
-          <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-            Across all branches
-          </div>
-        </div>
+        <StatCard
+          title="Total Users"
+          value={stats.totalUsers}
+          description="Across all branches"
+          icon="👥"
+          valueSize="lg"
+        />
 
-        {/* System Status */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">System Status</p>
-              <p className="mt-2 text-3xl font-bold text-green-600 dark:text-green-400">
-                Healthy
-              </p>
-            </div>
-            <div className="text-4xl">💚</div>
-          </div>
-          <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-            All systems operational
-          </div>
-        </div>
+        <StatCard
+          title="System Status"
+          value="Healthy"
+          description="All systems operational"
+          icon="💚"
+          valueColor="text-green-600 dark:text-green-400"
+          valueSize="lg"
+        />
       </div>
 
       {/* Recent Branches */}
@@ -237,44 +201,35 @@ export default function HeadOfficeDashboard({
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Link
+        <ActionCard
+          title="Manage Branches"
+          description="Create, edit, and configure branches"
+          icon="🏢"
+          bgColor="bg-blue-50 dark:bg-blue-900/20"
+          hoverBorderColor="border-blue-500"
+          layout="vertical"
           href={`/${locale}/head-office/branches`}
-          className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-        >
-          <div className="text-3xl mb-3">🏢</div>
-          <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
-            Manage Branches
-          </h3>
-          <p className="text-sm text-blue-700 dark:text-blue-300">
-            Create, edit, and configure branches
-          </p>
-        </Link>
+        />
 
-        <Link
+        <ActionCard
+          title="Manage Users"
+          description="Add users and assign roles"
+          icon="👥"
+          bgColor="bg-purple-50 dark:bg-purple-900/20"
+          hoverBorderColor="border-purple-500"
+          layout="vertical"
           href={`/${locale}/head-office/users`}
-          className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-6 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
-        >
-          <div className="text-3xl mb-3">👥</div>
-          <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-100 mb-2">
-            Manage Users
-          </h3>
-          <p className="text-sm text-purple-700 dark:text-purple-300">
-            Add users and assign roles
-          </p>
-        </Link>
+        />
 
-        <Link
+        <ActionCard
+          title="View Analytics"
+          description="Multi-branch performance reports"
+          icon="📈"
+          bgColor="bg-green-50 dark:bg-green-900/20"
+          hoverBorderColor="border-green-500"
+          layout="vertical"
           href={`/${locale}/head-office/analytics`}
-          className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
-        >
-          <div className="text-3xl mb-3">📈</div>
-          <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-2">
-            View Analytics
-          </h3>
-          <p className="text-sm text-green-700 dark:text-green-300">
-            Multi-branch performance reports
-          </p>
-        </Link>
+        />
       </div>
     </div>
   );

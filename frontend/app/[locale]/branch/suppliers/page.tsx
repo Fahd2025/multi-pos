@@ -9,18 +9,18 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { DataTable } from "@/components/data-table";
-import { FeaturedDialog, ConfirmationDialog } from "@/components/modals";
+import { DataTable } from "@/components/shared";
+import { FeaturedDialog, ConfirmationDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { useModal, useConfirmation } from "@/hooks/useModal";
 import { DataTableColumn, DataTableAction, DisplayField } from "@/types/data-table.types";
 import { SupplierDto } from "@/types/api.types";
 import supplierService from "@/services/supplier.service";
-import SupplierFormModal from "@/components/suppliers/SupplierFormModal";
+import SupplierFormModal from "@/components/branch/suppliers/SupplierFormModal";
 import { useAuth } from "@/hooks/useAuth";
 import { API_BASE_URL } from "@/lib/constants";
-import { ImageCarousel } from "@/components/shared/ui/image-carousel";
-import { Dialog, DialogContent, DialogTitle } from "@/components/shared/ui/dialog";
+import { ImageCarousel } from "@/components/shared/image-carousel";
+import { Dialog, DialogContent, DialogTitle } from "@/components/shared/RadixDialog";
 
 export default function SuppliersPage() {
   const params = useParams();

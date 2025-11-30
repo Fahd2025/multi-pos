@@ -10,21 +10,26 @@ import { use } from "react";
 import inventoryService from "@/services/inventory.service";
 import { ProductDto, CategoryDto } from "@/types/api.types";
 import Link from "next/link";
-import StockAdjustmentModal from "@/components/inventory/StockAdjustmentModal";
-import { DataTable } from "@/components/data-table";
-import { ConfirmationDialog } from "@/components/modals";
+import StockAdjustmentModal from "@/components/branch/inventory/StockAdjustmentModal";
+import { DataTable } from "@/components/shared";
+import { ConfirmationDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { useConfirmation } from "@/hooks/useModal";
 import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
-import { Button } from "@/components/shared/Button";
-import { StatusBadge, getStockStatusVariant } from "@/components/shared/StatusBadge";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import {
+  Button,
+  StatusBadge,
+  getStockStatusVariant,
+  LoadingSpinner,
+  StatCard,
+  PageHeader,
+} from "@/components/shared";
 import { useApiError } from "@/hooks/useApiError";
 import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
-import ProductFormModalWithImages from "@/components/inventory/ProductFormModalWithImages";
+import ProductFormModalWithImages from "@/components/branch/inventory/ProductFormModalWithImages";
 import { useAuth } from "@/hooks/useAuth";
-import { ImageCarousel } from "@/components/shared/ui/image-carousel";
-import { Dialog, DialogContent, DialogTitle } from "@/components/shared/ui/dialog";
+import { ImageCarousel } from "@/components/shared/image-carousel";
+import { Dialog, DialogContent, DialogTitle } from "@/components/shared/RadixDialog";
 import { API_BASE_URL } from "@/lib/constants";
 
 export default function InventoryPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -258,34 +263,29 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Inventory Management
-          </h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Manage products, categories, and stock levels
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <Link href={`/${locale}/branch/inventory/categories`}>
-            <Button variant="secondary" size="md">
-              📁 Manage Categories
+      <PageHeader
+        title="Inventory Management"
+        description="Manage products, categories, and stock levels"
+        actions={
+          <>
+            <Link href={`/${locale}/branch/inventory/categories`}>
+              <Button variant="secondary" size="md">
+                📁 Manage Categories
+              </Button>
+            </Link>
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => {
+                setSelectedProduct(undefined);
+                setIsProductModalOpen(true);
+              }}
+            >
+              ➕ Add Product
             </Button>
-          </Link>
-          <Button
-            variant="primary"
-            size="md"
-            onClick={() => {
-              setSelectedProduct(undefined);
-              setIsProductModalOpen(true);
-            }}
-          >
-            ➕ Add Product
-          </Button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Filters */}
       <div className=" p-4 rounded-lg shadow-sm border border-gray-200">
@@ -389,26 +389,23 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="text-sm text-gray-600">Total Products</div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">{products.length}</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="text-sm text-gray-600">Low Stock Alerts</div>
-          <div className="text-2xl font-bold text-yellow-600 mt-1">
-            {products.filter((p) => p.stockLevel > 0 && p.stockLevel <= p.minStockThreshold).length}
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="text-sm text-gray-600">Out of Stock</div>
-          <div className="text-2xl font-bold text-red-600 mt-1">
-            {products.filter((p) => p.stockLevel <= 0).length}
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="text-sm text-gray-600">Categories</div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">{categories.length}</div>
-        </div>
+        <StatCard title="Total Products" value={products.length} />
+
+        <StatCard
+          title="Low Stock Alerts"
+          value={
+            products.filter((p) => p.stockLevel > 0 && p.stockLevel <= p.minStockThreshold).length
+          }
+          valueColor="text-yellow-600 dark:text-yellow-400"
+        />
+
+        <StatCard
+          title="Out of Stock"
+          value={products.filter((p) => p.stockLevel <= 0).length}
+          valueColor="text-red-600 dark:text-red-400"
+        />
+
+        <StatCard title="Categories" value={categories.length} />
       </div>
 
       {/* Modals */}
