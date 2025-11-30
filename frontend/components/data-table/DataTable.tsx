@@ -37,6 +37,7 @@
 
 import React from 'react';
 import { DataTableProps } from '@/types/data-table.types';
+import { ExpansionTile, ExpansionTileDetail, ExpansionTileAction } from './ExpansionTile';
 
 export function DataTable<T>({
   data,
@@ -118,8 +119,167 @@ export function DataTable<T>({
 
   return (
     <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>
-      {/* Table Container */}
-      <div className="overflow-x-auto">
+      {/* Mobile View - ExpansionTile (hidden on md and above) */}
+      <div className="md:hidden">
+        {/* Loading State */}
+        {loading && (
+          <div className="px-6 py-8 text-center">
+            <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-3 text-gray-500">Loading...</span>
+            </div>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!loading && data.length === 0 && (
+          <div className="px-6 py-8 text-center text-gray-500">
+            {emptyMessage}
+          </div>
+        )}
+
+        {/* Data as ExpansionTiles */}
+        {!loading && data.length > 0 && (
+          <div className="p-4 space-y-3">
+            {data.map((row, rowIndex) => {
+              const rowKey = getRowKey(row);
+              const currentPage = paginationConfig?.currentPage || 0;
+              const pageSize = paginationConfig?.pageSize || 20;
+              const rowNumber = showRowNumbers ? currentPage * pageSize + rowIndex + 1 : undefined;
+
+              // Build details array from columns
+              const details: ExpansionTileDetail[] = columns.map((column) => {
+                const value = (row as any)[column.key];
+                const content = column.render ? column.render(value, row) : value;
+                return {
+                  label: column.label,
+                  value: content,
+                };
+              });
+
+              // Build title and subtitle (use first two columns)
+              const titleColumn = columns[0];
+              const titleValue = titleColumn ? (row as any)[titleColumn.key] : '';
+              const title = typeof titleValue === 'string' ? titleValue : String(titleValue);
+
+              const subtitleColumn = columns[1];
+              const subtitleValue = subtitleColumn ? (row as any)[subtitleColumn.key] : '';
+              const subtitle = typeof subtitleValue === 'string' ? subtitleValue : String(subtitleValue);
+
+              // Build image URLs
+              let imageUrls: string[] = [];
+              if (imageColumn) {
+                const urls = imageColumn.getImageUrl(row);
+                imageUrls = Array.isArray(urls) ? urls : [urls];
+              }
+
+              // Build actions
+              const tileActions: ExpansionTileAction[] = actions
+                .filter((action) => !action.condition || action.condition(row))
+                .map((action) => ({
+                  label: action.label,
+                  onClick: () => action.onClick(row),
+                  variant: action.variant,
+                  icon: action.icon,
+                }));
+
+              // Get badge (look for status or similar column)
+              const statusColumn = columns.find(
+                (col) =>
+                  String(col.key).toLowerCase().includes('status') ||
+                  String(col.key).toLowerCase().includes('active')
+              );
+              const badge = statusColumn
+                ? statusColumn.render
+                  ? statusColumn.render((row as any)[statusColumn.key], row)
+                  : (row as any)[statusColumn.key]
+                : undefined;
+
+              return (
+                <ExpansionTile
+                  key={String(rowKey)}
+                  title={title}
+                  subtitle={columns.length > 1 ? subtitle : undefined}
+                  badge={badge}
+                  imageUrl={imageUrls.length > 0 ? imageUrls : undefined}
+                  imageAlt={imageColumn?.getAltText(row)}
+                  details={details}
+                  actions={tileActions}
+                  rowNumber={rowNumber}
+                  onImageClick={
+                    imageColumn?.onImageClick
+                      ? (images) => imageColumn.onImageClick?.(row, images)
+                      : undefined
+                  }
+                />
+              );
+            })}
+          </div>
+        )}
+
+        {/* Pagination for Mobile */}
+        {pagination && paginationConfig && onPageChange && totalPages > 0 && (
+          <div className="px-4 py-4 border-t border-gray-200">
+            <div className="flex flex-col gap-3">
+              {/* Pagination Info */}
+              <p className="text-sm text-gray-700 text-center">
+                Showing <span className="font-medium">{startItem}</span> to{' '}
+                <span className="font-medium">{endItem}</span> of{' '}
+                <span className="font-medium">{paginationConfig.totalItems}</span> results
+              </p>
+
+              {/* Page Size Selector */}
+              {onPageSizeChange && (
+                <div className="flex items-center justify-center gap-2">
+                  <label htmlFor="page-size-mobile" className="text-sm text-gray-700">
+                    Per page:
+                  </label>
+                  <select
+                    id="page-size-mobile"
+                    value={paginationConfig.pageSize}
+                    onChange={(e) => onPageSizeChange(Number(e.target.value))}
+                    className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                </div>
+              )}
+
+              {/* Pagination Controls */}
+              <div className="flex items-center justify-between gap-3">
+                <button
+                  onClick={() => onPageChange(paginationConfig.currentPage - 1)}
+                  disabled={paginationConfig.currentPage === 0}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="Previous page"
+                >
+                  Previous
+                </button>
+
+                <span className="text-sm text-gray-700 whitespace-nowrap">
+                  <span className="font-medium">{paginationConfig.currentPage + 1}</span> /{' '}
+                  <span className="font-medium">{totalPages}</span>
+                </span>
+
+                <button
+                  onClick={() => onPageChange(paginationConfig.currentPage + 1)}
+                  disabled={paginationConfig.currentPage >= totalPages - 1}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="Next page"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop View - Table (hidden on small screens, shown on md and above) */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full" role="table">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr role="row">
