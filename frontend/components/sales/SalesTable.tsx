@@ -1,6 +1,7 @@
 /**
  * Sales Table Component
  * Display sales transactions with search, filters, and pagination
+ * Uses generic DataTable with ExpansionTile for mobile-friendly view
  */
 
 'use client';
@@ -10,6 +11,10 @@ import salesService, { GetSalesParams } from '@/services/sales.service';
 import { SaleDto } from '@/types/api.types';
 import { PaymentMethod, InvoiceType, getPaymentMethodName, getInvoiceTypeName } from '@/types/enums';
 import { useRouter } from 'next/navigation';
+import { DataTable } from '@/components/data-table';
+import { useDataTable } from '@/hooks/useDataTable';
+import { DataTableColumn, DataTableAction } from '@/types/data-table.types';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 
 interface SalesTableProps {
   onSaleSelect?: (sale: SaleDto) => void;
@@ -94,7 +99,117 @@ export default function SalesTable({ onSaleSelect, refreshTrigger }: SalesTableP
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    return date.toLocaleDateString();
+  };
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString();
+  };
+
+  // DataTable hook - convert 1-based page to 0-based for the hook
+  const {
+    paginationConfig,
+    handlePageChange: handleDataTablePageChange,
+  } = useDataTable(sales, {
+    pageSize,
+    sortable: false,
+    pagination: true,
+    serverSide: true,
+    totalItems,
+    currentPage: currentPage - 1, // Convert to 0-based
+  });
+
+  // Define table columns
+  const columns: DataTableColumn<SaleDto>[] = [
+    {
+      key: 'transactionId',
+      label: 'Transaction ID',
+      sortable: false,
+      render: (value, row) => (
+        <div className="cursor-pointer" onClick={() => handleRowClick(row)}>
+          <div className="text-sm font-medium text-blue-600 hover:underline">{value}</div>
+          {row.invoiceNumber && (
+            <div className="text-xs text-gray-500">{row.invoiceNumber}</div>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'saleDate',
+      label: 'Date',
+      sortable: false,
+      render: (value) => (
+        <div>
+          <div className="text-sm text-gray-900">{formatDate(value)}</div>
+          <div className="text-xs text-gray-500">{formatTime(value)}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'customerName',
+      label: 'Customer',
+      sortable: false,
+      render: (value) => (
+        <div className="text-sm text-gray-900">{value || 'Walk-in'}</div>
+      ),
+    },
+    {
+      key: 'total',
+      label: 'Total',
+      sortable: false,
+      render: (value, row) => (
+        <div>
+          <div className="text-sm font-semibold text-gray-900">
+            ${value.toFixed(2)}
+          </div>
+          <div className="text-xs text-gray-500">Tax: ${row.taxAmount.toFixed(2)}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'paymentMethod',
+      label: 'Payment',
+      sortable: false,
+      render: (value) => (
+        <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+          {getPaymentMethodName(value)}
+        </span>
+      ),
+    },
+    {
+      key: 'invoiceType',
+      label: 'Type',
+      sortable: false,
+      render: (value) => (
+        <span className="text-sm text-gray-600">{getInvoiceTypeName(value)}</span>
+      ),
+    },
+    {
+      key: 'isVoided',
+      label: 'Status',
+      sortable: false,
+      render: (value) =>
+        value ? (
+          <StatusBadge variant="danger">Voided</StatusBadge>
+        ) : (
+          <StatusBadge variant="success">Active</StatusBadge>
+        ),
+    },
+  ];
+
+  // Define row actions
+  const actions: DataTableAction<SaleDto>[] = [
+    {
+      label: 'View Details',
+      onClick: (row) => handleRowClick(row),
+      variant: 'primary',
+    },
+  ];
+
+  // Handle page change (convert from 0-based to 1-based)
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page + 1); // Convert back to 1-based
   };
 
   return (
@@ -229,147 +344,35 @@ export default function SalesTable({ onSaleSelect, refreshTrigger }: SalesTableP
         </p>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
-        {loading ? (
-          <div className="p-12 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600"></div>
-            <p className="mt-4 text-gray-600">Loading sales...</p>
-          </div>
-        ) : error ? (
-          <div className="p-12 text-center">
-            <span className="text-4xl">⚠️</span>
-            <h3 className="mt-4 text-lg font-semibold text-gray-900">Failed to load sales</h3>
-            <p className="mt-2 text-sm text-gray-600">{error}</p>
-            <button
-              onClick={fetchSales}
-              className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
-            >
-              Retry
-            </button>
-          </div>
-        ) : sales.length === 0 ? (
-          <div className="p-12 text-center">
-            <span className="text-6xl">📭</span>
-            <h3 className="mt-4 text-lg font-semibold text-gray-900">No sales found</h3>
-            <p className="mt-2 text-sm text-gray-600">Try adjusting your filters or search criteria</p>
-          </div>
-        ) : (
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Transaction ID
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                  Customer
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
-                  Payment
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
-                  Type
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {sales.map((sale) => (
-                <tr
-                  key={sale.id}
-                  onClick={() => handleRowClick(sale)}
-                  className="hover:bg-blue-50 cursor-pointer transition-colors touch-manipulation active:bg-blue-100"
-                >
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-blue-600">
-                      {sale.transactionId}
-                    </div>
-                    {sale.invoiceNumber && (
-                      <div className="text-xs text-gray-500">
-                        {sale.invoiceNumber}
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {new Date(sale.saleDate).toLocaleDateString()}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {new Date(sale.saleDate).toLocaleTimeString()}
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap hidden md:table-cell">
-                    <div className="text-sm text-gray-900">
-                      {sale.customerName || 'Walk-in'}
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="text-sm font-semibold text-gray-900">
-                      ${sale.total.toFixed(2)}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Tax: ${sale.taxAmount.toFixed(2)}
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap hidden lg:table-cell">
-                    <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                      {getPaymentMethodName(sale.paymentMethod)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap hidden lg:table-cell">
-                    <span className="text-sm text-gray-600">
-                      {getInvoiceTypeName(sale.invoiceType)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    {sale.isVoided ? (
-                      <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                        Voided
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                        Active
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {/* Pagination */}
-      {!loading && !error && sales.length > 0 && (
-        <div className="px-4 md:px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-sm text-gray-600">
-            Page {currentPage} of {totalPages}
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Previous
-            </button>
-            <button
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Next
-            </button>
-          </div>
+      {/* Error State */}
+      {error && (
+        <div className="p-12 text-center">
+          <span className="text-4xl">⚠️</span>
+          <h3 className="mt-4 text-lg font-semibold text-gray-900">Failed to load sales</h3>
+          <p className="mt-2 text-sm text-gray-600">{error}</p>
+          <button
+            onClick={fetchSales}
+            className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+          >
+            Retry
+          </button>
         </div>
+      )}
+
+      {/* DataTable with ExpansionTile for mobile */}
+      {!error && (
+        <DataTable
+          data={sales}
+          columns={columns}
+          actions={actions}
+          getRowKey={(row) => row.id}
+          loading={loading}
+          pagination
+          paginationConfig={paginationConfig}
+          onPageChange={handlePageChange}
+          emptyMessage="No sales found. Try adjusting your filters or search criteria."
+          showRowNumbers
+        />
       )}
     </div>
   );
