@@ -118,22 +118,22 @@ export function DataTable<T>({
   const endItem = paginationConfig ? Math.min((paginationConfig.currentPage + 1) * paginationConfig.pageSize, paginationConfig.totalItems) : 0;
 
   return (
-    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 ${className}`}>
       {/* Mobile View - ExpansionTile (hidden on md and above) */}
       <div className="md:hidden">
         {/* Loading State */}
         {loading && (
           <div className="px-6 py-8 text-center">
             <div className="flex items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-3 text-gray-500">Loading...</span>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
+              <span className="ml-3 text-gray-500 dark:text-gray-400">Loading...</span>
             </div>
           </div>
         )}
 
         {/* Empty State */}
         {!loading && data.length === 0 && (
-          <div className="px-6 py-8 text-center text-gray-500">
+          <div className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
             {emptyMessage}
           </div>
         )}
@@ -219,10 +219,10 @@ export function DataTable<T>({
 
         {/* Pagination for Mobile */}
         {pagination && paginationConfig && onPageChange && totalPages > 0 && (
-          <div className="px-4 py-4 border-t border-gray-200">
+          <div className="px-4 py-4 border-t border-gray-200 dark:border-gray-700">
             <div className="flex flex-col gap-3">
               {/* Pagination Info */}
-              <p className="text-sm text-gray-700 text-center">
+              <p className="text-sm text-gray-700 dark:text-gray-300 text-center">
                 Showing <span className="font-medium">{startItem}</span> to{' '}
                 <span className="font-medium">{endItem}</span> of{' '}
                 <span className="font-medium">{paginationConfig.totalItems}</span> results
@@ -231,14 +231,14 @@ export function DataTable<T>({
               {/* Page Size Selector */}
               {onPageSizeChange && (
                 <div className="flex items-center justify-center gap-2">
-                  <label htmlFor="page-size-mobile" className="text-sm text-gray-700">
+                  <label htmlFor="page-size-mobile" className="text-sm text-gray-700 dark:text-gray-300">
                     Per page:
                   </label>
                   <select
                     id="page-size-mobile"
                     value={paginationConfig.pageSize}
                     onChange={(e) => onPageSizeChange(Number(e.target.value))}
-                    className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="border border-gray-300 dark:border-gray-600 rounded px-3 py-1.5 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400"
                   >
                     <option value={10}>10</option>
                     <option value={25}>25</option>
@@ -253,13 +253,13 @@ export function DataTable<T>({
                 <button
                   onClick={() => onPageChange(paginationConfig.currentPage - 1)}
                   disabled={paginationConfig.currentPage === 0}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                   aria-label="Previous page"
                 >
                   Previous
                 </button>
 
-                <span className="text-sm text-gray-700 whitespace-nowrap">
+                <span className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
                   <span className="font-medium">{paginationConfig.currentPage + 1}</span> /{' '}
                   <span className="font-medium">{totalPages}</span>
                 </span>
@@ -267,7 +267,7 @@ export function DataTable<T>({
                 <button
                   onClick={() => onPageChange(paginationConfig.currentPage + 1)}
                   disabled={paginationConfig.currentPage >= totalPages - 1}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                   aria-label="Next page"
                 >
                   Next
@@ -281,7 +281,7 @@ export function DataTable<T>({
       {/* Desktop View - Table (hidden on small screens, shown on md and above) */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full" role="table">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
             <tr role="row">
               {/* Selection Column */}
               {selectable && (
@@ -290,7 +290,7 @@ export function DataTable<T>({
                     type="checkbox"
                     checked={data.length > 0 && selectedRows.size === data.length}
                     onChange={handleSelectAll}
-                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
+                    className="w-4 h-4 text-blue-600 dark:text-blue-400 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                     aria-label="Select all rows"
                   />
                 </th>
@@ -298,14 +298,14 @@ export function DataTable<T>({
 
               {/* Row Number Column */}
               {showRowNumbers && (
-                <th className="px-4 py-3 w-16 text-left text-xs font-medium text-gray-700 uppercase tracking-wider" role="columnheader">
+                <th className="px-4 py-3 w-16 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider" role="columnheader">
                   #
                 </th>
               )}
 
               {/* Image Column */}
               {imageColumn && (
-                <th className="px-4 py-3 w-20 text-left text-xs font-medium text-gray-700 uppercase tracking-wider" role="columnheader">
+                <th className="px-4 py-3 w-20 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider" role="columnheader">
                   Image
                 </th>
               )}
@@ -314,7 +314,7 @@ export function DataTable<T>({
               {columns.map((column) => (
                 <th
                   key={String(column.key)}
-                  className={`px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider ${column.className || ''}`}
+                  className={`px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider ${column.className || ''}`}
                   style={{ width: column.width }}
                   role="columnheader"
                   aria-sort={sortConfig?.key === column.key ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
@@ -322,7 +322,7 @@ export function DataTable<T>({
                   {column.sortable !== false && sortable ? (
                     <button
                       onClick={() => handleSort(column.key)}
-                      className="flex items-center hover:text-gray-900 focus:outline-none focus:text-gray-900 transition-colors"
+                      className="flex items-center hover:text-gray-900 dark:hover:text-gray-100 focus:outline-none focus:text-gray-900 dark:focus:text-gray-100 transition-colors"
                       aria-label={`Sort by ${column.label}`}
                     >
                       {column.label}
@@ -336,21 +336,21 @@ export function DataTable<T>({
 
               {/* Actions Column */}
               {actions.length > 0 && (
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider" role="columnheader">
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider" role="columnheader">
                   Actions
                 </th>
               )}
             </tr>
           </thead>
 
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {/* Loading State */}
             {loading && (
               <tr>
                 <td colSpan={columns.length + (selectable ? 1 : 0) + (showRowNumbers ? 1 : 0) + (imageColumn ? 1 : 0) + (actions.length > 0 ? 1 : 0)} className="px-6 py-8 text-center">
                   <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <span className="ml-3 text-gray-500">Loading...</span>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
+                    <span className="ml-3 text-gray-500 dark:text-gray-400">Loading...</span>
                   </div>
                 </td>
               </tr>
@@ -359,7 +359,7 @@ export function DataTable<T>({
             {/* Empty State */}
             {!loading && data.length === 0 && (
               <tr>
-                <td colSpan={columns.length + (selectable ? 1 : 0) + (showRowNumbers ? 1 : 0) + (imageColumn ? 1 : 0) + (actions.length > 0 ? 1 : 0)} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={columns.length + (selectable ? 1 : 0) + (showRowNumbers ? 1 : 0) + (imageColumn ? 1 : 0) + (actions.length > 0 ? 1 : 0)} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
                   {emptyMessage}
                 </td>
               </tr>
@@ -376,7 +376,7 @@ export function DataTable<T>({
               return (
                 <tr
                   key={String(rowKey)}
-                  className={`hover:bg-gray-50 transition-colors ${isSelected ? 'bg-blue-50' : ''}`}
+                  className={`hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${isSelected ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
                   role="row"
                   aria-selected={isSelected}
                 >
@@ -395,7 +395,7 @@ export function DataTable<T>({
                           }
                           onSelectionChange(newSet);
                         }}
-                        className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
+                        className="w-4 h-4 text-blue-600 dark:text-blue-400 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                         aria-label={`Select row ${rowKey}`}
                       />
                     </td>
@@ -403,7 +403,7 @@ export function DataTable<T>({
 
                   {/* Row Number Cell */}
                   {showRowNumbers && (
-                    <td className="px-4 py-4 text-sm text-gray-600" role="cell">
+                    <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400" role="cell">
                       {rowNumber}
                     </td>
                   )}
@@ -436,7 +436,7 @@ export function DataTable<T>({
                               )}
                             </div>
                           ) : (
-                            <div className="w-full h-full bg-gray-100 rounded border border-gray-200 flex items-center justify-center text-gray-400 text-xs">
+                            <div className="w-full h-full bg-gray-100 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 flex items-center justify-center text-gray-400 dark:text-gray-500 text-xs">
                               No Image
                             </div>
                           )}
@@ -453,7 +453,7 @@ export function DataTable<T>({
                     return (
                       <td
                         key={String(column.key)}
-                        className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${column.className || ''}`}
+                        className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 ${column.className || ''}`}
                         role="cell"
                       >
                         {content}
@@ -502,10 +502,10 @@ export function DataTable<T>({
 
       {/* Pagination */}
       {pagination && paginationConfig && onPageChange && totalPages > 0 && (
-        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+        <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
           {/* Pagination Info */}
           <div className="flex items-center gap-4">
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-gray-700 dark:text-gray-300">
               Showing <span className="font-medium">{startItem}</span> to <span className="font-medium">{endItem}</span> of{' '}
               <span className="font-medium">{paginationConfig.totalItems}</span> results
             </p>
@@ -513,14 +513,14 @@ export function DataTable<T>({
             {/* Page Size Selector */}
             {onPageSizeChange && (
               <div className="flex items-center gap-2">
-                <label htmlFor="page-size" className="text-sm text-gray-700">
+                <label htmlFor="page-size" className="text-sm text-gray-700 dark:text-gray-300">
                   Per page:
                 </label>
                 <select
                   id="page-size"
                   value={paginationConfig.pageSize}
                   onChange={(e) => onPageSizeChange(Number(e.target.value))}
-                  className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400"
                 >
                   <option value={10}>10</option>
                   <option value={25}>25</option>
@@ -536,13 +536,13 @@ export function DataTable<T>({
             <button
               onClick={() => onPageChange(paginationConfig.currentPage - 1)}
               disabled={paginationConfig.currentPage === 0}
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
               aria-label="Previous page"
             >
               Previous
             </button>
 
-            <span className="text-sm text-gray-700">
+            <span className="text-sm text-gray-700 dark:text-gray-300">
               Page <span className="font-medium">{paginationConfig.currentPage + 1}</span> of{' '}
               <span className="font-medium">{totalPages}</span>
             </span>
@@ -550,7 +550,7 @@ export function DataTable<T>({
             <button
               onClick={() => onPageChange(paginationConfig.currentPage + 1)}
               disabled={paginationConfig.currentPage >= totalPages - 1}
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
               aria-label="Next page"
             >
               Next
