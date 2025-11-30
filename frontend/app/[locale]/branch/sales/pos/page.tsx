@@ -13,6 +13,8 @@ import salesService from '@/services/sales.service';
 import CategorySidebar from '@/components/sales/pos/CategorySidebar';
 import ProductGrid from '@/components/sales/pos/ProductGrid';
 import ShoppingCart from '@/components/sales/pos/ShoppingCart';
+import MobileCart from '@/components/sales/pos/MobileCart';
+import MobileCartBar from '@/components/sales/pos/MobileCartBar';
 import CheckoutDialog from '@/components/sales/pos/CheckoutDialog';
 import InvoiceDisplay from '@/components/sales/InvoiceDisplay';
 import { CreateSaleDto, ProductDto, SaleDto } from '@/types/api.types';
@@ -30,6 +32,7 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isCartVisible, setIsCartVisible] = useState(true);
   const [isMobileCategoryOpen, setIsMobileCategoryOpen] = useState(false);
+  const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
 
   // Cart state
   const [lineItems, setLineItems] = useState<SaleLineItem[]>([]);
@@ -168,48 +171,89 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
   return (
     <div className="fixed inset-0 flex flex-col bg-gray-100">
       {/* Top Bar */}
-      <div className="bg-white border-b border-gray-200 shadow-sm z-10">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-4">
+      <div className="bg-white border-b border-gray-200 shadow-sm z-10 sticky top-0">
+        {/* Main Header Row */}
+        <div className="flex items-center justify-between px-3 sm:px-4 lg:px-6 py-3">
+          {/* Left: Back Button + Title */}
+          <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
             <button
               onClick={() => router.push('/branch/sales')}
-              className="p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all touch-manipulation active:scale-95 min-w-[48px] min-h-[48px] flex items-center justify-center"
+              className="
+                p-2 sm:p-3
+                text-gray-600
+                hover:text-gray-900
+                mouse:hover:bg-gray-100
+                rounded-lg
+                transition-all
+                touch-manipulation
+                active:scale-95
+                min-w-touch-target min-h-touch-target
+                flex items-center justify-center
+              "
+              aria-label="Go back to sales"
             >
-              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Point of Sale</h1>
+            <div className="hidden sm:block">
+              <h1 className="text-lg sm:text-xl font-bold text-gray-900">Point of Sale</h1>
               <p className="text-xs text-gray-600">
                 {isOnline ? '🟢 Online' : '🔴 Offline'}
               </p>
             </div>
           </div>
 
-          {/* Search Bar */}
-          <div className="flex-1 max-w-md mx-4">
+          {/* Center: Search Bar (Desktop only) */}
+          <div className="hidden md:flex flex-1 max-w-md mx-4">
             <input
-              type="text"
+              type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search products..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="
+                w-full
+                px-4 py-2.5
+                border-2 border-gray-300
+                rounded-xl
+                focus:ring-4 focus:ring-blue-200
+                focus:border-blue-500
+                transition-all
+                text-base
+              "
+              aria-label="Search products"
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Shopping Cart Toggle */}
+          {/* Right: Action Buttons */}
+          <div className="flex items-center gap-1 sm:gap-2">
+            {/* Shopping Cart Toggle (Desktop only - hidden on mobile) */}
             <button
               onClick={() => setIsCartVisible(!isCartVisible)}
-              className="relative p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all touch-manipulation active:scale-95 min-w-[48px] min-h-[48px] flex items-center justify-center"
+              className="
+                hidden md:flex
+                relative p-2 sm:p-3
+                text-gray-600
+                hover:text-gray-900
+                mouse:hover:bg-gray-100
+                rounded-lg
+                transition-all
+                touch-manipulation
+                active:scale-95
+                min-w-touch-target min-h-touch-target
+                items-center justify-center
+              "
               title={isCartVisible ? 'Hide cart' : 'Show cart'}
+              aria-label={`${isCartVisible ? 'Hide' : 'Show'} shopping cart`}
             >
-              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
               {lineItems.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1">
+                <span
+                  className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1"
+                  aria-label={`${lineItems.reduce((sum, item) => sum + item.quantity, 0)} items in cart`}
+                >
                   {lineItems.reduce((sum, item) => sum + item.quantity, 0)}
                 </span>
               )}
@@ -218,14 +262,47 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
             {/* Settings Button */}
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className="p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all touch-manipulation active:scale-95 min-w-[48px] min-h-[48px] flex items-center justify-center"
+              className="
+                p-2 sm:p-3
+                text-gray-600
+                hover:text-gray-900
+                mouse:hover:bg-gray-100
+                rounded-lg
+                transition-all
+                touch-manipulation
+                active:scale-95
+                min-w-touch-target min-h-touch-target
+                flex items-center justify-center
+              "
+              aria-label={`${showSettings ? 'Hide' : 'Show'} settings`}
             >
-              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </button>
           </div>
+        </div>
+
+        {/* Mobile Search Row */}
+        <div className="block md:hidden px-3 pb-3">
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search products..."
+            className="
+              w-full
+              px-4 py-3
+              border-2 border-gray-300
+              rounded-xl
+              focus:ring-4 focus:ring-blue-200
+              focus:border-blue-500
+              transition-all
+              text-base
+            "
+            aria-label="Search products"
+          />
         </div>
 
         {/* Settings Panel */}
@@ -478,6 +555,24 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
           }}
         />
       )}
+
+      {/* Mobile Cart Bottom Bar */}
+      <MobileCartBar
+        items={lineItems}
+        onClick={() => setIsMobileCartOpen(true)}
+      />
+
+      {/* Mobile Cart Sheet */}
+      <MobileCart
+        isOpen={isMobileCartOpen}
+        onClose={() => setIsMobileCartOpen(false)}
+        items={lineItems}
+        onUpdateQuantity={handleUpdateQuantity}
+        onRemoveItem={handleRemoveItem}
+        onCheckout={handleCheckout}
+        onClearCart={handleClearCart}
+        lastUpdatedIndex={lastUpdatedItemIndex}
+      />
     </div>
   );
 }
