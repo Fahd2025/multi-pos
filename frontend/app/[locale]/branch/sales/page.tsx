@@ -3,15 +3,15 @@
  * Comprehensive sales dashboard with statistics, transaction management, and quick actions
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import SalesStatistics from '@/components/sales/SalesStatistics';
-import SalesTable from '@/components/sales/SalesTable';
-import NewInvoiceModal from '@/components/sales/NewInvoiceModal';
-import ProductGridModal from '@/components/sales/ProductGridModal';
-import { ProductDto, SaleDto } from '@/types/api.types';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import SalesStatistics from "@/components/sales/SalesStatistics";
+import SalesTable from "@/components/sales/SalesTable";
+import NewInvoiceModal from "@/components/sales/NewInvoiceModal";
+import ProductGridModal from "@/components/sales/ProductGridModal";
+import { ProductDto, SaleDto } from "@/types/api.types";
 
 export default function SalesPage({ params }: { params: Promise<{ locale: string }> }) {
   const router = useRouter();
@@ -21,8 +21,8 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
   const [showProductGridModal, setShowProductGridModal] = useState(false);
 
   // Date filter states
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   // Refresh trigger for table
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -33,13 +33,13 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
   };
 
   const handleGoToPOS = () => {
-    router.push('/branch/sales/pos');
+    router.push("/branch/sales/pos");
   };
 
   const handleProductSelect = (product: ProductDto) => {
     // When product is selected from grid, go to POS with the product
     // For now, just navigate to POS
-    router.push('/branch/sales/pos');
+    router.push("/branch/sales/pos");
   };
 
   const handleDateFilterChange = () => {
@@ -48,18 +48,14 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+    <div>
+      <div>
         {/* Header */}
         <div className="mb-6 md:mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                Sales Management
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Track sales performance and manage transactions
-              </p>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Sales Management</h1>
+              <p className="text-gray-600 mt-1">Track sales performance and manage transactions</p>
             </div>
 
             {/* Action Buttons */}
@@ -87,9 +83,7 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
           <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  From Date
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">From Date</label>
                 <input
                   type="date"
                   value={dateFrom}
@@ -98,9 +92,7 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  To Date
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">To Date</label>
                 <input
                   type="date"
                   value={dateTo}
@@ -157,7 +149,7 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
           </button>
 
           <button
-            onClick={() => router.push('/branch/reports')}
+            onClick={() => router.push("/branch/reports")}
             className="bg-white border-2 border-gray-200 hover:border-orange-500 rounded-lg p-4 md:p-5 text-center transition-all hover:shadow-md touch-manipulation active:scale-95"
           >
             <span className="text-3xl md:text-4xl mb-2 block">📊</span>
@@ -169,9 +161,7 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
         {/* Sales Transactions Table */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900">
-              Sales Transactions
-            </h2>
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900">Sales Transactions</h2>
             <button
               onClick={() => setRefreshTrigger((prev) => prev + 1)}
               className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
@@ -189,9 +179,17 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
             <div className="flex-1">
               <h3 className="font-semibold text-blue-900 mb-2">Quick Tips</h3>
               <ul className="text-sm text-blue-800 space-y-1">
-                <li>• Use <strong>Go to Point of Sale</strong> for full transaction interface with product search</li>
-                <li>• Use <strong>New Invoice</strong> for quick sales with barcode scanner or dropdown</li>
-                <li>• Use <strong>Product Grid</strong> for visual product selection with images</li>
+                <li>
+                  • Use <strong>Go to Point of Sale</strong> for full transaction interface with
+                  product search
+                </li>
+                <li>
+                  • Use <strong>New Invoice</strong> for quick sales with barcode scanner or
+                  dropdown
+                </li>
+                <li>
+                  • Use <strong>Product Grid</strong> for visual product selection with images
+                </li>
                 <li>• Click on any transaction in the table to view details</li>
                 <li>• Use filters to search by date, payment method, and status</li>
               </ul>

@@ -48,7 +48,7 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerDto | undefined>(undefined);
   const [isImageCarouselOpen, setIsImageCarouselOpen] = useState(false);
-  const [selectedCustomerImage, setSelectedCustomerImage] = useState<string>('');
+  const [selectedCustomerImage, setSelectedCustomerImage] = useState<string>("");
 
   // Modal hooks
   const viewModal = useModal<CustomerDto>();
@@ -127,8 +127,12 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
   /**
    * Construct image URL for customer logos
    */
-  const getCustomerImageUrl = (imageId: string, customerId: string, size: 'thumb' | 'medium' | 'large' | 'original' = 'thumb') => {
-    const branchCode = branch?.branchCode || 'B001';
+  const getCustomerImageUrl = (
+    imageId: string,
+    customerId: string,
+    size: "thumb" | "medium" | "large" | "original" = "thumb"
+  ) => {
+    const branchCode = branch?.branchCode || "B001";
     return `${API_BASE_URL}/api/v1/images/${branchCode}/customers/${imageId}/${size}`;
   };
 
@@ -221,9 +225,15 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
   };
 
   return (
-    <div className="container mx-auto p-6">
+    <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Customers</h1>
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+            Customers Management
+          </h1>
+          <p className="text-gray-600">Manage your customers and track sales history</p>
+        </div>
         <Button
           variant="primary"
           size="md"
@@ -291,7 +301,8 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
           emptyMessage="No customers found. Click 'Add Customer' to create one."
           showRowNumbers
           imageColumn={{
-            getImageUrl: (row) => row.logoPath ? getCustomerImageUrl(row.logoPath, row.id, 'large') : '',
+            getImageUrl: (row) =>
+              row.logoPath ? getCustomerImageUrl(row.logoPath, row.id, "large") : "",
             getAltText: (row) => row.nameEn,
             onImageClick: (row, images) => {
               if (images[0]) {
@@ -299,7 +310,7 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
                 setIsImageCarouselOpen(true);
               }
             },
-            size: 64
+            size: 64,
           }}
         />
       )}

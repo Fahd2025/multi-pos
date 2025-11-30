@@ -3,20 +3,24 @@
  * Overview of branch operations with key metrics
  */
 
-'use client';
+"use client";
 
-import { useEffect, useState, use } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
-import salesService from '@/services/sales.service';
-import inventoryService from '@/services/inventory.service';
-import { SalesStatsDto } from '@/types/api.types';
+import { useEffect, useState, use } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
+import salesService from "@/services/sales.service";
+import inventoryService from "@/services/inventory.service";
+import { SalesStatsDto } from "@/types/api.types";
 
 export default function BranchHomePage({ params }: { params: Promise<{ locale: string }> }) {
   const router = useRouter();
   const { user, isLoading } = useAuth();
   const [stats, setStats] = useState<SalesStatsDto | null>(null);
-  const [inventoryStats, setInventoryStats] = useState({ lowStock: 0, totalProducts: 0, totalCategories: 0 });
+  const [inventoryStats, setInventoryStats] = useState({
+    lowStock: 0,
+    totalProducts: 0,
+    totalCategories: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { locale } = use(params);
@@ -38,10 +42,10 @@ export default function BranchHomePage({ params }: { params: Promise<{ locale: s
       const today = new Date();
       const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-      const dateFrom = firstDayOfMonth.toISOString().split('T')[0];
-      const dateTo = today.toISOString().split('T')[0];
+      const dateFrom = firstDayOfMonth.toISOString().split("T")[0];
+      const dateTo = today.toISOString().split("T")[0];
 
-      console.log('Requesting stats with dates:', { dateFrom, dateTo });
+      console.log("Requesting stats with dates:", { dateFrom, dateTo });
 
       // Load sales stats
       const statsData = await salesService.getSalesStats({
@@ -66,9 +70,10 @@ export default function BranchHomePage({ params }: { params: Promise<{ locale: s
 
       setError(null);
     } catch (err: any) {
-      console.error('Failed to load stats:', err);
-      console.error('Error response:', err.response?.data);
-      const errorMsg = err.response?.data?.error?.message || err.message || 'Failed to load statistics';
+      console.error("Failed to load stats:", err);
+      console.error("Error response:", err.response?.data);
+      const errorMsg =
+        err.response?.data?.error?.message || err.message || "Failed to load statistics";
       setError(errorMsg);
     } finally {
       setLoading(false);
@@ -105,10 +110,8 @@ export default function BranchHomePage({ params }: { params: Promise<{ locale: s
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Branch Dashboard</h1>
-          <p className="text-gray-600 mt-1">
-            Welcome back, {user?.fullNameEn || user?.username}
-          </p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Branch Dashboard</h1>
+          <p className="text-gray-600 mt-1">Welcome back, {user?.fullNameEn || user?.username}</p>
         </div>
         <button
           onClick={() => router.push(`/${locale}/branch/sales`)}
@@ -126,11 +129,9 @@ export default function BranchHomePage({ params }: { params: Promise<{ locale: s
             <div>
               <p className="text-sm text-gray-600 font-medium">Today's Sales</p>
               <p className="text-2xl font-bold text-gray-900 mt-2">
-                ${stats?.todayRevenue?.toFixed(2) || '0.00'}
+                ${stats?.todayRevenue?.toFixed(2) || "0.00"}
               </p>
-              <p className="text-sm text-gray-500 mt-1">
-                {stats?.todaySales || 0} transactions
-              </p>
+              <p className="text-sm text-gray-500 mt-1">{stats?.todaySales || 0} transactions</p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
               <span className="text-2xl">💵</span>
@@ -144,11 +145,9 @@ export default function BranchHomePage({ params }: { params: Promise<{ locale: s
             <div>
               <p className="text-sm text-gray-600 font-medium">This Month</p>
               <p className="text-2xl font-bold text-gray-900 mt-2">
-                ${stats?.totalRevenue?.toFixed(2) || '0.00'}
+                ${stats?.totalRevenue?.toFixed(2) || "0.00"}
               </p>
-              <p className="text-sm text-gray-500 mt-1">
-                {stats?.totalSales || 0} transactions
-              </p>
+              <p className="text-sm text-gray-500 mt-1">{stats?.totalSales || 0} transactions</p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
               <span className="text-2xl">📊</span>
@@ -162,7 +161,7 @@ export default function BranchHomePage({ params }: { params: Promise<{ locale: s
             <div>
               <p className="text-sm text-gray-600 font-medium">Avg. Order Value</p>
               <p className="text-2xl font-bold text-gray-900 mt-2">
-                ${stats?.averageOrderValue?.toFixed(2) || '0.00'}
+                ${stats?.averageOrderValue?.toFixed(2) || "0.00"}
               </p>
               <p className="text-sm text-gray-500 mt-1">per transaction</p>
             </div>
@@ -178,7 +177,7 @@ export default function BranchHomePage({ params }: { params: Promise<{ locale: s
             <div>
               <p className="text-sm text-gray-600 font-medium">Top Product</p>
               <p className="text-lg font-bold text-gray-900 mt-2 truncate">
-                {stats?.topProducts?.[0]?.productName || 'No data'}
+                {stats?.topProducts?.[0]?.productName || "No data"}
               </p>
               <p className="text-sm text-gray-500 mt-1">
                 {stats?.topProducts?.[0]?.quantitySold || 0} sold
@@ -200,9 +199,7 @@ export default function BranchHomePage({ params }: { params: Promise<{ locale: s
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 font-medium">Low Stock Alerts</p>
-                <p className="text-2xl font-bold text-yellow-600 mt-2">
-                  {inventoryStats.lowStock}
-                </p>
+                <p className="text-2xl font-bold text-yellow-600 mt-2">{inventoryStats.lowStock}</p>
                 <p className="text-sm text-gray-500 mt-1">products need attention</p>
               </div>
               <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">

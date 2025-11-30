@@ -33,7 +33,7 @@ export default function SuppliersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<SupplierDto | undefined>(undefined);
   const [isImageCarouselOpen, setIsImageCarouselOpen] = useState(false);
-  const [selectedSupplierImage, setSelectedSupplierImage] = useState<string>('');
+  const [selectedSupplierImage, setSelectedSupplierImage] = useState<string>("");
 
   // Initialize hooks
   const {
@@ -85,8 +85,12 @@ export default function SuppliersPage() {
   /**
    * Construct image URL for supplier logos
    */
-  const getSupplierImageUrl = (imageId: string, supplierId: string, size: 'thumb' | 'medium' | 'large' | 'original' = 'thumb') => {
-    const branchCode = branch?.branchCode || 'B001';
+  const getSupplierImageUrl = (
+    imageId: string,
+    supplierId: string,
+    size: "thumb" | "medium" | "large" | "original" = "thumb"
+  ) => {
+    const branchCode = branch?.branchCode || "B001";
     return `${API_BASE_URL}/api/v1/images/${branchCode}/suppliers/${imageId}/${size}`;
   };
 
@@ -304,11 +308,11 @@ export default function SuppliersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+    <div>
+      <div>
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Supplier Management</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Supplier Management</h1>
           <p className="text-gray-600">Manage your suppliers and track purchase history</p>
         </div>
 
@@ -410,7 +414,8 @@ export default function SuppliersPage() {
           emptyMessage="No suppliers found. Click 'Add Supplier' to create one."
           showRowNumbers
           imageColumn={{
-            getImageUrl: (row) => row.logoPath ? getSupplierImageUrl(row.logoPath, row.id, 'large') : '',
+            getImageUrl: (row) =>
+              row.logoPath ? getSupplierImageUrl(row.logoPath, row.id, "large") : "",
             getAltText: (row) => row.nameEn,
             onImageClick: (row, images) => {
               if (images[0]) {
@@ -418,7 +423,7 @@ export default function SuppliersPage() {
                 setIsImageCarouselOpen(true);
               }
             },
-            size: 64
+            size: 64,
           }}
         />
       </div>

@@ -44,7 +44,7 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<ExpenseDto | undefined>(undefined);
   const [isImageCarouselOpen, setIsImageCarouselOpen] = useState(false);
-  const [selectedExpenseImage, setSelectedExpenseImage] = useState<string>('');
+  const [selectedExpenseImage, setSelectedExpenseImage] = useState<string>("");
 
   // Hooks
   const confirmation = useConfirmation();
@@ -188,8 +188,12 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
   /**
    * Construct image URL for expense receipt images
    */
-  const getExpenseImageUrl = (imageId: string, expenseId: string, size: 'thumb' | 'medium' | 'large' | 'original' = 'thumb') => {
-    const branchCode = branch?.branchCode || 'B001';
+  const getExpenseImageUrl = (
+    imageId: string,
+    expenseId: string,
+    size: "thumb" | "medium" | "large" | "original" = "thumb"
+  ) => {
+    const branchCode = branch?.branchCode || "B001";
     return `${API_BASE_URL}/api/v1/images/${branchCode}/expenses/${imageId}/${size}`;
   };
 
@@ -290,7 +294,7 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Expense Management</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Expense Management</h1>
           <p className="text-sm text-gray-600 mt-1">
             Track and manage business expenses with approval workflow
           </p>
@@ -394,7 +398,8 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
           emptyMessage="No expenses found. Add your first expense to get started."
           showRowNumbers
           imageColumn={{
-            getImageUrl: (row) => row.receiptImagePath ? getExpenseImageUrl(row.receiptImagePath, row.id, 'large') : '',
+            getImageUrl: (row) =>
+              row.receiptImagePath ? getExpenseImageUrl(row.receiptImagePath, row.id, "large") : "",
             getAltText: (row) => `Receipt for ${row.descriptionEn}`,
             onImageClick: (row, images) => {
               if (images[0]) {
@@ -402,7 +407,7 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
                 setIsImageCarouselOpen(true);
               }
             },
-            size: 64
+            size: 64,
           }}
         />
       )}

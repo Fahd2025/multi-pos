@@ -219,7 +219,7 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Purchase Orders</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Purchase Management</h1>
           <p className="text-sm text-gray-600 mt-1">
             Track and manage inventory purchases from suppliers
           </p>

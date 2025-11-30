@@ -146,8 +146,12 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
   /**
    * Construct image URL for product images
    */
-  const getImageUrl = (imageId: string, productId: string, size: 'thumb' | 'medium' | 'large' | 'original' = 'thumb') => {
-    const branchCode = branch?.branchCode || 'B001';
+  const getImageUrl = (
+    imageId: string,
+    productId: string,
+    size: "thumb" | "medium" | "large" | "original" = "thumb"
+  ) => {
+    const branchCode = branch?.branchCode || "B001";
     return `${API_BASE_URL}/api/v1/images/${branchCode}/products/${imageId}/${size}?productId=${productId}`;
   };
 
@@ -257,7 +261,7 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Inventory Management</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Inventory Management</h1>
           <p className="text-sm text-gray-600 mt-1">
             Manage products, categories, and stock levels
           </p>
@@ -367,7 +371,7 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
           imageColumn={{
             getImageUrl: (row) => {
               if (row.images && row.images.length > 0) {
-                return row.images.map(img => getImageUrl(img.imagePath, row.id, 'large'));
+                return row.images.map((img) => getImageUrl(img.imagePath, row.id, "large"));
               }
               return [];
             },
@@ -376,7 +380,7 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
               setSelectedProductImages(images);
               setIsImageCarouselOpen(true);
             },
-            size: 64
+            size: 64,
           }}
         />
       )}
