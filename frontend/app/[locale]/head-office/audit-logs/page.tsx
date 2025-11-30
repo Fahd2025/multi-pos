@@ -383,21 +383,19 @@ export default function AuditLogsPage({ params }: { params: Promise<{ locale: st
         </div>
 
         {/* Audit Logs Table */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <DataTable
-            data={displayData}
-            columns={columns}
-            getRowKey={(row) => row.id}
-            pagination
-            paginationConfig={paginationConfig}
-            onPageChange={handlePageChange}
-            onPageSizeChange={handlePageSizeChange}
-            sortable
-            sortConfig={sortConfig ?? undefined}
-            onSortChange={handleSortChange}
-            emptyMessage="No audit logs found. Try adjusting your filters."
-          />
-        </div>
+        <DataTable
+          data={displayData}
+          columns={columns}
+          getRowKey={(row) => row.id}
+          pagination
+          paginationConfig={paginationConfig}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          sortable
+          sortConfig={sortConfig ?? undefined}
+          onSortChange={handleSortChange}
+          emptyMessage="No audit logs found. Try adjusting your filters."
+        />
 
         {/* Info Box */}
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">

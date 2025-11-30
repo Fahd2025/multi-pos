@@ -221,7 +221,9 @@ export default function ExpenseCategoriesPage({ params }: { params: Promise<{ lo
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Expense Category Management</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 ">
+            Expense Category Management
+          </h1>
           <p className="text-sm text-gray-600 mt-1">
             Organize expenses into categories with budget allocations
           </p>

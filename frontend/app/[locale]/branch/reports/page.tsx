@@ -113,7 +113,9 @@ export default function ReportsPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Reports & Analytics</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
+          Reports & Analytics
+        </h1>
         <p className="text-gray-600 mt-2">
           Generate comprehensive reports for sales, inventory, and financial data
         </p>

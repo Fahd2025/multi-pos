@@ -1,20 +1,20 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { Input, Select } from '@/components/shared/Form';
-import { Button } from '@/components/shared/Button';
-import { ThemeSwitcherCompact } from '@/components/shared/ThemeSwitcher';
+import React, { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { Input, Select } from "@/components/shared/Form";
+import { Button } from "@/components/shared/Button";
+import { ThemeSwitcherCompact } from "@/components/shared/ThemeSwitcher";
 
-type LoginMode = 'headoffice' | 'branch';
+type LoginMode = "headoffice" | "branch";
 
 export default function LoginPage() {
   const { login, isLoading, error } = useAuth();
-  const [loginMode, setLoginMode] = useState<LoginMode>('branch');
+  const [loginMode, setLoginMode] = useState<LoginMode>("branch");
   const [formData, setFormData] = useState({
-    branchName: '',
-    username: '',
-    password: '',
+    branchName: "",
+    username: "",
+    password: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,12 +24,12 @@ export default function LoginPage() {
       // For head office login, pass empty string as branchName
       const loginData = {
         ...formData,
-        branchName: loginMode === 'headoffice' ? '' : formData.branchName,
+        branchName: loginMode === "headoffice" ? "" : formData.branchName,
       };
       await login(loginData, loginMode);
     } catch (err) {
       // Error is handled by useAuth hook
-      console.error('Login failed:', err);
+      console.error("Login failed:", err);
     }
   };
 
@@ -64,9 +64,7 @@ export default function LoginPage() {
               />
             </svg>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Multi-Branch POS
-          </h2>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Multi-Branch POS</h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Sign in to your account to continue
           </p>
@@ -78,22 +76,22 @@ export default function LoginPage() {
           <div className="flex gap-2 p-1 mb-6 bg-gray-100 dark:bg-gray-700 rounded-lg">
             <button
               type="button"
-              onClick={() => setLoginMode('branch')}
+              onClick={() => setLoginMode("branch")}
               className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                loginMode === 'branch'
-                  ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                loginMode === "branch"
+                  ? "bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
               }`}
             >
               Branch Login
             </button>
             <button
               type="button"
-              onClick={() => setLoginMode('headoffice')}
+              onClick={() => setLoginMode("headoffice")}
               className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                loginMode === 'headoffice'
-                  ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                loginMode === "headoffice"
+                  ? "bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
               }`}
             >
               Head Office
@@ -102,7 +100,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Branch Selection - Only show for branch login */}
-            {loginMode === 'branch' && (
+            {loginMode === "branch" && (
               <Select
                 label="Branch"
                 name="branchName"
@@ -111,9 +109,9 @@ export default function LoginPage() {
                 placeholder="Select your branch"
                 required
                 options={[
-                  { value: 'B001', label: 'Main Branch' },
-                  { value: 'B002', label: 'Downtown Branch' },
-                  { value: 'B003', label: 'Mall Branch' },
+                  { value: "B001", label: "Main Branch" },
+                  { value: "B002", label: "Downtown Branch" },
+                  { value: "B003", label: "Mall Branch" },
                 ]}
                 helperText="Select the branch you want to access"
               />
@@ -130,12 +128,7 @@ export default function LoginPage() {
               required
               autoComplete="username"
               leftIcon={
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -157,12 +150,7 @@ export default function LoginPage() {
               required
               autoComplete="current-password"
               leftIcon={
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -196,13 +184,7 @@ export default function LoginPage() {
             )}
 
             {/* Submit Button */}
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              isFullWidth
-              isLoading={isLoading}
-            >
+            <Button type="submit" variant="primary" size="lg" isFullWidth isLoading={isLoading}>
               Sign In
             </Button>
           </form>

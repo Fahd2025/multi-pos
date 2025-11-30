@@ -35,7 +35,7 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<CategoryDto | undefined>(undefined);
   const [isImageCarouselOpen, setIsImageCarouselOpen] = useState(false);
-  const [selectedCategoryImage, setSelectedCategoryImage] = useState<string>('');
+  const [selectedCategoryImage, setSelectedCategoryImage] = useState<string>("");
 
   // Hooks
   const confirmation = useConfirmation();
@@ -120,8 +120,12 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
   /**
    * Construct image URL for category images
    */
-  const getCategoryImageUrl = (imageId: string, categoryId: string, size: 'thumb' | 'medium' | 'large' | 'original' = 'thumb') => {
-    const branchCode = branch?.branchCode || 'B001';
+  const getCategoryImageUrl = (
+    imageId: string,
+    categoryId: string,
+    size: "thumb" | "medium" | "large" | "original" = "thumb"
+  ) => {
+    const branchCode = branch?.branchCode || "B001";
     return `${API_BASE_URL}/api/v1/images/${branchCode}/categories/${imageId}/${size}`;
   };
 
@@ -199,7 +203,9 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Category Management</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
+            Category Management
+          </h1>
           <p className="text-sm text-gray-600 mt-1">
             Organize products into categories and subcategories
           </p>
@@ -246,7 +252,8 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
           emptyMessage="No categories found. Click 'Add Category' to create one."
           showRowNumbers
           imageColumn={{
-            getImageUrl: (row) => row.imagePath ? getCategoryImageUrl(row.imagePath, row.id, 'large') : '',
+            getImageUrl: (row) =>
+              row.imagePath ? getCategoryImageUrl(row.imagePath, row.id, "large") : "",
             getAltText: (row) => row.nameEn,
             onImageClick: (row, images) => {
               if (images[0]) {
@@ -254,7 +261,7 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
                 setIsImageCarouselOpen(true);
               }
             },
-            size: 64
+            size: 64,
           }}
         />
       )}

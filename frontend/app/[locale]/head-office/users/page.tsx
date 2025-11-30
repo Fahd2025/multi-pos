@@ -435,7 +435,9 @@ export default function UsersManagementPage({ params }: { params: Promise<{ loca
       <div>
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">User Management</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            User Management
+          </h1>
           <p className="text-gray-600">Manage system users, roles, and permissions</p>
         </div>
 

@@ -294,7 +294,9 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Expense Management</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
+            Expense Management
+          </h1>
           <p className="text-sm text-gray-600 mt-1">
             Track and manage business expenses with approval workflow
           </p>

@@ -261,7 +261,9 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Inventory Management</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
+            Inventory Management
+          </h1>
           <p className="text-sm text-gray-600 mt-1">
             Manage products, categories, and stock levels
           </p>
@@ -286,7 +288,7 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+      <div className=" p-4 rounded-lg shadow-sm border border-gray-200">
         <form onSubmit={handleSearch} className="space-y-4">
           {/* Search Bar */}
           <div className="flex gap-3">
@@ -328,7 +330,7 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
                 }}
                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
               />
-              <span className="text-sm text-gray-700">Low Stock Only</span>
+              <span className="text-sm text-gray-700 dark:text-gray-200">Low Stock Only</span>
             </label>
 
             <label className="flex items-center gap-2 cursor-pointer">
@@ -338,9 +340,9 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
                 onChange={(e) => {
                   setShowOutOfStock(e.target.checked);
                 }}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 "
               />
-              <span className="text-sm text-gray-700">Out of Stock Only</span>
+              <span className="text-sm text-gray-700 dark:text-gray-200">Out of Stock Only</span>
             </label>
           </div>
         </form>

@@ -54,7 +54,9 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
         <div className="mb-6 md:mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Sales Management</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
+                Sales Management
+              </h1>
               <p className="text-gray-600 mt-1">Track sales performance and manage transactions</p>
             </div>
 

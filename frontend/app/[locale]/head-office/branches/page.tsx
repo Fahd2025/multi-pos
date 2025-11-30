@@ -3,21 +3,21 @@
  * List, search, filter, and manage all branches
  */
 
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { use } from 'react';
-import branchService, { BranchDto } from '@/services/branch.service';
-import { BranchFormModal } from '@/components/head-office/BranchFormModal';
-import { DataTable } from '@/components/data-table';
-import { useDataTable } from '@/hooks/useDataTable';
-import { DataTableColumn, DataTableAction } from '@/types/data-table.types';
-import { useConfirmation } from '@/hooks/useModal';
-import { ConfirmationDialog } from '@/components/modals';
-import { ImageCarousel } from '@/components/shared/ui/image-carousel';
-import { Dialog, DialogContent, DialogTitle } from '@/components/shared/ui/dialog';
-import { API_BASE_URL } from '@/lib/constants';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { use } from "react";
+import branchService, { BranchDto } from "@/services/branch.service";
+import { BranchFormModal } from "@/components/head-office/BranchFormModal";
+import { DataTable } from "@/components/data-table";
+import { useDataTable } from "@/hooks/useDataTable";
+import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
+import { useConfirmation } from "@/hooks/useModal";
+import { ConfirmationDialog } from "@/components/modals";
+import { ImageCarousel } from "@/components/shared/ui/image-carousel";
+import { Dialog, DialogContent, DialogTitle } from "@/components/shared/ui/dialog";
+import { API_BASE_URL } from "@/lib/constants";
 
 export default function BranchesManagementPage({
   params,
@@ -28,7 +28,7 @@ export default function BranchesManagementPage({
   const [branches, setBranches] = useState<BranchDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [filterActive, setFilterActive] = useState<boolean | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -39,7 +39,7 @@ export default function BranchesManagementPage({
 
   // Image carousel states
   const [isImageCarouselOpen, setIsImageCarouselOpen] = useState(false);
-  const [selectedBranchImage, setSelectedBranchImage] = useState<string>('');
+  const [selectedBranchImage, setSelectedBranchImage] = useState<string>("");
 
   // Hooks
   const confirmation = useConfirmation();
@@ -78,7 +78,7 @@ export default function BranchesManagementPage({
       setTotalPages(data.pagination.totalPages);
       setTotalItems(data.pagination.totalItems);
     } catch (err: any) {
-      setError(err.message || 'Failed to load branches');
+      setError(err.message || "Failed to load branches");
     } finally {
       setLoading(false);
     }
@@ -96,7 +96,7 @@ export default function BranchesManagementPage({
 
   const handleDelete = async (branch: BranchDto) => {
     confirmation.ask(
-      'Delete Branch',
+      "Delete Branch",
       `Are you sure you want to delete branch "${branch.nameEn}"? This action cannot be undone.`,
       async () => {
         try {
@@ -106,22 +106,26 @@ export default function BranchesManagementPage({
           setError(`Failed to delete branch: ${err.message}`);
         }
       },
-      'danger'
+      "danger"
     );
   };
 
   /**
    * Construct image URL for branch logos
    */
-  const getBranchImageUrl = (imageId: string, branchCode: string, size: 'thumb' | 'medium' | 'large' | 'original' = 'thumb') => {
+  const getBranchImageUrl = (
+    imageId: string,
+    branchCode: string,
+    size: "thumb" | "medium" | "large" | "original" = "thumb"
+  ) => {
     return `${API_BASE_URL}/api/v1/images/${branchCode}/branches/${imageId}/${size}`;
   };
 
   // Define table columns
   const columns: DataTableColumn<BranchDto>[] = [
     {
-      key: 'nameEn',
-      label: 'Branch',
+      key: "nameEn",
+      label: "Branch",
       sortable: true,
       render: (value, row) => (
         <div>
@@ -131,14 +135,14 @@ export default function BranchesManagementPage({
       ),
     },
     {
-      key: 'code',
-      label: 'Code',
+      key: "code",
+      label: "Code",
       sortable: true,
       render: (value) => <div className="text-sm text-gray-900 dark:text-gray-100">{value}</div>,
     },
     {
-      key: 'databaseProvider',
-      label: 'Database',
+      key: "databaseProvider",
+      label: "Database",
       sortable: true,
       render: (value, row) => (
         <div>
@@ -150,24 +154,24 @@ export default function BranchesManagementPage({
       ),
     },
     {
-      key: 'userCount',
-      label: 'Users',
+      key: "userCount",
+      label: "Users",
       sortable: true,
       render: (value) => <div className="text-sm text-gray-900 dark:text-gray-100">{value}</div>,
     },
     {
-      key: 'isActive',
-      label: 'Status',
+      key: "isActive",
+      label: "Status",
       sortable: true,
       render: (value) => (
         <span
           className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
             value
-              ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-400'
+              ? "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400"
+              : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-400"
           }`}
         >
-          {value ? 'Active' : 'Inactive'}
+          {value ? "Active" : "Inactive"}
         </span>
       ),
     },
@@ -176,42 +180,40 @@ export default function BranchesManagementPage({
   // Define row actions
   const actions: DataTableAction<BranchDto>[] = [
     {
-      label: 'View',
+      label: "View",
       onClick: (row) => {
         window.location.href = `/${locale}/head-office/branches/${row.id}`;
       },
-      variant: 'primary',
+      variant: "primary",
     },
     {
-      label: 'Edit',
+      label: "Edit",
       onClick: (row) => {
         setEditingBranch(row);
       },
-      variant: 'secondary',
+      variant: "secondary",
     },
     {
-      label: 'Delete',
+      label: "Delete",
       onClick: (row) => handleDelete(row),
-      variant: 'danger',
+      variant: "danger",
     },
   ];
 
   // Adapter for sort change
   const handleSortChange = (config: {
     key: keyof BranchDto | string;
-    direction: 'asc' | 'desc';
+    direction: "asc" | "desc";
   }) => {
     handleSort(config.key);
   };
 
   return (
-    <div className="space-y-6">
+    <div>
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Branch Management
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Branch Management</h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
             Manage all branches and their configurations
           </p>
@@ -244,8 +246,8 @@ export default function BranchesManagementPage({
               onClick={() => handleFilterChange(undefined)}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 filterActive === undefined
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
               }`}
             >
               All
@@ -254,8 +256,8 @@ export default function BranchesManagementPage({
               onClick={() => handleFilterChange(true)}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 filterActive === true
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  ? "bg-green-600 text-white"
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
               }`}
             >
               Active
@@ -264,8 +266,8 @@ export default function BranchesManagementPage({
               onClick={() => handleFilterChange(false)}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 filterActive === false
-                  ? 'bg-gray-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  ? "bg-gray-600 text-white"
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
               }`}
             >
               Inactive
@@ -318,12 +320,13 @@ export default function BranchesManagementPage({
           onSortChange={handleSortChange}
           emptyMessage={
             search || filterActive !== undefined
-              ? 'No branches found. Try adjusting your search or filters.'
+              ? "No branches found. Try adjusting your search or filters."
               : 'No branches found. Click "Create Branch" to create one.'
           }
           showRowNumbers
           imageColumn={{
-            getImageUrl: (row) => row.logoPath ? getBranchImageUrl(row.logoPath, row.code, 'large') : '',
+            getImageUrl: (row) =>
+              row.logoPath ? getBranchImageUrl(row.logoPath, row.code, "large") : "",
             getAltText: (row) => row.nameEn,
             onImageClick: (row, images) => {
               if (images[0]) {
@@ -331,7 +334,7 @@ export default function BranchesManagementPage({
                 setIsImageCarouselOpen(true);
               }
             },
-            size: 64
+            size: 64,
           }}
         />
       )}

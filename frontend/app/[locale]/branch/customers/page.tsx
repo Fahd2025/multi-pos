@@ -229,7 +229,7 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
       <div className="flex justify-between items-center mb-6">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
             Customers Management
           </h1>
           <p className="text-gray-600">Manage your customers and track sales history</p>
