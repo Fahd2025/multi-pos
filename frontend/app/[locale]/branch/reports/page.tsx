@@ -1,27 +1,29 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import ReportViewer from '@/components/reports/ReportViewer';
+import React, { useState } from "react";
+import ReportViewer from "@/components/reports/ReportViewer";
 import reportService, {
   SalesReport,
   InventoryReport,
   FinancialReport,
   ExportReportRequest,
-} from '@/services/report.service';
+} from "@/services/report.service";
 
-type ReportType = 'sales' | 'inventory' | 'financial';
+type ReportType = "sales" | "inventory" | "financial";
 
 export default function ReportsPage() {
-  const [reportType, setReportType] = useState<ReportType>('sales');
-  const [reportData, setReportData] = useState<SalesReport | InventoryReport | FinancialReport | null>(null);
+  const [reportType, setReportType] = useState<ReportType>("sales");
+  const [reportData, setReportData] = useState<
+    SalesReport | InventoryReport | FinancialReport | null
+  >(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Filter states
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [groupBy, setGroupBy] = useState<'day' | 'week' | 'month'>('day');
-  const [paymentMethod, setPaymentMethod] = useState('');
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [groupBy, setGroupBy] = useState<"day" | "week" | "month">("day");
+  const [paymentMethod, setPaymentMethod] = useState("");
   const [lowStockOnly, setLowStockOnly] = useState(false);
   const [negativeStockOnly, setNegativeStockOnly] = useState(false);
   const [includeMovements, setIncludeMovements] = useState(false);
@@ -34,7 +36,7 @@ export default function ReportsPage() {
       let data: SalesReport | InventoryReport | FinancialReport;
 
       switch (reportType) {
-        case 'sales':
+        case "sales":
           data = await reportService.generateSalesReport({
             startDate: startDate || undefined,
             endDate: endDate || undefined,
@@ -43,7 +45,7 @@ export default function ReportsPage() {
           });
           break;
 
-        case 'inventory':
+        case "inventory":
           data = await reportService.generateInventoryReport({
             lowStockOnly,
             negativeStockOnly,
@@ -53,7 +55,7 @@ export default function ReportsPage() {
           });
           break;
 
-        case 'financial':
+        case "financial":
           data = await reportService.generateFinancialReport({
             startDate: startDate || undefined,
             endDate: endDate || undefined,
@@ -62,19 +64,19 @@ export default function ReportsPage() {
           break;
 
         default:
-          throw new Error('Invalid report type');
+          throw new Error("Invalid report type");
       }
 
       setReportData(data);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to generate report');
-      console.error('Report generation error:', err);
+      setError(err.response?.data?.error?.message || "Failed to generate report");
+      console.error("Report generation error:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleExport = async (format: 'pdf' | 'excel' | 'csv') => {
+  const handleExport = async (format: "pdf" | "excel" | "csv") => {
     try {
       setLoading(true);
       const exportRequest: ExportReportRequest = {
@@ -83,35 +85,35 @@ export default function ReportsPage() {
         startDate: startDate || undefined,
         endDate: endDate || undefined,
         filters: {
-          paymentMethod: reportType === 'sales' && paymentMethod ? paymentMethod : undefined,
-          lowStockOnly: reportType === 'inventory' ? lowStockOnly : undefined,
-          negativeStockOnly: reportType === 'inventory' ? negativeStockOnly : undefined,
-          groupBy: reportType !== 'inventory' ? groupBy : undefined,
+          paymentMethod: reportType === "sales" && paymentMethod ? paymentMethod : undefined,
+          lowStockOnly: reportType === "inventory" ? lowStockOnly : undefined,
+          negativeStockOnly: reportType === "inventory" ? negativeStockOnly : undefined,
+          groupBy: reportType !== "inventory" ? groupBy : undefined,
         },
         options: {
           includeCharts: true,
           includeDetails: true,
-          pageOrientation: 'landscape',
+          pageOrientation: "landscape",
         },
       };
 
       const blob = await reportService.exportReport(exportRequest);
-      const fileName = `${reportType}-report-${new Date().toISOString().split('T')[0]}.${
-        format === 'excel' ? 'xlsx' : format
+      const fileName = `${reportType}-report-${new Date().toISOString().split("T")[0]}.${
+        format === "excel" ? "xlsx" : format
       }`;
       reportService.downloadReport(blob, fileName);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to export report');
-      console.error('Report export error:', err);
+      setError(err.response?.data?.error?.message || "Failed to export report");
+      console.error("Report export error:", err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Reports & Analytics</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Reports & Analytics</h1>
         <p className="text-gray-600 mt-2">
           Generate comprehensive reports for sales, inventory, and financial data
         </p>
@@ -123,39 +125,39 @@ export default function ReportsPage() {
         <div className="flex gap-4">
           <button
             onClick={() => {
-              setReportType('sales');
+              setReportType("sales");
               setReportData(null);
             }}
             className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-              reportType === 'sales'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              reportType === "sales"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
             Sales Report
           </button>
           <button
             onClick={() => {
-              setReportType('inventory');
+              setReportType("inventory");
               setReportData(null);
             }}
             className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-              reportType === 'inventory'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              reportType === "inventory"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
             Inventory Report
           </button>
           <button
             onClick={() => {
-              setReportType('financial');
+              setReportType("financial");
               setReportData(null);
             }}
             className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-              reportType === 'financial'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              reportType === "financial"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
             Financial Report
@@ -168,12 +170,10 @@ export default function ReportsPage() {
         <h2 className="text-lg font-semibold mb-4">Filters</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Date Range (for all reports) */}
-          {reportType !== 'inventory' || includeMovements ? (
+          {reportType !== "inventory" || includeMovements ? (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Start Date
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
                 <input
                   type="date"
                   value={startDate}
@@ -194,7 +194,7 @@ export default function ReportsPage() {
           ) : null}
 
           {/* Sales-specific filters */}
-          {reportType === 'sales' && (
+          {reportType === "sales" && (
             <>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -215,7 +215,7 @@ export default function ReportsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Group By</label>
                 <select
                   value={groupBy}
-                  onChange={(e) => setGroupBy(e.target.value as 'day' | 'week' | 'month')}
+                  onChange={(e) => setGroupBy(e.target.value as "day" | "week" | "month")}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="day">Day</option>
@@ -227,7 +227,7 @@ export default function ReportsPage() {
           )}
 
           {/* Inventory-specific filters */}
-          {reportType === 'inventory' && (
+          {reportType === "inventory" && (
             <>
               <div className="flex items-center">
                 <input
@@ -269,12 +269,12 @@ export default function ReportsPage() {
           )}
 
           {/* Financial-specific filters */}
-          {reportType === 'financial' && (
+          {reportType === "financial" && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Group By</label>
               <select
                 value={groupBy}
-                onChange={(e) => setGroupBy(e.target.value as 'day' | 'week' | 'month')}
+                onChange={(e) => setGroupBy(e.target.value as "day" | "week" | "month")}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="day">Day</option>
@@ -291,7 +291,7 @@ export default function ReportsPage() {
             disabled={loading}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            {loading ? 'Generating...' : 'Generate Report'}
+            {loading ? "Generating..." : "Generate Report"}
           </button>
         </div>
       </div>
