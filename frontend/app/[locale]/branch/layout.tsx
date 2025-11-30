@@ -209,102 +209,7 @@ export default function BranchLayout({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30">
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Left Section - Hamburger Menu and Logo */}
-            <div className="flex items-center gap-4">
-              {/* Hamburger Menu Button - Always visible */}
-              <button
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors lg:hidden"
-                aria-label="Toggle navigation menu"
-                aria-expanded={isSidebarOpen}
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  {isSidebarOpen ? (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  ) : (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
-                  )}
-                </svg>
-              </button>
-
-              {/* Desktop Hamburger Menu (Always visible on large screens) */}
-              <button
-                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                className="hidden lg:block p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                aria-expanded={!isSidebarCollapsed}
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </button>
-
-              {/* Logo and System Name */}
-              <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 hidden sm:block">
-                Multi-POS System
-              </h1>
-            </div>
-
-            {/* Right Section - Sync Status and User Info */}
-            <div className="flex items-center gap-2 sm:gap-4">
-              {/* Theme Switcher */}
-              <ThemeSwitcherCompact />
-
-              {/* Sync Status Indicator */}
-              <SyncStatusIndicator
-                isOnline={isOnline}
-                status={status}
-                pendingCount={pendingCount}
-              />
-
-              {/* User Menu */}
-              <div className="flex items-center gap-2 sm:gap-3">
-                <span className="text-sm text-gray-700 dark:text-gray-300 hidden md:inline">
-                  {user?.fullNameEn || user?.username}
-                </span>
-                <button
-                  onClick={logout}
-                  className="text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-medium"
-                  aria-label="Logout"
-                >
-                  Logout
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       {/* Mobile Drawer Overlay */}
       {isSidebarOpen && (
         <div
@@ -314,50 +219,145 @@ export default function BranchLayout({
         />
       )}
 
-      {/* Main Layout Container */}
-      <div className="flex h-[calc(100vh-4rem)]">
-        {/* Mobile Drawer Sidebar */}
-        <aside
-          className={`fixed top-16 left-0 bottom-0 w-72 bg-white dark:bg-gray-800 shadow-xl border-r border-gray-200 dark:border-gray-700 z-40 transform transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto ${
-            isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
-          aria-label="Mobile navigation sidebar"
-        >
-          <div className="p-4 h-full">
-            <SidebarContent
-              navigation={navigation}
-              isActiveLink={isActiveLink}
-              isSidebarCollapsed={isSidebarCollapsed}
-              setIsSidebarCollapsed={setIsSidebarCollapsed}
-              pendingCount={pendingCount}
-              user={user}
-              isMobile={true}
-            />
-          </div>
-        </aside>
+      {/* Mobile Drawer Sidebar */}
+      <aside
+        className={`fixed top-0 left-0 bottom-0 w-72 bg-white dark:bg-gray-800 shadow-xl border-r border-gray-200 dark:border-gray-700 z-50 transform transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+        aria-label="Mobile navigation sidebar"
+      >
+        <div className="p-4 h-full">
+          <SidebarContent
+            navigation={navigation}
+            isActiveLink={isActiveLink}
+            isSidebarCollapsed={isSidebarCollapsed}
+            setIsSidebarCollapsed={setIsSidebarCollapsed}
+            pendingCount={pendingCount}
+            user={user}
+            isMobile={true}
+          />
+        </div>
+      </aside>
 
-        {/* Desktop Sidebar */}
-        <aside
-          className={`hidden lg:block sticky top-16 h-[calc(100vh-4rem)] bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out overflow-y-auto ${
-            isSidebarCollapsed ? 'w-20' : 'w-72'
-          }`}
-          aria-label="Desktop navigation sidebar"
-        >
-          <div className="p-4 h-full">
-            <SidebarContent
-              navigation={navigation}
-              isActiveLink={isActiveLink}
-              isSidebarCollapsed={isSidebarCollapsed}
-              setIsSidebarCollapsed={setIsSidebarCollapsed}
-              pendingCount={pendingCount}
-              user={user}
-              isMobile={false}
-            />
-          </div>
-        </aside>
+      {/* Desktop Sidebar - Full Height */}
+      <aside
+        className={`hidden lg:block h-screen bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out overflow-y-auto ${
+          isSidebarCollapsed ? 'w-20' : 'w-72'
+        }`}
+        aria-label="Desktop navigation sidebar"
+      >
+        <div className="p-4 h-full">
+          <SidebarContent
+            navigation={navigation}
+            isActiveLink={isActiveLink}
+            isSidebarCollapsed={isSidebarCollapsed}
+            setIsSidebarCollapsed={setIsSidebarCollapsed}
+            pendingCount={pendingCount}
+            user={user}
+            isMobile={false}
+          />
+        </div>
+      </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 overflow-auto">
+      {/* Right Section - Navbar + Content */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Navbar - Next to Sidebar */}
+        <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+          <div className="px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              {/* Left Section - Hamburger Menu and Logo */}
+              <div className="flex items-center gap-4">
+                {/* Mobile Hamburger Menu Button */}
+                <button
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                  className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors lg:hidden"
+                  aria-label="Toggle navigation menu"
+                  aria-expanded={isSidebarOpen}
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    {isSidebarOpen ? (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    ) : (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 6h16M4 12h16M4 18h16"
+                      />
+                    )}
+                  </svg>
+                </button>
+
+                {/* Desktop Hamburger Menu */}
+                <button
+                  onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                  className="hidden lg:block p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                  aria-expanded={!isSidebarCollapsed}
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
+                  </svg>
+                </button>
+
+                {/* Logo and System Name */}
+                <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 hidden sm:block">
+                  Multi-POS System
+                </h1>
+              </div>
+
+              {/* Right Section - Sync Status and User Info */}
+              <div className="flex items-center gap-2 sm:gap-4">
+                {/* Theme Switcher */}
+                <ThemeSwitcherCompact />
+
+                {/* Sync Status Indicator */}
+                <SyncStatusIndicator
+                  isOnline={isOnline}
+                  status={status}
+                  pendingCount={pendingCount}
+                />
+
+                {/* User Menu */}
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <span className="text-sm text-gray-700 dark:text-gray-300 hidden md:inline">
+                    {user?.fullNameEn || user?.username}
+                  </span>
+                  <button
+                    onClick={logout}
+                    className="text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-medium"
+                    aria-label="Logout"
+                  >
+                    Logout
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900">
           <div className="p-4 sm:p-6 lg:p-8">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
               {children}
