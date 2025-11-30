@@ -160,6 +160,24 @@ body {
   }
 }
 
+@keyframes quantityUpdate {
+  0% {
+    background-color: #dbeafe;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  50% {
+    background-color: #bfdbfe;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+  }
+  100% {
+    background-color: transparent;
+    border-color: transparent;
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
 .animate-slideIn {
   animation: slideIn 0.3s ease-out;
 }
@@ -186,6 +204,10 @@ body {
 
 .animate-delete-item {
   animation: deleteItem 0.3s ease-out forwards;
+}
+
+.animate-quantity-update {
+  animation: quantityUpdate 0.6s ease-out;
 }
 
 /* Smooth scrolling */
