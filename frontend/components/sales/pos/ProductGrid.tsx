@@ -167,7 +167,7 @@ export default function ProductGrid({
               ${
                 isOutOfStock
                   ? 'border-gray-200 opacity-50 cursor-not-allowed'
-                  : 'border-gray-200 mouse:hover:border-blue-500 mouse:hover:shadow-lg active:scale-95 cursor-pointer'
+                  : 'border-gray-200 hover:border-blue-500 hover:shadow-lg active:scale-95 cursor-pointer'
               }
               ${isClicked ? 'animate-pulse-once' : ''}
             `}
@@ -216,7 +216,7 @@ export default function ProductGrid({
                 text-sm sm:text-base lg:text-lg
                 text-gray-900
                 line-clamp-2
-                mouse:group-hover:text-blue-600
+                group-hover:text-blue-600
                 min-h-[2.5rem] sm:min-h-[3rem]
                 mb-2
               ">
@@ -243,8 +243,8 @@ export default function ProductGrid({
                     bg-blue-100 text-blue-600
                     rounded-full
                     flex items-center justify-center
-                    mouse:group-hover:bg-blue-600
-                    mouse:group-hover:text-white
+                    group-hover:bg-blue-600
+                    group-hover:text-white
                     transition-colors
                   " aria-hidden="true">
                     <span className="text-xl sm:text-2xl font-bold">+</span>

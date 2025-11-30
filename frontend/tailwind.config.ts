@@ -8,22 +8,17 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    // Override default screens to prevent container generation issues
+    screens: {
+      'xs': '475px',
+      'sm': '640px',
+      'md': '768px',
+      'lg': '1024px',
+      'xl': '1280px',
+      '2xl': '1536px',
+      '3xl': '1920px',
+    },
     extend: {
-      screens: {
-        'xs': '475px',      // Enhanced phone experience
-        'sm': '640px',      // Standard
-        'md': '768px',      // Standard
-        'lg': '1024px',     // Standard
-        'xl': '1280px',     // Standard
-        '2xl': '1536px',    // Standard
-        '3xl': '1920px',    // Ultra-wide displays for cashiers
-
-        // POS-specific device detection
-        'touch': { 'raw': '(hover: none) and (pointer: coarse)' },  // Touch devices
-        'mouse': { 'raw': '(hover: hover) and (pointer: fine)' },   // Mouse/trackpad
-        'portrait': { 'raw': '(orientation: portrait)' },           // Portrait mode
-        'landscape': { 'raw': '(orientation: landscape)' },         // Landscape mode
-      },
 
       colors: {
         background: "var(--background)",
