@@ -1,28 +1,30 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import ReportViewer from '@/components/reports/ReportViewer';
+import React, { useState } from "react";
+import ReportViewer from "@/components/reports/ReportViewer";
 import reportService, {
   SalesReport,
   InventoryReport,
   FinancialReport,
   ExportReportRequest,
-} from '@/services/report.service';
+} from "@/services/report.service";
 
-type ReportType = 'sales' | 'inventory' | 'financial';
+type ReportType = "sales" | "inventory" | "financial";
 
 export default function HeadOfficeAnalyticsPage() {
-  const [reportType, setReportType] = useState<ReportType>('sales');
-  const [reportData, setReportData] = useState<SalesReport | InventoryReport | FinancialReport | null>(null);
+  const [reportType, setReportType] = useState<ReportType>("sales");
+  const [reportData, setReportData] = useState<
+    SalesReport | InventoryReport | FinancialReport | null
+  >(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Filter states
-  const [selectedBranchId, setSelectedBranchId] = useState<string>('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [groupBy, setGroupBy] = useState<'day' | 'week' | 'month'>('month');
-  const [paymentMethod, setPaymentMethod] = useState('');
+  const [selectedBranchId, setSelectedBranchId] = useState<string>("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [groupBy, setGroupBy] = useState<"day" | "week" | "month">("month");
+  const [paymentMethod, setPaymentMethod] = useState("");
   const [lowStockOnly, setLowStockOnly] = useState(false);
   const [negativeStockOnly, setNegativeStockOnly] = useState(false);
 
@@ -36,7 +38,7 @@ export default function HeadOfficeAnalyticsPage() {
       const branchId = selectedBranchId || undefined;
 
       switch (reportType) {
-        case 'sales':
+        case "sales":
           data = await reportService.generateSalesReport({
             startDate: startDate || undefined,
             endDate: endDate || undefined,
@@ -46,7 +48,7 @@ export default function HeadOfficeAnalyticsPage() {
           });
           break;
 
-        case 'inventory':
+        case "inventory":
           data = await reportService.generateInventoryReport({
             branchId,
             lowStockOnly,
@@ -55,7 +57,7 @@ export default function HeadOfficeAnalyticsPage() {
           });
           break;
 
-        case 'financial':
+        case "financial":
           data = await reportService.generateFinancialReport({
             startDate: startDate || undefined,
             endDate: endDate || undefined,
@@ -65,19 +67,19 @@ export default function HeadOfficeAnalyticsPage() {
           break;
 
         default:
-          throw new Error('Invalid report type');
+          throw new Error("Invalid report type");
       }
 
       setReportData(data);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to generate report');
-      console.error('Report generation error:', err);
+      setError(err.response?.data?.error?.message || "Failed to generate report");
+      console.error("Report generation error:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleExport = async (format: 'pdf' | 'excel' | 'csv') => {
+  const handleExport = async (format: "pdf" | "excel" | "csv") => {
     try {
       setLoading(true);
       const exportRequest: ExportReportRequest = {
@@ -87,35 +89,35 @@ export default function HeadOfficeAnalyticsPage() {
         endDate: endDate || undefined,
         filters: {
           branchId: selectedBranchId || undefined,
-          paymentMethod: reportType === 'sales' && paymentMethod ? paymentMethod : undefined,
-          lowStockOnly: reportType === 'inventory' ? lowStockOnly : undefined,
-          negativeStockOnly: reportType === 'inventory' ? negativeStockOnly : undefined,
-          groupBy: reportType !== 'inventory' ? groupBy : undefined,
+          paymentMethod: reportType === "sales" && paymentMethod ? paymentMethod : undefined,
+          lowStockOnly: reportType === "inventory" ? lowStockOnly : undefined,
+          negativeStockOnly: reportType === "inventory" ? negativeStockOnly : undefined,
+          groupBy: reportType !== "inventory" ? groupBy : undefined,
         },
         options: {
           includeCharts: true,
           includeDetails: true,
-          pageOrientation: 'landscape',
+          pageOrientation: "landscape",
         },
       };
 
       const blob = await reportService.exportReport(exportRequest);
-      const fileName = `${reportType}-report-${new Date().toISOString().split('T')[0]}.${
-        format === 'excel' ? 'xlsx' : format
+      const fileName = `${reportType}-report-${new Date().toISOString().split("T")[0]}.${
+        format === "excel" ? "xlsx" : format
       }`;
       reportService.downloadReport(blob, fileName);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to export report');
-      console.error('Report export error:', err);
+      setError(err.response?.data?.error?.message || "Failed to export report");
+      console.error("Report export error:", err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
           Head Office Analytics & Consolidated Reports
         </h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2">
@@ -129,39 +131,39 @@ export default function HeadOfficeAnalyticsPage() {
         <div className="flex gap-4">
           <button
             onClick={() => {
-              setReportType('sales');
+              setReportType("sales");
               setReportData(null);
             }}
             className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-              reportType === 'sales'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+              reportType === "sales"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
           >
             Sales Report
           </button>
           <button
             onClick={() => {
-              setReportType('inventory');
+              setReportType("inventory");
               setReportData(null);
             }}
             className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-              reportType === 'inventory'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+              reportType === "inventory"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
           >
             Inventory Report
           </button>
           <button
             onClick={() => {
-              setReportType('financial');
+              setReportType("financial");
               setReportData(null);
             }}
             className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-              reportType === 'financial'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+              reportType === "financial"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
           >
             Financial Report
@@ -194,7 +196,7 @@ export default function HeadOfficeAnalyticsPage() {
           </div>
 
           {/* Date Range (for sales and financial) */}
-          {reportType !== 'inventory' && (
+          {reportType !== "inventory" && (
             <>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -208,7 +210,9 @@ export default function HeadOfficeAnalyticsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">End Date</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  End Date
+                </label>
                 <input
                   type="date"
                   value={endDate}
@@ -220,7 +224,7 @@ export default function HeadOfficeAnalyticsPage() {
           )}
 
           {/* Sales-specific filters */}
-          {reportType === 'sales' && (
+          {reportType === "sales" && (
             <>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -238,10 +242,12 @@ export default function HeadOfficeAnalyticsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Group By</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Group By
+                </label>
                 <select
                   value={groupBy}
-                  onChange={(e) => setGroupBy(e.target.value as 'day' | 'week' | 'month')}
+                  onChange={(e) => setGroupBy(e.target.value as "day" | "week" | "month")}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="day">Day</option>
@@ -253,7 +259,7 @@ export default function HeadOfficeAnalyticsPage() {
           )}
 
           {/* Inventory-specific filters */}
-          {reportType === 'inventory' && (
+          {reportType === "inventory" && (
             <>
               <div className="flex items-center">
                 <input
@@ -263,7 +269,10 @@ export default function HeadOfficeAnalyticsPage() {
                   onChange={(e) => setLowStockOnly(e.target.checked)}
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <label htmlFor="lowStockOnly" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                <label
+                  htmlFor="lowStockOnly"
+                  className="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                >
                   Low Stock Only
                 </label>
               </div>
@@ -275,7 +284,10 @@ export default function HeadOfficeAnalyticsPage() {
                   onChange={(e) => setNegativeStockOnly(e.target.checked)}
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <label htmlFor="negativeStockOnly" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                <label
+                  htmlFor="negativeStockOnly"
+                  className="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                >
                   Negative Stock Only
                 </label>
               </div>
@@ -283,12 +295,14 @@ export default function HeadOfficeAnalyticsPage() {
           )}
 
           {/* Financial-specific filters */}
-          {reportType === 'financial' && (
+          {reportType === "financial" && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Group By</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Group By
+              </label>
               <select
                 value={groupBy}
-                onChange={(e) => setGroupBy(e.target.value as 'day' | 'week' | 'month')}
+                onChange={(e) => setGroupBy(e.target.value as "day" | "week" | "month")}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="day">Day</option>
@@ -305,7 +319,7 @@ export default function HeadOfficeAnalyticsPage() {
             disabled={loading}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            {loading ? 'Generating...' : 'Generate Report'}
+            {loading ? "Generating..." : "Generate Report"}
           </button>
         </div>
       </div>

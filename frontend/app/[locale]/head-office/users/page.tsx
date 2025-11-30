@@ -6,16 +6,21 @@
  * Uses generic DataTable and modals for consistent UX.
  */
 
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { use } from 'react';
-import { DataTable } from '@/components/data-table';
-import { ModalBottomSheet, FeaturedDialog, ConfirmationDialog } from '@/components/modals';
-import { useDataTable } from '@/hooks/useDataTable';
-import { useModal, useConfirmation } from '@/hooks/useModal';
-import { DataTableColumn, DataTableAction, FormField, DisplayField } from '@/types/data-table.types';
-import Link from 'next/link';
+import React, { useState, useEffect } from "react";
+import { use } from "react";
+import { DataTable } from "@/components/data-table";
+import { ModalBottomSheet, FeaturedDialog, ConfirmationDialog } from "@/components/modals";
+import { useDataTable } from "@/hooks/useDataTable";
+import { useModal, useConfirmation } from "@/hooks/useModal";
+import {
+  DataTableColumn,
+  DataTableAction,
+  FormField,
+  DisplayField,
+} from "@/types/data-table.types";
+import Link from "next/link";
 import {
   UserDto,
   getUsers,
@@ -24,13 +29,9 @@ import {
   deleteUser,
   CreateUserDto,
   UpdateUserDto,
-} from '@/services/user.service';
+} from "@/services/user.service";
 
-export default function UsersManagementPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
+export default function UsersManagementPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
   const [users, setUsers] = useState<UserDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,11 +45,11 @@ export default function UsersManagementPage({
     sortConfig,
     handlePageChange,
     handlePageSizeChange,
-    handleSort
+    handleSort,
   } = useDataTable(users, {
     pageSize: 10,
     sortable: true,
-    pagination: true
+    pagination: true,
   });
 
   const createEditModal = useModal<UserDto>();
@@ -67,22 +68,22 @@ export default function UsersManagementPage({
       const result = await getUsers(true); // Include inactive users
       setUsers(result.users);
     } catch (err: any) {
-      setError(err.message || 'Failed to load users');
+      setError(err.message || "Failed to load users");
     } finally {
       setIsLoading(false);
     }
   };
 
   // Adapter for sort change to match DataTable's expected signature
-  const handleSortChange = (config: { key: keyof UserDto | string; direction: 'asc' | 'desc' }) => {
+  const handleSortChange = (config: { key: keyof UserDto | string; direction: "asc" | "desc" }) => {
     handleSort(config.key);
   };
 
   // Define table columns
   const columns: DataTableColumn<UserDto>[] = [
     {
-      key: 'username',
-      label: 'Username',
+      key: "username",
+      label: "Username",
       sortable: true,
       render: (value, row) => (
         <Link
@@ -91,37 +92,37 @@ export default function UsersManagementPage({
         >
           {value}
         </Link>
-      )
+      ),
     },
     {
-      key: 'fullNameEn',
-      label: 'Full Name',
+      key: "fullNameEn",
+      label: "Full Name",
       sortable: true,
-      render: (value, row) => (
-        <div className="font-medium text-gray-900">{value}</div>
-      )
+      render: (value, row) => <div className="font-medium text-gray-900">{value}</div>,
     },
     {
-      key: 'email',
-      label: 'Email',
+      key: "email",
+      label: "Email",
       sortable: true,
     },
     {
-      key: 'isHeadOfficeAdmin',
-      label: 'Role',
+      key: "isHeadOfficeAdmin",
+      label: "Role",
       sortable: true,
       render: (value) => (
-        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-          value ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
-        }`}>
-          {value ? 'Head Office Admin' : 'Branch User'}
+        <span
+          className={`px-2 py-1 text-xs font-medium rounded-full ${
+            value ? "bg-purple-100 text-purple-800" : "bg-blue-100 text-blue-800"
+          }`}
+        >
+          {value ? "Head Office Admin" : "Branch User"}
         </span>
-      )
+      ),
     },
     {
-      key: 'assignedBranches',
-      label: 'Branches',
-      render: (value: UserDto['assignedBranches']) => (
+      key: "assignedBranches",
+      label: "Branches",
+      render: (value: UserDto["assignedBranches"]) => (
         <div className="text-sm text-gray-600">
           {value.length === 0 ? (
             <span className="text-gray-400 italic">No branches</span>
@@ -129,185 +130,206 @@ export default function UsersManagementPage({
             <span className="font-medium">{value.length} branch(es)</span>
           )}
         </div>
-      )
+      ),
     },
     {
-      key: 'isActive',
-      label: 'Status',
+      key: "isActive",
+      label: "Status",
       sortable: true,
       render: (value) => (
-        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-          value ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-        }`}>
-          {value ? 'Active' : 'Inactive'}
+        <span
+          className={`px-2 py-1 text-xs font-medium rounded-full ${
+            value ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {value ? "Active" : "Inactive"}
         </span>
-      )
+      ),
     },
     {
-      key: 'lastLoginAt',
-      label: 'Last Login',
+      key: "lastLoginAt",
+      label: "Last Login",
       sortable: true,
       render: (value) => {
         if (!value) return <span className="text-gray-400">Never</span>;
         return new Date(value).toLocaleDateString();
-      }
-    }
+      },
+    },
   ];
 
   // Define row actions
   const actions: DataTableAction<UserDto>[] = [
     {
-      label: 'View',
+      label: "View",
       onClick: (row) => {
         // Navigate to user details page
         window.location.href = `/${locale}/head-office/users/${row.id}`;
       },
-      variant: 'secondary'
+      variant: "secondary",
     },
     {
-      label: 'Edit',
-      onClick: (row) => createEditModal.open(row, 'edit'),
-      variant: 'primary'
+      label: "Edit",
+      onClick: (row) => createEditModal.open(row, "edit"),
+      variant: "primary",
     },
     {
-      label: 'Delete',
+      label: "Delete",
       onClick: (row) => handleDeleteClick(row),
-      variant: 'danger'
-    }
+      variant: "danger",
+    },
   ];
 
   // Define form fields for create/edit modal
   const formFields: FormField<CreateUserDto | UpdateUserDto>[] = [
-    ...(createEditModal.mode === 'create' ? [{
-      name: 'username' as keyof CreateUserDto,
-      label: 'Username',
-      type: 'text' as const,
-      placeholder: 'Enter username',
-      required: true,
-      validation: {
-        minLength: 3,
-        maxLength: 50
-      }
-    }] : []),
+    ...(createEditModal.mode === "create"
+      ? [
+          {
+            name: "username" as keyof CreateUserDto,
+            label: "Username",
+            type: "text" as const,
+            placeholder: "Enter username",
+            required: true,
+            validation: {
+              minLength: 3,
+              maxLength: 50,
+            },
+          },
+        ]
+      : []),
     {
-      name: 'fullNameEn',
-      label: 'Full Name (English)',
-      type: 'text' as const,
-      placeholder: 'Enter full name in English',
+      name: "fullNameEn",
+      label: "Full Name (English)",
+      type: "text" as const,
+      placeholder: "Enter full name in English",
       required: true,
       validation: {
         minLength: 2,
-        maxLength: 100
-      }
+        maxLength: 100,
+      },
     },
     {
-      name: 'fullNameAr',
-      label: 'Full Name (Arabic)',
-      type: 'text' as const,
-      placeholder: 'أدخل الاسم الكامل بالعربية',
+      name: "fullNameAr",
+      label: "Full Name (Arabic)",
+      type: "text" as const,
+      placeholder: "أدخل الاسم الكامل بالعربية",
     },
     {
-      name: 'email',
-      label: 'Email',
-      type: 'email' as const,
-      placeholder: 'user@example.com',
-      required: true
-    },
-    {
-      name: 'phone',
-      label: 'Phone',
-      type: 'tel' as const,
-      placeholder: '+966 50 123 4567',
-    },
-    ...(createEditModal.mode === 'create' ? [{
-      name: 'password' as keyof CreateUserDto,
-      label: 'Password',
-      type: 'password' as const,
-      placeholder: 'Enter password',
+      name: "email",
+      label: "Email",
+      type: "email" as const,
+      placeholder: "user@example.com",
       required: true,
-      validation: {
-        minLength: 6
-      }
-    }] : []),
-    ...(createEditModal.mode === 'edit' ? [{
-      name: 'newPassword' as keyof UpdateUserDto,
-      label: 'New Password (leave blank to keep current)',
-      type: 'password' as const,
-      placeholder: 'Enter new password',
-      validation: {
-        minLength: 6
-      }
-    }] : []),
+    },
     {
-      name: 'preferredLanguage',
-      label: 'Preferred Language',
-      type: 'select' as const,
+      name: "phone",
+      label: "Phone",
+      type: "tel" as const,
+      placeholder: "+966 50 123 4567",
+    },
+    ...(createEditModal.mode === "create"
+      ? [
+          {
+            name: "password" as keyof CreateUserDto,
+            label: "Password",
+            type: "password" as const,
+            placeholder: "Enter password",
+            required: true,
+            validation: {
+              minLength: 6,
+            },
+          },
+        ]
+      : []),
+    ...(createEditModal.mode === "edit"
+      ? [
+          {
+            name: "newPassword" as keyof UpdateUserDto,
+            label: "New Password (leave blank to keep current)",
+            type: "password" as const,
+            placeholder: "Enter new password",
+            validation: {
+              minLength: 6,
+            },
+          },
+        ]
+      : []),
+    {
+      name: "preferredLanguage",
+      label: "Preferred Language",
+      type: "select" as const,
       required: true,
-      defaultValue: 'en',
+      defaultValue: "en",
       options: [
-        { label: 'English', value: 'en' },
-        { label: 'Arabic', value: 'ar' }
-      ]
+        { label: "English", value: "en" },
+        { label: "Arabic", value: "ar" },
+      ],
     },
     {
-      name: 'isHeadOfficeAdmin',
-      label: 'Head Office Administrator',
-      type: 'checkbox' as const,
-      defaultValue: false
+      name: "isHeadOfficeAdmin",
+      label: "Head Office Administrator",
+      type: "checkbox" as const,
+      defaultValue: false,
     },
     {
-      name: 'isActive',
-      label: 'Active',
-      type: 'checkbox' as const,
-      defaultValue: true
-    }
+      name: "isActive",
+      label: "Active",
+      type: "checkbox" as const,
+      defaultValue: true,
+    },
   ];
 
   // Define display fields for view dialog
   const displayFields: DisplayField<UserDto>[] = [
-    { key: 'id', label: 'User ID' },
-    { key: 'username', label: 'Username' },
-    { key: 'fullNameEn', label: 'Full Name (English)' },
-    { key: 'fullNameAr', label: 'Full Name (Arabic)' },
-    { key: 'email', label: 'Email' },
-    { key: 'phone', label: 'Phone' },
+    { key: "id", label: "User ID" },
+    { key: "username", label: "Username" },
+    { key: "fullNameEn", label: "Full Name (English)" },
+    { key: "fullNameAr", label: "Full Name (Arabic)" },
+    { key: "email", label: "Email" },
+    { key: "phone", label: "Phone" },
     {
-      key: 'preferredLanguage',
-      label: 'Preferred Language',
-      render: (value) => value === 'en' ? 'English' : 'Arabic'
+      key: "preferredLanguage",
+      label: "Preferred Language",
+      render: (value) => (value === "en" ? "English" : "Arabic"),
     },
     {
-      key: 'isHeadOfficeAdmin',
-      label: 'Role',
+      key: "isHeadOfficeAdmin",
+      label: "Role",
       render: (value) => (
-        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-          value ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
-        }`}>
-          {value ? 'Head Office Admin' : 'Branch User'}
+        <span
+          className={`px-2 py-1 text-xs font-medium rounded-full ${
+            value ? "bg-purple-100 text-purple-800" : "bg-blue-100 text-blue-800"
+          }`}
+        >
+          {value ? "Head Office Admin" : "Branch User"}
         </span>
-      )
+      ),
     },
     {
-      key: 'isActive',
-      label: 'Status',
+      key: "isActive",
+      label: "Status",
       render: (value) => (
-        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-          value ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-        }`}>
-          {value ? 'Active' : 'Inactive'}
+        <span
+          className={`px-2 py-1 text-xs font-medium rounded-full ${
+            value ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {value ? "Active" : "Inactive"}
         </span>
-      )
+      ),
     },
     {
-      key: 'assignedBranches',
-      label: 'Assigned Branches',
-      render: (value: UserDto['assignedBranches']) => (
+      key: "assignedBranches",
+      label: "Assigned Branches",
+      render: (value: UserDto["assignedBranches"]) => (
         <div className="space-y-1">
           {value.length === 0 ? (
             <span className="text-gray-400 italic">No branches assigned</span>
           ) : (
             value.map((branch) => (
-              <div key={branch.branchId} className="flex items-center justify-between py-1 px-2 bg-gray-50 rounded">
+              <div
+                key={branch.branchId}
+                className="flex items-center justify-between py-1 px-2 bg-gray-50 rounded"
+              >
                 <span className="font-medium">{branch.branchNameEn}</span>
                 <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
                   {branch.role}
@@ -316,30 +338,30 @@ export default function UsersManagementPage({
             ))
           )}
         </div>
-      )
+      ),
     },
     {
-      key: 'lastLoginAt',
-      label: 'Last Login',
-      render: (value) => value ? new Date(value).toLocaleString() : 'Never'
+      key: "lastLoginAt",
+      label: "Last Login",
+      render: (value) => (value ? new Date(value).toLocaleString() : "Never"),
     },
     {
-      key: 'createdAt',
-      label: 'Created At',
-      render: (value) => new Date(value).toLocaleString()
-    }
+      key: "createdAt",
+      label: "Created At",
+      render: (value) => new Date(value).toLocaleString(),
+    },
   ];
 
   // Handlers
   const handleCreate = () => {
-    createEditModal.open(undefined, 'create');
+    createEditModal.open(undefined, "create");
   };
 
   const handleSubmit = async (data: CreateUserDto | UpdateUserDto) => {
     setIsSubmitting(true);
 
     try {
-      if (createEditModal.mode === 'create') {
+      if (createEditModal.mode === "create") {
         // Create new user
         await createUser(data as CreateUserDto);
       } else {
@@ -362,7 +384,7 @@ export default function UsersManagementPage({
 
   const handleDeleteClick = (user: UserDto) => {
     confirmation.ask(
-      'Delete User',
+      "Delete User",
       `Are you sure you want to delete user "${user.username}" (${user.fullNameEn})? This action cannot be undone.`,
       async () => {
         try {
@@ -372,7 +394,7 @@ export default function UsersManagementPage({
           alert(`Failed to delete user: ${err.message}`);
         }
       },
-      'danger'
+      "danger"
     );
   };
 
@@ -409,23 +431,19 @@ export default function UsersManagementPage({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+    <div>
+      <div>
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            User Management
-          </h1>
-          <p className="text-gray-600">
-            Manage system users, roles, and permissions
-          </p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">User Management</h1>
+          <p className="text-gray-600">Manage system users, roles, and permissions</p>
         </div>
 
         {/* Actions Bar */}
         <div className="mb-6 flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-600">
-              {users.length} total user(s) • {users.filter(u => u.isActive).length} active
+              {users.length} total user(s) • {users.filter((u) => u.isActive).length} active
             </p>
           </div>
           <button
@@ -433,7 +451,12 @@ export default function UsersManagementPage({
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
             Add User
           </button>
@@ -464,19 +487,19 @@ export default function UsersManagementPage({
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
             <p className="text-sm text-gray-600">Active Users</p>
             <p className="text-2xl font-bold text-green-600">
-              {users.filter(u => u.isActive).length}
+              {users.filter((u) => u.isActive).length}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
             <p className="text-sm text-gray-600">Head Office Admins</p>
             <p className="text-2xl font-bold text-purple-600">
-              {users.filter(u => u.isHeadOfficeAdmin).length}
+              {users.filter((u) => u.isHeadOfficeAdmin).length}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
             <p className="text-sm text-gray-600">Branch Users</p>
             <p className="text-2xl font-bold text-blue-600">
-              {users.filter(u => !u.isHeadOfficeAdmin).length}
+              {users.filter((u) => !u.isHeadOfficeAdmin).length}
             </p>
           </div>
         </div>
@@ -486,8 +509,8 @@ export default function UsersManagementPage({
       <ModalBottomSheet
         isOpen={createEditModal.isOpen}
         onClose={createEditModal.close}
-        title={createEditModal.mode === 'create' ? 'Create New User' : 'Edit User'}
-        mode={createEditModal.mode as 'create' | 'edit'}
+        title={createEditModal.mode === "create" ? "Create New User" : "Edit User"}
+        mode={createEditModal.mode as "create" | "edit"}
         initialData={createEditModal.data || undefined}
         fields={formFields}
         onSubmit={handleSubmit}
@@ -499,24 +522,24 @@ export default function UsersManagementPage({
         isOpen={viewModal.isOpen}
         onClose={viewModal.close}
         title="User Details"
-        data={viewModal.data || {} as UserDto}
+        data={viewModal.data || ({} as UserDto)}
         fields={displayFields}
         actions={[
           {
-            label: 'Edit',
+            label: "Edit",
             onClick: (data) => {
               viewModal.close();
-              createEditModal.open(data, 'edit');
+              createEditModal.open(data, "edit");
             },
-            variant: 'primary'
+            variant: "primary",
           },
           {
-            label: 'View Activity',
+            label: "View Activity",
             onClick: (data) => {
               window.location.href = `/${locale}/head-office/users/${data.id}`;
             },
-            variant: 'secondary'
-          }
+            variant: "secondary",
+          },
         ]}
         size="lg"
       />

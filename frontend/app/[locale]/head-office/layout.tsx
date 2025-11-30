@@ -4,13 +4,13 @@
  * Features: Responsive collapsible sidebar with mobile drawer
  */
 
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
-import { ThemeSwitcherCompact } from '@/components/shared/ThemeSwitcher';
-import { use, useState, useEffect } from 'react';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { ThemeSwitcherCompact } from "@/components/shared/ThemeSwitcher";
+import { use, useState, useEffect } from "react";
 
 // Navigation item type
 type NavigationItem = {
@@ -47,12 +47,16 @@ function SidebarContent({
   return (
     <div className="flex flex-col h-full">
       {/* Sidebar Header - Head Office Badge */}
-      <div className={`border-b border-gray-200 dark:border-gray-700 pb-4 mb-4 ${
-        isSidebarCollapsed && !isMobile ? 'px-2' : 'px-4'
-      }`}>
-        <div className={`flex items-center gap-3 ${
-          isSidebarCollapsed && !isMobile ? 'justify-center' : ''
-        }`}>
+      <div
+        className={`border-b border-gray-200 dark:border-gray-700 pb-4 mb-4 ${
+          isSidebarCollapsed && !isMobile ? "px-2" : "px-4"
+        }`}
+      >
+        <div
+          className={`flex items-center gap-3 ${
+            isSidebarCollapsed && !isMobile ? "justify-center" : ""
+          }`}
+        >
           {/* Head Office Logo */}
           <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-md">
             HQ
@@ -64,9 +68,7 @@ function SidebarContent({
               <h2 className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">
                 Head Office
               </h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                Administration
-              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">Administration</p>
             </div>
           )}
         </div>
@@ -83,10 +85,10 @@ function SidebarContent({
                   href={item.href}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                     active
-                      ? 'bg-purple-50 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700 shadow-sm'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-transparent'
-                  } ${isSidebarCollapsed && !isMobile ? 'justify-center' : ''}`}
-                  title={isSidebarCollapsed && !isMobile ? item.name : ''}
+                      ? "bg-purple-50 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700 shadow-sm"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-transparent"
+                  } ${isSidebarCollapsed && !isMobile ? "justify-center" : ""}`}
+                  title={isSidebarCollapsed && !isMobile ? item.name : ""}
                   aria-label={item.name}
                 >
                   <span className="text-xl flex-shrink-0">{item.icon}</span>
@@ -102,15 +104,19 @@ function SidebarContent({
 
       {/* User Info Badge */}
       {user && (
-        <div className={`mt-4 p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg ${
-          isSidebarCollapsed && !isMobile ? 'text-center' : ''
-        }`}>
-          {(!isSidebarCollapsed || isMobile) ? (
+        <div
+          className={`mt-4 p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg ${
+            isSidebarCollapsed && !isMobile ? "text-center" : ""
+          }`}
+        >
+          {!isSidebarCollapsed || isMobile ? (
             <p className="text-xs text-purple-800 dark:text-purple-300 font-medium">
               👤 {user.fullNameEn || user.username}
             </p>
           ) : (
-            <p className="text-lg" title={user.fullNameEn || user.username}>👤</p>
+            <p className="text-lg" title={user.fullNameEn || user.username}>
+              👤
+            </p>
           )}
         </div>
       )}
@@ -120,15 +126,11 @@ function SidebarContent({
         <button
           onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           className="mt-4 p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex items-center justify-center gap-2"
-          aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          <span className="text-lg">
-            {isSidebarCollapsed ? '→' : '←'}
-          </span>
-          {!isSidebarCollapsed && (
-            <span className="text-xs font-medium">Collapse</span>
-          )}
+          <span className="text-lg">{isSidebarCollapsed ? "→" : "←"}</span>
+          {!isSidebarCollapsed && <span className="text-xs font-medium">Collapse</span>}
         </button>
       )}
     </div>
@@ -160,22 +162,22 @@ export default function HeadOfficeLayout({
   // Prevent body scroll when mobile drawer is open
   useEffect(() => {
     if (isSidebarOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     };
   }, [isSidebarOpen]);
 
   const navigation = [
-    { name: 'Dashboard', href: `/${locale}/head-office`, icon: '📊' },
-    { name: 'Branches', href: `/${locale}/head-office/branches`, icon: '🏢' },
-    { name: 'Users', href: `/${locale}/head-office/users`, icon: '👥' },
-    { name: 'Audit Logs', href: `/${locale}/head-office/audit-logs`, icon: '📋' },
-    { name: 'Analytics', href: `/${locale}/head-office/analytics`, icon: '📈' },
-    { name: 'Settings', href: `/${locale}/head-office/settings`, icon: '⚙️' },
+    { name: "Dashboard", href: `/${locale}/head-office`, icon: "📊" },
+    { name: "Branches", href: `/${locale}/head-office/branches`, icon: "🏢" },
+    { name: "Users", href: `/${locale}/head-office/users`, icon: "👥" },
+    { name: "Audit Logs", href: `/${locale}/head-office/audit-logs`, icon: "📋" },
+    { name: "Analytics", href: `/${locale}/head-office/analytics`, icon: "📈" },
+    { name: "Settings", href: `/${locale}/head-office/settings`, icon: "⚙️" },
   ];
 
   const isActiveLink = (href: string) => {
@@ -190,9 +192,7 @@ export default function HeadOfficeLayout({
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md text-center">
-          <h2 className="text-xl font-bold text-red-600 dark:text-red-400 mb-4">
-            Access Denied
-          </h2>
+          <h2 className="text-xl font-bold text-red-600 dark:text-red-400 mb-4">Access Denied</h2>
           <p className="text-gray-700 dark:text-gray-300 mb-4">
             You do not have permission to access the Head Office dashboard.
           </p>
@@ -221,7 +221,7 @@ export default function HeadOfficeLayout({
       {/* Mobile Drawer Sidebar */}
       <aside
         className={`fixed top-0 left-0 bottom-0 w-72 bg-white dark:bg-gray-800 shadow-xl border-r border-gray-200 dark:border-gray-700 z-50 transform transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-label="Mobile navigation sidebar"
       >
@@ -240,7 +240,7 @@ export default function HeadOfficeLayout({
       {/* Desktop Sidebar - Full Height */}
       <aside
         className={`hidden lg:block h-screen bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out overflow-y-auto ${
-          isSidebarCollapsed ? 'w-20' : 'w-72'
+          isSidebarCollapsed ? "w-20" : "w-72"
         }`}
         aria-label="Desktop navigation sidebar"
       >
@@ -271,12 +271,7 @@ export default function HeadOfficeLayout({
                   aria-label="Toggle navigation menu"
                   aria-expanded={isSidebarOpen}
                 >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     {isSidebarOpen ? (
                       <path
                         strokeLinecap="round"
@@ -299,15 +294,10 @@ export default function HeadOfficeLayout({
                 <button
                   onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                   className="hidden lg:block p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                  aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                   aria-expanded={!isSidebarCollapsed}
                 >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -353,7 +343,7 @@ export default function HeadOfficeLayout({
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900">
-          <div className="p-4 sm:p-6 lg:p-8">
+          <div className="p-2 sm:p-4 lg:p-6">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
               {children}
             </div>
