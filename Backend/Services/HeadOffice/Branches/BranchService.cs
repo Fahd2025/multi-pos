@@ -102,6 +102,22 @@ public class BranchService : IBranchService
         return (branches, totalCount);
     }
 
+    public async Task<List<BranchLookupDto>> GetBranchLookupAsync()
+    {
+        return await _headOfficeContext.Branches
+            .Where(b => b.IsActive)
+            .OrderBy(b => b.Code)
+            .Select(b => new BranchLookupDto
+            {
+                Id = b.Id,
+                Code = b.Code,
+                NameEn = b.NameEn,
+                NameAr = b.NameAr,
+                LoginName = b.LoginName
+            })
+            .ToListAsync();
+    }
+
     public async Task<BranchDto?> GetBranchByIdAsync(Guid id)
     {
         var branch = await _headOfficeContext

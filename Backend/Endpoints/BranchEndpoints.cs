@@ -16,6 +16,36 @@ public static class BranchEndpoints
     {
         var branchGroup = app.MapGroup("/api/v1/branches").WithTags("Branches");
 
+        // GET /api/v1/branches/lookup - Get active branches for login dropdown (public endpoint)
+        branchGroup
+            .MapGet(
+                "/lookup",
+                async (IBranchService branchService) =>
+                {
+                    try
+                    {
+                        var branches = await branchService.GetBranchLookupAsync();
+
+                        return Results.Ok(
+                            new
+                            {
+                                success = true,
+                                data = branches,
+                            }
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(
+                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                        );
+                    }
+                }
+            )
+            .AllowAnonymous()
+            .WithName("GetBranchLookup")
+            .WithOpenApi();
+
         // GET /api/v1/branches - Get all branches with filtering and pagination
         branchGroup
             .MapGet(

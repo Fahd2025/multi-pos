@@ -18,6 +18,11 @@ public interface IBranchService
     );
 
     /// <summary>
+    /// Retrieves a simplified list of active branches for lookup
+    /// </summary>
+    Task<List<BranchLookupDto>> GetBranchLookupAsync();
+
+    /// <summary>
     /// Retrieves a single branch by ID
     /// </summary>
     Task<BranchDto?> GetBranchByIdAsync(Guid id);

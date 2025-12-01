@@ -1,20 +1,40 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Input, Select, Button, Icon, ErrorAlert } from "@/components/shared";
 import { ThemeSwitcherCompact } from "@/components/shared/ThemeSwitcher";
+import branchService, { BranchLookupDto } from "@/services/branch.service";
 
 type LoginMode = "headoffice" | "branch";
 
 export default function LoginPage() {
   const { login, isLoading, error } = useAuth();
   const [loginMode, setLoginMode] = useState<LoginMode>("branch");
+  const [branches, setBranches] = useState<BranchLookupDto[]>([]);
+  const [loadingBranches, setLoadingBranches] = useState(false);
   const [formData, setFormData] = useState({
     branchName: "",
     username: "",
     password: "",
   });
+
+  // Fetch branches on component mount
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        setLoadingBranches(true);
+        const branchData = await branchService.getBranchLookup();
+        setBranches(branchData);
+      } catch (err) {
+        console.error("Failed to fetch branches:", err);
+      } finally {
+        setLoadingBranches(false);
+      }
+    };
+
+    fetchBranches();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,13 +113,13 @@ export default function LoginPage() {
                 name="branchName"
                 value={formData.branchName}
                 onChange={handleChange}
-                placeholder="Select your branch"
+                placeholder={loadingBranches ? "Loading branches..." : "Select your branch"}
                 required
-                options={[
-                  { value: "B001", label: "Main Branch" },
-                  { value: "B002", label: "Downtown Branch" },
-                  { value: "B003", label: "Mall Branch" },
-                ]}
+                disabled={loadingBranches}
+                options={branches.map((branch) => ({
+                  value: branch.loginName,
+                  label: `${branch.nameEn} - ${branch.nameAr}`,
+                }))}
                 helperText="Select the branch you want to access"
               />
             )}

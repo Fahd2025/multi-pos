@@ -3,8 +3,8 @@
  * Frontend service for branch management (head office admin only)
  */
 
-import api from './api';
-import { ApiResponse, PaginationResponse } from '@/types/api.types';
+import api from "./api";
+import { ApiResponse, PaginationResponse } from "@/types/api.types";
 
 /**
  * Branch DTO - Response from API
@@ -43,6 +43,17 @@ export interface BranchDto {
   updatedAt: string;
   createdBy: string;
   userCount: number;
+}
+
+/**
+ * Simplified branch DTO for lookup purposes
+ */
+export interface BranchLookupDto {
+  id: string;
+  code: string;
+  nameEn: string;
+  nameAr: string;
+  loginName: string;
 }
 
 /**
@@ -149,15 +160,26 @@ class BranchService {
   // ==================== BRANCHES ====================
 
   /**
+   * Get active branches for login dropdown (public endpoint)
+   */
+  async getBranchLookup(): Promise<BranchLookupDto[]> {
+    const response = await api.get<{ success: boolean; data: BranchLookupDto[] }>(
+      "/api/v1/branches/lookup"
+    );
+
+    return response.data.data;
+  }
+
+  /**
    * Get branches with filtering and pagination
    */
   async getBranches(filters: BranchFilters = {}): Promise<PaginationResponse<BranchDto>> {
     const params = new URLSearchParams();
 
-    if (filters.page) params.append('page', filters.page.toString());
-    if (filters.pageSize) params.append('pageSize', filters.pageSize.toString());
-    if (filters.isActive !== undefined) params.append('isActive', filters.isActive.toString());
-    if (filters.search) params.append('search', filters.search);
+    if (filters.page) params.append("page", filters.page.toString());
+    if (filters.pageSize) params.append("pageSize", filters.pageSize.toString());
+    if (filters.isActive !== undefined) params.append("isActive", filters.isActive.toString());
+    if (filters.search) params.append("search", filters.search);
 
     const response = await api.get<PaginationResponse<BranchDto>>(
       `/api/v1/branches?${params.toString()}`
@@ -178,7 +200,7 @@ class BranchService {
    * Create a new branch
    */
   async createBranch(branch: CreateBranchDto): Promise<BranchDto> {
-    const response = await api.post<{ data: BranchDto }>('/api/v1/branches', branch);
+    const response = await api.post<{ data: BranchDto }>("/api/v1/branches", branch);
     return response.data.data;
   }
 
@@ -211,10 +233,7 @@ class BranchService {
    * Update branch settings
    */
   async updateBranchSettings(id: string, settings: BranchSettingsDto): Promise<BranchSettingsDto> {
-    const response = await api.put<BranchSettingsDto>(
-      `/api/v1/branches/${id}/settings`,
-      settings
-    );
+    const response = await api.put<BranchSettingsDto>(`/api/v1/branches/${id}/settings`, settings);
     return response.data;
   }
 
@@ -238,17 +257,17 @@ class BranchService {
    */
   getDatabaseProviderName(provider: number | string): string {
     const providerMap: Record<string | number, string> = {
-      0: 'SQLite',
-      1: 'MSSQL',
-      2: 'PostgreSQL',
-      3: 'MySQL',
-      'SQLite': 'SQLite',
-      'MSSQL': 'MSSQL',
-      'PostgreSQL': 'PostgreSQL',
-      'MySQL': 'MySQL',
+      0: "SQLite",
+      1: "MSSQL",
+      2: "PostgreSQL",
+      3: "MySQL",
+      SQLite: "SQLite",
+      MSSQL: "MSSQL",
+      PostgreSQL: "PostgreSQL",
+      MySQL: "MySQL",
     };
 
-    return providerMap[provider] || 'Unknown';
+    return providerMap[provider] || "Unknown";
   }
 
   /**
@@ -256,10 +275,10 @@ class BranchService {
    */
   getDatabaseProviderOptions(): Array<{ value: number; label: string }> {
     return [
-      { value: 0, label: 'SQLite' },
-      { value: 1, label: 'MSSQL' },
-      { value: 2, label: 'PostgreSQL' },
-      { value: 3, label: 'MySQL' },
+      { value: 0, label: "SQLite" },
+      { value: 1, label: "MSSQL" },
+      { value: 2, label: "PostgreSQL" },
+      { value: 3, label: "MySQL" },
     ];
   }
 
