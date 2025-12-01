@@ -743,29 +743,35 @@ public class BranchService : IBranchService
             new Category
             {
                 Id = Guid.NewGuid(),
+                Code = "CAT-001",
                 NameEn = "Electronics",
                 NameAr = "إلكترونيات",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
+                CreatedBy = branch.CreatedBy,
             },
             new Category
             {
                 Id = Guid.NewGuid(),
+                Code = "CAT-002",
                 NameEn = "Groceries",
                 NameAr = "بقالة",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
+                CreatedBy = branch.CreatedBy,
             },
             new Category
             {
                 Id = Guid.NewGuid(),
+                Code = "CAT-003",
                 NameEn = "Clothing",
                 NameAr = "ملابس",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
+                CreatedBy = branch.CreatedBy,
             },
         };
 
@@ -777,6 +783,7 @@ public class BranchService : IBranchService
             new ExpenseCategory
             {
                 Id = Guid.NewGuid(),
+                Code = "EXP-001",
                 NameEn = "Rent",
                 NameAr = "إيجار",
                 IsActive = true,
@@ -786,6 +793,7 @@ public class BranchService : IBranchService
             new ExpenseCategory
             {
                 Id = Guid.NewGuid(),
+                Code = "EXP-002",
                 NameEn = "Utilities",
                 NameAr = "مرافق",
                 IsActive = true,
@@ -795,6 +803,7 @@ public class BranchService : IBranchService
             new ExpenseCategory
             {
                 Id = Guid.NewGuid(),
+                Code = "EXP-003",
                 NameEn = "Salaries",
                 NameAr = "رواتب",
                 IsActive = true,
