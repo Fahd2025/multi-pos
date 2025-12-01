@@ -226,7 +226,7 @@ public static class ImageEndpoints
         imagesGroup
             .MapGet(
                 "/{branchName}/{entityType}/{entityId:guid}/{size}",
-                async (
+                (
                     HttpContext context,
                     string branchName,
                     string entityType,

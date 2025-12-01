@@ -59,7 +59,7 @@ public static class ReportEndpoints
 
                         return Results.Ok(new { success = true, data = report });
                     }
-                    catch (UnauthorizedAccessException ex)
+                    catch (UnauthorizedAccessException)
                     {
                         return Results.Forbid();
                     }
@@ -130,7 +130,7 @@ public static class ReportEndpoints
 
                         return Results.Ok(new { success = true, data = report });
                     }
-                    catch (UnauthorizedAccessException ex)
+                    catch (UnauthorizedAccessException)
                     {
                         return Results.Forbid();
                     }
@@ -195,7 +195,7 @@ public static class ReportEndpoints
 
                         return Results.Ok(new { success = true, data = report });
                     }
-                    catch (UnauthorizedAccessException ex)
+                    catch (UnauthorizedAccessException)
                     {
                         return Results.Forbid();
                     }
@@ -249,7 +249,7 @@ public static class ReportEndpoints
 
                         return Results.File(fileContent, contentType, fileName);
                     }
-                    catch (UnauthorizedAccessException ex)
+                    catch (UnauthorizedAccessException)
                     {
                         return Results.Forbid();
                     }

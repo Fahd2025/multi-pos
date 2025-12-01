@@ -95,10 +95,12 @@ public class ImageService : IImageService
         }
     }
 
-    public async Task<bool> DeleteImageAsync(string branchName, string entityType, Guid entityId)
+    public Task<bool> DeleteImageAsync(string branchName, string entityType, Guid entityId)
     {
-        try
+        return Task.Run(() =>
         {
+            try
+            {
             bool deleted = false;
 
             // First try to delete from the new path (with entityId)
@@ -164,13 +166,14 @@ public class ImageService : IImageService
                 }
             }
 
-            return deleted;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting images for {EntityType} {EntityId}", entityType, entityId);
-            return false;
-        }
+                return deleted;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting images for {EntityType} {EntityId}", entityType, entityId);
+                return false;
+            }
+        });
     }
 
     public string GetImagePath(string branchName, string entityType, Guid entityId, string size)
