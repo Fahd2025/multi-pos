@@ -3,7 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Backend.Data;
-using Backend.Models.DTOs.Customers;
+using Backend.Models.DTOs.Branch.Customers;
 using Backend.Models.Entities.Branch;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;

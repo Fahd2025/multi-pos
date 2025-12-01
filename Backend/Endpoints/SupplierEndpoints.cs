@@ -1,5 +1,5 @@
-using Backend.Models.DTOs.Suppliers;
-using Backend.Services.Suppliers;
+using Backend.Models.DTOs.Branch.Suppliers;
+using Backend.Services.Branch.Suppliers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Endpoints;

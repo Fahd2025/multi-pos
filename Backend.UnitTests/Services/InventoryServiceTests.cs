@@ -1,7 +1,7 @@
 using Backend.Data;
-using Backend.Models.DTOs.Inventory;
+using Backend.Models.DTOs.Branch.Inventory;
 using Backend.Models.Entities.Branch;
-using Backend.Services.Inventory;
+using Backend.Services.Branch.Inventory;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Xunit;

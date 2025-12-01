@@ -1,5 +1,7 @@
-using Backend.Data;
-using Backend.Services.Images;
+using Backend.Data.Branch;
+using Backend.Data.HeadOffice;
+using Backend.Data.Shared;
+using Backend.Services.Branch.Images;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Endpoints;

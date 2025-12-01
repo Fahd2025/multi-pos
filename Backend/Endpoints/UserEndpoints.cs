@@ -1,5 +1,5 @@
-using Backend.Models.DTOs.Users;
-using Backend.Services.Users;
+using Backend.Models.DTOs.HeadOffice.Users;
+using Backend.Services.HeadOffice.Users;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Endpoints;

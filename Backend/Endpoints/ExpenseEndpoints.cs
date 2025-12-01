@@ -1,5 +1,5 @@
-using Backend.Models.DTOs.Expenses;
-using Backend.Services.Expenses;
+using Backend.Models.DTOs.Branch.Expenses;
+using Backend.Services.Branch.Expenses;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Endpoints;

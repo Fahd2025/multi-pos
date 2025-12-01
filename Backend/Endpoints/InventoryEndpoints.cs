@@ -1,5 +1,5 @@
-using Backend.Models.DTOs.Inventory;
-using Backend.Services.Inventory;
+using Backend.Models.DTOs.Branch.Inventory;
+using Backend.Services.Branch.Inventory;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Endpoints;

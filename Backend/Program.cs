@@ -1,8 +1,10 @@
 using System.Text;
-using Backend.Data;
+using Backend.Data.Branch;
+using Backend.Data.HeadOffice;
+using Backend.Data.Shared;
 using Backend.Endpoints;
 using Backend.Middleware;
-using Backend.Services.Auth;
+using Backend.Services.HeadOffice.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -77,45 +79,45 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<
-    Backend.Services.Sales.ISalesService,
-    Backend.Services.Sales.SalesService
+    Backend.Services.Branch.Sales.ISalesService,
+    Backend.Services.Branch.Sales.SalesService
 >();
-builder.Services.AddScoped<Backend.Services.Sync.ISyncService, Backend.Services.Sync.SyncService>();
+builder.Services.AddScoped<Backend.Services.Shared.Sync.ISyncService, Backend.Services.Shared.Sync.SyncService>();
 builder.Services.AddScoped<
-    Backend.Services.Inventory.IInventoryService,
-    Backend.Services.Inventory.InventoryService
->();
-builder.Services.AddScoped<
-    Backend.Services.Customers.ICustomerService,
-    Backend.Services.Customers.CustomerService
+    Backend.Services.Branch.Inventory.IInventoryService,
+    Backend.Services.Branch.Inventory.InventoryService
 >();
 builder.Services.AddScoped<
-    Backend.Services.Expenses.IExpenseService,
-    Backend.Services.Expenses.ExpenseService
+    Backend.Services.Branch.Customers.ICustomerService,
+    Backend.Services.Branch.Customers.CustomerService
 >();
 builder.Services.AddScoped<
-    Backend.Services.Branches.IBranchService,
-    Backend.Services.Branches.BranchService
+    Backend.Services.Branch.Expenses.IExpenseService,
+    Backend.Services.Branch.Expenses.ExpenseService
 >();
 builder.Services.AddScoped<
-    Backend.Services.Users.IUserService,
-    Backend.Services.Users.UserService
+    Backend.Services.HeadOffice.Branches.IBranchService,
+    Backend.Services.HeadOffice.Branches.BranchService
 >();
 builder.Services.AddScoped<
-    Backend.Services.Audit.IAuditService,
-    Backend.Services.Audit.AuditService
+    Backend.Services.HeadOffice.Users.IUserService,
+    Backend.Services.HeadOffice.Users.UserService
 >();
 builder.Services.AddScoped<
-    Backend.Services.Suppliers.ISupplierService,
-    Backend.Services.Suppliers.SupplierService
+    Backend.Services.HeadOffice.Audit.IAuditService,
+    Backend.Services.HeadOffice.Audit.AuditService
 >();
 builder.Services.AddScoped<
-    Backend.Services.Images.IImageService,
-    Backend.Services.Images.ImageService
+    Backend.Services.Branch.Suppliers.ISupplierService,
+    Backend.Services.Branch.Suppliers.SupplierService
 >();
 builder.Services.AddScoped<
-    Backend.Services.Reports.IReportService,
-    Backend.Services.Reports.ReportService
+    Backend.Services.Branch.Images.IImageService,
+    Backend.Services.Branch.Images.ImageService
+>();
+builder.Services.AddScoped<
+    Backend.Services.Shared.Reports.IReportService,
+    Backend.Services.Shared.Reports.ReportService
 >();
 
 builder.Services.AddHttpContextAccessor();

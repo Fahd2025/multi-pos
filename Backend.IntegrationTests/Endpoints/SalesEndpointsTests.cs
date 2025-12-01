@@ -4,7 +4,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Backend.Data;
-using Backend.Models.DTOs.Sales;
+using Backend.Models.DTOs.Branch.Sales;
 using Backend.Models.Entities.Branch;
 using Backend.Services.Auth;
 using FluentAssertions;

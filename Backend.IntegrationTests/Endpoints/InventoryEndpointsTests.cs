@@ -1,4 +1,4 @@
-using Backend.Models.DTOs.Inventory;
+using Backend.Models.DTOs.Branch.Inventory;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net;

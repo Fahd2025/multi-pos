@@ -1,5 +1,5 @@
-using Backend.Models.DTOs.Reports;
-using Backend.Services.Reports;
+using Backend.Models.DTOs.Shared.Reports;
+using Backend.Services.Shared.Reports;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Endpoints;

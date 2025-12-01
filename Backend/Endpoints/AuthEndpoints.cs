@@ -1,6 +1,6 @@
-using Backend.Data;
-using Backend.Models.DTOs.Auth;
-using Backend.Services.Auth;
+using Backend.Data.HeadOffice;
+using Backend.Models.DTOs.HeadOffice.Auth;
+using Backend.Services.HeadOffice.Auth;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

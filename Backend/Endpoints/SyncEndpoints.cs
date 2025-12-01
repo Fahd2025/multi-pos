@@ -1,4 +1,4 @@
-using Backend.Models.DTOs.Sync;
+using Backend.Models.DTOs.Shared.Sync;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Endpoints;
@@ -22,7 +22,7 @@ public static class SyncEndpoints
                 async (
                     [FromBody] SyncTransactionRequest request,
                     HttpContext httpContext,
-                    Backend.Services.Sync.ISyncService syncService
+                    Backend.Services.Shared.Sync.ISyncService syncService
                 ) =>
                 {
                     try
@@ -100,7 +100,7 @@ public static class SyncEndpoints
                 async (
                     [FromBody] SyncBatchRequest request,
                     HttpContext httpContext,
-                    Backend.Services.Sync.ISyncService syncService
+                    Backend.Services.Shared.Sync.ISyncService syncService
                 ) =>
                 {
                     try
@@ -207,7 +207,7 @@ public static class SyncEndpoints
         syncGroup
             .MapGet(
                 "/status",
-                async (HttpContext httpContext, Backend.Services.Sync.ISyncService syncService) =>
+                async (HttpContext httpContext, Backend.Services.Shared.Sync.ISyncService syncService) =>
                 {
                     try
                     {

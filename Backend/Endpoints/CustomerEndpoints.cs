@@ -1,5 +1,5 @@
-using Backend.Models.DTOs.Customers;
-using Backend.Services.Customers;
+using Backend.Models.DTOs.Branch.Customers;
+using Backend.Services.Branch.Customers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Endpoints;

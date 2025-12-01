@@ -1,8 +1,8 @@
 using Backend.Data;
-using Backend.Models.DTOs.Customers;
+using Backend.Models.DTOs.Branch.Customers;
 using Backend.Models.Entities.Branch;
 using Backend.Models.Entities.HeadOffice;
-using Backend.Services.Customers;
+using Backend.Services.Branch.Customers;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Xunit;

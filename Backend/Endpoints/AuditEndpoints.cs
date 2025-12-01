@@ -1,4 +1,4 @@
-using Backend.Services.Audit;
+using Backend.Services.HeadOffice.Audit;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Endpoints;

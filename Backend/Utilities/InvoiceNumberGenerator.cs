@@ -1,4 +1,4 @@
-using Backend.Data;
+using Backend.Data.Branch;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Utilities;

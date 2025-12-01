@@ -1,8 +1,8 @@
 using Backend.Data;
-using Backend.Models.DTOs.Sales;
+using Backend.Models.DTOs.Branch.Sales;
 using Backend.Models.Entities.Branch;
 using Backend.Models.Entities.HeadOffice;
-using Backend.Services.Sales;
+using Backend.Services.Branch.Sales;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
