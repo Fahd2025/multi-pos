@@ -95,18 +95,18 @@ export function DataTable<T>({
   const renderSortIcon = (columnKey: keyof T | string) => {
     if (sortConfig?.key !== columnKey) {
       return (
-        <svg className="w-4 h-4 ml-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4 ml-1 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
         </svg>
       );
     }
 
     return sortConfig.direction === 'asc' ? (
-      <svg className="w-4 h-4 ml-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-4 h-4 ml-1 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
       </svg>
     ) : (
-      <svg className="w-4 h-4 ml-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-4 h-4 ml-1 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
       </svg>
     );
@@ -427,7 +427,7 @@ export function DataTable<T>({
                               <img
                                 src={firstImage}
                                 alt={imageColumn.getAltText(row)}
-                                className="w-full h-full object-cover rounded border border-gray-200"
+                                className="w-full h-full object-cover rounded border border-gray-200 dark:border-gray-600"
                               />
                               {hasMultipleImages && (
                                 <div className="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">
@@ -472,10 +472,10 @@ export function DataTable<T>({
                           }
 
                           const variantClasses = {
-                            primary: 'text-blue-600 hover:text-blue-900',
-                            secondary: 'text-gray-600 hover:text-gray-900',
-                            danger: 'text-red-600 hover:text-red-900',
-                            success: 'text-green-600 hover:text-green-900'
+                            primary: 'text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300',
+                            secondary: 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300',
+                            danger: 'text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300',
+                            success: 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'
                           };
 
                           return (

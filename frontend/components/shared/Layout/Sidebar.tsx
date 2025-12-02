@@ -244,20 +244,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="flex flex-col h-full">
           {/* Sidebar header */}
-          <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 lg:hidden">
-            <span className="text-lg font-semibold text-gray-900">Menu</span>
+          <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-700 lg:hidden">
+            <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">Menu</span>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
               <svg
-                className="h-6 w-6 text-gray-500"
+                className="h-6 w-6 text-gray-500 dark:text-gray-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -284,18 +284,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
                   onClick={onClose}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     active
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                 >
                   <span
-                    className={active ? 'text-blue-600' : 'text-gray-400'}
+                    className={active ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}
                   >
                     {item.icon}
                   </span>
                   <span className="flex-1 font-medium">{item.label}</span>
                   {item.badge && (
-                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-600">
+                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">
                       {item.badge}
                     </span>
                   )}
@@ -305,8 +305,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
           </nav>
 
           {/* Sidebar footer */}
-          <div className="p-4 border-t border-gray-200">
-            <div className="text-xs text-gray-500 text-center">
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
               <p>Multi-Branch POS v1.0</p>
               <p className="mt-1">© 2025 All rights reserved</p>
             </div>

@@ -39,9 +39,9 @@ export const Dialog: React.FC<DialogProps> = ({
     switch (type) {
       case 'warning':
         return (
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/30">
             <svg
-              className="h-6 w-6 text-yellow-600"
+              className="h-6 w-6 text-yellow-600 dark:text-yellow-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -57,9 +57,9 @@ export const Dialog: React.FC<DialogProps> = ({
         );
       case 'danger':
         return (
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
             <svg
-              className="h-6 w-6 text-red-600"
+              className="h-6 w-6 text-red-600 dark:text-red-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -75,9 +75,9 @@ export const Dialog: React.FC<DialogProps> = ({
         );
       case 'success':
         return (
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
             <svg
-              className="h-6 w-6 text-green-600"
+              className="h-6 w-6 text-green-600 dark:text-green-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -93,9 +93,9 @@ export const Dialog: React.FC<DialogProps> = ({
         );
       default:
         return (
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
             <svg
-              className="h-6 w-6 text-blue-600"
+              className="h-6 w-6 text-blue-600 dark:text-blue-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -137,7 +137,7 @@ export const Dialog: React.FC<DialogProps> = ({
       <ModalBody>
         <div className="text-center">
           {getIcon()}
-          <p className="mt-4 text-sm text-gray-600">{message}</p>
+          <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">{message}</p>
         </div>
       </ModalBody>
 

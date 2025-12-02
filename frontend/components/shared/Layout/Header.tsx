@@ -26,7 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
+    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
       <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
         {/* Left side - Menu button and logo */}
         <div className="flex items-center gap-4">
@@ -57,7 +57,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Logo and branch info */}
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 bg-blue-600 rounded-lg flex items-center justify-center">
+            <div className="h-10 w-10 bg-blue-600 dark:bg-blue-500 rounded-lg flex items-center justify-center">
               <svg
                 className="h-6 w-6 text-white"
                 fill="none"
@@ -73,10 +73,10 @@ export const Header: React.FC<HeaderProps> = ({
               </svg>
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-lg font-semibold text-gray-900">
+              <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 {branch?.branchNameEn || 'Multi-Branch POS'}
               </h1>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 {branch?.branchCode || 'Head Office'}
               </p>
             </div>
@@ -110,23 +110,23 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
               <div className="hidden md:block text-right">
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                   {user?.fullNameEn || 'User'}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   {user?.isHeadOfficeAdmin ? 'Admin' : 'Staff'}
                 </p>
               </div>
-              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                <span className="text-blue-600 font-medium text-sm">
+              <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <span className="text-blue-600 dark:text-blue-400 font-medium text-sm">
                   {user?.fullNameEn?.charAt(0) || 'U'}
                 </span>
               </div>
               <svg
-                className="h-5 w-5 text-gray-400"
+                className="h-5 w-5 text-gray-400 dark:text-gray-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -150,25 +150,25 @@ export const Header: React.FC<HeaderProps> = ({
                 />
 
                 {/* Menu */}
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
-                  <div className="px-4 py-3 border-b border-gray-200">
-                    <p className="text-sm font-medium text-gray-900">
+                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-20">
+                  <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {user?.fullNameEn}
                     </p>
-                    <p className="text-xs text-gray-500 truncate">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                       {user?.email}
                     </p>
                   </div>
 
                   <button
-                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
                     onClick={() => {
                       setShowUserMenu(false);
                       // Navigate to profile
                     }}
                   >
                     <svg
-                      className="h-5 w-5 text-gray-400"
+                      className="h-5 w-5 text-gray-400 dark:text-gray-500"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -184,14 +184,14 @@ export const Header: React.FC<HeaderProps> = ({
                   </button>
 
                   <button
-                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
                     onClick={() => {
                       setShowUserMenu(false);
                       // Navigate to settings
                     }}
                   >
                     <svg
-                      className="h-5 w-5 text-gray-400"
+                      className="h-5 w-5 text-gray-400 dark:text-gray-500"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -212,9 +212,9 @@ export const Header: React.FC<HeaderProps> = ({
                     Settings
                   </button>
 
-                  <div className="border-t border-gray-200 mt-1 pt-1">
+                  <div className="border-t border-gray-200 dark:border-gray-700 mt-1 pt-1">
                     <button
-                      className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                      className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
                       onClick={() => {
                         setShowUserMenu(false);
                         handleLogout();

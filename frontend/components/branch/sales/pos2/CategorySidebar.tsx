@@ -1,23 +1,33 @@
 import React from "react";
-import { Utensils, Sandwich, Drumstick, CupSoda, Coffee, IceCream, LayoutGrid } from "lucide-react";
+import { Utensils, Sandwich, Drumstick, CupSoda, Coffee, IceCream, LayoutGrid, Pizza, Salad, Cake } from "lucide-react";
 import styles from "./Pos2.module.css";
+import { CategoryDto } from "@/types/api.types";
 
 interface CategorySidebarProps {
+  categories: CategoryDto[];
   activeCategory: string;
   onSelectCategory: (category: string) => void;
 }
 
-const categories = [
-  { id: "all", label: "All Menu", icon: Utensils },
-  { id: "burger", label: "Burger", icon: Sandwich },
-  { id: "chicken", label: "Fried Chicken", icon: Drumstick },
-  { id: "drink", label: "Drink", icon: CupSoda },
-  { id: "coffee", label: "Coffee", icon: Coffee },
-  { id: "dessert", label: "Dessert", icon: IceCream },
-  { id: "other", label: "Other Menu", icon: LayoutGrid },
-];
+// Map category codes to icons
+const getCategoryIcon = (code: string) => {
+  const iconMap: Record<string, any> = {
+    burger: Sandwich,
+    chicken: Drumstick,
+    drink: CupSoda,
+    coffee: Coffee,
+    dessert: IceCream,
+    pizza: Pizza,
+    salad: Salad,
+    cake: Cake,
+    other: LayoutGrid,
+  };
+
+  return iconMap[code.toLowerCase()] || LayoutGrid;
+};
 
 export const CategorySidebar: React.FC<CategorySidebarProps> = ({
+  categories,
   activeCategory,
   onSelectCategory,
 }) => {
@@ -36,18 +46,33 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
         ></div>
       </div>
 
-      {categories.map((cat) => (
-        <div
-          key={cat.id}
-          className={`${styles.menuItem} ${activeCategory === cat.id ? styles.active : ""}`}
-          onClick={() => onSelectCategory(cat.id)}
-        >
-          <cat.icon className={styles.menuIcon} />
-          <span style={{ fontSize: "0.75rem", textAlign: "center", lineHeight: 1.1 }}>
-            {cat.label}
-          </span>
-        </div>
-      ))}
+      {/* "All Menu" category */}
+      <div
+        className={`${styles.menuItem} ${activeCategory === "all" ? styles.active : ""}`}
+        onClick={() => onSelectCategory("all")}
+      >
+        <Utensils className={styles.menuIcon} />
+        <span style={{ fontSize: "0.75rem", textAlign: "center", lineHeight: 1.1 }}>
+          All Menu
+        </span>
+      </div>
+
+      {/* Real categories from backend */}
+      {categories.map((cat) => {
+        const Icon = getCategoryIcon(cat.code);
+        return (
+          <div
+            key={cat.id}
+            className={`${styles.menuItem} ${activeCategory === cat.id ? styles.active : ""}`}
+            onClick={() => onSelectCategory(cat.id)}
+          >
+            <Icon className={styles.menuIcon} />
+            <span style={{ fontSize: "0.75rem", textAlign: "center", lineHeight: 1.1 }}>
+              {cat.nameEn}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 };

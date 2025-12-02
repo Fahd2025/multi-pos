@@ -72,7 +72,7 @@ export const Modal: React.FC<ModalProps> = ({
               leaveTo="opacity-0 scale-95"
             >
               <Dialog.Panel
-                className={`w-full ${sizeStyles[size]} transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all`}
+                className={`w-full ${sizeStyles[size]} transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all`}
               >
                 {/* Header */}
                 {(title || showCloseButton) && (
@@ -80,7 +80,7 @@ export const Modal: React.FC<ModalProps> = ({
                     {title && (
                       <Dialog.Title
                         as="h3"
-                        className="text-lg font-medium leading-6 text-gray-900"
+                        className="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100"
                       >
                         {title}
                       </Dialog.Title>
@@ -145,7 +145,7 @@ export interface ModalBodyProps {
 }
 
 export const ModalBody: React.FC<ModalBodyProps> = ({ children, className = '' }) => {
-  return <div className={`text-sm text-gray-700 ${className}`}>{children}</div>;
+  return <div className={`text-sm text-gray-700 dark:text-gray-300 ${className}`}>{children}</div>;
 };
 
 /**
