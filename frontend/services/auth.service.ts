@@ -8,7 +8,7 @@ import { STORAGE_KEYS, API_ROUTES } from "@/lib/constants";
 
 // Types for auth requests and responses
 export interface LoginRequest {
-  branchName?: string; // Optional for head office login
+  branchCode?: string; // Optional for head office login
   username: string;
   password: string;
 }
@@ -53,7 +53,7 @@ class AuthService {
       const loginPayload = {
         username: credentials.username,
         password: credentials.password,
-        branchCode: credentials.branchName || undefined,
+        branchCode: credentials.branchCode || undefined,
       };
 
       const response = await api.post<{ success: boolean; data: LoginResponse; message: string }>(
@@ -69,16 +69,16 @@ class AuthService {
         localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
 
         // Find and store the selected branch from user's branch assignments (if branch login)
-        if (credentials.branchName) {
+        if (credentials.branchCode) {
           // Match using branchCode since that's what the login form submits
           const selectedBranch = user.branches.find(
-            (b) => b.branchCode?.toLowerCase() === credentials.branchName!.toLowerCase()
+            (b) => b.branchCode?.toLowerCase() === credentials.branchCode!.toLowerCase()
           );
 
           if (selectedBranch) {
             localStorage.setItem(STORAGE_KEYS.BRANCH, JSON.stringify(selectedBranch));
           } else {
-            console.error("No branch found with branchCode matching:", credentials.branchName);
+            console.error("No branch found with branchCode matching:", credentials.branchCode);
           }
         } else {
           // For head office login, clear any existing branch data

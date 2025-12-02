@@ -67,7 +67,7 @@ export function useAuth(): UseAuthReturn {
         if (loginMode === "branch") {
           // Find selected branch
           const selectedBranch = response.user.branches.find(
-            (b) => b.branchCode.toLowerCase() === credentials.branchName?.toLowerCase()
+            (b) => b.branchCode.toLowerCase() === credentials.branchCode?.toLowerCase()
           );
 
           setBranch(selectedBranch || null);

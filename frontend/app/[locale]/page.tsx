@@ -14,7 +14,7 @@ export default function LoginPage() {
   const [branches, setBranches] = useState<BranchLookupDto[]>([]);
   const [loadingBranches, setLoadingBranches] = useState(false);
   const [formData, setFormData] = useState({
-    branchName: "",
+    branchCode: "",
     username: "",
     password: "",
   });
@@ -40,10 +40,10 @@ export default function LoginPage() {
     e.preventDefault();
 
     try {
-      // For head office login, pass empty string as branchName
+      // For head office login, pass empty string as branchCode
       const loginData = {
         ...formData,
-        branchName: loginMode === "headoffice" ? "" : formData.branchName,
+        branchCode: loginMode === "headoffice" ? "" : formData.branchCode,
       };
       await login(loginData, loginMode);
     } catch (err) {
@@ -110,8 +110,8 @@ export default function LoginPage() {
             {loginMode === "branch" && (
               <Select
                 label="Branch"
-                name="branchName"
-                value={formData.branchName}
+                name="branchCode"
+                value={formData.branchCode}
                 onChange={handleChange}
                 placeholder={loadingBranches ? "Loading branches..." : "Select your branch"}
                 required
