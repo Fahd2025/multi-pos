@@ -108,7 +108,6 @@ export interface BranchDto {
   code: string;
   nameEn: string;
   nameAr: string;
-  loginName: string;
   addressEn?: string;
   addressAr?: string;
   email?: string;
@@ -152,7 +151,6 @@ export interface CreateBranchDto {
   code: string;
   nameEn: string;
   nameAr: string;
-  loginName: string;
   addressEn?: string;
   addressAr?: string;
   email?: string;

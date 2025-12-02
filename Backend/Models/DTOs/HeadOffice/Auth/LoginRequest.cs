@@ -10,5 +10,5 @@ public class LoginRequest
     [Required]
     public string Password { get; set; } = string.Empty;
 
-    public string? BranchLoginName { get; set; }
+    public string? BranchCode { get; set; }
 }

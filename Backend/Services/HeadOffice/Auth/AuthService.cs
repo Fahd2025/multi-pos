@@ -68,11 +68,11 @@ public class AuthService : IAuthService
         user.LastActivityAt = DateTime.UtcNow;
 
         // Check if a branch was selected (both head office admins and regular users can select a branch)
-        if (!string.IsNullOrEmpty(request.BranchLoginName))
+        if (!string.IsNullOrEmpty(request.BranchCode))
         {
             // Find branch
             var branch = await _context.Branches.FirstOrDefaultAsync(b =>
-                b.LoginName == request.BranchLoginName && b.IsActive
+                b.Code == request.BranchCode && b.IsActive
             );
 
             if (branch == null)

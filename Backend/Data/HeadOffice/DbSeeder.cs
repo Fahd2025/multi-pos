@@ -46,7 +46,6 @@ public static class DbSeeder
             {
                 Id = Guid.NewGuid(),
                 Code = "B001",
-                LoginName = "B001",
                 NameEn = "Main Branch",
                 NameAr = "الفرع الرئيسي",
                 AddressEn = "123 Main Street",
@@ -67,7 +66,6 @@ public static class DbSeeder
             {
                 Id = Guid.NewGuid(),
                 Code = "B002",
-                LoginName = "B002",
                 NameEn = "Downtown Branch",
                 NameAr = "فرع وسط المدينة",
                 AddressEn = "456 Downtown Ave",
@@ -88,7 +86,6 @@ public static class DbSeeder
             {
                 Id = Guid.NewGuid(),
                 Code = "B003",
-                LoginName = "B003",
                 NameEn = "Mall Branch",
                 NameAr = "فرع المول",
                 AddressEn = "789 Mall Complex",
@@ -234,7 +231,7 @@ public static class DbSeeder
                     var uploadPath = Path.Combine(
                         "Upload",
                         "Branches",
-                        branch.LoginName,
+                        branch.Code,
                         "Database"
                     );
                     Directory.CreateDirectory(uploadPath);

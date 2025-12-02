@@ -46,7 +46,8 @@
       "Bash(done)",
       "Bash(echo \"=== File Count Verification ===\" echo \"Branch Sales DTO files with correct namespace:\" grep -l \"namespace Backend.Models.DTOs.Branch.Sales\" \"/c/Users/hp/Desktop/nextjs-POS/claude/multi-pos/Backend/Models/DTOs/Branch/Sales/\"*.cs)",
       "Bash(dotnet clean:*)",
-      "Bash(tree -L 3 -d Backend/Services Backend/Data Backend/Models/DTOs)"
+      "Bash(tree -L 3 -d Backend/Services Backend/Data Backend/Models/DTOs)",
+      "Bash(dotnet script:*)"
     ],
     "deny": [],
     "ask": []

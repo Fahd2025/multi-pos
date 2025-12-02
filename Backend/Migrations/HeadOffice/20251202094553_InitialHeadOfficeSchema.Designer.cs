@@ -8,11 +8,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Backend.Migrations
+namespace Backend.Migrations.HeadOffice
 {
     [DbContext(typeof(HeadOfficeDbContext))]
-    [Migration("20251122082443_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251202094553_InitialHeadOfficeSchema")]
+    partial class InitialHeadOfficeSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -166,11 +166,6 @@ namespace Backend.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("LoginName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("LogoPath")
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
@@ -198,6 +193,9 @@ namespace Backend.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("SslMode")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("TaxNumber")
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
@@ -210,6 +208,9 @@ namespace Backend.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("TrustServerCertificate")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
@@ -224,9 +225,6 @@ namespace Backend.Migrations
                         .IsUnique();
 
                     b.HasIndex("IsActive");
-
-                    b.HasIndex("LoginName")
-                        .IsUnique();
 
                     b.ToTable("Branches");
                 });
@@ -430,7 +428,7 @@ namespace Backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ActivityType")
+                    b.Property<string>("Action")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
@@ -438,9 +436,15 @@ namespace Backend.Migrations
                     b.Property<Guid?>("BranchId")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Description")
+                    b.Property<string>("Details")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("EntityId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EntityType")
                         .IsRequired()
-                        .HasMaxLength(500)
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("IpAddress")
@@ -448,6 +452,10 @@ namespace Backend.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("Timestamp")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("UserId")

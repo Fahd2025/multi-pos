@@ -25,7 +25,7 @@ public class HeadOfficeDbContext : DbContext
         modelBuilder.Entity<BranchEntity>(entity =>
         {
             entity.HasIndex(e => e.Code).IsUnique();
-            entity.HasIndex(e => e.LoginName).IsUnique();
+            entity.HasIndex(e => e.Code).IsUnique();
             entity.HasIndex(e => e.IsActive);
 
             entity.Property(e => e.TaxRate).HasPrecision(5, 2);

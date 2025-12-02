@@ -8,11 +8,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Backend.Migrations.BranchDb
+namespace Backend.Migrations.Branch
 {
     [DbContext(typeof(BranchDbContext))]
-    [Migration("20251125170946_AddExpenseEntities")]
-    partial class AddExpenseEntities
+    [Migration("20251202101429_InitialBranchSchema")]
+    partial class InitialBranchSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

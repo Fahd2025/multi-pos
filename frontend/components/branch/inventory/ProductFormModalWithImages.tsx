@@ -147,6 +147,11 @@ export default function ProductFormModalWithImages({
   ];
 
   const handleSubmit = async (data: any) => {
+    // Validate branchName before proceeding
+    if (!branchName || branchName.trim() === "") {
+      throw new Error("Branch information is missing. Please refresh the page and try again.");
+    }
+
     setIsSubmitting(true);
 
     const result = await executeWithErrorHandling(async () => {
@@ -213,6 +218,7 @@ export default function ProductFormModalWithImages({
           }
         } catch (error) {
           console.error("Error updating images:", error);
+          throw error; // Re-throw to show error to user
         } finally {
           setUploadingImages(false);
         }

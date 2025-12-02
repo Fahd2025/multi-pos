@@ -53,7 +53,7 @@ class AuthService {
       const loginPayload = {
         username: credentials.username,
         password: credentials.password,
-        branchLoginName: credentials.branchName || undefined, // Backend expects 'branchLoginName', send undefined if not provided
+        branchCode: credentials.branchName || undefined,
       };
 
       const response = await api.post<{ success: boolean; data: LoginResponse; message: string }>(
@@ -70,12 +70,15 @@ class AuthService {
 
         // Find and store the selected branch from user's branch assignments (if branch login)
         if (credentials.branchName) {
+          // Match using branchCode since that's what the login form submits
           const selectedBranch = user.branches.find(
-            (b) => b.branchCode.toLowerCase() === credentials.branchName!.toLowerCase()
+            (b) => b.branchCode?.toLowerCase() === credentials.branchName!.toLowerCase()
           );
 
           if (selectedBranch) {
             localStorage.setItem(STORAGE_KEYS.BRANCH, JSON.stringify(selectedBranch));
+          } else {
+            console.error("No branch found with branchCode matching:", credentials.branchName);
           }
         } else {
           // For head office login, clear any existing branch data
@@ -113,9 +116,11 @@ class AuthService {
    */
   async refreshToken(): Promise<RefreshTokenResponse> {
     try {
-      const response = await api.post<{ success: boolean; data: RefreshTokenResponse; message: string }>(
-        API_ROUTES.AUTH.REFRESH
-      );
+      const response = await api.post<{
+        success: boolean;
+        data: RefreshTokenResponse;
+        message: string;
+      }>(API_ROUTES.AUTH.REFRESH);
 
       const { accessToken } = response.data.data;
 

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Backend.Migrations
+namespace Backend.Migrations.HeadOffice
 {
     [DbContext(typeof(HeadOfficeDbContext))]
     partial class HeadOfficeDbContextModelSnapshot : ModelSnapshot
@@ -163,11 +163,6 @@ namespace Backend.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("LoginName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("LogoPath")
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
@@ -227,9 +222,6 @@ namespace Backend.Migrations
                         .IsUnique();
 
                     b.HasIndex("IsActive");
-
-                    b.HasIndex("LoginName")
-                        .IsUnique();
 
                     b.ToTable("Branches");
                 });

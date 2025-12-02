@@ -50,7 +50,6 @@ public class BranchService : IBranchService
                 b.Code.ToLower().Contains(searchLower)
                 || b.NameEn.ToLower().Contains(searchLower)
                 || b.NameAr.Contains(searchLower)
-                || b.LoginName.ToLower().Contains(searchLower)
             );
         }
 
@@ -67,7 +66,6 @@ public class BranchService : IBranchService
                 Code = b.Code,
                 NameEn = b.NameEn,
                 NameAr = b.NameAr,
-                LoginName = b.LoginName,
                 AddressEn = b.AddressEn,
                 AddressAr = b.AddressAr,
                 Email = b.Email,
@@ -112,8 +110,7 @@ public class BranchService : IBranchService
                 Id = b.Id,
                 Code = b.Code,
                 NameEn = b.NameEn,
-                NameAr = b.NameAr,
-                LoginName = b.LoginName
+                NameAr = b.NameAr
             })
             .ToListAsync();
     }
@@ -135,7 +132,6 @@ public class BranchService : IBranchService
             Code = branch.Code,
             NameEn = branch.NameEn,
             NameAr = branch.NameAr,
-            LoginName = branch.LoginName,
             AddressEn = branch.AddressEn,
             AddressAr = branch.AddressAr,
             Email = branch.Email,
@@ -177,25 +173,12 @@ public class BranchService : IBranchService
             );
         }
 
-        // Check for duplicate login name
-        if (
-            await _headOfficeContext.Branches.AnyAsync(b =>
-                b.LoginName == createBranchDto.LoginName
-            )
-        )
-        {
-            throw new InvalidOperationException(
-                $"Login name '{createBranchDto.LoginName}' already exists"
-            );
-        }
-
         var branch = new Models.Entities.HeadOffice.Branch
         {
             Id = Guid.NewGuid(),
             Code = createBranchDto.Code,
             NameEn = createBranchDto.NameEn,
             NameAr = createBranchDto.NameAr,
-            LoginName = createBranchDto.LoginName,
             AddressEn = createBranchDto.AddressEn,
             AddressAr = createBranchDto.AddressAr,
             Email = createBranchDto.Email,
@@ -270,7 +253,6 @@ public class BranchService : IBranchService
             Code = branch.Code,
             NameEn = branch.NameEn,
             NameAr = branch.NameAr,
-            LoginName = branch.LoginName,
             AddressEn = branch.AddressEn,
             AddressAr = branch.AddressAr,
             Email = branch.Email,
@@ -511,7 +493,6 @@ public class BranchService : IBranchService
             Code = branch.Code,
             NameEn = branch.NameEn,
             NameAr = branch.NameAr,
-            LoginName = branch.LoginName,
             AddressEn = branch.AddressEn,
             AddressAr = branch.AddressAr,
             Email = branch.Email,
@@ -687,7 +668,7 @@ public class BranchService : IBranchService
                     Path.Combine(
                         "Upload",
                         "Branches",
-                        branch.LoginName,
+                        branch.Code,
                         "Database",
                         $"{branch.DbName}.db"
                     )
@@ -983,53 +964,77 @@ public class BranchService : IBranchService
 
     private async Task CreateDefaultBranchAdminAsync(Models.Entities.HeadOffice.Branch branch)
     {
-        // Check if a user already exists for this branch
-        var existingUser = await _headOfficeContext.BranchUsers.AnyAsync(bu =>
-            bu.BranchId == branch.Id
+        // Check if an "admin" user already exists
+        var existingAdminUser = await _headOfficeContext.Users.FirstOrDefaultAsync(u =>
+            u.Username == "admin"
         );
 
-        if (existingUser)
+        User user;
+        if (existingAdminUser != null)
         {
+            // Use existing admin user
+            user = existingAdminUser;
+
+            // Check if admin is already assigned to this branch
+            var existingAssignment = await _headOfficeContext.BranchUsers.AnyAsync(bu =>
+                bu.UserId == user.Id && bu.BranchId == branch.Id
+            );
+
+            if (existingAssignment)
+            {
+                _logger.LogInformation(
+                    "Admin user already assigned to branch {BranchCode}",
+                    branch.Code
+                );
+                return;
+            }
+
             _logger.LogInformation(
-                "Branch {BranchCode} already has users, skipping default admin creation",
+                "Assigning existing admin user to branch {BranchCode}",
                 branch.Code
             );
-            return;
+        }
+        else
+        {
+            // Create new admin user
+            _logger.LogInformation("Creating admin user for branch {BranchCode}", branch.Code);
+
+            user = new User
+            {
+                Id = Guid.NewGuid(),
+                Username = "admin",
+                PasswordHash = Utilities.PasswordHasher.HashPassword("123"),
+                FullNameEn = "Administrator",
+                FullNameAr = "مدير النظام",
+                Email = branch.Email ?? "admin@pos.local",
+                Phone = branch.Phone,
+                IsActive = true,
+                IsHeadOfficeAdmin = false, // Branch admin, not head office admin
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            };
+
+            _headOfficeContext.Users.Add(user);
+            await _headOfficeContext.SaveChangesAsync(); // Save to get the user ID
         }
 
-        _logger.LogInformation("Creating default admin user for branch {BranchCode}", branch.Code);
-
-        // Create the user
-        var user = new User
-        {
-            Id = Guid.NewGuid(),
-            Username = branch.LoginName, // Use branch login name as username
-            PasswordHash = Utilities.PasswordHasher.HashPassword("123"),
-            FullNameEn = $"{branch.NameEn} Admin",
-            Email = branch.Email ?? $"{branch.LoginName}@pos.local",
-            Phone = branch.Phone,
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-        };
-
-        _headOfficeContext.Users.Add(user);
-
-        // Create branch user assignment
+        // Create branch user assignment with Manager role (highest branch-level role)
         var branchUser = new BranchUser
         {
             Id = Guid.NewGuid(),
             UserId = user.Id,
             BranchId = branch.Id,
+            Role = UserRole.Manager, // Manager is the highest branch-level role
             IsActive = true,
+            AssignedAt = DateTime.UtcNow,
+            AssignedBy = branch.CreatedBy,
         };
 
         _headOfficeContext.BranchUsers.Add(branchUser);
         await _headOfficeContext.SaveChangesAsync();
 
         _logger.LogInformation(
-            "Created default admin user '{Username}' for branch {BranchCode}",
-            user.Username,
+            "Admin user assigned to branch {BranchCode} with Manager role",
             branch.Code
         );
     }

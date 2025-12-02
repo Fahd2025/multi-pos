@@ -110,6 +110,10 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
   };
 
   const handleEdit = (expense: ExpenseDto) => {
+    if (!branch || !branch.branchCode) {
+      alert("Branch information is not available. Please refresh the page.");
+      return;
+    }
     // Only allow editing of pending expenses
     if (expense.approvalStatus !== 0) {
       setError("Only pending expenses can be edited");
@@ -311,6 +315,10 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
             variant="primary"
             size="md"
             onClick={() => {
+              if (!branch || !branch.branchCode) {
+                alert("Branch information is not available. Please refresh the page.");
+                return;
+              }
               setSelectedExpense(undefined);
               setIsModalOpen(true);
             }}
@@ -415,12 +423,12 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
       )}
 
       {/* Expense Form Modal */}
-      {isModalOpen && (
+      {isModalOpen && branch && branch.branchCode && (
         <ExpenseFormModal
           isOpen={isModalOpen}
           expense={selectedExpense}
           categories={categories}
-          branchName={branch?.branchCode || ""}
+          branchName={branch.branchCode}
           onClose={() => {
             setIsModalOpen(false);
             setSelectedExpense(undefined);

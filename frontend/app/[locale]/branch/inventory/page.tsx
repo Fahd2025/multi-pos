@@ -241,6 +241,10 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
     {
       label: "Edit",
       onClick: (row) => {
+        if (!branch || !branch.branchCode) {
+          alert("Branch information is not available. Please refresh the page.");
+          return;
+        }
         setSelectedProduct(row);
         setIsProductModalOpen(true);
       },
@@ -277,6 +281,10 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
               variant="primary"
               size="md"
               onClick={() => {
+                if (!branch || !branch.branchCode) {
+                  alert("Branch information is not available. Please refresh the page.");
+                  return;
+                }
                 setSelectedProduct(undefined);
                 setIsProductModalOpen(true);
               }}
@@ -409,19 +417,21 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
       </div>
 
       {/* Modals */}
-      <ProductFormModalWithImages
-        isOpen={isProductModalOpen}
-        onClose={() => {
-          setIsProductModalOpen(false);
-          setSelectedProduct(undefined);
-        }}
-        onSuccess={() => {
-          loadData();
-        }}
-        product={selectedProduct}
-        categories={categories}
-        branchName={branch?.branchCode || ""}
-      />
+      {branch && branch.branchCode && (
+        <ProductFormModalWithImages
+          isOpen={isProductModalOpen}
+          onClose={() => {
+            setIsProductModalOpen(false);
+            setSelectedProduct(undefined);
+          }}
+          onSuccess={() => {
+            loadData();
+          }}
+          product={selectedProduct}
+          categories={categories}
+          branchName={branch.branchCode}
+        />
+      )}
 
       <StockAdjustmentModal
         isOpen={isStockModalOpen}

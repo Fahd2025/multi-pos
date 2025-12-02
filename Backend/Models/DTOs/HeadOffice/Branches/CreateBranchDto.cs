@@ -20,10 +20,6 @@ public class CreateBranchDto
     [StringLength(200, MinimumLength = 1, ErrorMessage = "Arabic name must be between 1 and 200 characters")]
     public string NameAr { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Login name is required")]
-    [StringLength(100, MinimumLength = 3, ErrorMessage = "Login name must be between 3 and 100 characters")]
-    public string LoginName { get; set; } = string.Empty;
-
     [StringLength(500, ErrorMessage = "English address cannot exceed 500 characters")]
     public string? AddressEn { get; set; }
 

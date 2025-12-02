@@ -19,10 +19,6 @@ public class Branch
     [MaxLength(200)]
     public string NameAr { get; set; } = string.Empty;
 
-    [Required]
-    [MaxLength(100)]
-    public string LoginName { get; set; } = string.Empty;
-
     [MaxLength(500)]
     public string? AddressEn { get; set; }
 

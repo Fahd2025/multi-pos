@@ -127,6 +127,11 @@ export default function ExpenseFormModal({
   ];
 
   const handleSubmit = async (data: any) => {
+    // Validate branchName if images are selected
+    if (selectedImages.length > 0 && (!branchName || branchName.trim() === "")) {
+      throw new Error("Branch information is missing. Please refresh the page and try again.");
+    }
+
     setIsSubmitting(true);
 
     const result = await executeWithErrorHandling(async () => {
@@ -173,7 +178,7 @@ export default function ExpenseFormModal({
       }
 
       // 3. Upload receipt images if selected
-      if (selectedImages.length > 0 && branchName) {
+      if (selectedImages.length > 0) {
         setUploadingImages(true);
         try {
           await imageService.uploadMultipleImages(
@@ -185,7 +190,7 @@ export default function ExpenseFormModal({
           console.log(`Successfully uploaded ${selectedImages.length} receipt image(s)`);
         } catch (error) {
           console.error("Error uploading receipt images:", error);
-          // Don't fail the whole operation
+          throw error; // Re-throw to show error to user
         } finally {
           setUploadingImages(false);
         }

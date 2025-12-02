@@ -90,7 +90,7 @@ public class SyncService : ISyncService
             throw new InvalidOperationException("User has no active branch assignment");
         }
 
-        var branchName = branchUser.Branch.LoginName;
+        var branchName = branchUser.Branch.Code;
 
         using var context = _dbContextFactory.CreateBranchContext(branchUser.Branch);
 

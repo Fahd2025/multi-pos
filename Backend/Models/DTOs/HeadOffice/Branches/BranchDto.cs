@@ -9,7 +9,6 @@ public class BranchDto
     public string Code { get; set; } = string.Empty;
     public string NameEn { get; set; } = string.Empty;
     public string NameAr { get; set; } = string.Empty;
-    public string LoginName { get; set; } = string.Empty;
     public string? AddressEn { get; set; }
     public string? AddressAr { get; set; }
     public string? Email { get; set; }

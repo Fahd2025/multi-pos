@@ -29,7 +29,7 @@ public class SalesService : ISalesService
     {
         // Get branch information
         var branch = await _headOfficeContext.Branches.FirstOrDefaultAsync(b =>
-            b.LoginName == branchName && b.IsActive
+            b.Code == branchName && b.IsActive
         );
 
         if (branch == null)
@@ -207,7 +207,7 @@ public class SalesService : ISalesService
     )
     {
         var branch = await _headOfficeContext.Branches.FirstOrDefaultAsync(b =>
-            b.LoginName == branchName && b.IsActive
+            b.Code == branchName && b.IsActive
         );
 
         if (branch == null)
@@ -285,7 +285,7 @@ public class SalesService : ISalesService
     public async Task<SaleDto?> GetSaleByIdAsync(Guid id, string branchName)
     {
         var branch = await _headOfficeContext.Branches.FirstOrDefaultAsync(b =>
-            b.LoginName == branchName && b.IsActive
+            b.Code == branchName && b.IsActive
         );
 
         if (branch == null)
@@ -312,7 +312,7 @@ public class SalesService : ISalesService
     public async Task<SaleDto> VoidSaleAsync(Guid id, string reason, Guid voidedBy, string branchName)
     {
         var branch = await _headOfficeContext.Branches.FirstOrDefaultAsync(b =>
-            b.LoginName == branchName && b.IsActive
+            b.Code == branchName && b.IsActive
         );
 
         if (branch == null)
@@ -371,7 +371,7 @@ public class SalesService : ISalesService
     )
     {
         var branch = await _headOfficeContext.Branches.FirstOrDefaultAsync(b =>
-            b.LoginName == branchName && b.IsActive
+            b.Code == branchName && b.IsActive
         );
 
         if (branch == null)

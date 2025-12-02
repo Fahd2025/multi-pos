@@ -117,7 +117,7 @@ export default function LoginPage() {
                 required
                 disabled={loadingBranches}
                 options={branches.map((branch) => ({
-                  value: branch.loginName,
+                  value: branch.code,
                   label: `${branch.nameEn} - ${branch.nameAr}`,
                 }))}
                 helperText="Select the branch you want to access"

@@ -57,7 +57,7 @@ public static class SalesEndpoints
                         var sale = await salesService.CreateSaleAsync(
                             createSaleDto,
                             userId.Value,
-                            branch.LoginName
+                            branch.Code
                         );
 
                         return Results.Created(
@@ -136,7 +136,7 @@ public static class SalesEndpoints
                             paymentMethod,
                             isVoided,
                             search,
-                            branch.LoginName
+                            branch.Code
                         );
 
                         return Results.Ok(
@@ -192,7 +192,7 @@ public static class SalesEndpoints
                             );
                         }
 
-                        var sale = await salesService.GetSaleByIdAsync(id, branch.LoginName);
+                        var sale = await salesService.GetSaleByIdAsync(id, branch.Code);
 
                         if (sale == null)
                         {
@@ -278,7 +278,7 @@ public static class SalesEndpoints
                             id,
                             voidSaleDto.Reason,
                             userId.Value,
-                            branch.LoginName
+                            branch.Code
                         );
 
                         return Results.Ok(
@@ -347,7 +347,7 @@ public static class SalesEndpoints
                             );
                         }
 
-                        var sale = await salesService.GetSaleByIdAsync(id, branch.LoginName);
+                        var sale = await salesService.GetSaleByIdAsync(id, branch.Code);
 
                         if (sale == null)
                         {
@@ -635,7 +635,7 @@ public static class SalesEndpoints
                             );
                         }
 
-                        var stats = await salesService.GetSalesStatsAsync(from, to, branch.LoginName);
+                        var stats = await salesService.GetSalesStatsAsync(from, to, branch.Code);
 
                         return Results.Ok(new { success = true, data = stats });
                     }
