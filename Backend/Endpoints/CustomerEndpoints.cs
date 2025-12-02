@@ -64,6 +64,47 @@ public static class CustomerEndpoints
             .WithName("GetCustomers")
             .WithOpenApi();
 
+        // GET /api/v1/customers/:id - Get a single customer by ID
+        customerGroup
+            .MapGet(
+                "/{id:guid}",
+                async (Guid id, ICustomerService customerService) =>
+                {
+                    try
+                    {
+                        var customer = await customerService.GetCustomerByIdAsync(id);
+
+                        if (customer == null)
+                        {
+                            return Results.NotFound(
+                                new
+                                {
+                                    success = false,
+                                    error = new { code = "NOT_FOUND", message = $"Customer with ID '{id}' not found." }
+                                }
+                            );
+                        }
+
+                        return Results.Ok(
+                            new
+                            {
+                                success = true,
+                                data = customer
+                            }
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(
+                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                        );
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("GetCustomerById")
+            .WithOpenApi();
+
         // POST /api/v1/customers - Create a new customer
         customerGroup
             .MapPost(

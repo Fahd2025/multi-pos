@@ -53,8 +53,8 @@ class CustomerService {
    * Get customer by ID
    */
   async getCustomerById(id: string): Promise<CustomerDto> {
-    const response = await api.get<CustomerDto>(`/api/v1/customers/${id}`);
-    return response.data;
+    const response = await api.get<{ data: CustomerDto }>(`/api/v1/customers/${id}`);
+    return response.data.data;
   }
 
   /**

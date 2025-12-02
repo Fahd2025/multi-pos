@@ -1,0 +1,440 @@
+/**
+ * Sale Details Page
+ * Display comprehensive information about a specific sale transaction
+ */
+
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import salesService from "@/services/sales.service";
+import { SaleDto } from "@/types/api.types";
+import { getPaymentMethodName, getInvoiceTypeName } from "@/types/enums";
+import { PageHeader, Button, StatusBadge } from "@/components/shared";
+
+export default function SaleDetailsPage() {
+  const router = useRouter();
+  const params = useParams();
+  const saleId = params.id as string;
+
+  const [sale, setSale] = useState<SaleDto | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [voidDialogOpen, setVoidDialogOpen] = useState(false);
+  const [voidReason, setVoidReason] = useState("");
+  const [voidingInProgress, setVoidingInProgress] = useState(false);
+
+  useEffect(() => {
+    fetchSaleDetails();
+  }, [saleId]);
+
+  const fetchSaleDetails = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await salesService.getSaleById(saleId);
+      setSale(data);
+    } catch (err: any) {
+      console.error("Failed to fetch sale:", err);
+      setError(err.message || "Failed to load sale details");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePrintInvoice = async () => {
+    try {
+      await salesService.printInvoice(saleId);
+    } catch (err: any) {
+      alert(err.message || "Failed to print invoice");
+    }
+  };
+
+  const handleDownloadInvoice = async () => {
+    try {
+      const filename = sale?.invoiceNumber || sale?.transactionId;
+      await salesService.downloadInvoicePdf(saleId, `invoice-${filename}.pdf`);
+    } catch (err: any) {
+      alert(err.message || "Failed to download invoice");
+    }
+  };
+
+  const handleVoidSale = async () => {
+    if (!voidReason.trim()) {
+      alert("Please provide a reason for voiding this sale");
+      return;
+    }
+
+    try {
+      setVoidingInProgress(true);
+      await salesService.voidSale(saleId, { reason: voidReason });
+      setVoidDialogOpen(false);
+      // Refresh the sale details
+      await fetchSaleDetails();
+    } catch (err: any) {
+      alert(err.message || "Failed to void sale");
+    } finally {
+      setVoidingInProgress(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading sale details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !sale) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <span className="text-6xl">⚠️</span>
+          <h2 className="mt-4 text-2xl font-bold text-gray-900">Failed to Load Sale</h2>
+          <p className="mt-2 text-gray-600">{error || "Sale not found"}</p>
+          <div className="mt-6 flex gap-3 justify-center">
+            <Button onClick={fetchSaleDetails} variant="primary">
+              Retry
+            </Button>
+            <Button onClick={() => router.back()} variant="secondary">
+              Go Back
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto">
+      <PageHeader
+        title="Sale Details"
+        description={`Transaction ID: ${sale.transactionId}`}
+        actions={
+          <>
+            <Button onClick={() => router.back()} variant="secondary">
+              ← Back to Sales
+            </Button>
+          </>
+        }
+        className="mb-6"
+      />
+
+      {/* Sale Status Banner */}
+      {sale.isVoided && (
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">🚫</span>
+            <div className="flex-1">
+              <h3 className="font-semibold text-red-900">This sale has been voided</h3>
+              <p className="text-sm text-red-700 mt-1">
+                Voided on {formatDate(sale.voidedAt!)} by {sale.voidedBy}
+              </p>
+              {sale.voidReason && (
+                <p className="text-sm text-red-700 mt-1">
+                  <strong>Reason:</strong> {sale.voidReason}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Sale Information */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Transaction Info Card */}
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <h2 className="text-lg font-semibold text-gray-900">Transaction Information</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Transaction ID</label>
+                  <p className="mt-1 text-lg font-mono font-semibold text-gray-900">
+                    {sale.transactionId}
+                  </p>
+                </div>
+                {sale.invoiceNumber && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Invoice Number</label>
+                    <p className="mt-1 text-lg font-mono font-semibold text-gray-900">
+                      {sale.invoiceNumber}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Date & Time</label>
+                  <p className="mt-1 text-gray-900">{formatDate(sale.saleDate)}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Invoice Type</label>
+                  <p className="mt-1 text-gray-900">{getInvoiceTypeName(sale.invoiceType)}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Cashier</label>
+                  <p className="mt-1 text-gray-900">{sale.cashierName}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Customer</label>
+                  <p className="mt-1 text-gray-900">{sale.customerName || "Walk-in Customer"}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Payment Method</label>
+                  <p className="mt-1 text-gray-900">{getPaymentMethodName(sale.paymentMethod)}</p>
+                </div>
+                {sale.paymentReference && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Payment Reference</label>
+                    <p className="mt-1 text-gray-900 font-mono">{sale.paymentReference}</p>
+                  </div>
+                )}
+              </div>
+
+              {sale.notes && (
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Notes</label>
+                  <p className="mt-1 text-gray-900 bg-gray-50 rounded-lg p-3">{sale.notes}</p>
+                </div>
+              )}
+
+              <div>
+                <label className="text-sm font-medium text-gray-600">Status</label>
+                <div className="mt-1">
+                  {sale.isVoided ? (
+                    <StatusBadge variant="danger">Voided</StatusBadge>
+                  ) : (
+                    <StatusBadge variant="success">Active</StatusBadge>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Line Items Card */}
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Line Items ({sale.lineItems.length})
+              </h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      #
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Product
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Qty
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Unit Price
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Discount
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Total
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {sale.lineItems.map((item, index) => (
+                    <tr key={item.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {index + 1}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-gray-900">{item.productName}</div>
+                        <div className="text-sm text-gray-500">SKU: {item.productSku}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                        {item.quantity}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                        ${item.unitPrice.toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
+                        {item.discountValue > 0 ? (
+                          <div>
+                            <div className="text-green-600 font-medium">
+                              {item.discountType === 1
+                                ? `${item.discountValue}%`
+                                : `$${item.discountValue.toFixed(2)}`}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              ${item.discountedUnitPrice.toFixed(2)}/unit
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
+                        ${item.lineTotal.toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column - Summary & Actions */}
+        <div className="space-y-6">
+          {/* Summary Card */}
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <h2 className="text-lg font-semibold text-gray-900">Order Summary</h2>
+            </div>
+            <div className="p-6 space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Subtotal</span>
+                <span className="font-medium text-gray-900">${sale.subtotal.toFixed(2)}</span>
+              </div>
+
+              {sale.totalDiscount > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Total Discount</span>
+                  <span className="font-medium text-green-600">
+                    -${sale.totalDiscount.toFixed(2)}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Tax</span>
+                <span className="font-medium text-gray-900">${sale.taxAmount.toFixed(2)}</span>
+              </div>
+
+              <div className="border-t border-gray-200 pt-3">
+                <div className="flex justify-between">
+                  <span className="text-lg font-semibold text-gray-900">Total</span>
+                  <span className="text-2xl font-bold text-blue-600">
+                    ${sale.total.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions Card */}
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <h2 className="text-lg font-semibold text-gray-900">Actions</h2>
+            </div>
+            <div className="p-6 space-y-3">
+              <Button onClick={handlePrintInvoice} variant="primary" className="w-full">
+                🖨️ Print Invoice
+              </Button>
+
+              <Button onClick={handleDownloadInvoice} variant="secondary" className="w-full">
+                📥 Download PDF
+              </Button>
+
+              {!sale.isVoided && (
+                <Button
+                  onClick={() => setVoidDialogOpen(true)}
+                  variant="danger"
+                  className="w-full"
+                >
+                  🚫 Void Sale
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Metadata Card */}
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <h2 className="text-lg font-semibold text-gray-900">Metadata</h2>
+            </div>
+            <div className="p-6 space-y-3 text-sm">
+              <div>
+                <label className="text-gray-600">Created At</label>
+                <p className="mt-1 text-gray-900">{formatDate(sale.createdAt)}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Void Confirmation Dialog */}
+      {voidDialogOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900">Void Sale</h3>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-600 mb-4">
+                Are you sure you want to void this sale? This action cannot be undone. The
+                inventory will be restored and the transaction will be marked as voided.
+              </p>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reason for Voiding <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={voidReason}
+                  onChange={(e) => setVoidReason(e.target.value)}
+                  placeholder="Enter reason for voiding this sale..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  disabled={voidingInProgress}
+                />
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex gap-3 justify-end">
+              <Button
+                onClick={() => setVoidDialogOpen(false)}
+                variant="secondary"
+                disabled={voidingInProgress}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleVoidSale}
+                variant="danger"
+                disabled={voidingInProgress || !voidReason.trim()}
+              >
+                {voidingInProgress ? "Voiding..." : "Void Sale"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
