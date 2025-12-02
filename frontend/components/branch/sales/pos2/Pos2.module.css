@@ -14,16 +14,20 @@
   --radius-lg: 1rem;
   --radius-md: 0.75rem;
   --radius-sm: 0.5rem;
-  --font-family: "Inter", sans-serif;
+  --font-family: 'Inter', sans-serif;
 
   font-family: var(--font-family);
   background-color: var(--bg-color);
   color: var(--text-primary);
   height: 100vh;
-  width: 100%;
+  width: 100vw;
   display: flex;
   overflow: hidden;
   box-sizing: border-box;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
 }
 
 /* Layout */
@@ -244,10 +248,16 @@
   gap: 1rem;
 }
 
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
 .orderItem {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  animation: slideIn 0.3s ease-out;
 }
 
 .orderItemInfo {
