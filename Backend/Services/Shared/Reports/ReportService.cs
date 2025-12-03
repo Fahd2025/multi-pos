@@ -102,10 +102,12 @@ public class ReportService : IReportService
                 g => new PaymentMethodStatsDto { Count = g.Count(), Amount = g.Sum(s => s.Total) }
             );
 
-        var topPaymentMethod = paymentMethodStats
-            .OrderByDescending(pm => pm.Value.Count)
-            .FirstOrDefault()
-            .Key;
+        var topPaymentMethod = paymentMethodStats.Any()
+            ? paymentMethodStats
+                .OrderByDescending(pm => pm.Value.Count)
+                .FirstOrDefault()
+                .Key
+            : null;
 
         // Time series data
         var groupBy = request.GroupBy?.ToLower() ?? "day";

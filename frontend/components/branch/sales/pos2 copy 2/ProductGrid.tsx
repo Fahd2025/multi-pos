@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import styles from "./Pos2.module.css";
 import { ProductDto } from "@/types/api.types";
 import { buildProductImageUrl } from "@/lib/image-utils";
@@ -27,7 +27,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart 
   const branchCode = getBranchCode();
 
   // Fallback image for products without images
-  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+  const fallbackImage =
+    "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60";
 
   return (
     <div className={styles.productGrid}>
@@ -45,9 +46,9 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart 
       ) : (
         products.map((product) => {
           // Get product image URL
-          // Get product image URL
-          const hasImage = product.images && product.images.length > 0;
-          const isError = imageErrors[product.id];
+          const imageUrl = product.images && product.images.length > 0
+            ? buildProductImageUrl(branchCode, product.images[0].imagePath, product.id, "thumb")
+            : fallbackImage;
 
           return (
             <div
@@ -59,32 +60,15 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart 
                 opacity: product.stockLevel > 0 ? 1 : 0.6,
               }}
             >
-              {hasImage && !isError ? (
-                <img
-                  src={buildProductImageUrl(
-                    branchCode,
-                    product.images[0].imagePath,
-                    product.id,
-                    "thumb"
-                  )}
-                  alt={product.nameEn}
-                  className={styles.productImage}
-                  onError={() => setImageErrors((prev) => ({ ...prev, [product.id]: true }))}
-                />
-              ) : (
-                <div
-                  className={styles.productImage}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: "#f3f4f6",
-                    fontSize: "3rem",
-                  }}
-                >
-                  📦
-                </div>
-              )}
+              <img
+                src={imageUrl}
+                alt={product.nameEn}
+                className={styles.productImage}
+                onError={(e) => {
+                  // Fallback to default image if product image fails to load
+                  (e.target as HTMLImageElement).src = fallbackImage;
+                }}
+              />
               <div className={styles.productName}>{product.nameEn}</div>
               <div className={styles.productPrice}>${product.sellingPrice.toFixed(2)}</div>
               {product.stockLevel <= 0 && (

@@ -34,10 +34,10 @@ public static class ReportEndpoints
                 {
                     try
                     {
-                        var userId = Guid.Parse(httpContext.User.FindFirst("sub")?.Value ?? string.Empty);
+                        var userId = Guid.Parse(httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User ID not found in token"));
                         var userBranchId = httpContext.Items["BranchId"] as Guid?;
                         var isHeadOfficeAdmin = bool.Parse(
-                            httpContext.User.FindFirst("IsHeadOfficeAdmin")?.Value ?? "false"
+                            httpContext.User.FindFirst("is_head_office_admin")?.Value ?? "false"
                         );
 
                         var request = new SalesReportRequestDto
@@ -105,10 +105,10 @@ public static class ReportEndpoints
                 {
                     try
                     {
-                        var userId = Guid.Parse(httpContext.User.FindFirst("sub")?.Value ?? string.Empty);
+                        var userId = Guid.Parse(httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User ID not found in token"));
                         var userBranchId = httpContext.Items["BranchId"] as Guid?;
                         var isHeadOfficeAdmin = bool.Parse(
-                            httpContext.User.FindFirst("IsHeadOfficeAdmin")?.Value ?? "false"
+                            httpContext.User.FindFirst("is_head_office_admin")?.Value ?? "false"
                         );
 
                         var request = new InventoryReportRequestDto
@@ -173,10 +173,10 @@ public static class ReportEndpoints
                 {
                     try
                     {
-                        var userId = Guid.Parse(httpContext.User.FindFirst("sub")?.Value ?? string.Empty);
+                        var userId = Guid.Parse(httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User ID not found in token"));
                         var userBranchId = httpContext.Items["BranchId"] as Guid?;
                         var isHeadOfficeAdmin = bool.Parse(
-                            httpContext.User.FindFirst("IsHeadOfficeAdmin")?.Value ?? "false"
+                            httpContext.User.FindFirst("is_head_office_admin")?.Value ?? "false"
                         );
 
                         var request = new FinancialReportRequestDto
@@ -235,10 +235,10 @@ public static class ReportEndpoints
                 {
                     try
                     {
-                        var userId = Guid.Parse(httpContext.User.FindFirst("sub")?.Value ?? string.Empty);
+                        var userId = Guid.Parse(httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User ID not found in token"));
                         var userBranchId = httpContext.Items["BranchId"] as Guid?;
                         var isHeadOfficeAdmin = bool.Parse(
-                            httpContext.User.FindFirst("IsHeadOfficeAdmin")?.Value ?? "false"
+                            httpContext.User.FindFirst("is_head_office_admin")?.Value ?? "false"
                         );
 
                         var (fileContent, contentType, fileName) = await reportService.ExportReportAsync(

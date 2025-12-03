@@ -1,8 +1,16 @@
-import React, { useState } from "react";
-import { Users, LayoutPanelTop, Percent, Save, Trash2, Plus, Minus } from "lucide-react";
+/**
+ * Enhanced Order Panel Component
+ * Combines the beautiful UI from ShoppingCart with pos2 functionality
+ */
+
+"use client";
+
+import React, { useState, useRef, useEffect } from "react";
+import { Users, LayoutPanelTop, Percent, Save, Plus, Minus } from "lucide-react";
 import styles from "./Pos2.module.css";
 import { ProductDto } from "@/types/api.types";
 import salesService from "@/services/sales.service";
+import { buildProductImageUrl } from "@/lib/image-utils";
 
 interface OrderItem extends ProductDto {
   quantity: number;
@@ -19,17 +27,81 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
   cart,
   onRemoveItem,
   onClearAll,
-  onUpdateQuantity
+  onUpdateQuantity,
 }) => {
   const [orderType, setOrderType] = useState<"dine-in" | "take-away">("dine-in");
   const [discount, setDiscount] = useState(0);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const cartItemsRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const previousCartLength = useRef(cart.length);
+  const previousQuantities = useRef<{ [key: string]: number }>({});
+
+  // Get branch code from localStorage
+  const getBranchCode = () => {
+    if (typeof window !== "undefined") {
+      const branch = localStorage.getItem("branch");
+      if (branch) {
+        try {
+          return JSON.parse(branch).branchCode;
+        } catch (e) {
+          console.error("Error parsing branch:", e);
+        }
+      }
+    }
+    return "default";
+  };
+
+  const branchCode = getBranchCode();
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+
+  // Track quantity changes for animation
+  useEffect(() => {
+    cart.forEach((item) => {
+      if (
+        previousQuantities.current[item.id] !== undefined &&
+        previousQuantities.current[item.id] !== item.quantity
+      ) {
+        // Quantity changed, trigger animation
+        setUpdatingId(item.id);
+        setTimeout(() => setUpdatingId(null), 600);
+      }
+      previousQuantities.current[item.id] = item.quantity;
+    });
+  }, [cart]);
+
+  // Auto-scroll to new items
+  useEffect(() => {
+    if (cart.length > previousCartLength.current) {
+      // New item added - scroll to bottom
+      if (cartItemsRef.current) {
+        setTimeout(() => {
+          cartItemsRef.current?.scrollTo({
+            top: cartItemsRef.current.scrollHeight,
+            behavior: "smooth",
+          });
+        }, 100);
+      }
+    }
+    previousCartLength.current = cart.length;
+  }, [cart]);
 
   const subtotal = cart.reduce((sum, item) => sum + item.sellingPrice * item.quantity, 0);
-  const tax = subtotal * 0.1; // 10% tax
+  const tax = subtotal * 0.15; // 15% tax
   const discountAmount = (subtotal * discount) / 100;
   const total = subtotal + tax - discountAmount;
+  const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  const handleRemove = (id: string) => {
+    setDeletingId(id);
+    setTimeout(() => {
+      onRemoveItem(id);
+      setDeletingId(null);
+    }, 300);
+  };
 
   const handleProcessTransaction = async () => {
     if (cart.length === 0) {
@@ -49,7 +121,7 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
           productId: item.id,
           quantity: item.quantity,
           unitPrice: item.sellingPrice,
-          discountType: 0, // 0: None, 1: Percentage, 2: Fixed
+          discountType: 0, // 0: None
           discountValue: 0,
         })),
         notes: `POS Transaction - ${orderType}`,
@@ -73,7 +145,7 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
   return (
     <div className={styles.orderPanel}>
       {/* Action Buttons */}
-      <div className={styles.actionButtons}>
+      {/* <div className={styles.actionButtons}>
         <button className={styles.actionBtn}>
           <Users size={20} />
           <span>Customer</span>
@@ -85,7 +157,9 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
         <button
           className={styles.actionBtn}
           onClick={() => {
-            const newDiscount = parseFloat(prompt("Enter discount percentage:", discount.toString()) || "0");
+            const newDiscount = parseFloat(
+              prompt("Enter discount percentage:", discount.toString()) || "0"
+            );
             if (!isNaN(newDiscount) && newDiscount >= 0 && newDiscount <= 100) {
               setDiscount(newDiscount);
             }
@@ -98,21 +172,47 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
           <Save size={20} />
           <span>Save Bill</span>
         </button>
-      </div>
+      </div> */}
 
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "1rem",
-          flex: 1,
-          overflow: "hidden",
-        }}
-      >
-        <h2 style={{ fontSize: "1.25rem", fontWeight: 700, margin: 0 }}>Order Details</h2>
+      {/* Header with Order Type Toggle */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div>
+            <h2
+              style={{
+                fontSize: "1.25rem",
+                fontWeight: 700,
+                margin: 0,
+                color: "var(--text-primary)",
+              }}
+            >
+              Shopping Cart
+            </h2>
+            <p
+              style={{ fontSize: "0.875rem", color: "var(--text-secondary)", marginTop: "0.25rem" }}
+            >
+              {itemCount} item{itemCount !== 1 ? "s" : ""}
+            </p>
+          </div>
+          {cart.length > 0 && (
+            <button
+              onClick={onClearAll}
+              style={{
+                fontSize: "0.875rem",
+                color: "#ef4444",
+                fontWeight: 500,
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              Clear All
+            </button>
+          )}
+        </div>
 
-        {/* Toggle */}
-        <div className={styles.toggleContainer}>
+        {/* Order Type Toggle */}
+        {/* <div className={styles.toggleContainer}>
           <div
             className={`${styles.toggleBtn} ${orderType === "dine-in" ? styles.active : ""}`}
             onClick={() => setOrderType("dine-in")}
@@ -125,123 +225,359 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
           >
             Take Away
           </div>
-        </div>
+        </div> */}
+      </div>
 
-        {/* Order List */}
-        <div className={styles.orderList}>
-          {cart.map((item) => (
-            <div key={item.id} className={styles.orderItem}>
-              <div className={styles.orderItemInfo}>
-                <span className={styles.orderItemName}>{item.nameEn}</span>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.25rem" }}>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onUpdateQuantity(item.id, item.quantity - 1);
-                    }}
-                    style={{
-                      border: "1px solid var(--border-color)",
-                      background: "transparent",
-                      borderRadius: "4px",
-                      width: "24px",
-                      height: "24px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <Minus size={14} />
-                  </button>
-                  <span className={styles.orderItemMeta}>{item.quantity}</span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onUpdateQuantity(item.id, item.quantity + 1);
-                    }}
-                    style={{
-                      border: "1px solid var(--border-color)",
-                      background: "transparent",
-                      borderRadius: "4px",
-                      width: "24px",
-                      height: "24px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <Plus size={14} />
-                  </button>
+      {/* Cart Items with Animations */}
+      <div ref={cartItemsRef} style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
+        {cart.length === 0 ? (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              textAlign: "center",
+              animation: "fadeIn 0.3s ease-in",
+            }}
+          >
+            <span style={{ fontSize: "4rem", marginBottom: "1rem" }}>🛒</span>
+            <h3
+              style={{
+                fontSize: "1.125rem",
+                fontWeight: 600,
+                color: "var(--text-primary)",
+                marginBottom: "0.5rem",
+              }}
+            >
+              Cart is empty
+            </h3>
+            <p style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
+              Add products from the grid to start a sale
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            {cart.map((item) => {
+              const isDeleting = deletingId === item.id;
+              const isUpdating = updatingId === item.id;
+              const lineTotal = item.sellingPrice * item.quantity;
+
+              return (
+                <div
+                  key={item.id}
+                  ref={(el) => {
+                    itemRefs.current[item.id] = el;
+                  }}
+                  style={{
+                    backgroundColor: isDeleting
+                      ? "#fee2e2"
+                      : isUpdating
+                      ? "#eff6ff"
+                      : "transparent",
+                    borderRadius: "0.75rem",
+                    border: isUpdating ? "2px solid #3b82f6" : "2px solid transparent",
+                    transition: "all 0.3s ease",
+                    opacity: isDeleting ? 0 : 1,
+                    transform: isDeleting ? "translateX(100%)" : "translateX(0)",
+                    animation: "slideIn 0.3s ease-out",
+                  }}
+                >
+                  <div style={{ display: "flex", gap: "0.75rem" }}>
+                    {/* Product Image */}
+                    <div
+                      style={{
+                        width: "64px",
+                        height: "64px",
+                        backgroundColor: "#f3f4f6",
+                        borderRadius: "0.75rem",
+                        overflow: "hidden",
+                        flexShrink: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {(() => {
+                        const hasImage = item.images && item.images.length > 0;
+                        const isError = imageErrors[item.id];
+
+                        if (hasImage && !isError) {
+                          const imageUrl = buildProductImageUrl(
+                            branchCode,
+                            item.images[0].imagePath,
+                            item.id,
+                            "thumb"
+                          );
+
+                          return (
+                            <img
+                              src={imageUrl}
+                              alt={item.nameEn}
+                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                              onError={() => {
+                                setImageErrors((prev) => ({ ...prev, [item.id]: true }));
+                              }}
+                            />
+                          );
+                        }
+
+                        return <span style={{ fontSize: "2rem" }}>📦</span>;
+                      })()}
+                    </div>
+
+                    {/* Product Details */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      {/* Product Name & Remove Button */}
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "flex-start",
+                          justifyContent: "space-between",
+                          marginBottom: "0.75rem",
+                        }}
+                      >
+                        <div style={{ flex: 1, paddingRight: "0.5rem" }}>
+                          <h4
+                            style={{
+                              fontWeight: 600,
+                              color: "var(--text-primary)",
+                              fontSize: "1rem",
+                              lineHeight: 1.2,
+                              margin: 0,
+                            }}
+                          >
+                            {item.nameEn}
+                          </h4>
+                          <p
+                            style={{
+                              fontSize: "0.875rem",
+                              color: "var(--text-secondary)",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            ${item.sellingPrice.toFixed(2)} each
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleRemove(item.id)}
+                          disabled={isDeleting}
+                          style={{
+                            color: "#ef4444",
+                            padding: "0.5rem",
+                            backgroundColor: "transparent",
+                            border: "none",
+                            borderRadius: "0.5rem",
+                            cursor: "pointer",
+                            transition: "all 0.2s",
+                            minWidth: "40px",
+                            minHeight: "40px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            opacity: isDeleting ? 0.5 : 1,
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#fee2e2";
+                            e.currentTarget.style.transform = "scale(1.1)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "transparent";
+                            e.currentTarget.style.transform = "scale(1)";
+                          }}
+                          title="Remove item"
+                        >
+                          <svg
+                            style={{ width: "24px", height: "24px" }}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+
+                      {/* Quantity Controls & Line Total */}
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                          <button
+                            onClick={() =>
+                              onUpdateQuantity(item.id, Math.max(1, item.quantity - 1))
+                            }
+                            disabled={isDeleting}
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              backgroundColor: "#e5e7eb",
+                              border: "none",
+                              borderRadius: "0.5rem",
+                              fontWeight: 700,
+                              color: "#374151",
+                              fontSize: "1.25rem",
+                              cursor: "pointer",
+                              transition: "all 0.15s",
+                              opacity: isDeleting ? 0.5 : 1,
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isDeleting) {
+                                e.currentTarget.style.backgroundColor = "#d1d5db";
+                                e.currentTarget.style.transform = "scale(0.95)";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = "#e5e7eb";
+                              e.currentTarget.style.transform = "scale(1)";
+                            }}
+                          >
+                            −
+                          </button>
+                          <input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) =>
+                              onUpdateQuantity(item.id, parseInt(e.target.value) || 1)
+                            }
+                            disabled={isDeleting}
+                            min="1"
+                            style={{
+                              width: "64px",
+                              height: "40px",
+                              textAlign: "center",
+                              border: "2px solid #d1d5db",
+                              borderRadius: "0.5rem",
+                              fontWeight: 600,
+                              fontSize: "1.125rem",
+                              transition: "all 0.2s",
+                              opacity: isDeleting ? 0.5 : 1,
+                            }}
+                          />
+                          <button
+                            onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                            disabled={isDeleting}
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              backgroundColor: "#e5e7eb",
+                              border: "none",
+                              borderRadius: "0.5rem",
+                              fontWeight: 700,
+                              color: "#374151",
+                              fontSize: "1.25rem",
+                              cursor: "pointer",
+                              transition: "all 0.15s",
+                              opacity: isDeleting ? 0.5 : 1,
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isDeleting) {
+                                e.currentTarget.style.backgroundColor = "#d1d5db";
+                                e.currentTarget.style.transform = "scale(0.95)";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = "#e5e7eb";
+                              e.currentTarget.style.transform = "scale(1)";
+                            }}
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        {/* Line Total */}
+                        <div style={{ textAlign: "right" }}>
+                          <p
+                            style={{
+                              fontSize: "1.125rem",
+                              fontWeight: 700,
+                              color: "var(--text-primary)",
+                              margin: 0,
+                              transition: "all 0.3s",
+                            }}
+                          >
+                            ${lineTotal.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                <span className={styles.orderItemPrice}>
-                  ${(item.sellingPrice * item.quantity).toFixed(2)}
-                </span>
-                <Trash2
-                  size={16}
-                  color="#ef4444"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => onRemoveItem(item.id)}
-                />
-              </div>
-            </div>
-          ))}
-          {cart.length === 0 && (
-            <div style={{ textAlign: "center", color: "var(--text-secondary)", marginTop: "2rem" }}>
-              No items in order
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Summary & Process Transaction */}
+      {cart.length > 0 && (
+        <div className={styles.summary} style={{ animation: "fadeIn 0.3s ease-in" }}>
+          <div className={styles.summaryRow}>
+            <span>Subtotal</span>
+            <span>${subtotal.toFixed(2)}</span>
+          </div>
+          <div className={styles.summaryRow}>
+            <span>Tax (15%)</span>
+            <span>${tax.toFixed(2)}</span>
+          </div>
+          {discount > 0 && (
+            <div className={styles.summaryRow}>
+              <span>Discount ({discount}%)</span>
+              <span>-${discountAmount.toFixed(2)}</span>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Summary & Actions */}
-      <div className={styles.summary}>
-        <button className={styles.clearBtn} onClick={onClearAll} disabled={cart.length === 0}>
-          Clear All Order
-        </button>
-
-        <div className={styles.summaryRow}>
-          <span>Subtotal</span>
-          <span>${subtotal.toFixed(2)}</span>
-        </div>
-        <div className={styles.summaryRow}>
-          <span>Tax (10%)</span>
-          <span>${tax.toFixed(2)}</span>
-        </div>
-        {discount > 0 && (
-          <div className={styles.summaryRow}>
-            <span>Discount ({discount}%)</span>
-            <span>-${discountAmount.toFixed(2)}</span>
+          <div
+            className={styles.summaryRow}
+            style={{ borderBottom: "1px dashed var(--border-color)", paddingBottom: "0.5rem" }}
+          >
+            <span>Voucher</span>
+            <span>$0.00</span>
           </div>
-        )}
-        <div
-          className={styles.summaryRow}
-          style={{ borderBottom: "1px dashed var(--border-color)", paddingBottom: "0.5rem" }}
-        >
-          <span>Voucher</span>
-          <span>$0.00</span>
-        </div>
-        <div className={styles.summaryRow + " " + styles.total}>
-          <span>Total</span>
-          <span>${total.toFixed(2)}</span>
-        </div>
-
-        {error && (
-          <div style={{ color: "red", fontSize: "0.875rem", textAlign: "center", marginTop: "0.5rem" }}>
-            {error}
+          <div className={`${styles.summaryRow} ${styles.total}`}>
+            <span>Total</span>
+            <span>${total.toFixed(2)}</span>
           </div>
-        )}
 
-        <button
-          className={styles.processBtn}
-          onClick={handleProcessTransaction}
-          disabled={processing || cart.length === 0}
-        >
-          {processing ? "Processing..." : "Process Transaction"}
-        </button>
-      </div>
+          {error && (
+            <div
+              style={{
+                color: "#ef4444",
+                fontSize: "0.875rem",
+                textAlign: "center",
+                marginTop: "0.5rem",
+                padding: "0.5rem",
+                backgroundColor: "#fee2e2",
+                borderRadius: "0.5rem",
+              }}
+            >
+              {error}
+            </div>
+          )}
+
+          <button
+            className={styles.processBtn}
+            onClick={handleProcessTransaction}
+            disabled={processing || cart.length === 0}
+            style={{
+              marginTop: "0.5rem",
+              opacity: processing || cart.length === 0 ? 0.5 : 1,
+              cursor: processing || cart.length === 0 ? "not-allowed" : "pointer",
+            }}
+          >
+            {processing ? "Processing..." : "Process Transaction"}
+          </button>
+        </div>
+      )}
     </div>
   );
 };
