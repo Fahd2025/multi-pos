@@ -206,16 +206,26 @@ export interface FeaturedDialogProps<T = any> {
   onClose: () => void;
   /** Dialog title */
   title: string;
-  /** Data to display */
-  data: T;
-  /** Field definitions for displaying data */
-  fields: DisplayField<T>[];
+  /** Data to display (optional for create mode) */
+  data?: T;
+  /** Field definitions for displaying data (for display mode) */
+  fields?: DisplayField<T>[];
   /** Optional actions (e.g., Edit, Delete) */
   actions?: DialogAction<T>[];
   /** Optional size variant */
   size?: "sm" | "md" | "lg" | "xl";
   /** Optional custom content to display after fields */
   customContent?: React.ReactNode;
+  /** Form mode: 'display' (default) or 'form' for editable forms */
+  mode?: "display" | "create" | "edit";
+  /** Form fields configuration (for form mode) */
+  formFields?: FormField<T>[];
+  /** Callback on form submit (for form mode) */
+  onSubmit?: (data: T) => Promise<void> | void;
+  /** Whether form is submitting (for form mode) */
+  isSubmitting?: boolean;
+  /** Initial data for edit mode */
+  initialData?: T;
 }
 
 // Display field configuration
