@@ -85,17 +85,24 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart 
                 </div>
               )}
               <div className={styles.productName}>{product.nameEn}</div>
-              <div className={styles.productPrice}>${product.sellingPrice.toFixed(2)}</div>
-              {product.stockLevel <= 0 && (
-                <div style={{ fontSize: "0.75rem", color: "red", marginTop: "0.25rem" }}>
-                  Out of Stock
+
+              <div className={styles.productMeta}>
+                <div className={styles.stockInfo}>
+                  {product.stockLevel <= 0 && (
+                    <span className={`${styles.stockBadge} ${styles.stockBadgeOutOfStock}`}>
+                      Out of Stock
+                    </span>
+                  )}
+                  {product.stockLevel > 0 && product.stockLevel <= product.minStockThreshold && (
+                    <span className={`${styles.stockBadge} ${styles.stockBadgeLowStock}`}>
+                      Low Stock
+                    </span>
+                  )}
                 </div>
-              )}
-              {product.stockLevel > 0 && product.stockLevel <= product.minStockThreshold && (
-                <div style={{ fontSize: "0.75rem", color: "orange", marginTop: "0.25rem" }}>
-                  Low Stock
+                <div className={styles.priceInfo}>
+                  <span className={styles.productPrice}>${product.sellingPrice.toFixed(2)}</span>
                 </div>
-              )}
+              </div>
             </div>
           );
         })

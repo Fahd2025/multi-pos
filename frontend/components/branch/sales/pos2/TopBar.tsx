@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Search, ShoppingCart, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { Search, ShoppingCart, Loader2, CheckCircle, AlertCircle, Menu } from "lucide-react";
 import styles from "./Pos2.module.css";
 import { FloatingSearchPanel } from "./FloatingSearchPanel";
 import { ProductDto } from "@/types/api.types";
@@ -14,6 +14,8 @@ interface TopBarProps {
   isCartVisible: boolean;
   onAddToCart: (product: ProductDto) => void;
   branchCode: string;
+  isSidebarCollapsed: boolean;
+  onToggleSidebar: () => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
@@ -22,6 +24,8 @@ export const TopBar: React.FC<TopBarProps> = ({
   isCartVisible,
   onAddToCart,
   branchCode,
+  isSidebarCollapsed,
+  onToggleSidebar,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<ProductDto[]>([]);
@@ -253,6 +257,18 @@ export const TopBar: React.FC<TopBarProps> = ({
   return (
     <>
       <div className={styles.topBar}>
+        {/* Sidebar Toggle Button - visible when sidebar is collapsed */}
+        {isSidebarCollapsed && (
+          <button
+            className={styles.sidebarToggleBtn}
+            onClick={onToggleSidebar}
+            aria-label="Show categories"
+            title="Show categories"
+          >
+            <Menu size={24} />
+          </button>
+        )}
+
         <div className={styles.searchBar}>
           <Search className={styles.searchIcon} />
           {isSearching && <Loader2 className={styles.searchLoadingIcon} />}

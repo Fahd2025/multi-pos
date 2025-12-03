@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   Utensils,
   Sandwich,
@@ -13,7 +13,6 @@ import {
   Salad,
   Cake,
   ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import styles from "./Pos2.module.css";
 import { CategoryDto } from "@/types/api.types";
@@ -22,6 +21,8 @@ interface CategorySidebarProps {
   categories: CategoryDto[];
   activeCategory: string;
   onSelectCategory: (category: string) => void;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
 // Map category codes to icons
@@ -45,35 +46,22 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
   categories,
   activeCategory,
   onSelectCategory,
+  isCollapsed,
+  onToggleCollapse,
 }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
-  // Load collapsed state from localStorage
-  useEffect(() => {
-    const stored = localStorage.getItem("pos_sidebar_collapsed");
-    if (stored !== null) {
-      setIsCollapsed(stored === "true");
-    }
-  }, []);
-
-  // Toggle collapse and save to localStorage
-  const handleToggleCollapse = () => {
-    const newState = !isCollapsed;
-    setIsCollapsed(newState);
-    localStorage.setItem("pos_sidebar_collapsed", newState.toString());
-  };
-
   return (
     <div className={`${styles.sidebar} ${isCollapsed ? styles.sidebarCollapsed : ""}`}>
-      {/* Toggle Button */}
-      <button
-        className={styles.sidebarToggle}
-        onClick={handleToggleCollapse}
-        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-        title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-      >
-        {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-      </button>
+      {/* Toggle Button - inside sidebar */}
+      {!isCollapsed && (
+        <button
+          className={styles.sidebarToggle}
+          onClick={onToggleCollapse}
+          aria-label="Hide sidebar"
+          title="Hide sidebar"
+        >
+          <ChevronLeft size={32} />
+        </button>
+      )}
 
       {/* "All Menu" category */}
       <div
@@ -82,11 +70,7 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
         title="All Menu"
       >
         <Utensils className={styles.menuIcon} />
-        {!isCollapsed && (
-          <span style={{ fontSize: "0.75rem", textAlign: "center", lineHeight: 1.1 }}>
-            All Menu
-          </span>
-        )}
+        <span style={{ fontSize: "0.75rem", textAlign: "center", lineHeight: 1.1 }}>All Menu</span>
       </div>
 
       {/* Real categories from backend */}
@@ -100,11 +84,9 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
             title={cat.nameEn}
           >
             <Icon className={styles.menuIcon} />
-            {!isCollapsed && (
-              <span style={{ fontSize: "0.75rem", textAlign: "center", lineHeight: 1.1 }}>
-                {cat.nameEn}
-              </span>
-            )}
+            <span style={{ fontSize: "0.75rem", textAlign: "center", lineHeight: 1.1 }}>
+              {cat.nameEn}
+            </span>
           </div>
         );
       })}

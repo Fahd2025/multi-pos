@@ -51,12 +51,15 @@
   border-right: 1px solid var(--border-color);
   flex-shrink: 0;
   position: relative;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
 
 .sidebar.sidebarCollapsed {
-  width: 60px;
-  padding: 1.5rem 0.25rem;
+  width: 0;
+  padding: 0;
+  border-right: none;
+  opacity: 0;
 }
 
 /* Sidebar Toggle Button */
@@ -86,6 +89,33 @@
   transform: scale(0.95);
 }
 
+/* Sidebar Toggle Button - on top bar when sidebar is hidden */
+.sidebarToggleBtn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  animation: slideInFromLeft 0.3s ease;
+}
+
+.sidebarToggleBtn:hover {
+  background-color: var(--primary-hover);
+  transform: scale(1.05);
+}
+
+.sidebarToggleBtn:active {
+  transform: scale(0.95);
+}
+
 .orderPanel {
   width: 380px;
   background-color: var(--card-bg);
@@ -108,27 +138,12 @@
   border-radius: var(--radius-md);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
   gap: 0.5rem;
-  overflow: hidden;
-}
-
-.sidebarCollapsed .menuItem {
-  width: 50px;
-  height: 50px;
-  gap: 0;
 }
 
 .menuItem span {
-  transition: opacity 0.2s ease, transform 0.2s ease;
   white-space: nowrap;
-}
-
-.sidebarCollapsed .menuItem span {
-  opacity: 0;
-  transform: scale(0);
-  height: 0;
-  margin: 0;
 }
 
 .menuItem:hover,
@@ -142,12 +157,6 @@
   width: 24px;
   height: 24px;
   flex-shrink: 0;
-  transition: all 0.3s ease;
-}
-
-.sidebarCollapsed .menuIcon {
-  width: 20px;
-  height: 20px;
 }
 
 .logo {
@@ -346,10 +355,49 @@
   line-height: 1.2;
 }
 
+.productMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 1.5rem;
+}
+
+.stockInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.priceInfo {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
 .productPrice {
   font-weight: 700;
-  color: var(--text-primary);
+  color: #10b981;
   font-size: 1.1rem;
+  white-space: nowrap;
+}
+
+.stockBadge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.375rem;
+  white-space: nowrap;
+}
+
+.stockBadgeOutOfStock {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.stockBadgeLowStock {
+  background-color: #fef3c7;
+  color: #d97706;
 }
 
 /* Order Panel Elements */
@@ -504,6 +552,17 @@
   60%,
   80% {
     transform: translateX(calc(-50% + 5px)) translateY(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
@@ -707,18 +766,13 @@
   }
 
   .sidebar.sidebarCollapsed {
-    width: 55px;
+    width: 0;
   }
 
   .menuItem {
     width: 70px;
     height: 70px;
     font-size: 0.7rem;
-  }
-
-  .sidebarCollapsed .menuItem {
-    width: 45px;
-    height: 45px;
   }
 
   .orderPanel {
@@ -734,6 +788,11 @@
     width: 32px;
     height: 32px;
   }
+
+  .sidebarToggleBtn {
+    width: 44px;
+    height: 44px;
+  }
 }
 
 /* Tablet portrait (768px - 1023px) */
@@ -743,18 +802,13 @@
   }
 
   .sidebar.sidebarCollapsed {
-    width: 55px;
+    width: 0;
   }
 
   .menuItem {
     width: 70px;
     height: 70px;
     font-size: 0.7rem;
-  }
-
-  .sidebarCollapsed .menuItem {
-    width: 45px;
-    height: 45px;
   }
 
   .orderPanel {
@@ -769,6 +823,11 @@
   .sidebarToggle {
     width: 32px;
     height: 32px;
+  }
+
+  .sidebarToggleBtn {
+    width: 44px;
+    height: 44px;
   }
 }
 
@@ -792,8 +851,11 @@
   }
 
   .sidebar.sidebarCollapsed {
-    width: 100%;
-    padding: 0.5rem;
+    height: 0;
+    padding: 0;
+    border-bottom: none;
+    opacity: 0;
+    overflow: hidden;
   }
 
   .logo {
@@ -808,17 +870,17 @@
     flex-shrink: 0;
   }
 
-  .sidebarCollapsed .menuItem {
-    width: 50px;
-    height: 50px;
-  }
-
   .sidebarToggle {
     width: 32px;
     height: 32px;
     margin-bottom: 0;
     margin-right: 0.5rem;
     flex-shrink: 0;
+  }
+
+  .sidebarToggleBtn {
+    width: 40px;
+    height: 40px;
   }
 
   /* Main content takes full width */
@@ -875,8 +937,17 @@
     font-size: 0.9rem;
   }
 
+  .productMeta {
+    min-height: 1.25rem;
+  }
+
   .productPrice {
     font-size: 1rem;
+  }
+
+  .stockBadge {
+    font-size: 0.7rem;
+    padding: 0.1rem 0.4rem;
   }
 
   /* Adjust top bar for mobile */
@@ -939,7 +1010,11 @@
   }
 
   .sidebar.sidebarCollapsed {
-    padding: 0.375rem;
+    height: 0;
+    padding: 0;
+    border-bottom: none;
+    opacity: 0;
+    overflow: hidden;
   }
 
   .menuItem {
@@ -948,24 +1023,19 @@
     font-size: 0.6rem;
   }
 
-  .sidebarCollapsed .menuItem {
-    width: 42px;
-    height: 42px;
-  }
-
   .menuIcon {
     width: 20px;
     height: 20px;
   }
 
-  .sidebarCollapsed .menuIcon {
-    width: 18px;
-    height: 18px;
-  }
-
   .sidebarToggle {
     width: 28px;
     height: 28px;
+  }
+
+  .sidebarToggleBtn {
+    width: 36px;
+    height: 36px;
   }
 
   .mainContent {
@@ -992,6 +1062,11 @@
 
   .productPrice {
     font-size: 0.95rem;
+  }
+
+  .stockBadge {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.35rem;
   }
 
   .orderPanel {

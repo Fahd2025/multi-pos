@@ -21,6 +21,7 @@ export default function PosLayout() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCartVisible, setIsCartVisible] = useState(true); // Default true for desktop
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // Set initial cart visibility based on screen size (only once on mount)
   useEffect(() => {
@@ -28,6 +29,14 @@ export default function PosLayout() {
     // On desktop, show cart by default
     const isMobile = window.innerWidth <= 768;
     setIsCartVisible(!isMobile);
+  }, []);
+
+  // Load sidebar collapsed state from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem("pos_sidebar_collapsed");
+    if (stored !== null) {
+      setIsSidebarCollapsed(stored === "true");
+    }
   }, []);
 
   // Fetch categories and products on mount
@@ -144,6 +153,13 @@ export default function PosLayout() {
     setIsCartVisible(!isCartVisible);
   };
 
+  // Toggle sidebar visibility
+  const handleToggleSidebar = () => {
+    const newState = !isSidebarCollapsed;
+    setIsSidebarCollapsed(newState);
+    localStorage.setItem("pos_sidebar_collapsed", newState.toString());
+  };
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -170,6 +186,8 @@ export default function PosLayout() {
         categories={categories}
         activeCategory={activeCategory}
         onSelectCategory={setActiveCategory}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={handleToggleSidebar}
       />
 
       <div className={styles.mainContent}>
@@ -179,6 +197,8 @@ export default function PosLayout() {
           isCartVisible={isCartVisible}
           onAddToCart={handleAddToCart}
           branchCode={branchCode}
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggleSidebar={handleToggleSidebar}
         />
         <ProductGrid products={filteredProducts} onAddToCart={handleAddToCart} />
       </div>
