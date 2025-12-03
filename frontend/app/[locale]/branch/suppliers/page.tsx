@@ -426,6 +426,7 @@ export default function SuppliersPage() {
               }
             },
             size: 64,
+            defaultIcon: "🏢",
           }}
         />
       </div>

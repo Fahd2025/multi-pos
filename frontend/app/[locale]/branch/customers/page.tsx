@@ -311,6 +311,7 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
               }
             },
             size: 64,
+            defaultIcon: "👤",
           }}
         />
       )}

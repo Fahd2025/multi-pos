@@ -391,6 +391,7 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
               setIsImageCarouselOpen(true);
             },
             size: 64,
+            defaultIcon: "📦",
           }}
         />
       )}

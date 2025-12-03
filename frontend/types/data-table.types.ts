@@ -73,6 +73,8 @@ export interface ImageColumnConfig<T> {
   onImageClick?: (row: T, images: string[]) => void;
   /** Image size (default: 64px) */
   size?: number;
+  /** Default icon/emoji to show when no image is available (e.g., "📦" for products, "📁" for categories) */
+  defaultIcon?: React.ReactNode;
 }
 
 // DataTable props

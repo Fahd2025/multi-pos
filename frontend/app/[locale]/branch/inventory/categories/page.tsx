@@ -262,6 +262,7 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
               }
             },
             size: 64,
+            defaultIcon: "📁",
           }}
         />
       )}

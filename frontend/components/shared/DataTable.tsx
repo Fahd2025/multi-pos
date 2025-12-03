@@ -168,7 +168,9 @@ export function DataTable<T>({
 
               // Build image URLs
               let imageUrls: string[] = [];
+              let hasImageColumn = false;
               if (imageColumn) {
+                hasImageColumn = true;
                 const urls = imageColumn.getImageUrl(row);
                 imageUrls = Array.isArray(urls) ? urls : [urls];
               }
@@ -201,11 +203,12 @@ export function DataTable<T>({
                   title={title}
                   subtitle={columns.length > 1 ? subtitle : undefined}
                   badge={badge}
-                  imageUrl={imageUrls.length > 0 ? imageUrls : undefined}
+                  imageUrl={hasImageColumn ? imageUrls : undefined}
                   imageAlt={imageColumn?.getAltText(row)}
                   details={details}
                   actions={tileActions}
                   rowNumber={rowNumber}
+                  defaultIcon={imageColumn?.defaultIcon}
                   onImageClick={
                     imageColumn?.onImageClick
                       ? (images) => imageColumn.onImageClick?.(row, images)
@@ -436,8 +439,8 @@ export function DataTable<T>({
                               )}
                             </div>
                           ) : (
-                            <div className="w-full h-full bg-gray-100 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 flex items-center justify-center text-gray-400 dark:text-gray-500 text-xs">
-                              No Image
+                            <div className="w-full h-full bg-gray-100 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 flex items-center justify-center text-4xl">
+                              {imageColumn.defaultIcon || '🖼️'}
                             </div>
                           )}
                         </div>

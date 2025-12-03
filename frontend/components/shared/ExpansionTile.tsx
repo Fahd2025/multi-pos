@@ -70,6 +70,8 @@ export interface ExpansionTileProps {
   onImageClick?: (images: string[]) => void;
   /** Row number */
   rowNumber?: number;
+  /** Default icon/emoji to show when no image is available */
+  defaultIcon?: React.ReactNode;
 }
 
 export function ExpansionTile({
@@ -84,6 +86,7 @@ export function ExpansionTile({
   defaultExpanded = false,
   onImageClick,
   rowNumber,
+  defaultIcon = '🖼️',
 }: ExpansionTileProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
@@ -122,20 +125,28 @@ export function ExpansionTile({
           )}
 
           {/* Image */}
-          {firstImage && (
+          {(imageUrl || images.length > 0) && (
             <div className="flex-shrink-0">
               <div
-                className={`w-16 h-16 relative ${onImageClick ? 'cursor-pointer' : ''}`}
-                onClick={onImageClick ? handleImageClick : undefined}
+                className={`w-16 h-16 relative ${onImageClick && firstImage ? 'cursor-pointer' : ''}`}
+                onClick={onImageClick && firstImage ? handleImageClick : undefined}
               >
-                <img
-                  src={firstImage}
-                  alt={imageAlt}
-                  className="w-full h-full object-cover rounded border border-gray-200 dark:border-gray-600"
-                />
-                {hasMultipleImages && (
-                  <div className="absolute bottom-1 right-1 bg-black/70 dark:bg-black/80 text-white text-xs px-1.5 py-0.5 rounded">
-                    +{images.length - 1}
+                {firstImage ? (
+                  <>
+                    <img
+                      src={firstImage}
+                      alt={imageAlt}
+                      className="w-full h-full object-cover rounded border border-gray-200 dark:border-gray-600"
+                    />
+                    {hasMultipleImages && (
+                      <div className="absolute bottom-1 right-1 bg-black/70 dark:bg-black/80 text-white text-xs px-1.5 py-0.5 rounded">
+                        +{images.length - 1}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="w-full h-full bg-gray-100 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 flex items-center justify-center text-3xl">
+                    {defaultIcon}
                   </div>
                 )}
               </div>

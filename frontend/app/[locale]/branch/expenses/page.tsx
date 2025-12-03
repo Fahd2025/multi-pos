@@ -418,6 +418,7 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
               }
             },
             size: 64,
+            defaultIcon: "🧾",
           }}
         />
       )}

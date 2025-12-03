@@ -335,6 +335,7 @@ export default function BranchesManagementPage({
               }
             },
             size: 64,
+            defaultIcon: "🏪",
           }}
         />
       )}
