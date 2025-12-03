@@ -2,7 +2,6 @@
 
 import React from "react";
 import {
-  Utensils,
   Sandwich,
   Drumstick,
   CupSoda,
@@ -69,7 +68,7 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
         onClick={() => onSelectCategory("all")}
         title="All Menu"
       >
-        <Utensils className={styles.menuIcon} />
+        <LayoutGrid className={styles.menuIcon} />
         <span style={{ fontSize: "0.75rem", textAlign: "center", lineHeight: 1.1 }}>All Menu</span>
       </div>
 

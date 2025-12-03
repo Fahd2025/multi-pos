@@ -309,7 +309,10 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                       ? "#eff6ff"
                       : "transparent",
                     borderRadius: "0.75rem",
-                    border: isUpdating ? "2px solid #3b82f6" : "2px solid transparent",
+                    borderTop: isUpdating ? "2px solid #3b82f6" : "2px solid transparent",
+                    borderRight: isUpdating ? "2px solid #3b82f6" : "2px solid transparent",
+                    borderLeft: isUpdating ? "2px solid #3b82f6" : "2px solid transparent",
+                    borderBottom: isUpdating ? "2px solid #3b82f6" : "1px solid #e5e7eb",
                     transition: "all 0.3s ease",
                     opacity: isDeleting ? 0 : 1,
                     transform: isDeleting ? "translateX(100%)" : "translateX(0)",
