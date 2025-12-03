@@ -45,7 +45,6 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart 
       ) : (
         products.map((product) => {
           // Get product image URL
-          // Get product image URL
           const hasImage = product.images && product.images.length > 0;
           const isError = imageErrors[product.id];
 

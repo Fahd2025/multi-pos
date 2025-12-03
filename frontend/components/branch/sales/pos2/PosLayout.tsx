@@ -20,6 +20,15 @@ export default function PosLayout() {
   const [products, setProducts] = useState<ProductDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCartVisible, setIsCartVisible] = useState(true); // Default true for desktop
+
+  // Set initial cart visibility based on screen size (only once on mount)
+  useEffect(() => {
+    // On mobile (<= 768px), hide cart by default
+    // On desktop, show cart by default
+    const isMobile = window.innerWidth <= 768;
+    setIsCartVisible(!isMobile);
+  }, []);
 
   // Fetch categories and products on mount
   useEffect(() => {
@@ -47,6 +56,46 @@ export default function PosLayout() {
     fetchData();
   }, []);
 
+  // Get branch code from localStorage
+  const getBranchCode = () => {
+    if (typeof window !== "undefined") {
+      const branch = localStorage.getItem("branch");
+      if (branch) {
+        try {
+          return JSON.parse(branch).branchCode;
+        } catch (e) {
+          console.error("Error parsing branch:", e);
+        }
+      }
+    }
+    return "default";
+  };
+
+  const branchCode = getBranchCode();
+
+  // Play success beep sound
+  const playSuccessBeep = () => {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = 800;
+      oscillator.type = "sine";
+
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.1);
+    } catch (error) {
+      console.log("Audio not supported");
+    }
+  };
+
   const handleAddToCart = (product: ProductDto) => {
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id);
@@ -57,6 +106,9 @@ export default function PosLayout() {
       }
       return [...prev, { ...product, quantity: 1 }];
     });
+
+    // Play success sound when adding to cart
+    playSuccessBeep();
   };
 
   const handleRemoveItem = (id: string) => {
@@ -83,6 +135,14 @@ export default function PosLayout() {
     activeCategory === "all"
       ? products
       : products.filter((p) => p.categoryId === activeCategory);
+
+  // Calculate cart item count
+  const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  // Toggle cart visibility
+  const handleToggleCart = () => {
+    setIsCartVisible(!isCartVisible);
+  };
 
   if (loading) {
     return (
@@ -113,16 +173,34 @@ export default function PosLayout() {
       />
 
       <div className={styles.mainContent}>
-        <TopBar />
+        <TopBar
+          cartItemCount={cartItemCount}
+          onToggleCart={handleToggleCart}
+          isCartVisible={isCartVisible}
+          onAddToCart={handleAddToCart}
+          branchCode={branchCode}
+        />
         <ProductGrid products={filteredProducts} onAddToCart={handleAddToCart} />
       </div>
 
-      <OrderPanel
-        cart={cart}
-        onRemoveItem={handleRemoveItem}
-        onClearAll={handleClearAll}
-        onUpdateQuantity={handleUpdateQuantity}
-      />
+      {/* Backdrop overlay for mobile */}
+      {isCartVisible && (
+        <div
+          className={styles.cartBackdrop}
+          onClick={handleToggleCart}
+        />
+      )}
+
+      {/* Order Panel with conditional visibility class */}
+      <div className={`${styles.orderPanel} ${isCartVisible ? styles.cartVisible : ''}`}>
+        <OrderPanel
+          cart={cart}
+          onRemoveItem={handleRemoveItem}
+          onClearAll={handleClearAll}
+          onUpdateQuantity={handleUpdateQuantity}
+          onClose={handleToggleCart}
+        />
+      </div>
     </div>
   );
 }

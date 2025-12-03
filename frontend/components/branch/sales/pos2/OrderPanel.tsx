@@ -6,7 +6,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Users, LayoutPanelTop, Percent, Save, Plus, Minus } from "lucide-react";
+import { Users, LayoutPanelTop, Percent, Save, Plus, Minus, X } from "lucide-react";
 import styles from "./Pos2.module.css";
 import { ProductDto } from "@/types/api.types";
 import salesService from "@/services/sales.service";
@@ -21,6 +21,7 @@ interface OrderPanelProps {
   onRemoveItem: (id: string) => void;
   onClearAll: () => void;
   onUpdateQuantity: (id: string, quantity: number) => void;
+  onClose?: () => void;
 }
 
 export const OrderPanel: React.FC<OrderPanelProps> = ({
@@ -28,6 +29,7 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
   onRemoveItem,
   onClearAll,
   onUpdateQuantity,
+  onClose,
 }) => {
   const [orderType, setOrderType] = useState<"dine-in" | "take-away">("dine-in");
   const [discount, setDiscount] = useState(0);
@@ -58,7 +60,7 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
   const branchCode = getBranchCode();
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
-  // Track quantity changes for animation
+  // Track quantity changes for animation and scroll to changed item
   useEffect(() => {
     cart.forEach((item) => {
       if (
@@ -68,6 +70,28 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
         // Quantity changed, trigger animation
         setUpdatingId(item.id);
         setTimeout(() => setUpdatingId(null), 600);
+
+        // Scroll to the changed item
+        const itemElement = itemRefs.current[item.id];
+        if (itemElement && cartItemsRef.current) {
+          const container = cartItemsRef.current;
+          const itemTop = itemElement.offsetTop;
+          const itemHeight = itemElement.offsetHeight;
+          const containerScrollTop = container.scrollTop;
+          const containerHeight = container.clientHeight;
+
+          // Check if item is not fully visible
+          const isAboveView = itemTop < containerScrollTop + 100;
+          const isBelowView = itemTop + itemHeight > containerScrollTop + containerHeight;
+
+          if (isAboveView || isBelowView) {
+            // Scroll to center the item in the view
+            container.scrollTo({
+              top: itemTop - containerHeight / 2 + itemHeight / 2,
+              behavior: "smooth",
+            });
+          }
+        }
       }
       previousQuantities.current[item.id] = item.quantity;
     });
@@ -143,7 +167,14 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
   };
 
   return (
-    <div className={styles.orderPanel}>
+    <>
+      {/* Close button for mobile - only visible on small screens */}
+      {onClose && (
+        <button className={styles.cartCloseBtn} onClick={onClose} aria-label="Close cart">
+          <X size={24} />
+        </button>
+      )}
+
       {/* Action Buttons */}
       {/* <div className={styles.actionButtons}>
         <button className={styles.actionBtn}>
@@ -271,6 +302,7 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                     itemRefs.current[item.id] = el;
                   }}
                   style={{
+                    padding: 8,
                     backgroundColor: isDeleting
                       ? "#fee2e2"
                       : isUpdating
@@ -419,8 +451,8 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                             }
                             disabled={isDeleting}
                             style={{
-                              width: "40px",
-                              height: "40px",
+                              width: "32px",
+                              height: "32px",
                               backgroundColor: "#e5e7eb",
                               border: "none",
                               borderRadius: "0.5rem",
@@ -452,9 +484,10 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                             }
                             disabled={isDeleting}
                             min="1"
+                            className={styles.quantityInput}
                             style={{
                               width: "64px",
-                              height: "40px",
+                              height: "32px",
                               textAlign: "center",
                               border: "2px solid #d1d5db",
                               borderRadius: "0.5rem",
@@ -468,8 +501,8 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                             onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
                             disabled={isDeleting}
                             style={{
-                              width: "40px",
-                              height: "40px",
+                              width: "32px",
+                              height: "32px",
                               backgroundColor: "#e5e7eb",
                               border: "none",
                               borderRadius: "0.5rem",
@@ -536,13 +569,13 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
               <span>-${discountAmount.toFixed(2)}</span>
             </div>
           )}
-          <div
+          {/* <div
             className={styles.summaryRow}
             style={{ borderBottom: "1px dashed var(--border-color)", paddingBottom: "0.5rem" }}
           >
             <span>Voucher</span>
             <span>$0.00</span>
-          </div>
+          </div> */}
           <div className={`${styles.summaryRow} ${styles.total}`}>
             <span>Total</span>
             <span>${total.toFixed(2)}</span>
@@ -578,6 +611,6 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
           </button>
         </div>
       )}
-    </div>
+    </>
   );
 };

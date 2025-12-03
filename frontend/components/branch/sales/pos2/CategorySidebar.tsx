@@ -1,5 +1,20 @@
-import React from "react";
-import { Utensils, Sandwich, Drumstick, CupSoda, Coffee, IceCream, LayoutGrid, Pizza, Salad, Cake } from "lucide-react";
+"use client";
+
+import React, { useState, useEffect } from "react";
+import {
+  Utensils,
+  Sandwich,
+  Drumstick,
+  CupSoda,
+  Coffee,
+  IceCream,
+  LayoutGrid,
+  Pizza,
+  Salad,
+  Cake,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import styles from "./Pos2.module.css";
 import { CategoryDto } from "@/types/api.types";
 
@@ -31,30 +46,47 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
   activeCategory,
   onSelectCategory,
 }) => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Load collapsed state from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem("pos_sidebar_collapsed");
+    if (stored !== null) {
+      setIsCollapsed(stored === "true");
+    }
+  }, []);
+
+  // Toggle collapse and save to localStorage
+  const handleToggleCollapse = () => {
+    const newState = !isCollapsed;
+    setIsCollapsed(newState);
+    localStorage.setItem("pos_sidebar_collapsed", newState.toString());
+  };
+
   return (
-    <div className={styles.sidebar}>
-      {/* Logo Placeholder - matching the "ClaPos" or similar from image */}
-      <div className={styles.logo}>
-        <div
-          style={{
-            width: 24,
-            height: 24,
-            background: "var(--primary-color)",
-            borderRadius: "4px",
-            transform: "rotate(45deg)",
-          }}
-        ></div>
-      </div>
+    <div className={`${styles.sidebar} ${isCollapsed ? styles.sidebarCollapsed : ""}`}>
+      {/* Toggle Button */}
+      <button
+        className={styles.sidebarToggle}
+        onClick={handleToggleCollapse}
+        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+      >
+        {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+      </button>
 
       {/* "All Menu" category */}
       <div
         className={`${styles.menuItem} ${activeCategory === "all" ? styles.active : ""}`}
         onClick={() => onSelectCategory("all")}
+        title="All Menu"
       >
         <Utensils className={styles.menuIcon} />
-        <span style={{ fontSize: "0.75rem", textAlign: "center", lineHeight: 1.1 }}>
-          All Menu
-        </span>
+        {!isCollapsed && (
+          <span style={{ fontSize: "0.75rem", textAlign: "center", lineHeight: 1.1 }}>
+            All Menu
+          </span>
+        )}
       </div>
 
       {/* Real categories from backend */}
@@ -65,11 +97,14 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
             key={cat.id}
             className={`${styles.menuItem} ${activeCategory === cat.id ? styles.active : ""}`}
             onClick={() => onSelectCategory(cat.id)}
+            title={cat.nameEn}
           >
             <Icon className={styles.menuIcon} />
-            <span style={{ fontSize: "0.75rem", textAlign: "center", lineHeight: 1.1 }}>
-              {cat.nameEn}
-            </span>
+            {!isCollapsed && (
+              <span style={{ fontSize: "0.75rem", textAlign: "center", lineHeight: 1.1 }}>
+                {cat.nameEn}
+              </span>
+            )}
           </div>
         );
       })}
