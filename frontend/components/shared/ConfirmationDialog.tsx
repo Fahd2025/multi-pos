@@ -115,26 +115,48 @@ export function ConfirmationDialog({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 overflow-y-auto"
-      role="alertdialog"
-      aria-modal="true"
-      aria-labelledby="confirmation-title"
-      aria-describedby="confirmation-message"
-    >
-      {/* Backdrop */}
+    <>
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUpScale {
+          from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+      `}</style>
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
-        onClick={!isProcessing ? onClose : undefined}
-        aria-hidden="true"
-      />
-
-      {/* Dialog Container */}
-      <div className="flex min-h-full items-center justify-center p-4">
+        className="fixed inset-0 z-50 overflow-y-auto"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirmation-title"
+        aria-describedby="confirmation-message"
+      >
+        {/* Backdrop */}
         <div
-          className="relative bg-white rounded-2xl shadow-xl transform transition-all w-full max-w-md"
-          onClick={(e) => e.stopPropagation()}
-        >
+          className="fixed inset-0 bg-black bg-opacity-60 transition-opacity backdrop-blur-sm"
+          style={{ animation: "fadeIn 0.3s ease" }}
+          onClick={!isProcessing ? onClose : undefined}
+          aria-hidden="true"
+        />
+
+        {/* Dialog Container */}
+        <div className="flex min-h-full items-center justify-center p-4">
+          <div
+            className="relative bg-white dark:bg-gray-800 rounded-2xl transform transition-all w-full max-w-md"
+            style={{
+              boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
+              animation: "slideUpScale 0.3s ease"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
           {/* Content */}
           <div className="p-6">
             {/* Icon */}
@@ -143,12 +165,12 @@ export function ConfirmationDialog({
             </div>
 
             {/* Title */}
-            <h3 id="confirmation-title" className="text-lg font-semibold text-gray-900 text-center mb-2">
+            <h3 id="confirmation-title" className="text-lg font-semibold text-gray-900 dark:text-gray-100 text-center mb-2">
               {title}
             </h3>
 
             {/* Message */}
-            <p id="confirmation-message" className="text-sm text-gray-600 text-center mb-6">
+            <p id="confirmation-message" className="text-sm text-gray-600 dark:text-gray-400 text-center mb-6">
               {message}
             </p>
 
@@ -181,14 +203,15 @@ export function ConfirmationDialog({
 
             {/* Keyboard hint */}
             {!isProcessing && (
-              <p className="text-xs text-gray-400 text-center mt-4">
-                Press <kbd className="px-2 py-1 bg-gray-100 rounded">Enter</kbd> to confirm or{' '}
-                <kbd className="px-2 py-1 bg-gray-100 rounded">Esc</kbd> to cancel
+              <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-4">
+                Press <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 dark:text-gray-300 rounded">Enter</kbd> to confirm or{' '}
+                <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 dark:text-gray-300 rounded">Esc</kbd> to cancel
               </p>
             )}
           </div>
         </div>
       </div>
     </div>
+    </>
   );
 }

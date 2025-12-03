@@ -741,6 +741,378 @@
   animation: fadeIn 0.3s ease;
 }
 
+/* Transaction Dialog Styles */
+.dialogBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease;
+  backdrop-filter: blur(4px);
+}
+
+.dialogContainer {
+  background-color: var(--card-bg);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 650px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUpScale 0.3s ease;
+  overflow: hidden;
+}
+
+.dialogHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.dialogTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.dialogCloseBtn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dialogCloseBtn:hover {
+  background-color: var(--border-color);
+  color: var(--text-primary);
+  transform: scale(1.05);
+}
+
+.dialogContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.dialogFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-top: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.cancelBtn {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 1rem;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelBtn:hover {
+  background-color: var(--border-color);
+}
+
+.cancelBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.confirmBtn {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 1rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.confirmBtn:hover {
+  background-color: var(--primary-hover);
+}
+
+.confirmBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Form Styles */
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.formLabel {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.formSubLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.formSubsection {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--border-color);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.formInput {
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  transition: all 0.2s;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.formInput:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.formInput::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.formTextarea {
+  grid-column: 1 / -1;
+  resize: vertical;
+  min-height: 60px;
+}
+
+.formSelect {
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  transition: all 0.2s;
+  outline: none;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.formSelect:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Order Type Grid */
+.orderTypeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.orderTypeBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--border-color);
+  background-color: var(--card-bg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.orderTypeBtn:hover {
+  border-color: var(--primary-color);
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+}
+
+.orderTypeBtn.active {
+  border-color: var(--primary-color);
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Payment Method Grid */
+.paymentMethodGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.paymentMethodBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--border-color);
+  background-color: var(--card-bg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+  font-size: 0.875rem;
+  justify-content: center;
+}
+
+.paymentMethodBtn:hover {
+  border-color: var(--primary-color);
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+}
+
+.paymentMethodBtn.active {
+  border-color: var(--primary-color);
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Discount Grid */
+.discountGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+/* Transaction Summary */
+.transactionSummary {
+  background-color: var(--bg-color);
+  padding: 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.summaryTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 1rem 0;
+}
+
+.summaryGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.discountText {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.totalRow {
+  padding-top: 0.75rem;
+  border-top: 2px solid var(--border-color);
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--text-primary);
+}
+
+/* Change Display */
+.changeDisplay {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background-color: var(--bg-color);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.changeLabel {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.changeAmount {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--primary-color);
+}
+
+.changeAmount.negative {
+  color: #ef4444;
+}
+
+/* Error Message */
+.errorMessage {
+  padding: 0.75rem;
+  background-color: #fee2e2;
+  color: #dc2626;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
+  border: 1px solid #fecaca;
+}
+
+/* Dialog Animation */
+@keyframes slideUpScale {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* Responsive Styles */
 
 /* Extra Large screens (> 1600px) */
@@ -835,6 +1207,64 @@
 @media (max-width: 768px) {
   .container {
     flex-direction: column;
+  }
+
+  /* Dialog Responsive Styles */
+  .dialogContainer {
+    max-width: 100%;
+    max-height: 95vh;
+  }
+
+  .dialogHeader {
+    padding: 1rem;
+  }
+
+  .dialogTitle {
+    font-size: 1.25rem;
+  }
+
+  .dialogContent {
+    padding: 1rem;
+    gap: 1.25rem;
+  }
+
+  .dialogFooter {
+    padding: 1rem;
+    flex-direction: column-reverse;
+  }
+
+  .cancelBtn,
+  .confirmBtn {
+    width: 100%;
+    padding: 0.875rem;
+  }
+
+  .orderTypeGrid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .orderTypeBtn {
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 0.875rem;
+  }
+
+  .paymentMethodGrid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .paymentMethodBtn {
+    justify-content: flex-start;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .discountGrid {
+    grid-template-columns: 1fr;
   }
 
   /* Hide sidebar on mobile, or make it horizontal */
@@ -1005,6 +1435,52 @@
 
 /* Extra small mobile devices (< 480px) */
 @media (max-width: 480px) {
+  /* Dialog even more compact on very small screens */
+  .dialogBackdrop {
+    padding: 0.5rem;
+  }
+
+  .dialogContainer {
+    border-radius: var(--radius-md);
+  }
+
+  .dialogHeader {
+    padding: 0.875rem;
+  }
+
+  .dialogTitle {
+    font-size: 1.125rem;
+  }
+
+  .dialogContent {
+    padding: 0.875rem;
+    gap: 1rem;
+  }
+
+  .dialogFooter {
+    padding: 0.875rem;
+  }
+
+  .formLabel {
+    font-size: 0.875rem;
+  }
+
+  .formInput,
+  .formSelect {
+    font-size: 0.875rem;
+    padding: 0.625rem;
+  }
+
+  .orderTypeBtn,
+  .paymentMethodBtn {
+    padding: 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .transactionSummary {
+    padding: 1rem;
+  }
+
   .sidebar {
     padding: 0.5rem;
   }

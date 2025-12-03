@@ -139,25 +139,49 @@ export default function StockAdjustmentModal({
   const stockDifference = newStock - product.stockLevel;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
-        onClick={onClose}
-      ></div>
+    <>
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUpScale {
+          from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+      `}</style>
+      <div className="fixed inset-0 z-50 overflow-y-auto">
+        {/* Backdrop */}
+        <div
+          className="fixed inset-0 bg-black bg-opacity-60 transition-opacity backdrop-blur-sm"
+          style={{ animation: "fadeIn 0.3s ease" }}
+          onClick={onClose}
+        ></div>
 
-      {/* Modal */}
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full">
+        {/* Modal */}
+        <div className="flex min-h-screen items-center justify-center p-4">
+          <div
+            className="relative bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full"
+            style={{
+              boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
+              animation: "slideUpScale 0.3s ease"
+            }}
+          >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Adjust Stock</h2>
-              <p className="text-sm text-gray-600 mt-1">{product.nameEn}</p>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Adjust Stock</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{product.nameEn}</p>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             >
               <span className="text-2xl">×</span>
             </button>
@@ -390,5 +414,6 @@ export default function StockAdjustmentModal({
         </div>
       </div>
     </div>
+    </>
   );
 }

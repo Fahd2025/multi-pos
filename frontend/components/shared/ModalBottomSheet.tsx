@@ -208,15 +208,33 @@ export function ModalBottomSheet<T = any>({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 overflow-y-auto"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-title"
-    >
+    <>
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUpScale {
+          from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+      `}</style>
+      <div
+        className="fixed inset-0 z-50 overflow-y-auto animate-fadeIn"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+      >
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 transition-opacity"
+        className="fixed inset-0 bg-black bg-opacity-60 dark:bg-opacity-70 transition-opacity backdrop-blur-sm"
+        style={{ animation: "fadeIn 0.3s ease" }}
         onClick={onClose}
         aria-hidden="true"
       />
@@ -224,7 +242,11 @@ export function ModalBottomSheet<T = any>({
       {/* Modal Container */}
       <div className="flex min-h-full items-end justify-center sm:items-center p-0 sm:p-4">
         <div
-          className={`relative bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl shadow-xl transform transition-all w-full ${sizeClasses[size]} ${className}`}
+          className={`relative bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl transform transition-all w-full ${sizeClasses[size]} ${className}`}
+          style={{
+            boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
+            animation: "slideUpScale 0.3s ease"
+          }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -408,5 +430,6 @@ export function ModalBottomSheet<T = any>({
         </div>
       </div>
     </div>
+    </>
   );
 }

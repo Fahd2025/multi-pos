@@ -55,28 +55,52 @@ export default function CheckoutDialog({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
-        onClick={onClose}
-      />
+    <>
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUpScale {
+          from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+      `}</style>
+      <div className="fixed inset-0 z-50 overflow-y-auto">
+        {/* Backdrop */}
+        <div
+          className="fixed inset-0 bg-black bg-opacity-60 transition-opacity backdrop-blur-sm"
+          style={{ animation: "fadeIn 0.3s ease" }}
+          onClick={onClose}
+        />
 
-      {/* Dialog */}
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+        {/* Dialog */}
+        <div className="flex min-h-full items-center justify-center p-4">
+          <div
+            className="relative bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] flex flex-col"
+            style={{
+              boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
+              animation: "slideUpScale 0.3s ease"
+            }}
+          >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Checkout</h2>
-              <p className="text-sm text-gray-600 mt-1">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Checkout</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 Review your order and select payment method
               </p>
             </div>
             <button
               onClick={onClose}
               disabled={processing}
-              className="text-gray-400 hover:text-gray-600 text-3xl font-bold w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 disabled:opacity-50"
+              className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 text-3xl font-bold w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
             >
               ×
             </button>
@@ -277,5 +301,6 @@ export default function CheckoutDialog({
         </div>
       </div>
     </div>
+    </>
   );
 }

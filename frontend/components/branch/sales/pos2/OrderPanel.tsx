@@ -6,11 +6,11 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Users, LayoutPanelTop, Percent, Save, Plus, Minus, X } from "lucide-react";
+import { X } from "lucide-react";
 import styles from "./Pos2.module.css";
 import { ProductDto } from "@/types/api.types";
-import salesService from "@/services/sales.service";
 import { buildProductImageUrl } from "@/lib/image-utils";
+import { TransactionDialog } from "./TransactionDialog";
 
 interface OrderItem extends ProductDto {
   quantity: number;
@@ -31,10 +31,7 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
   onUpdateQuantity,
   onClose,
 }) => {
-  const [orderType, setOrderType] = useState<"dine-in" | "take-away">("dine-in");
-  const [discount, setDiscount] = useState(0);
-  const [processing, setProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [showTransactionDialog, setShowTransactionDialog] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const cartItemsRef = useRef<HTMLDivElement>(null);
@@ -114,9 +111,6 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
   }, [cart]);
 
   const subtotal = cart.reduce((sum, item) => sum + item.sellingPrice * item.quantity, 0);
-  const tax = subtotal * 0.15; // 15% tax
-  const discountAmount = (subtotal * discount) / 100;
-  const total = subtotal + tax - discountAmount;
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleRemove = (id: string) => {
@@ -127,43 +121,17 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
     }, 300);
   };
 
-  const handleProcessTransaction = async () => {
+  const handleOpenTransactionDialog = () => {
     if (cart.length === 0) {
-      setError("Cart is empty");
+      alert("Cart is empty");
       return;
     }
+    setShowTransactionDialog(true);
+  };
 
-    setProcessing(true);
-    setError(null);
-
-    try {
-      // Create sale DTO
-      const saleData = {
-        invoiceType: orderType === "dine-in" ? 0 : 1, // 0: Dine-in, 1: Take-away
-        paymentMethod: 0, // 0: Cash (default for now)
-        lineItems: cart.map((item) => ({
-          productId: item.id,
-          quantity: item.quantity,
-          unitPrice: item.sellingPrice,
-          discountType: 0, // 0: None
-          discountValue: 0,
-        })),
-        notes: `POS Transaction - ${orderType}`,
-      };
-
-      // Create the sale
-      const sale = await salesService.createSale(saleData);
-
-      // Success - show success message and clear cart
-      alert(`Transaction successful! Invoice #${sale.invoiceNumber}\nTotal: $${total.toFixed(2)}`);
-      onClearAll();
-      setDiscount(0);
-    } catch (err: any) {
-      console.error("Error processing transaction:", err);
-      setError(err.message || "Failed to process transaction");
-    } finally {
-      setProcessing(false);
-    }
+  const handleTransactionSuccess = () => {
+    onClearAll();
+    setShowTransactionDialog(false);
   };
 
   return (
@@ -562,58 +530,34 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
             <span>Subtotal</span>
             <span>${subtotal.toFixed(2)}</span>
           </div>
-          <div className={styles.summaryRow}>
-            <span>Tax (15%)</span>
-            <span>${tax.toFixed(2)}</span>
-          </div>
-          {discount > 0 && (
-            <div className={styles.summaryRow}>
-              <span>Discount ({discount}%)</span>
-              <span>-${discountAmount.toFixed(2)}</span>
-            </div>
-          )}
-          {/* <div
-            className={styles.summaryRow}
-            style={{ borderBottom: "1px dashed var(--border-color)", paddingBottom: "0.5rem" }}
-          >
-            <span>Voucher</span>
-            <span>$0.00</span>
-          </div> */}
           <div className={`${styles.summaryRow} ${styles.total}`}>
-            <span>Total</span>
-            <span>${total.toFixed(2)}</span>
+            <span>Items</span>
+            <span>{itemCount}</span>
           </div>
-
-          {error && (
-            <div
-              style={{
-                color: "#ef4444",
-                fontSize: "0.875rem",
-                textAlign: "center",
-                marginTop: "0.5rem",
-                padding: "0.5rem",
-                backgroundColor: "#fee2e2",
-                borderRadius: "0.5rem",
-              }}
-            >
-              {error}
-            </div>
-          )}
 
           <button
             className={styles.processBtn}
-            onClick={handleProcessTransaction}
-            disabled={processing || cart.length === 0}
+            onClick={handleOpenTransactionDialog}
+            disabled={cart.length === 0}
             style={{
               marginTop: "0.5rem",
-              opacity: processing || cart.length === 0 ? 0.5 : 1,
-              cursor: processing || cart.length === 0 ? "not-allowed" : "pointer",
+              opacity: cart.length === 0 ? 0.5 : 1,
+              cursor: cart.length === 0 ? "not-allowed" : "pointer",
             }}
           >
-            {processing ? "Processing..." : "Process Transaction"}
+            Process Transaction
           </button>
         </div>
       )}
+
+      {/* Transaction Dialog */}
+      <TransactionDialog
+        isOpen={showTransactionDialog}
+        onClose={() => setShowTransactionDialog(false)}
+        cart={cart}
+        subtotal={subtotal}
+        onSuccess={handleTransactionSuccess}
+      />
     </>
   );
 };

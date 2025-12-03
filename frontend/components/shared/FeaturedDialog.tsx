@@ -59,33 +59,55 @@ export function FeaturedDialog<T = any>({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 overflow-y-auto"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="dialog-title"
-    >
-      {/* Backdrop */}
+    <>
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUpScale {
+          from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+      `}</style>
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Dialog Container */}
-      <div className="flex min-h-full items-center justify-center p-4">
+        className="fixed inset-0 z-50 overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dialog-title"
+      >
+        {/* Backdrop */}
         <div
-          className={`relative bg-white rounded-2xl shadow-xl transform transition-all w-full ${sizeClasses[size]}`}
-          onClick={(e) => e.stopPropagation()}
-        >
+          className="fixed inset-0 bg-black bg-opacity-60 transition-opacity backdrop-blur-sm"
+          style={{ animation: "fadeIn 0.3s ease" }}
+          onClick={onClose}
+          aria-hidden="true"
+        />
+
+        {/* Dialog Container */}
+        <div className="flex min-h-full items-center justify-center p-4">
+          <div
+            className={`relative bg-white dark:bg-gray-800 rounded-2xl transform transition-all w-full ${sizeClasses[size]}`}
+            style={{
+              boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
+              animation: "slideUpScale 0.3s ease"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-            <h2 id="dialog-title" className="text-xl font-semibold text-gray-900">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 id="dialog-title" className="text-xl font-semibold text-gray-900 dark:text-gray-100">
               {title}
             </h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-1 transition-colors"
+              className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 rounded p-1 transition-colors"
               aria-label="Close dialog"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -103,14 +125,14 @@ export function FeaturedDialog<T = any>({
 
                 return (
                   <div key={String(field.key)} className={`${field.className || ''}`}>
-                    <dt className="text-sm font-medium text-gray-500 mb-1">
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                       {field.label}
                     </dt>
-                    <dd className="text-base text-gray-900">
+                    <dd className="text-base text-gray-900 dark:text-gray-100">
                       {displayValue !== null && displayValue !== undefined ? (
                         displayValue
                       ) : (
-                        <span className="text-gray-400 italic">Not set</span>
+                        <span className="text-gray-400 dark:text-gray-500 italic">Not set</span>
                       )}
                     </dd>
                   </div>
@@ -128,7 +150,7 @@ export function FeaturedDialog<T = any>({
 
           {/* Footer with Actions */}
           {actions.length > 0 && (
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-b-2xl">
               {actions.map((action, index) => {
                 const variantClasses = {
                   primary: 'bg-blue-600 hover:bg-blue-700 text-white',
@@ -155,5 +177,6 @@ export function FeaturedDialog<T = any>({
         </div>
       </div>
     </div>
+    </>
   );
 }
