@@ -3,15 +3,19 @@
  * Handle payment method, invoice type selection, and sale completion
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { InvoiceType, PaymentMethod } from '@/types/enums';
+import { useState } from "react";
+import { InvoiceType, PaymentMethod } from "@/types/enums";
 
 interface PaymentSectionProps {
   subtotal: number;
   taxRate: number;
-  onCompleteSale: (paymentMethod: PaymentMethod, invoiceType: InvoiceType, paymentReference?: string) => void;
+  onCompleteSale: (
+    paymentMethod: PaymentMethod,
+    invoiceType: InvoiceType,
+    paymentReference?: string
+  ) => void;
   processing: boolean;
   isOnline: boolean;
 }
@@ -25,7 +29,7 @@ export default function PaymentSection({
 }: PaymentSectionProps) {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.Cash);
   const [invoiceType, setInvoiceType] = useState<InvoiceType>(InvoiceType.Touch);
-  const [paymentReference, setPaymentReference] = useState('');
+  const [paymentReference, setPaymentReference] = useState("");
   const [showPaymentRef, setShowPaymentRef] = useState(false);
 
   const taxAmount = subtotal * (taxRate / 100);
@@ -36,16 +40,12 @@ export default function PaymentSection({
     // Show payment reference field for non-cash payments
     setShowPaymentRef(method !== PaymentMethod.Cash);
     if (method === PaymentMethod.Cash) {
-      setPaymentReference('');
+      setPaymentReference("");
     }
   };
 
   const handleCompleteSale = () => {
-    onCompleteSale(
-      paymentMethod,
-      invoiceType,
-      showPaymentRef ? paymentReference : undefined
-    );
+    onCompleteSale(paymentMethod, invoiceType, showPaymentRef ? paymentReference : undefined);
   };
 
   const isFormValid = () => {
@@ -55,21 +55,19 @@ export default function PaymentSection({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment</h3>
+    <div className="bg-white dark:bg-gray-800  border border-gray-200 rounded-lg p-6">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Payment</h3>
 
       {/* Invoice Type Selection */}
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Invoice Type
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Type</label>
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => setInvoiceType(InvoiceType.Touch)}
             className={`px-4 py-3 border-2 rounded-lg text-sm font-medium transition-colors ${
               invoiceType === InvoiceType.Touch
-                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                ? "border-blue-500 bg-blue-50 text-blue-700"
+                : "border-gray-200 text-gray-700 hover:border-gray-300"
             }`}
           >
             <div className="text-2xl mb-1">📱</div>
@@ -80,8 +78,8 @@ export default function PaymentSection({
             onClick={() => setInvoiceType(InvoiceType.Standard)}
             className={`px-4 py-3 border-2 rounded-lg text-sm font-medium transition-colors ${
               invoiceType === InvoiceType.Standard
-                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                ? "border-blue-500 bg-blue-50 text-blue-700"
+                : "border-gray-200 text-gray-700 hover:border-gray-300"
             }`}
           >
             <div className="text-2xl mb-1">📄</div>
@@ -93,16 +91,14 @@ export default function PaymentSection({
 
       {/* Payment Method Selection */}
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Payment Method
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
         <div className="space-y-2">
           <button
             onClick={() => handlePaymentMethodChange(PaymentMethod.Cash)}
             className={`w-full px-4 py-3 border-2 rounded-lg text-left transition-colors ${
               paymentMethod === PaymentMethod.Cash
-                ? 'border-green-500 bg-green-50'
-                : 'border-gray-200 hover:border-gray-300'
+                ? "border-green-500 bg-green-50"
+                : "border-gray-200 hover:border-gray-300"
             }`}
           >
             <div className="flex items-center justify-between">
@@ -113,9 +109,7 @@ export default function PaymentSection({
                   <div className="text-xs text-gray-500">Physical currency</div>
                 </div>
               </div>
-              {paymentMethod === PaymentMethod.Cash && (
-                <span className="text-green-600">✓</span>
-              )}
+              {paymentMethod === PaymentMethod.Cash && <span className="text-green-600">✓</span>}
             </div>
           </button>
 
@@ -123,8 +117,8 @@ export default function PaymentSection({
             onClick={() => handlePaymentMethodChange(PaymentMethod.Card)}
             className={`w-full px-4 py-3 border-2 rounded-lg text-left transition-colors ${
               paymentMethod === PaymentMethod.Card
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-200 hover:border-gray-300'
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-200 hover:border-gray-300"
             }`}
           >
             <div className="flex items-center justify-between">
@@ -135,9 +129,7 @@ export default function PaymentSection({
                   <div className="text-xs text-gray-500">Credit/Debit card</div>
                 </div>
               </div>
-              {paymentMethod === PaymentMethod.Card && (
-                <span className="text-blue-600">✓</span>
-              )}
+              {paymentMethod === PaymentMethod.Card && <span className="text-blue-600">✓</span>}
             </div>
           </button>
 
@@ -145,8 +137,8 @@ export default function PaymentSection({
             onClick={() => handlePaymentMethodChange(PaymentMethod.DigitalWallet)}
             className={`w-full px-4 py-3 border-2 rounded-lg text-left transition-colors ${
               paymentMethod === PaymentMethod.DigitalWallet
-                ? 'border-purple-500 bg-purple-50'
-                : 'border-gray-200 hover:border-gray-300'
+                ? "border-purple-500 bg-purple-50"
+                : "border-gray-200 hover:border-gray-300"
             }`}
           >
             <div className="flex items-center justify-between">
@@ -195,9 +187,7 @@ export default function PaymentSection({
         </div>
         <div className="flex justify-between items-center pt-2 border-t border-gray-200">
           <span className="text-lg font-semibold">Total:</span>
-          <span className="text-2xl font-bold text-blue-600">
-            ${total.toFixed(2)}
-          </span>
+          <span className="text-2xl font-bold text-blue-600">${total.toFixed(2)}</span>
         </div>
       </div>
 
@@ -216,8 +206,8 @@ export default function PaymentSection({
         disabled={processing || !isFormValid()}
         className={`w-full mt-6 px-6 py-4 rounded-lg font-semibold text-white text-lg transition-all ${
           processing || !isFormValid()
-            ? 'bg-gray-300 cursor-not-allowed'
-            : 'bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg'
+            ? "bg-gray-300 cursor-not-allowed"
+            : "bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg"
         }`}
       >
         {processing ? (
@@ -235,8 +225,12 @@ export default function PaymentSection({
 
       {/* Quick Tips */}
       <div className="mt-4 text-xs text-gray-500 space-y-1">
-        <p>💡 <strong>Touch Invoice:</strong> Quick sale without customer details</p>
-        <p>💡 <strong>Standard Invoice:</strong> Includes customer and detailed breakdown</p>
+        <p>
+          💡 <strong>Touch Invoice:</strong> Quick sale without customer details
+        </p>
+        <p>
+          💡 <strong>Standard Invoice:</strong> Includes customer and detailed breakdown
+        </p>
       </div>
     </div>
   );

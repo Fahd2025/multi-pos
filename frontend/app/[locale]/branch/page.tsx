@@ -11,7 +11,14 @@ import { useAuth } from "@/hooks/useAuth";
 import salesService from "@/services/sales.service";
 import inventoryService from "@/services/inventory.service";
 import { SalesStatsDto } from "@/types/api.types";
-import { LoadingSpinner, ErrorAlert, StatCard, ActionCard, PageHeader, Button } from "@/components/shared";
+import {
+  LoadingSpinner,
+  ErrorAlert,
+  StatCard,
+  ActionCard,
+  PageHeader,
+  Button,
+} from "@/components/shared";
 
 export default function BranchHomePage({ params }: { params: Promise<{ locale: string }> }) {
   const router = useRouter();
@@ -155,7 +162,9 @@ export default function BranchHomePage({ params }: { params: Promise<{ locale: s
 
       {/* Inventory Overview */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Inventory Status</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+          Inventory Status
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatCard
             title="Low Stock Alerts"

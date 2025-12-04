@@ -47,10 +47,10 @@
  * ```
  */
 
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { FeaturedDialogProps, FormField } from '@/types/data-table.types';
+import React, { useState, useEffect } from "react";
+import { FeaturedDialogProps, FormField } from "@/types/data-table.types";
 
 export function FeaturedDialog<T = any>({
   isOpen,
@@ -59,9 +59,9 @@ export function FeaturedDialog<T = any>({
   data,
   fields = [],
   actions = [],
-  size = 'md',
+  size = "md",
   customContent,
-  mode = 'display',
+  mode = "display",
   formFields = [],
   onSubmit,
   isSubmitting = false,
@@ -74,18 +74,18 @@ export function FeaturedDialog<T = any>({
 
   // Size classes
   const sizeClasses = {
-    sm: 'max-w-md',
-    md: 'max-w-2xl',
-    lg: 'max-w-4xl',
-    xl: 'max-w-6xl'
+    sm: "max-w-md",
+    md: "max-w-2xl",
+    lg: "max-w-4xl",
+    xl: "max-w-6xl",
   };
 
-  const isFormMode = mode === 'create' || mode === 'edit';
+  const isFormMode = mode === "create" || mode === "edit";
 
   // Initialize form data
   useEffect(() => {
     if (isOpen && isFormMode) {
-      if (mode === 'edit' && (initialData || data)) {
+      if (mode === "edit" && (initialData || data)) {
         setFormData((initialData || data) as Partial<T>);
       } else {
         // Set default values for create mode
@@ -105,7 +105,7 @@ export function FeaturedDialog<T = any>({
   // Validate field
   const validateField = (field: FormField<T>, value: any): string | null => {
     // Required validation
-    if (field.required && (value === undefined || value === null || value === '')) {
+    if (field.required && (value === undefined || value === null || value === "")) {
       return `${field.label} is required`;
     }
 
@@ -116,7 +116,7 @@ export function FeaturedDialog<T = any>({
     if (!validation) return null;
 
     // Min/Max validation for numbers
-    if (field.type === 'number' && typeof value === 'number') {
+    if (field.type === "number" && typeof value === "number") {
       if (validation.min !== undefined && value < validation.min) {
         return `${field.label} must be at least ${validation.min}`;
       }
@@ -126,7 +126,7 @@ export function FeaturedDialog<T = any>({
     }
 
     // Length validation for strings
-    if (typeof value === 'string') {
+    if (typeof value === "string") {
       if (validation.minLength !== undefined && value.length < validation.minLength) {
         return `${field.label} must be at least ${validation.minLength} characters`;
       }
@@ -136,7 +136,7 @@ export function FeaturedDialog<T = any>({
     }
 
     // Pattern validation
-    if (validation.pattern && typeof value === 'string') {
+    if (validation.pattern && typeof value === "string") {
       if (!validation.pattern.test(value)) {
         return `${field.label} format is invalid`;
       }
@@ -232,8 +232,12 @@ export function FeaturedDialog<T = any>({
     <>
       <style jsx>{`
         @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
         }
         @keyframes slideUpScale {
           from {
@@ -263,16 +267,19 @@ export function FeaturedDialog<T = any>({
         {/* Dialog Container */}
         <div className="flex min-h-full items-center justify-center p-4">
           <div
-            className={`relative bg-white dark:bg-gray-800 rounded-2xl transform transition-all w-full ${sizeClasses[size]}`}
+            className={`relative bg-white dark:bg-gray-800  rounded-2xl transform transition-all w-full ${sizeClasses[size]}`}
             style={{
               boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
-              animation: "slideUpScale 0.3s ease"
+              animation: "slideUpScale 0.3s ease",
             }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 id="dialog-title" className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+              <h2
+                id="dialog-title"
+                className="text-xl font-semibold text-gray-900 dark:text-gray-100"
+              >
                 {title}
               </h2>
               <button
@@ -281,7 +288,12 @@ export function FeaturedDialog<T = any>({
                 aria-label="Close dialog"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -298,7 +310,7 @@ export function FeaturedDialog<T = any>({
                     }
 
                     const fieldName = field.name as string;
-                    const value = (formData as any)[fieldName] || '';
+                    const value = (formData as any)[fieldName] || "";
                     const error = errors[fieldName];
                     const hasError = touched.has(fieldName) && !!error;
 
@@ -309,11 +321,15 @@ export function FeaturedDialog<T = any>({
                           className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                         >
                           {field.label}
-                          {field.required && <span className="text-red-500 dark:text-red-400 ml-1">*</span>}
+                          {field.required && (
+                            <span className="text-red-500 dark:text-red-400 ml-1">*</span>
+                          )}
                         </label>
 
                         {/* Text, Email, Password, Number, Date inputs */}
-                        {['text', 'email', 'password', 'number', 'date', 'datetime-local'].includes(field.type) && (
+                        {["text", "email", "password", "number", "date", "datetime-local"].includes(
+                          field.type
+                        ) && (
                           <input
                             type={field.type}
                             id={fieldName}
@@ -321,14 +337,16 @@ export function FeaturedDialog<T = any>({
                             onChange={(e) =>
                               handleChange(
                                 fieldName,
-                                field.type === 'number' ? Number(e.target.value) : e.target.value
+                                field.type === "number" ? Number(e.target.value) : e.target.value
                               )
                             }
                             onBlur={() => handleBlur(fieldName)}
                             placeholder={field.placeholder}
                             disabled={field.disabled || isSubmitting}
-                            className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors ${
-                              hasError ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                            className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-800  dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors ${
+                              hasError
+                                ? "border-red-500 dark:border-red-400"
+                                : "border-gray-300 dark:border-gray-600"
                             }`}
                             aria-invalid={hasError}
                             aria-describedby={hasError ? `${fieldName}-error` : undefined}
@@ -336,7 +354,7 @@ export function FeaturedDialog<T = any>({
                         )}
 
                         {/* Textarea */}
-                        {field.type === 'textarea' && (
+                        {field.type === "textarea" && (
                           <textarea
                             id={fieldName}
                             value={value}
@@ -345,8 +363,10 @@ export function FeaturedDialog<T = any>({
                             placeholder={field.placeholder}
                             disabled={field.disabled || isSubmitting}
                             rows={4}
-                            className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors ${
-                              hasError ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                            className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-800  dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors ${
+                              hasError
+                                ? "border-red-500 dark:border-red-400"
+                                : "border-gray-300 dark:border-gray-600"
                             }`}
                             aria-invalid={hasError}
                             aria-describedby={hasError ? `${fieldName}-error` : undefined}
@@ -354,15 +374,17 @@ export function FeaturedDialog<T = any>({
                         )}
 
                         {/* Select */}
-                        {field.type === 'select' && (
+                        {field.type === "select" && (
                           <select
                             id={fieldName}
                             value={value}
                             onChange={(e) => handleChange(fieldName, e.target.value)}
                             onBlur={() => handleBlur(fieldName)}
                             disabled={field.disabled || isSubmitting}
-                            className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors ${
-                              hasError ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                            className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-800  dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors ${
+                              hasError
+                                ? "border-red-500 dark:border-red-400"
+                                : "border-gray-300 dark:border-gray-600"
                             }`}
                             aria-invalid={hasError}
                             aria-describedby={hasError ? `${fieldName}-error` : undefined}
@@ -377,7 +399,7 @@ export function FeaturedDialog<T = any>({
                         )}
 
                         {/* Checkbox */}
-                        {field.type === 'checkbox' && (
+                        {field.type === "checkbox" && (
                           <div className="flex items-center">
                             <input
                               type="checkbox"
@@ -388,7 +410,10 @@ export function FeaturedDialog<T = any>({
                               disabled={field.disabled || isSubmitting}
                               className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:cursor-not-allowed"
                             />
-                            <label htmlFor={fieldName} className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                            <label
+                              htmlFor={fieldName}
+                              className="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                            >
                               {field.placeholder || field.label}
                             </label>
                           </div>
@@ -396,7 +421,11 @@ export function FeaturedDialog<T = any>({
 
                         {/* Error Message */}
                         {hasError && (
-                          <p id={`${fieldName}-error`} className="mt-1 text-sm text-red-500 dark:text-red-400" role="alert">
+                          <p
+                            id={`${fieldName}-error`}
+                            className="mt-1 text-sm text-red-500 dark:text-red-400"
+                            role="alert"
+                          >
                             {error}
                           </p>
                         )}
@@ -418,7 +447,7 @@ export function FeaturedDialog<T = any>({
                     type="button"
                     onClick={onClose}
                     disabled={isSubmitting}
-                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800  dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Cancel
                   </button>
@@ -430,10 +459,10 @@ export function FeaturedDialog<T = any>({
                     {isSubmitting ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        {mode === 'create' ? 'Creating...' : 'Saving...'}
+                        {mode === "create" ? "Creating..." : "Saving..."}
                       </>
                     ) : (
-                      <>{mode === 'create' ? 'Create' : 'Save'}</>
+                      <>{mode === "create" ? "Create" : "Save"}</>
                     )}
                   </button>
                 </div>
@@ -448,7 +477,7 @@ export function FeaturedDialog<T = any>({
                       const displayValue = field.render ? field.render(value, data!) : value;
 
                       return (
-                        <div key={String(field.key)} className={`${field.className || ''}`}>
+                        <div key={String(field.key)} className={`${field.className || ""}`}>
                           <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                             {field.label}
                           </dt>
@@ -456,7 +485,9 @@ export function FeaturedDialog<T = any>({
                             {displayValue !== null && displayValue !== undefined ? (
                               displayValue
                             ) : (
-                              <span className="text-gray-400 dark:text-gray-500 italic">Not set</span>
+                              <span className="text-gray-400 dark:text-gray-500 italic">
+                                Not set
+                              </span>
                             )}
                           </dd>
                         </div>
@@ -465,11 +496,7 @@ export function FeaturedDialog<T = any>({
                   </div>
 
                   {/* Custom Content */}
-                  {customContent && (
-                    <div className="mt-4">
-                      {customContent}
-                    </div>
-                  )}
+                  {customContent && <div className="mt-4">{customContent}</div>}
                 </div>
 
                 {/* Footer with Actions */}
@@ -477,10 +504,14 @@ export function FeaturedDialog<T = any>({
                   <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-b-2xl">
                     {actions.map((action, index) => {
                       const variantClasses = {
-                        primary: 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white',
-                        secondary: 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200',
-                        danger: 'bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white',
-                        success: 'bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white'
+                        primary:
+                          "bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white",
+                        secondary:
+                          "bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200",
+                        danger:
+                          "bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white",
+                        success:
+                          "bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white",
                       };
 
                       return (
@@ -488,7 +519,7 @@ export function FeaturedDialog<T = any>({
                           key={index}
                           onClick={() => data && action.onClick(data)}
                           className={`px-4 py-2 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${
-                            variantClasses[action.variant || 'primary']
+                            variantClasses[action.variant || "primary"]
                           }`}
                         >
                           {action.icon && <span className="mr-2">{action.icon}</span>}

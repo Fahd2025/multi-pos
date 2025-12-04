@@ -3,11 +3,11 @@
  * Bottom sheet/drawer implementation for mobile devices
  */
 
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import { SaleLineItem } from '../SaleLineItemsList';
-import { DiscountType } from '@/types/enums';
+import { useEffect, useRef } from "react";
+import { SaleLineItem } from "../SaleLineItemsList";
+import { DiscountType } from "@/types/enums";
 
 interface MobileCartProps {
   isOpen: boolean;
@@ -38,8 +38,8 @@ export default function MobileCart({
     if (isOpen && lastUpdatedIndex !== undefined && itemRefs.current[lastUpdatedIndex]) {
       setTimeout(() => {
         itemRefs.current[lastUpdatedIndex]?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
+          behavior: "smooth",
+          block: "nearest",
         });
       }, 100);
     }
@@ -48,13 +48,13 @@ export default function MobileCart({
   // Prevent body scroll when cart is open
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
 
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     };
   }, [isOpen]);
 
@@ -93,8 +93,8 @@ export default function MobileCart({
 
       {/* Bottom Sheet */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl animate-slide-up-from-bottom mobile-safe-bottom"
-        style={{ maxHeight: '90vh' }}
+        className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-800  rounded-t-3xl shadow-2xl animate-slide-up-from-bottom mobile-safe-bottom"
+        style={{ maxHeight: "90vh" }}
         role="dialog"
         aria-modal="true"
         aria-label="Shopping cart"
@@ -107,9 +107,9 @@ export default function MobileCart({
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200 bg-gray-50 sticky top-0 z-10">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Shopping Cart</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Shopping Cart</h2>
             <p className="text-sm text-gray-600 mt-0.5">
-              {itemCount} item{itemCount !== 1 ? 's' : ''}
+              {itemCount} item{itemCount !== 1 ? "s" : ""}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -128,7 +128,12 @@ export default function MobileCart({
               aria-label="Close cart"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -138,17 +143,15 @@ export default function MobileCart({
         <div
           ref={cartContentRef}
           className="overflow-y-auto custom-scrollbar"
-          style={{ maxHeight: 'calc(90vh - 280px)' }}
+          style={{ maxHeight: "calc(90vh - 280px)" }}
         >
           {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
               <span className="text-7xl mb-4">🛒</span>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
                 Cart is empty
               </h3>
-              <p className="text-base text-gray-600">
-                Add products from the grid to start a sale
-              </p>
+              <p className="text-base text-gray-600">Add products from the grid to start a sale</p>
             </div>
           ) : (
             <div className="divide-y divide-gray-200 p-4 space-y-4">
@@ -183,19 +186,19 @@ export default function MobileCart({
                       <div className="flex-1 min-w-0">
                         {/* Product Name & Price */}
                         <div className="mb-3">
-                          <h4 className="font-semibold text-base text-gray-900 leading-tight mb-1">
+                          <h4 className="font-semibold text-base text-gray-900 dark:text-gray-100 leading-tight mb-1">
                             {item.productName}
                           </h4>
-                          <p className="text-sm text-gray-500">
-                            ${item.unitPrice.toFixed(2)} each
-                          </p>
+                          <p className="text-sm text-gray-500">${item.unitPrice.toFixed(2)} each</p>
                         </div>
 
                         {/* Quantity Controls */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <button
-                              onClick={() => onUpdateQuantity(index, Math.max(1, item.quantity - 1))}
+                              onClick={() =>
+                                onUpdateQuantity(index, Math.max(1, item.quantity - 1))
+                              }
                               className="
                                 w-12 h-12
                                 bg-gray-200 hover:bg-gray-300 active:bg-gray-400
@@ -213,7 +216,9 @@ export default function MobileCart({
                             <input
                               type="number"
                               value={item.quantity}
-                              onChange={(e) => onUpdateQuantity(index, parseInt(e.target.value) || 1)}
+                              onChange={(e) =>
+                                onUpdateQuantity(index, parseInt(e.target.value) || 1)
+                              }
                               min="1"
                               className="
                                 w-20 h-12
@@ -259,17 +264,25 @@ export default function MobileCart({
                             "
                             aria-label={`Remove ${item.productName} from cart`}
                           >
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            <svg
+                              className="w-6 h-6"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2.5}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
                             </svg>
                           </button>
                         </div>
 
                         {/* Line Total */}
                         <div className="mt-2 text-right">
-                          <p className="text-xl font-bold text-blue-600">
-                            ${lineTotal.toFixed(2)}
-                          </p>
+                          <p className="text-xl font-bold text-blue-600">${lineTotal.toFixed(2)}</p>
                         </div>
                       </div>
                     </div>
@@ -287,11 +300,15 @@ export default function MobileCart({
             <div className="px-4 py-4 space-y-2">
               <div className="flex justify-between text-base">
                 <span className="text-gray-600">Subtotal:</span>
-                <span className="font-semibold text-gray-900">${subtotal.toFixed(2)}</span>
+                <span className="font-semibold text-gray-900 dark:text-gray-100">
+                  ${subtotal.toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between text-base">
                 <span className="text-gray-600">Tax (15%):</span>
-                <span className="font-semibold text-gray-900">${tax.toFixed(2)}</span>
+                <span className="font-semibold text-gray-900 dark:text-gray-100">
+                  ${tax.toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between text-xl font-bold border-t border-gray-300 pt-3 mt-2">
                 <span>Total:</span>
@@ -324,7 +341,12 @@ export default function MobileCart({
                 "
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
                 </svg>
                 <span>Proceed to Checkout</span>
               </button>

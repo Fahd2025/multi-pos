@@ -135,7 +135,9 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
       key: "code",
       label: "Code",
       sortable: true,
-      render: (value) => <div className="font-medium text-gray-900">{value}</div>,
+      render: (value) => (
+        <div className="font-medium text-gray-900 dark:text-gray-100">{value}</div>
+      ),
     },
     {
       key: "nameEn",
@@ -143,7 +145,7 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
       sortable: true,
       render: (value, row) => (
         <div>
-          <div className="text-sm font-medium text-gray-900">{value}</div>
+          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{value}</div>
           {row.nameAr && <div className="text-sm text-gray-500">{row.nameAr}</div>}
         </div>
       ),
@@ -154,7 +156,7 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
       sortable: true,
       render: (value, row) => (
         <div>
-          <div className="text-sm text-gray-900">{value || "-"}</div>
+          <div className="text-sm text-gray-900 dark:text-gray-100">{value || "-"}</div>
           {row.descriptionAr && <div className="text-sm text-gray-500">{row.descriptionAr}</div>}
         </div>
       ),
@@ -269,13 +271,17 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
 
       {/* Category Structure View */}
       {!loading && categories.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Category Hierarchy</h2>
+        <div className="bg-white dark:bg-gray-800  rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            Category Hierarchy
+          </h2>
           <div className="space-y-2">
             {getRootCategories().map((root) => (
               <div key={root.id} className="space-y-1">
                 <div className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                  <span className="text-sm font-medium text-gray-900">📁 {root.nameEn}</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    📁 {root.nameEn}
+                  </span>
                   <span className="text-xs text-gray-500">({root.code})</span>
                 </div>
                 {getChildCategories(root.id).map((child) => (
@@ -295,15 +301,17 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="text-sm text-gray-600">Total Categories</div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">{categories.length}</div>
+          <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
+            {categories.length}
+          </div>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="text-sm text-gray-600">Root Categories</div>
           <div className="text-2xl font-bold text-blue-600 mt-1">{getRootCategories().length}</div>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="text-sm text-gray-600">Subcategories</div>
           <div className="text-2xl font-bold text-green-600 mt-1">
             {categories.filter((c) => c.parentCategoryId).length}

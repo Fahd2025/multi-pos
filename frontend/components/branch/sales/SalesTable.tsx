@@ -138,7 +138,7 @@ export default function SalesTable({ onSaleSelect, refreshTrigger }: SalesTableP
       sortable: false,
       render: (value) => (
         <div>
-          <div className="text-sm text-gray-900">{formatDate(value)}</div>
+          <div className="text-sm text-gray-900 dark:text-gray-100">{formatDate(value)}</div>
           <div className="text-xs text-gray-500">{formatTime(value)}</div>
         </div>
       ),
@@ -147,7 +147,9 @@ export default function SalesTable({ onSaleSelect, refreshTrigger }: SalesTableP
       key: "customerName",
       label: "Customer",
       sortable: false,
-      render: (value) => <div className="text-sm text-gray-900">{value || "Walk-in"}</div>,
+      render: (value) => (
+        <div className="text-sm text-gray-900 dark:text-gray-100">{value || "Walk-in"}</div>
+      ),
     },
     {
       key: "total",
@@ -155,7 +157,9 @@ export default function SalesTable({ onSaleSelect, refreshTrigger }: SalesTableP
       sortable: false,
       render: (value, row) => (
         <div>
-          <div className="text-sm font-semibold text-gray-900">${value.toFixed(2)}</div>
+          <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            ${value.toFixed(2)}
+          </div>
           <div className="text-xs text-gray-500">Tax: ${row.taxAmount.toFixed(2)}</div>
         </div>
       ),
@@ -204,10 +208,12 @@ export default function SalesTable({ onSaleSelect, refreshTrigger }: SalesTableP
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+    <div className="bg-white dark:bg-gray-800  border border-gray-200 rounded-lg shadow-sm">
       {/* Filters Section */}
-      <div className="p-4 md:p-6 border-b border-gray-200 bg-gray-50">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Search & Filter</h3>
+      <div className="p-4 md:p-6 border-b border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+          Search & Filter
+        </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Search */}
@@ -327,7 +333,9 @@ export default function SalesTable({ onSaleSelect, refreshTrigger }: SalesTableP
       {error && (
         <div className="p-12 text-center">
           <span className="text-4xl">⚠️</span>
-          <h3 className="mt-4 text-lg font-semibold text-gray-900">Failed to load sales</h3>
+          <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
+            Failed to load sales
+          </h3>
           <p className="mt-2 text-sm text-gray-600">{error}</p>
           <button
             onClick={fetchSales}

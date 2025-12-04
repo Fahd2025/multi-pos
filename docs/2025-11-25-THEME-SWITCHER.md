@@ -3,6 +3,7 @@
 ## Overview
 
 This Next.js application now includes a comprehensive light/dark theme switcher powered by **MobX** for state management. The theme switcher provides three modes:
+
 - **Light Mode**: Classic light theme
 - **Dark Mode**: Dark theme optimized for low-light environments
 - **System Mode**: Automatically follows the user's system theme preference
@@ -20,6 +21,7 @@ This Next.js application now includes a comprehensive light/dark theme switcher 
 ## Installation
 
 The required dependencies are already installed:
+
 ```bash
 npm install mobx mobx-react-lite
 ```
@@ -29,11 +31,12 @@ npm install mobx mobx-react-lite
 This project uses **Tailwind CSS v4**, which has a different configuration system than v3. The following setup is REQUIRED:
 
 ### 1. Tailwind Config (`tailwind.config.ts`)
+
 ```typescript
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  darkMode: 'class', // ✅ REQUIRED for class-based dark mode
+  darkMode: "class", // ✅ REQUIRED for class-based dark mode
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -46,6 +49,7 @@ export default config;
 ```
 
 ### 2. Global Styles (`app/globals.css`)
+
 ```css
 @import "tailwindcss";
 @config "../tailwind.config.ts"; /* ✅ REQUIRED - tells Tailwind v4 to read the config */
@@ -86,9 +90,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <ThemeProvider>
-          {children}
-        </ThemeProvider>
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );
@@ -100,7 +102,7 @@ export default function RootLayout({ children }) {
 #### Full Theme Switcher (with labels)
 
 ```tsx
-import { ThemeSwitcher } from '@/components/shared/ThemeSwitcher';
+import { ThemeSwitcher } from "@/components/shared/ThemeSwitcher";
 
 export default function MyPage() {
   return (
@@ -116,7 +118,7 @@ This renders a segmented control with three buttons: Light, Dark, and System.
 #### Compact Theme Switcher (icon only)
 
 ```tsx
-import { ThemeSwitcherCompact } from '@/components/shared/ThemeSwitcher';
+import { ThemeSwitcherCompact } from "@/components/shared/ThemeSwitcher";
 
 export default function MyPage() {
   return (
@@ -134,8 +136,8 @@ This renders a single button that toggles between themes.
 You can access the theme store directly in any component:
 
 ```tsx
-import { useTheme } from '@/components/providers/ThemeProvider';
-import { observer } from 'mobx-react-lite';
+import { useTheme } from "@/components/providers/ThemeProvider";
+import { observer } from "mobx-react-lite";
 
 const MyComponent = observer(() => {
   const themeStore = useTheme();
@@ -144,15 +146,11 @@ const MyComponent = observer(() => {
     <div>
       <p>Current theme: {themeStore.theme}</p>
       <p>Effective theme: {themeStore.effectiveTheme}</p>
-      <p>Is dark mode: {themeStore.isDark ? 'Yes' : 'No'}</p>
+      <p>Is dark mode: {themeStore.isDark ? "Yes" : "No"}</p>
 
-      <button onClick={() => themeStore.setTheme('dark')}>
-        Set Dark Mode
-      </button>
+      <button onClick={() => themeStore.setTheme("dark")}>Set Dark Mode</button>
 
-      <button onClick={() => themeStore.toggleTheme()}>
-        Toggle Theme
-      </button>
+      <button onClick={() => themeStore.toggleTheme()}>Toggle Theme</button>
     </div>
   );
 });
@@ -161,13 +159,13 @@ const MyComponent = observer(() => {
 ### 4. Accessing the Store Without React
 
 ```tsx
-import { themeStore } from '@/stores';
+import { themeStore } from "@/stores";
 
 // Get current theme
 const currentTheme = themeStore.theme;
 
 // Set theme
-themeStore.setTheme('dark');
+themeStore.setTheme("dark");
 
 // Toggle theme
 themeStore.toggleTheme();
@@ -192,7 +190,7 @@ themeStore.toggleTheme();
 ### Using Tailwind Dark Mode Classes
 
 ```tsx
-<div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+<div className="bg-white dark:bg-gray-800  text-gray-900 dark:text-gray-100">
   This content adapts to the theme
 </div>
 ```
@@ -202,6 +200,7 @@ themeStore.toggleTheme();
 The following CSS variables are available and automatically update with theme changes:
 
 **Light Mode:**
+
 ```css
 --background: #ffffff
 --foreground: #171717
@@ -213,6 +212,7 @@ The following CSS variables are available and automatically update with theme ch
 ```
 
 **Dark Mode:**
+
 ```css
 --background: #0a0a0a
 --foreground: #ededed
@@ -224,6 +224,7 @@ The following CSS variables are available and automatically update with theme ch
 ```
 
 Usage in CSS:
+
 ```css
 .my-component {
   background: var(--background);
@@ -237,7 +238,7 @@ Usage in CSS:
 ### Example 1: Adding Theme Switcher to Header
 
 ```tsx
-import { ThemeSwitcherCompact } from '@/components/shared/ThemeSwitcher';
+import { ThemeSwitcherCompact } from "@/components/shared/ThemeSwitcher";
 
 export default function Header() {
   return (
@@ -252,23 +253,27 @@ export default function Header() {
 ### Example 2: Creating a Custom Theme-Aware Component
 
 ```tsx
-'use client';
+"use client";
 
-import { observer } from 'mobx-react-lite';
-import { useTheme } from '@/components/providers/ThemeProvider';
+import { observer } from "mobx-react-lite";
+import { useTheme } from "@/components/providers/ThemeProvider";
 
 const CustomCard = observer(({ children }) => {
   const themeStore = useTheme();
 
   return (
-    <div className={`
+    <div
+      className={`
       p-6 rounded-lg
-      ${themeStore.isDark ? 'bg-gray-800 text-white' : 'bg-white text-black'}
-    `}>
+      ${
+        themeStore.isDark
+          ? "bg-gray-800 text-white"
+          : "bg-white dark:bg-gray-800  text-black"
+      }
+    `}
+    >
       {children}
-      <p className="text-xs mt-4">
-        Current theme: {themeStore.effectiveTheme}
-      </p>
+      <p className="text-xs mt-4">Current theme: {themeStore.effectiveTheme}</p>
     </div>
   );
 });
@@ -279,17 +284,17 @@ export default CustomCard;
 ### Example 3: Conditional Rendering Based on Theme
 
 ```tsx
-'use client';
+"use client";
 
-import { observer } from 'mobx-react-lite';
-import { useTheme } from '@/components/providers/ThemeProvider';
+import { observer } from "mobx-react-lite";
+import { useTheme } from "@/components/providers/ThemeProvider";
 
 const Logo = observer(() => {
   const themeStore = useTheme();
 
   return (
     <img
-      src={themeStore.isDark ? '/logo-dark.png' : '/logo-light.png'}
+      src={themeStore.isDark ? "/logo-dark.png" : "/logo-light.png"}
       alt="Logo"
     />
   );
@@ -313,21 +318,26 @@ const Logo = observer(() => {
 ## Troubleshooting
 
 ### Theme not persisting after refresh
+
 - Check browser localStorage is enabled
 - Verify no errors in browser console
 
 ### Flash of unstyled content on load
+
 - The `suppressHydrationWarning` prop on `<html>` prevents hydration warnings
 - Theme is applied on client mount to prevent FOUC
 - Theme switcher components use a `mounted` state to prevent hydration mismatches
 
 ### Hydration Errors
+
 If you see hydration errors in the console:
+
 - The theme switcher components already handle this with the `mounted` state pattern
 - They render a placeholder during SSR and only show the actual state after client mount
 - This prevents server/client HTML mismatches
 
 ### Theme not applying to some components
+
 - Ensure components use Tailwind's `dark:` classes or CSS variables
 - Verify component is within the `ThemeProvider`
 
@@ -336,17 +346,19 @@ If you see hydration errors in the console:
 If you want to add the theme switcher to existing pages:
 
 1. Import the component:
+
 ```tsx
-import { ThemeSwitcherCompact } from '@/components/shared/ThemeSwitcher';
+import { ThemeSwitcherCompact } from "@/components/shared/ThemeSwitcher";
 ```
 
 2. Add dark mode classes to your existing Tailwind classes:
+
 ```tsx
 // Before
-<div className="bg-white text-black">
+<div className="bg-white dark:bg-gray-800  text-black">
 
 // After
-<div className="bg-white dark:bg-gray-800 text-black dark:text-white">
+<div className="bg-white dark:bg-gray-800  text-black dark:text-white">
 ```
 
 ## Advanced Customization
@@ -366,6 +378,7 @@ Edit `globals.css` to add custom theme colors:
 ```
 
 Then use in Tailwind config or CSS:
+
 ```css
 .my-element {
   color: var(--my-custom-color);
@@ -377,18 +390,18 @@ Then use in Tailwind config or CSS:
 You can extend the ThemeStore with additional functionality:
 
 ```typescript
-import { makeAutoObservable } from 'mobx';
-import { themeStore as baseThemeStore } from '@/stores/ThemeStore';
+import { makeAutoObservable } from "mobx";
+import { themeStore as baseThemeStore } from "@/stores/ThemeStore";
 
 class ExtendedThemeStore extends baseThemeStore.constructor {
-  fontSize: 'small' | 'medium' | 'large' = 'medium';
+  fontSize: "small" | "medium" | "large" = "medium";
 
   constructor() {
     super();
     makeAutoObservable(this);
   }
 
-  setFontSize(size: 'small' | 'medium' | 'large') {
+  setFontSize(size: "small" | "medium" | "large") {
     this.fontSize = size;
     // Apply font size logic...
   }

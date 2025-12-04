@@ -49,7 +49,7 @@ export const ThemeSwitcher = observer(() => {
             flex items-center gap-2 px-3 py-2 rounded-md transition-all
             ${
               themeStore.theme === value
-                ? "bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400"
+                ? "bg-white dark:bg-gray-800  dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400"
                 : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
             }
           `}

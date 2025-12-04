@@ -3,14 +3,14 @@
  * Quick invoice creation with barcode scanner and product dropdown
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { ProductDto, CreateSaleDto, SaleDto } from '@/types/api.types';
-import { InvoiceType, PaymentMethod, DiscountType } from '@/types/enums';
-import inventoryService from '@/services/inventory.service';
-import salesService from '@/services/sales.service';
-import { SaleLineItem } from './SaleLineItemsList';
+import { useState, useEffect, useRef } from "react";
+import { ProductDto, CreateSaleDto, SaleDto } from "@/types/api.types";
+import { InvoiceType, PaymentMethod, DiscountType } from "@/types/enums";
+import inventoryService from "@/services/inventory.service";
+import salesService from "@/services/sales.service";
+import { SaleLineItem } from "./SaleLineItemsList";
 
 interface NewInvoiceModalProps {
   isOpen: boolean;
@@ -18,11 +18,7 @@ interface NewInvoiceModalProps {
   onSuccess?: (sale: SaleDto) => void;
 }
 
-export default function NewInvoiceModal({
-  isOpen,
-  onClose,
-  onSuccess,
-}: NewInvoiceModalProps) {
+export default function NewInvoiceModal({ isOpen, onClose, onSuccess }: NewInvoiceModalProps) {
   const [products, setProducts] = useState<ProductDto[]>([]);
   const [lineItems, setLineItems] = useState<SaleLineItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -30,9 +26,9 @@ export default function NewInvoiceModal({
   const [success, setSuccess] = useState<string | null>(null);
 
   // Form states
-  const [inputMode, setInputMode] = useState<'barcode' | 'dropdown'>('barcode');
-  const [barcodeInput, setBarcodeInput] = useState('');
-  const [selectedProductId, setSelectedProductId] = useState('');
+  const [inputMode, setInputMode] = useState<"barcode" | "dropdown">("barcode");
+  const [barcodeInput, setBarcodeInput] = useState("");
+  const [selectedProductId, setSelectedProductId] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.Cash);
   const [invoiceType, setInvoiceType] = useState<InvoiceType>(InvoiceType.Touch);
@@ -49,7 +45,7 @@ export default function NewInvoiceModal({
   }, [isOpen]);
 
   useEffect(() => {
-    if (isOpen && inputMode === 'barcode') {
+    if (isOpen && inputMode === "barcode") {
       barcodeInputRef.current?.focus();
     }
   }, [isOpen, inputMode]);
@@ -62,8 +58,8 @@ export default function NewInvoiceModal({
       });
       setProducts(response.data || []);
     } catch (err: any) {
-      console.error('Failed to fetch products:', err);
-      setError('Failed to load products');
+      console.error("Failed to fetch products:", err);
+      setError("Failed to load products");
     }
   };
 
@@ -79,7 +75,7 @@ export default function NewInvoiceModal({
 
     if (product) {
       addProductToCart(product, quantity);
-      setBarcodeInput('');
+      setBarcodeInput("");
       setQuantity(1);
     } else {
       setError(`Product not found with barcode/SKU: ${barcodeInput}`);
@@ -89,14 +85,14 @@ export default function NewInvoiceModal({
 
   const handleDropdownAdd = () => {
     if (!selectedProductId) {
-      setError('Please select a product');
+      setError("Please select a product");
       return;
     }
 
     const product = products.find((p) => p.id === selectedProductId);
     if (product) {
       addProductToCart(product, quantity);
-      setSelectedProductId('');
+      setSelectedProductId("");
       setQuantity(1);
     }
   };
@@ -145,7 +141,7 @@ export default function NewInvoiceModal({
 
   const handleCreateInvoice = async () => {
     if (lineItems.length === 0) {
-      setError('Please add at least one product');
+      setError("Please add at least one product");
       return;
     }
 
@@ -182,8 +178,8 @@ export default function NewInvoiceModal({
         onClose();
       }, 1500);
     } catch (err: any) {
-      console.error('Failed to create invoice:', err);
-      setError(err.message || 'Failed to create invoice');
+      console.error("Failed to create invoice:", err);
+      setError(err.message || "Failed to create invoice");
     } finally {
       setLoading(false);
     }
@@ -203,16 +199,14 @@ export default function NewInvoiceModal({
 
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+        <div className="relative bg-white dark:bg-gray-800  rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-200">
             <div>
-              <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
                 New Invoice
               </h2>
-              <p className="text-sm text-gray-600 mt-1">
-                Quick invoice creation
-              </p>
+              <p className="text-sm text-gray-600 mt-1">Quick invoice creation</p>
             </div>
             <button
               onClick={onClose}
@@ -241,28 +235,28 @@ export default function NewInvoiceModal({
               {/* Left: Add Products */}
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                     Add Products
                   </h3>
 
                   {/* Input Mode Toggle */}
                   <div className="flex gap-2 mb-4">
                     <button
-                      onClick={() => setInputMode('barcode')}
+                      onClick={() => setInputMode("barcode")}
                       className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
-                        inputMode === 'barcode'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        inputMode === "barcode"
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
                       Barcode Scanner
                     </button>
                     <button
-                      onClick={() => setInputMode('dropdown')}
+                      onClick={() => setInputMode("dropdown")}
                       className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
-                        inputMode === 'dropdown'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        inputMode === "dropdown"
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
                       Product List
@@ -270,7 +264,7 @@ export default function NewInvoiceModal({
                   </div>
 
                   {/* Barcode Input */}
-                  {inputMode === 'barcode' && (
+                  {inputMode === "barcode" && (
                     <form onSubmit={handleBarcodeSubmit} className="space-y-3">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -309,7 +303,7 @@ export default function NewInvoiceModal({
                   )}
 
                   {/* Dropdown Selection */}
-                  {inputMode === 'dropdown' && (
+                  {inputMode === "dropdown" && (
                     <div className="space-y-3">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -323,7 +317,8 @@ export default function NewInvoiceModal({
                           <option value="">Choose a product...</option>
                           {products.map((product) => (
                             <option key={product.id} value={product.id}>
-                              {product.nameEn} - ${product.sellingPrice.toFixed(2)} (Stock: {product.stockLevel})
+                              {product.nameEn} - ${product.sellingPrice.toFixed(2)} (Stock:{" "}
+                              {product.stockLevel})
                             </option>
                           ))}
                         </select>
@@ -354,7 +349,7 @@ export default function NewInvoiceModal({
 
                 {/* Payment Settings */}
                 <div className="pt-6 border-t border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                     Payment Details
                   </h3>
 
@@ -395,7 +390,7 @@ export default function NewInvoiceModal({
 
               {/* Right: Cart Summary */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                   Items ({lineItems.length})
                 </h3>
 
@@ -409,10 +404,15 @@ export default function NewInvoiceModal({
                   <div className="space-y-3">
                     <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-200">
                       {lineItems.map((item, index) => (
-                        <div key={index} className="p-3 bg-white hover:bg-gray-50">
+                        <div
+                          key={index}
+                          className="p-3 bg-white dark:bg-gray-800  hover:bg-gray-50"
+                        >
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <h4 className="font-medium text-gray-900">{item.productName}</h4>
+                              <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                                {item.productName}
+                              </h4>
                               <p className="text-sm text-gray-600">SKU: {item.productSku}</p>
                               <div className="flex items-center gap-3 mt-2">
                                 <input
@@ -436,7 +436,7 @@ export default function NewInvoiceModal({
                               >
                                 ×
                               </button>
-                              <p className="font-semibold text-gray-900">
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">
                                 ${(item.unitPrice * item.quantity).toFixed(2)}
                               </p>
                             </div>
@@ -481,7 +481,7 @@ export default function NewInvoiceModal({
                 disabled={loading || lineItems.length === 0}
                 className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Creating...' : 'Create Invoice'}
+                {loading ? "Creating..." : "Create Invoice"}
               </button>
             </div>
           </div>

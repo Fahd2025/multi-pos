@@ -9,7 +9,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { DataTable } from "@/components/shared";
+import { DataTable, StatCard } from "@/components/shared";
 import { FeaturedDialog, ConfirmationDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { useModal, useConfirmation } from "@/hooks/useModal";
@@ -102,7 +102,9 @@ export default function SuppliersPage() {
       sortable: true,
       width: "100px",
       render: (value) => (
-        <span className="font-mono text-sm font-medium text-gray-900">{value}</span>
+        <span className="font-mono text-sm font-medium text-gray-900 dark:text-gray-100">
+          {value}
+        </span>
       ),
     },
     {
@@ -111,7 +113,7 @@ export default function SuppliersPage() {
       sortable: true,
       render: (value, row) => (
         <div>
-          <div className="font-medium text-gray-900">{value}</div>
+          <div className="font-medium text-gray-900 dark:text-gray-100">{value}</div>
           {row.nameAr && <div className="text-sm text-gray-500">{row.nameAr}</div>}
         </div>
       ),
@@ -139,7 +141,7 @@ export default function SuppliersPage() {
       sortable: true,
       width: "120px",
       render: (value) => (
-        <span className="font-semibold text-gray-900">
+        <span className="font-semibold text-gray-900 dark:text-gray-100">
           ${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </span>
       ),
@@ -233,7 +235,7 @@ export default function SuppliersPage() {
       key: "totalSpent",
       label: "Total Spent",
       render: (value) => (
-        <span className="font-semibold text-gray-900">
+        <span className="font-semibold text-gray-900 dark:text-gray-100">
           ${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </span>
       ),
@@ -352,29 +354,37 @@ export default function SuppliersPage() {
         )}
 
         {/* Statistics Cards */}
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <p className="text-sm text-gray-600">Total Suppliers</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <p className="text-sm text-gray-600">Active Suppliers</p>
-            <p className="text-2xl font-bold text-green-600">{stats.active}</p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <p className="text-sm text-gray-600">Total Purchases</p>
-            <p className="text-2xl font-bold text-blue-600">{stats.totalPurchases}</p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <p className="text-sm text-gray-600">Total Spent</p>
-            <p className="text-2xl font-bold text-purple-600">
-              $
-              {stats.totalSpent.toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </p>
-          </div>
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            title="Total Suppliers"
+            value={stats.total}
+            icon="🏢"
+            iconBgColor="bg-blue-100 dark:bg-blue-900/20"
+          />
+          <StatCard
+            title="Active Suppliers"
+            value={stats.active}
+            icon="✅"
+            iconBgColor="bg-green-100 dark:bg-green-900/20"
+            valueColor="text-green-600 dark:text-green-500"
+          />
+          <StatCard
+            title="Total Purchases"
+            value={stats.totalPurchases}
+            icon="📦"
+            iconBgColor="bg-blue-100 dark:bg-blue-900/20"
+            valueColor="text-blue-600 dark:text-blue-500"
+          />
+          <StatCard
+            title="Total Spent"
+            value={`$${stats.totalSpent.toLocaleString("en-US", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}`}
+            icon="💵"
+            iconBgColor="bg-purple-100 dark:bg-purple-900/20"
+            valueColor="text-purple-600 dark:text-purple-500"
+          />
         </div>
 
         {/* Actions Bar */}

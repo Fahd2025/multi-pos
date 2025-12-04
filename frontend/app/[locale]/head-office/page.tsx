@@ -3,13 +3,20 @@
  * Overview of all branches with key metrics
  */
 
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { use } from 'react';
-import branchService, { BranchDto } from '@/services/branch.service';
-import { LoadingSpinner, ErrorAlert, StatCard, ActionCard, PageHeader, Button } from '@/components/shared';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { use } from "react";
+import branchService, { BranchDto } from "@/services/branch.service";
+import {
+  LoadingSpinner,
+  ErrorAlert,
+  StatCard,
+  ActionCard,
+  PageHeader,
+  Button,
+} from "@/components/shared";
 
 interface DashboardStats {
   totalBranches: number;
@@ -21,11 +28,7 @@ interface DashboardStats {
   totalRevenue?: number;
 }
 
-export default function HeadOfficeDashboard({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
+export default function HeadOfficeDashboard({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
   const [stats, setStats] = useState<DashboardStats>({
     totalBranches: 0,
@@ -64,7 +67,7 @@ export default function HeadOfficeDashboard({
       // Get recent branches (last 5)
       setRecentBranches(branchesData.data.slice(0, 5));
     } catch (err: any) {
-      setError(err.message || 'Failed to load dashboard data');
+      setError(err.message || "Failed to load dashboard data");
     } finally {
       setLoading(false);
     }
@@ -144,7 +147,7 @@ export default function HeadOfficeDashboard({
       </div>
 
       {/* Recent Branches */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-800  rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             Recent Branches
@@ -184,11 +187,11 @@ export default function HeadOfficeDashboard({
                     <span
                       className={`px-3 py-1 text-xs font-medium rounded-full ${
                         branch.isActive
-                          ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-400'
+                          ? "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-400"
                       }`}
                     >
-                      {branch.isActive ? 'Active' : 'Inactive'}
+                      {branch.isActive ? "Active" : "Inactive"}
                     </span>
                     <span className="text-gray-400">→</span>
                   </div>

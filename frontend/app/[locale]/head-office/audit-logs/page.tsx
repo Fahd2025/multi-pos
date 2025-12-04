@@ -96,7 +96,9 @@ export default function AuditLogsPage({ params }: { params: Promise<{ locale: st
       width: "180px",
       render: (value) => (
         <div className="text-sm">
-          <div className="font-medium text-gray-900">{new Date(value).toLocaleDateString()}</div>
+          <div className="font-medium text-gray-900 dark:text-gray-100">
+            {new Date(value).toLocaleDateString()}
+          </div>
           <div className="text-gray-500 text-xs">{new Date(value).toLocaleTimeString()}</div>
         </div>
       ),
@@ -182,15 +184,19 @@ export default function AuditLogsPage({ params }: { params: Promise<{ locale: st
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="text-xs font-medium text-gray-600">Full Entity ID</label>
-          <p className="text-sm font-mono text-gray-900">{log.entityId || "-"}</p>
+          <p className="text-sm font-mono text-gray-900 dark:text-gray-100">
+            {log.entityId || "-"}
+          </p>
         </div>
         <div>
           <label className="text-xs font-medium text-gray-600">Full User ID</label>
-          <p className="text-sm font-mono text-gray-900">{log.userId || "-"}</p>
+          <p className="text-sm font-mono text-gray-900 dark:text-gray-100">{log.userId || "-"}</p>
         </div>
         <div>
           <label className="text-xs font-medium text-gray-600">Full Branch ID</label>
-          <p className="text-sm font-mono text-gray-900">{log.branchId || "-"}</p>
+          <p className="text-sm font-mono text-gray-900 dark:text-gray-100">
+            {log.branchId || "-"}
+          </p>
         </div>
         <div>
           <label className="text-xs font-medium text-gray-600">User Agent</label>
@@ -200,8 +206,8 @@ export default function AuditLogsPage({ params }: { params: Promise<{ locale: st
 
       {log.oldValues && (
         <div>
-          <label className="text-xs font-medium text-gray-600">Old Values</label>
-          <pre className="mt-1 text-xs bg-white p-2 rounded border border-gray-200 overflow-x-auto">
+          <label className="text-xs font-medium text-gray-600 dark:text-gray-400">Old Values</label>
+          <pre className="mt-1 text-xs bg-white dark:bg-gray-800  dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-2 rounded border border-gray-200 dark:border-gray-700 overflow-x-auto">
             {JSON.stringify(JSON.parse(log.oldValues), null, 2)}
           </pre>
         </div>
@@ -209,8 +215,8 @@ export default function AuditLogsPage({ params }: { params: Promise<{ locale: st
 
       {log.newValues && (
         <div>
-          <label className="text-xs font-medium text-gray-600">New Values</label>
-          <pre className="mt-1 text-xs bg-white p-2 rounded border border-gray-200 overflow-x-auto">
+          <label className="text-xs font-medium text-gray-600 dark:text-gray-400">New Values</label>
+          <pre className="mt-1 text-xs bg-white dark:bg-gray-800  dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-2 rounded border border-gray-200 dark:border-gray-700 overflow-x-auto">
             {JSON.stringify(JSON.parse(log.newValues), null, 2)}
           </pre>
         </div>
@@ -268,12 +274,14 @@ export default function AuditLogsPage({ params }: { params: Promise<{ locale: st
       <div>
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Audit Logs</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            Audit Logs
+          </h1>
           <p className="text-gray-600">Comprehensive audit trail of all system activities</p>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+        <div className="bg-white dark:bg-gray-800  rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Event Type Filter */}
             <div className="flex-1">
@@ -281,7 +289,7 @@ export default function AuditLogsPage({ params }: { params: Promise<{ locale: st
               <select
                 value={eventTypeFilter}
                 onChange={(e) => setEventTypeFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white dark:bg-gray-800  text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">All Event Types</option>
                 {eventTypes.map((type) => (
@@ -298,7 +306,7 @@ export default function AuditLogsPage({ params }: { params: Promise<{ locale: st
               <select
                 value={actionFilter}
                 onChange={(e) => setActionFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white dark:bg-gray-800  text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">All Actions</option>
                 {actions.map((action) => (
@@ -360,23 +368,25 @@ export default function AuditLogsPage({ params }: { params: Promise<{ locale: st
 
         {/* Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200">
             <p className="text-sm text-gray-600">Total Logs</p>
-            <p className="text-2xl font-bold text-gray-900">{auditLogs.length}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {auditLogs.length}
+            </p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200">
             <p className="text-sm text-gray-600">Successful</p>
             <p className="text-2xl font-bold text-green-600">
               {auditLogs.filter((log) => log.success).length}
             </p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200">
             <p className="text-sm text-gray-600">Failed</p>
             <p className="text-2xl font-bold text-red-600">
               {auditLogs.filter((log) => !log.success).length}
             </p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200">
             <p className="text-sm text-gray-600">Unique Event Types</p>
             <p className="text-2xl font-bold text-blue-600">{eventTypes.length}</p>
           </div>

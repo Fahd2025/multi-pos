@@ -19,6 +19,7 @@ import { Button } from "@/components/shared/Button";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { ApiErrorAlert, InlineApiError } from "@/components/shared/ApiErrorAlert";
+import { StatCard } from "@/components/shared";
 
 export default function PurchasesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
@@ -130,8 +131,12 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
       sortable: true,
       render: (value, row) => (
         <div>
-          <div className="text-sm font-medium text-gray-900">{value}</div>
-          {row.notes && <div className="text-sm text-gray-500 truncate max-w-xs">{row.notes}</div>}
+          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{value}</div>
+          {row.notes && (
+            <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">
+              {row.notes}
+            </div>
+          )}
         </div>
       ),
     },
@@ -146,9 +151,11 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
       sortable: true,
       render: (value, row) => (
         <div>
-          <div className="text-sm text-gray-900">{new Date(value).toLocaleDateString()}</div>
+          <div className="text-sm text-gray-900 dark:text-gray-100">
+            {new Date(value).toLocaleDateString()}
+          </div>
           {row.receivedDate && (
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
               Received: {new Date(row.receivedDate).toLocaleDateString()}
             </div>
           )}
@@ -161,9 +168,13 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
       sortable: true,
       render: (value, row) => (
         <div className="text-right">
-          <div className="text-sm font-semibold text-gray-900">${value.toFixed(2)}</div>
+          <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            ${value.toFixed(2)}
+          </div>
           {row.amountPaid > 0 && (
-            <div className="text-xs text-gray-500">Paid: ${row.amountPaid.toFixed(2)}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              Paid: ${row.amountPaid.toFixed(2)}
+            </div>
           )}
         </div>
       ),
@@ -222,7 +233,7 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
             Purchase Management
           </h1>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             Track and manage inventory purchases from suppliers
           </p>
         </div>
@@ -263,29 +274,33 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
       )}
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="text-sm text-gray-600">Total Purchase Orders</div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">{purchases.length}</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="text-sm text-gray-600">Pending Receipt</div>
-          <div className="text-2xl font-bold text-yellow-600 mt-1">
-            {purchases.filter((p) => !p.receivedDate).length}
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="text-sm text-gray-600">Received</div>
-          <div className="text-2xl font-bold text-green-600 mt-1">
-            {purchases.filter((p) => p.receivedDate).length}
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="text-sm text-gray-600">Total Value</div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">
-            ${purchases.reduce((sum, p) => sum + p.totalCost, 0).toFixed(2)}
-          </div>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          title="Total Purchase Orders"
+          value={purchases.length}
+          icon="📦"
+          iconBgColor="bg-blue-100 dark:bg-blue-900/20"
+        />
+        <StatCard
+          title="Pending Receipt"
+          value={purchases.filter((p) => !p.receivedDate).length}
+          icon="⏳"
+          iconBgColor="bg-yellow-100 dark:bg-yellow-900/20"
+          valueColor="text-yellow-600 dark:text-yellow-500"
+        />
+        <StatCard
+          title="Received"
+          value={purchases.filter((p) => p.receivedDate).length}
+          icon="✅"
+          iconBgColor="bg-green-100 dark:bg-green-900/20"
+          valueColor="text-green-600 dark:text-green-500"
+        />
+        <StatCard
+          title="Total Value"
+          value={`$${purchases.reduce((sum, p) => sum + p.totalCost, 0).toFixed(2)}`}
+          icon="💰"
+          iconBgColor="bg-purple-100 dark:bg-purple-900/20"
+        />
       </div>
 
       {/* Purchase Form Modal */}

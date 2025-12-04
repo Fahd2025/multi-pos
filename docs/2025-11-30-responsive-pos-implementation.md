@@ -19,6 +19,7 @@ This document details the implementation of responsive design improvements to th
 #### 1.1 Tailwind Configuration (`frontend/tailwind.config.ts`)
 
 **Enhanced Breakpoints:**
+
 ```typescript
 screens: {
   'xs': '475px',      // Enhanced phone experience
@@ -38,6 +39,7 @@ screens: {
 ```
 
 **Responsive Typography:**
+
 ```typescript
 fontSize: {
   // Standard scales with responsive line heights
@@ -51,6 +53,7 @@ fontSize: {
 ```
 
 **Touch Target Utilities:**
+
 ```typescript
 minHeight: {
   'touch-target': '48px',  // WCAG 2.1 Level AAA
@@ -61,6 +64,7 @@ minWidth: {
 ```
 
 **Safe Area Support:**
+
 ```typescript
 spacing: {
   'safe-top': 'env(safe-area-inset-top)',
@@ -73,6 +77,7 @@ spacing: {
 #### 1.2 Global Styles (`frontend/app/globals.css`)
 
 **Accessibility Enhancements:**
+
 - Reduced motion support (`@media (prefers-reduced-motion: reduce)`)
 - High contrast mode support (`@media (prefers-contrast: high)`)
 - Enhanced focus indicators for keyboard navigation
@@ -80,10 +85,13 @@ spacing: {
 - Screen reader utilities (`.sr-only`, `.sr-only-focusable`)
 
 **Touch Optimization:**
+
 ```css
 /* Automatic touch target sizing */
 @media (hover: none) and (pointer: coarse) {
-  button, a, [role="button"] {
+  button,
+  a,
+  [role="button"] {
     min-width: 48px;
     min-height: 48px;
   }
@@ -91,16 +99,20 @@ spacing: {
 ```
 
 **iOS-Specific Fixes:**
+
 ```css
 /* Prevent zoom on input focus */
 @media screen and (max-width: 767px) {
-  input[type="text"], input[type="search"], etc {
+  input[type="text"],
+  input[type="search"],
+  etc {
     font-size: 16px; /* Prevents zoom */
   }
 }
 ```
 
 **Notched Device Support:**
+
 ```css
 /* Safe area insets for iPhone X+ */
 @supports (padding: max(0px)) {
@@ -112,6 +124,7 @@ spacing: {
 ```
 
 **Mobile Animations:**
+
 - Bottom sheet slide animations
 - Backdrop blur utilities
 - Custom scrollbars for mobile
@@ -124,6 +137,7 @@ spacing: {
 #### 2.1 MobileCart Component (`frontend/components/sales/pos/MobileCart.tsx`)
 
 **Features:**
+
 - Bottom sheet/drawer UI pattern
 - Slides up from bottom with animation
 - Backdrop overlay with blur effect
@@ -135,6 +149,7 @@ spacing: {
 - Full ARIA labels for accessibility
 
 **Layout:**
+
 ```
 ┌─────────────────────────┐
 │     Handle Bar (—)      │  ← Swipe indicator
@@ -156,6 +171,7 @@ spacing: {
 ```
 
 **Key Classes:**
+
 - `min-w-touch-target min-h-touch-target` for all interactive elements
 - `mobile-safe-bottom` for safe area support
 - `animate-slide-up-from-bottom` for entrance animation
@@ -164,6 +180,7 @@ spacing: {
 #### 2.2 MobileCartBar Component (`frontend/components/sales/pos/MobileCartBar.tsx`)
 
 **Features:**
+
 - Sticky bottom bar (fixed position)
 - Shows item count and total price
 - Gradient background for visual prominence
@@ -173,6 +190,7 @@ spacing: {
 - Safe area padding for notched devices
 
 **Visual Design:**
+
 ```
 ┌──────────────────────────────────┐
 │ [🛒5] View Cart    Total  $57.50 ↑│
@@ -183,19 +201,22 @@ spacing: {
 #### 2.3 POS Page Integration (`frontend/app/[locale]/branch/sales/pos/page.tsx`)
 
 **State Management:**
+
 ```typescript
 const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
 ```
 
 **Component Rendering:**
-```tsx
-{/* Mobile Cart Bottom Bar (visible on mobile only) */}
-<MobileCartBar
-  items={lineItems}
-  onClick={() => setIsMobileCartOpen(true)}
-/>
 
-{/* Mobile Cart Sheet */}
+```tsx
+{
+  /* Mobile Cart Bottom Bar (visible on mobile only) */
+}
+<MobileCartBar items={lineItems} onClick={() => setIsMobileCartOpen(true)} />;
+
+{
+  /* Mobile Cart Sheet */
+}
 <MobileCart
   isOpen={isMobileCartOpen}
   onClose={() => setIsMobileCartOpen(false)}
@@ -205,7 +226,7 @@ const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
   onCheckout={handleCheckout}
   onClearCart={handleClearCart}
   lastUpdatedIndex={lastUpdatedItemIndex}
-/>
+/>;
 ```
 
 ---
@@ -215,6 +236,7 @@ const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
 #### 3.1 ProductGrid Component (`frontend/components/sales/pos/ProductGrid.tsx`)
 
 **Responsive Grid:**
+
 ```tsx
 // Before:
 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6
@@ -226,10 +248,11 @@ gap-3 sm:gap-4 lg:gap-5
 ```
 
 **Responsive Product Cards:**
+
 ```tsx
 className="
   // Base styles
-  bg-white border-2 rounded-xl
+  bg-white dark:bg-gray-800  border-2 rounded-xl
   p-3 sm:p-4 lg:p-5
 
   // Responsive heights
@@ -251,6 +274,7 @@ className="
 ```
 
 **Responsive Typography:**
+
 ```tsx
 // Product Name
 className="
@@ -271,6 +295,7 @@ className="text-xs sm:text-sm text-gray-500"
 ```
 
 **Accessibility Improvements:**
+
 ```tsx
 <button
   aria-label={`${product.nameEn}, Price: $${product.sellingPrice.toFixed(2)}, Stock: ${product.stockLevel} units${isOutOfStock ? ', Out of stock' : ''}`}
@@ -279,10 +304,12 @@ className="text-xs sm:text-sm text-gray-500"
 ```
 
 **Loading State:**
+
 - Responsive skeleton cards matching actual product card sizes
 - Minimum heights for consistent layout
 
 **Empty/Error States:**
+
 - Centered layout with responsive emoji sizes
 - Responsive typography for headings and descriptions
 - Touch-optimized retry button
@@ -296,6 +323,7 @@ className="text-xs sm:text-sm text-gray-500"
 **Mobile-First Layout:**
 
 **Desktop View:**
+
 ```
 ┌────────────────────────────────────────────┐
 │ [←] Point of Sale  [Search...]  [🛒] [⚙️]  │
@@ -304,6 +332,7 @@ className="text-xs sm:text-sm text-gray-500"
 ```
 
 **Mobile View:**
+
 ```
 ┌─────────────────────────┐
 │ [←]              [🛒][⚙️]│  ← Compact header, no title
@@ -315,16 +344,19 @@ className="text-xs sm:text-sm text-gray-500"
 **Responsive Features:**
 
 1. **Title Display:**
+
    - Hidden on mobile (`hidden sm:block`)
    - Visible on tablets and desktop
    - Status indicator always visible
 
 2. **Search Bar:**
+
    - Desktop: Inline in header, max-width limited
    - Mobile: Separate full-width row below header
    - Prevents iOS zoom with `font-size: 16px`
 
 3. **Action Buttons:**
+
    - Cart toggle: Hidden on mobile (cart access via MobileCartBar)
    - Settings: Always visible
    - Proper touch targets: `min-w-touch-target min-h-touch-target`
@@ -334,6 +366,7 @@ className="text-xs sm:text-sm text-gray-500"
    - Elevated z-index for proper layering
 
 **Enhanced Classes:**
+
 ```tsx
 // Back Button
 className="
@@ -367,16 +400,19 @@ className="
 ## Implementation Statistics
 
 ### Files Modified: 5
+
 1. `frontend/tailwind.config.ts` - Breakpoints, typography, utilities
 2. `frontend/app/globals.css` - Accessibility, touch optimization, animations
 3. `frontend/app/[locale]/branch/sales/pos/page.tsx` - Mobile cart integration, header redesign
 4. `frontend/components/sales/pos/ProductGrid.tsx` - Responsive grid, cards, accessibility
 
 ### Files Created: 2
+
 1. `frontend/components/sales/pos/MobileCart.tsx` - Mobile cart bottom sheet
 2. `frontend/components/sales/pos/MobileCartBar.tsx` - Sticky bottom cart bar
 
 ### Documentation: 2
+
 1. `docs/responsive-design-plan.md` - Comprehensive responsive design plan
 2. `docs/2025-11-30-responsive-pos-implementation.md` - This implementation summary
 
@@ -387,14 +423,17 @@ className="
 ### 🎯 User Experience
 
 1. **Mobile Shopping Cart**
+
    - Previously: No cart access on mobile
    - Now: Sticky bottom bar + full bottom sheet interface
 
 2. **Product Grid**
+
    - Previously: 2-6 columns
    - Now: 2-8 columns with optimized spacing across all breakpoints
 
 3. **Touch Targets**
+
    - Previously: Variable sizes, some below 44px
    - Now: All interactive elements ≥48x48px (WCAG 2.1 Level AAA)
 
@@ -405,20 +444,24 @@ className="
 ### ♿ Accessibility
 
 1. **Keyboard Navigation**
+
    - Enhanced focus indicators (4px ring, 2px offset)
    - Proper focus management in modals
    - Skip-to-content link
 
 2. **Screen Readers**
+
    - Comprehensive ARIA labels
    - Live regions for status updates
    - Semantic HTML structure
 
 3. **Motion Preferences**
+
    - Respects `prefers-reduced-motion`
    - Automatic animation disabling
 
 4. **Color Contrast**
+
    - All text meets WCAG AA standards (4.5:1 minimum)
    - High contrast mode support
 
@@ -430,6 +473,7 @@ className="
 ### 📱 Device Support
 
 **Tested Breakpoints:**
+
 - ✅ Mobile phones (320px - 767px)
 - ✅ Tablets portrait (768px - 1023px)
 - ✅ Tablets landscape / Laptops (1024px - 1279px)
@@ -438,6 +482,7 @@ className="
 - ✅ Ultra-wide (1920px+)
 
 **Special Device Features:**
+
 - ✅ iPhone X+ notch support (safe area insets)
 - ✅ Touch vs mouse detection
 - ✅ Portrait/landscape orientation
@@ -449,9 +494,11 @@ className="
 ## Responsive Patterns Used
 
 ### 1. Mobile-First Approach
+
 All styles start with mobile defaults and progressively enhance for larger screens.
 
 ### 2. Container Queries (via Breakpoints)
+
 - `xs:` - Enhanced mobile experience
 - `sm:` - Tablets and large phones
 - `md:` - Desktop breakpoint
@@ -459,12 +506,15 @@ All styles start with mobile defaults and progressively enhance for larger scree
 - `xl:`, `2xl:`, `3xl:` - Progressively larger displays
 
 ### 3. Device Detection
+
 - `mouse:hover:` - Mouse-only hover effects
 - `touch:` - Touch-specific styles
 - `portrait:` / `landscape:` - Orientation-specific layouts
 
 ### 4. Utility-First CSS
+
 Extensive use of Tailwind utilities for rapid responsive development:
+
 ```tsx
 className="
   p-3 sm:p-4 lg:p-5                    // Responsive padding
@@ -475,6 +525,7 @@ className="
 ```
 
 ### 5. Component-Level Responsive
+
 - Conditional rendering based on screen size
 - Separate mobile/desktop components where appropriate
 - Shared state between responsive variants
@@ -486,6 +537,7 @@ className="
 ### Manual Testing Checklist
 
 #### Mobile Devices (< 768px)
+
 - [ ] MobileCartBar appears at bottom when items in cart
 - [ ] MobileCart opens smoothly from bottom
 - [ ] Search bar is full-width and prevents zoom
@@ -496,6 +548,7 @@ className="
 - [ ] Quantity controls are easy to tap
 
 #### Tablet Devices (768px - 1023px)
+
 - [ ] Product grid shows 3-4 columns
 - [ ] Desktop cart can be toggled
 - [ ] Search remains in header
@@ -503,6 +556,7 @@ className="
 - [ ] Touch targets remain adequate
 
 #### Desktop (1024px+)
+
 - [ ] Product grid shows 5-8 columns
 - [ ] Cart is visible by default (right sidebar)
 - [ ] Hover effects work on product cards
@@ -510,6 +564,7 @@ className="
 - [ ] Multi-panel layout functions properly
 
 #### Accessibility
+
 - [ ] Tab navigation works throughout
 - [ ] Focus indicators are clearly visible
 - [ ] Screen reader announces all actions
@@ -517,6 +572,7 @@ className="
 - [ ] Animations can be disabled
 
 #### Performance
+
 - [ ] Product grid loads quickly
 - [ ] Smooth scrolling (60fps)
 - [ ] No layout shift on load
@@ -528,12 +584,14 @@ className="
 ## Browser Compatibility
 
 **Tested Browsers:**
+
 - ✅ Chrome 90+ (Desktop & Mobile)
 - ✅ Safari 14+ (Desktop & Mobile)
 - ✅ Firefox 88+ (Desktop & Mobile)
 - ✅ Edge 90+ (Desktop)
 
 **CSS Features Used:**
+
 - CSS Grid (IE11+)
 - Flexbox (IE11+)
 - CSS Custom Properties (IE Edge 16+)
@@ -542,6 +600,7 @@ className="
 - `@supports` queries (All modern browsers)
 
 **Graceful Degradation:**
+
 - Safe area insets wrapped in `@supports`
 - Hover effects scoped to mouse devices
 - Reduced motion wrapped in media query
@@ -551,12 +610,14 @@ className="
 ## Performance Metrics
 
 **Target Metrics:**
+
 - First Contentful Paint (FCP): < 1.5s
 - Largest Contentful Paint (LCP): < 2.5s
 - Time to Interactive (TTI): < 3.0s
 - Cumulative Layout Shift (CLS): < 0.1
 
 **Optimizations Applied:**
+
 - Image lazy loading
 - Responsive image sizing with `sizes` attribute
 - CSS animations use `transform` and `opacity` (GPU accelerated)
@@ -568,17 +629,21 @@ className="
 ## Next Steps
 
 ### Phase 5: Additional Components (Recommended)
+
 1. **CategorySidebar Enhancements**
+
    - Mobile drawer with smooth animations
    - Horizontal scroll optimization
    - Touch gesture support
 
 2. **CheckoutDialog Responsive**
+
    - Full-screen on mobile
    - Optimized payment method selection
    - Keyboard number pad on mobile
 
 3. **ShoppingCart Component (Desktop)**
+
    - Responsive item cards
    - Enhanced animations
    - Better empty state
@@ -589,12 +654,15 @@ className="
    - PDF generation support
 
 ### Phase 6: Advanced Features
+
 1. **Offline Support**
+
    - Service worker integration
    - Offline mode UI indicators
    - Sync queue visualization
 
 2. **PWA Features**
+
    - Install prompts
    - App-like experience
    - Push notifications
@@ -615,7 +683,7 @@ className="
   onClick={handleClick}
   className="
     // Base styles - mobile first
-    bg-white border-2 rounded-xl
+    bg-white dark:bg-gray-800  border-2 rounded-xl
     p-3
     min-h-[180px]
 
@@ -677,7 +745,8 @@ className="
 ### Responsive Spacing Pattern
 
 ```tsx
-<div className="
+<div
+  className="
   grid
   grid-cols-2           // Mobile: 2 columns
   sm:grid-cols-3        // Tablet: 3 columns
@@ -690,7 +759,8 @@ className="
   gap-3                 // Mobile: 12px
   sm:gap-4              // Tablet: 16px
   lg:gap-5              // Desktop: 20px
-">
+"
+>
   {/* Grid items */}
 </div>
 ```

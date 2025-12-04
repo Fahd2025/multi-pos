@@ -6,6 +6,7 @@ import { CategorySidebar } from "./CategorySidebar";
 import { TopBar } from "./TopBar";
 import { ProductGrid } from "./ProductGrid";
 import { OrderPanel } from "./OrderPanel";
+import { ToastProvider } from "./useToast";
 import inventoryService from "@/services/inventory.service";
 import { CategoryDto, ProductDto } from "@/types/api.types";
 import { playErrorBeep, playSuccessBeep } from "@/lib/utils";
@@ -171,41 +172,43 @@ export default function PosLayout() {
   }
 
   return (
-    <div className={styles.container}>
-      <CategorySidebar
-        categories={categories}
-        activeCategory={activeCategory}
-        onSelectCategory={setActiveCategory}
-        isCollapsed={isSidebarCollapsed}
-        onToggleCollapse={handleToggleSidebar}
-      />
-
-      <div className={styles.mainContent}>
-        <TopBar
-          cartItemCount={cartItemCount}
-          onToggleCart={handleToggleCart}
-          isCartVisible={isCartVisible}
-          onAddToCart={handleAddToCart}
-          branchCode={branchCode}
-          isSidebarCollapsed={isSidebarCollapsed}
-          onToggleSidebar={handleToggleSidebar}
+    <ToastProvider>
+      <div className={styles.container}>
+        <CategorySidebar
+          categories={categories}
+          activeCategory={activeCategory}
+          onSelectCategory={setActiveCategory}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={handleToggleSidebar}
         />
-        <ProductGrid products={filteredProducts} onAddToCart={handleAddToCart} />
-      </div>
 
-      {/* Backdrop overlay for mobile */}
-      {isCartVisible && <div className={styles.cartBackdrop} onClick={handleToggleCart} />}
+        <div className={styles.mainContent}>
+          <TopBar
+            cartItemCount={cartItemCount}
+            onToggleCart={handleToggleCart}
+            isCartVisible={isCartVisible}
+            onAddToCart={handleAddToCart}
+            branchCode={branchCode}
+            isSidebarCollapsed={isSidebarCollapsed}
+            onToggleSidebar={handleToggleSidebar}
+          />
+          <ProductGrid products={filteredProducts} onAddToCart={handleAddToCart} />
+        </div>
 
-      {/* Order Panel with conditional visibility class */}
-      <div className={`${styles.orderPanel} ${isCartVisible ? styles.cartVisible : ""}`}>
-        <OrderPanel
-          cart={cart}
-          onRemoveItem={handleRemoveItem}
-          onClearAll={handleClearAll}
-          onUpdateQuantity={handleUpdateQuantity}
-          onClose={handleToggleCart}
-        />
+        {/* Backdrop overlay for mobile */}
+        {isCartVisible && <div className={styles.cartBackdrop} onClick={handleToggleCart} />}
+
+        {/* Order Panel with conditional visibility class */}
+        <div className={`${styles.orderPanel} ${isCartVisible ? styles.cartVisible : ""}`}>
+          <OrderPanel
+            cart={cart}
+            onRemoveItem={handleRemoveItem}
+            onClearAll={handleClearAll}
+            onUpdateQuantity={handleUpdateQuantity}
+            onClose={handleToggleCart}
+          />
+        </div>
       </div>
-    </div>
+    </ToastProvider>
   );
 }

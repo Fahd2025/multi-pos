@@ -5,19 +5,16 @@
 
 "use client";
 
-import React, { useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { IconButton } from '../Button';
+import React, { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { IconButton } from "../Button";
 
 export interface HeaderProps {
   onMenuClick?: () => void;
   showMenuButton?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({
-  onMenuClick,
-  showMenuButton = true,
-}) => {
+export const Header: React.FC<HeaderProps> = ({ onMenuClick, showMenuButton = true }) => {
   const { user, branch, logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
@@ -26,7 +23,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
+    <header className="bg-white dark:bg-gray-800  shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
       <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
         {/* Left side - Menu button and logo */}
         <div className="flex items-center gap-4">
@@ -34,12 +31,7 @@ export const Header: React.FC<HeaderProps> = ({
           {showMenuButton && (
             <IconButton
               icon={
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -74,10 +66,10 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <div className="hidden sm:block">
               <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {branch?.branchNameEn || 'Multi-Branch POS'}
+                {branch?.branchNameEn || "Multi-Branch POS"}
               </h1>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {branch?.branchCode || 'Head Office'}
+                {branch?.branchCode || "Head Office"}
               </p>
             </div>
           </div>
@@ -88,12 +80,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Notifications */}
           <IconButton
             icon={
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -114,15 +101,15 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <div className="hidden md:block text-right">
                 <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {user?.fullNameEn || 'User'}
+                  {user?.fullNameEn || "User"}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {user?.isHeadOfficeAdmin ? 'Admin' : 'Staff'}
+                  {user?.isHeadOfficeAdmin ? "Admin" : "Staff"}
                 </p>
               </div>
               <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                 <span className="text-blue-600 dark:text-blue-400 font-medium text-sm">
-                  {user?.fullNameEn?.charAt(0) || 'U'}
+                  {user?.fullNameEn?.charAt(0) || "U"}
                 </span>
               </div>
               <svg
@@ -144,13 +131,10 @@ export const Header: React.FC<HeaderProps> = ({
             {showUserMenu && (
               <>
                 {/* Backdrop */}
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setShowUserMenu(false)}
-                />
+                <div className="fixed inset-0 z-10" onClick={() => setShowUserMenu(false)} />
 
                 {/* Menu */}
-                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-20">
+                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800  rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-20">
                   <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {user?.fullNameEn}

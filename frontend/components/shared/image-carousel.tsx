@@ -1,45 +1,39 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react'
-import { Button } from './Button'
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
-import { Dialog, DialogContent } from './RadixDialog'
+import React, { useState } from "react";
+import { Button } from "./Button";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Dialog, DialogContent } from "./RadixDialog";
 
 interface ImageCarouselProps {
-  images: string[]
-  alt: string
-  className?: string
+  images: string[];
+  alt: string;
+  className?: string;
 }
 
-export const ImageCarousel: React.FC<ImageCarouselProps> = ({
-  images,
-  alt,
-  className = ''
-}) => {
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+export const ImageCarousel: React.FC<ImageCarouselProps> = ({ images, alt, className = "" }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   if (!images || images.length === 0) {
     return (
       <div className={`bg-muted rounded flex items-center justify-center ${className}`}>
-        <div className="text-muted-foreground text-center p-4">
-          No images available
-        </div>
+        <div className="text-muted-foreground text-center p-4">No images available</div>
       </div>
-    )
+    );
   }
 
   const nextImage = () => {
-    setCurrentIndex((prev) => (prev + 1) % images.length)
-  }
+    setCurrentIndex((prev) => (prev + 1) % images.length);
+  };
 
   const prevImage = () => {
-    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
-  }
+    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
 
   const goToImage = (index: number) => {
-    setCurrentIndex(index)
-  }
+    setCurrentIndex(index);
+  };
 
   return (
     <>
@@ -84,7 +78,9 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
                 <button
                   key={index}
                   className={`w-2 h-2 rounded-full ${
-                    index === currentIndex ? 'bg-white' : 'bg-white/50'
+                    index === currentIndex
+                      ? "bg-white dark:bg-gray-800 "
+                      : "bg-white dark:bg-gray-800 /50"
                   }`}
                   onClick={() => goToImage(index)}
                 />
@@ -141,7 +137,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
                     <button
                       key={index}
                       className={`w-12 h-12 rounded border-2 ${
-                        index === currentIndex ? 'border-white' : 'border-transparent'
+                        index === currentIndex ? "border-white" : "border-transparent"
                       }`}
                       onClick={() => goToImage(index)}
                     >
@@ -159,5 +155,5 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
         </DialogContent>
       </Dialog>
     </>
-  )
-}
+  );
+};

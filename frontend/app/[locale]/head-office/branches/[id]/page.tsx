@@ -3,19 +3,19 @@
  * View and manage individual branch information
  */
 
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { use } from 'react';
-import Link from 'next/link';
-import branchService, { BranchDto } from '@/services/branch.service';
-import { BranchFormModal } from '@/components/head-office/BranchFormModal';
-import { BranchSettingsForm } from '@/components/head-office/BranchSettingsForm';
-import { DatabaseConnectionTest } from '@/components/head-office/DatabaseConnectionTest';
-import { Button } from '@/components/shared/Button';
-import { StatusBadge } from '@/components/shared/StatusBadge';
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { ErrorAlert } from '@/components/shared/ErrorAlert';
+import { useEffect, useState } from "react";
+import { use } from "react";
+import Link from "next/link";
+import branchService, { BranchDto } from "@/services/branch.service";
+import { BranchFormModal } from "@/components/head-office/BranchFormModal";
+import { BranchSettingsForm } from "@/components/head-office/BranchSettingsForm";
+import { DatabaseConnectionTest } from "@/components/head-office/DatabaseConnectionTest";
+import { Button } from "@/components/shared/Button";
+import { StatusBadge } from "@/components/shared/StatusBadge";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { ErrorAlert } from "@/components/shared/ErrorAlert";
 
 export default function BranchDetailsPage({
   params,
@@ -26,7 +26,7 @@ export default function BranchDetailsPage({
   const [branch, setBranch] = useState<BranchDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'info' | 'settings' | 'users' | 'database'>('info');
+  const [activeTab, setActiveTab] = useState<"info" | "settings" | "users" | "database">("info");
   const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function BranchDetailsPage({
       const data = await branchService.getBranchById(id);
       setBranch(data);
     } catch (err: any) {
-      setError(err.message || 'Failed to load branch details');
+      setError(err.message || "Failed to load branch details");
     } finally {
       setLoading(false);
     }
@@ -53,7 +53,7 @@ export default function BranchDetailsPage({
   if (error || !branch) {
     return (
       <div>
-        <ErrorAlert message={error || 'Branch not found'} />
+        <ErrorAlert message={error || "Branch not found"} />
         <Link
           href={`/${locale}/head-office/branches`}
           className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:underline"
@@ -65,10 +65,10 @@ export default function BranchDetailsPage({
   }
 
   const tabs = [
-    { id: 'info' as const, name: 'Information', icon: 'ℹ️' },
-    { id: 'settings' as const, name: 'Settings', icon: '⚙️' },
-    { id: 'users' as const, name: 'Users', icon: '👥' },
-    { id: 'database' as const, name: 'Database', icon: '💾' },
+    { id: "info" as const, name: "Information", icon: "ℹ️" },
+    { id: "settings" as const, name: "Settings", icon: "⚙️" },
+    { id: "users" as const, name: "Users", icon: "👥" },
+    { id: "database" as const, name: "Database", icon: "💾" },
   ];
 
   return (
@@ -83,13 +83,9 @@ export default function BranchDetailsPage({
             ← Back to Branches
           </Link>
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              {branch.nameEn}
-            </h1>
-            <StatusBadge
-              variant={branch.isActive ? 'success' : 'neutral'}
-            >
-              {branch.isActive ? 'Active' : 'Inactive'}
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{branch.nameEn}</h1>
+            <StatusBadge variant={branch.isActive ? "success" : "neutral"}>
+              {branch.isActive ? "Active" : "Inactive"}
             </StatusBadge>
           </div>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
@@ -108,8 +104,8 @@ export default function BranchDetailsPage({
               onClick={() => setActiveTab(tab.id)}
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
+                  ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                  : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300"
               }`}
             >
               <span className="mr-2">{tab.icon}</span>
@@ -121,10 +117,10 @@ export default function BranchDetailsPage({
 
       {/* Tab Content */}
       <div>
-        {activeTab === 'info' && (
+        {activeTab === "info" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Basic Information */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+            <div className="bg-white dark:bg-gray-800  rounded-lg border border-gray-200 dark:border-gray-700 p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                 Basic Information
               </h2>
@@ -173,7 +169,7 @@ export default function BranchDetailsPage({
             </div>
 
             {/* Database Information */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+            <div className="bg-white dark:bg-gray-800  rounded-lg border border-gray-200 dark:border-gray-700 p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                 Database Configuration
               </h2>
@@ -214,7 +210,7 @@ export default function BranchDetailsPage({
             </div>
 
             {/* Regional Settings */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+            <div className="bg-white dark:bg-gray-800  rounded-lg border border-gray-200 dark:border-gray-700 p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                 Regional Settings
               </h2>
@@ -222,7 +218,7 @@ export default function BranchDetailsPage({
                 <div>
                   <dt className="text-sm text-gray-600 dark:text-gray-400">Language</dt>
                   <dd className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {branch.language === 'en' ? 'English' : 'Arabic'}
+                    {branch.language === "en" ? "English" : "Arabic"}
                   </dd>
                 </div>
                 <div>
@@ -247,7 +243,7 @@ export default function BranchDetailsPage({
             </div>
 
             {/* Statistics */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+            <div className="bg-white dark:bg-gray-800  rounded-lg border border-gray-200 dark:border-gray-700 p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                 Statistics
               </h2>
@@ -275,10 +271,10 @@ export default function BranchDetailsPage({
           </div>
         )}
 
-        {activeTab === 'settings' && <BranchSettingsForm branch={branch} onUpdate={loadBranch} />}
+        {activeTab === "settings" && <BranchSettingsForm branch={branch} onUpdate={loadBranch} />}
 
-        {activeTab === 'users' && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+        {activeTab === "users" && (
+          <div className="bg-white dark:bg-gray-800  rounded-lg border border-gray-200 dark:border-gray-700 p-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Branch Users
             </h2>
@@ -291,7 +287,7 @@ export default function BranchDetailsPage({
           </div>
         )}
 
-        {activeTab === 'database' && <DatabaseConnectionTest branchId={branch.id} />}
+        {activeTab === "database" && <DatabaseConnectionTest branchId={branch.id} />}
       </div>
 
       {/* Edit Modal */}

@@ -25,12 +25,12 @@ export const ErrorAlert: React.FC<ErrorAlertProps> = ({
 }) => {
   return (
     <div
-      className={`bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded relative ${className}`}
+      className={`bg-red-50 dark:bg-red-900/20 border border-red-400 dark:border-red-500 text-red-700 dark:text-red-300 px-4 py-3 rounded relative ${className}`}
       role="alert"
     >
       <div className="flex items-start">
         <svg
-          className="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0"
+          className="w-5 h-5 text-red-400 dark:text-red-500 mt-0.5 mr-3 flex-shrink-0"
           fill="currentColor"
           viewBox="0 0 20 20"
         >
@@ -44,7 +44,7 @@ export const ErrorAlert: React.FC<ErrorAlertProps> = ({
         {onDismiss && (
           <button
             onClick={onDismiss}
-            className="ml-3 flex-shrink-0 text-red-400 hover:text-red-600 focus:outline-none"
+            className="ml-3 flex-shrink-0 text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400 focus:outline-none"
             aria-label="Dismiss"
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -79,12 +79,12 @@ export const SuccessAlert: React.FC<SuccessAlertProps> = ({
 }) => {
   return (
     <div
-      className={`bg-green-50 border border-green-400 text-green-700 px-4 py-3 rounded relative ${className}`}
+      className={`bg-green-50 dark:bg-green-900/20 border border-green-400 dark:border-green-500 text-green-700 dark:text-green-300 px-4 py-3 rounded relative ${className}`}
       role="alert"
     >
       <div className="flex items-start">
         <svg
-          className="w-5 h-5 text-green-400 mt-0.5 mr-3 flex-shrink-0"
+          className="w-5 h-5 text-green-400 dark:text-green-500 mt-0.5 mr-3 flex-shrink-0"
           fill="currentColor"
           viewBox="0 0 20 20"
         >
@@ -98,7 +98,7 @@ export const SuccessAlert: React.FC<SuccessAlertProps> = ({
         {onDismiss && (
           <button
             onClick={onDismiss}
-            className="ml-3 flex-shrink-0 text-green-400 hover:text-green-600 focus:outline-none"
+            className="ml-3 flex-shrink-0 text-green-400 dark:text-green-500 hover:text-green-600 dark:hover:text-green-400 focus:outline-none"
             aria-label="Dismiss"
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">

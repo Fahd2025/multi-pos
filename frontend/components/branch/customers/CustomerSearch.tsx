@@ -3,11 +3,11 @@
  * Autocomplete search for customer selection in sales
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import customerService from '@/services/customer.service';
-import { CustomerDto } from '@/types/api.types';
+import { useState, useEffect, useRef } from "react";
+import customerService from "@/services/customer.service";
+import { CustomerDto } from "@/types/api.types";
 
 interface CustomerSearchProps {
   onSelectCustomer: (customer: CustomerDto | null) => void;
@@ -18,9 +18,9 @@ interface CustomerSearchProps {
 export default function CustomerSearch({
   onSelectCustomer,
   selectedCustomer,
-  placeholder = 'Search customer by name, code, email, or phone...',
+  placeholder = "Search customer by name, code, email, or phone...",
 }: CustomerSearchProps) {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<CustomerDto[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -34,8 +34,8 @@ export default function CustomerSearch({
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // Debounced search
@@ -53,7 +53,7 @@ export default function CustomerSearch({
         setSearchResults(results);
         setShowResults(true);
       } catch (err) {
-        console.error('Error searching customers:', err);
+        console.error("Error searching customers:", err);
         setSearchResults([]);
       } finally {
         setIsSearching(false);
@@ -65,14 +65,14 @@ export default function CustomerSearch({
 
   const handleSelectCustomer = (customer: CustomerDto) => {
     onSelectCustomer(customer);
-    setSearchTerm('');
+    setSearchTerm("");
     setShowResults(false);
     setSearchResults([]);
   };
 
   const handleClearCustomer = () => {
     onSelectCustomer(null);
-    setSearchTerm('');
+    setSearchTerm("");
     setShowResults(false);
     setSearchResults([]);
   };
@@ -102,10 +102,7 @@ export default function CustomerSearch({
               </span>
             </div>
           </div>
-          <button
-            onClick={handleClearCustomer}
-            className="text-red-600 hover:text-red-800 text-sm"
-          >
+          <button onClick={handleClearCustomer} className="text-red-600 hover:text-red-800 text-sm">
             Remove
           </button>
         </div>
@@ -138,7 +135,7 @@ export default function CustomerSearch({
 
       {/* Search Results Dropdown */}
       {showResults && searchResults.length > 0 && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded shadow-lg max-h-64 overflow-y-auto">
+        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800  border border-gray-200 rounded shadow-lg max-h-64 overflow-y-auto">
           {searchResults.map((customer) => (
             <div
               key={customer.id}
@@ -149,9 +146,7 @@ export default function CustomerSearch({
                 <div>
                   <p className="font-medium">{customer.nameEn}</p>
                   <p className="text-sm text-gray-600">Code: {customer.code}</p>
-                  {customer.email && (
-                    <p className="text-sm text-gray-500">{customer.email}</p>
-                  )}
+                  {customer.email && <p className="text-sm text-gray-500">{customer.email}</p>}
                 </div>
                 <div className="text-right text-sm">
                   <p className="text-green-600 font-medium">
@@ -167,7 +162,7 @@ export default function CustomerSearch({
 
       {/* No Results Message */}
       {showResults && searchTerm.length >= 2 && searchResults.length === 0 && !isSearching && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded shadow-lg p-4 text-center text-gray-500">
+        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800  border border-gray-200 rounded shadow-lg p-4 text-center text-gray-500">
           No customers found. Try a different search term.
         </div>
       )}

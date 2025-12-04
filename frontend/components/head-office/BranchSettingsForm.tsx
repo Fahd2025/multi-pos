@@ -3,14 +3,14 @@
  * Reusable form for updating branch regional settings
  */
 
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Input } from '@/components/shared/Input';
-import { Select } from '@/components/shared/Select';
-import { Button } from '@/components/shared/Button';
-import branchService, { BranchDto, BranchSettingsDto } from '@/services/branch.service';
-import { ErrorAlert } from '@/components/shared/ErrorAlert';
+import React, { useState } from "react";
+import { Input } from "@/components/shared/Input";
+import { Select } from "@/components/shared/Select";
+import { Button } from "@/components/shared/Button";
+import branchService, { BranchDto, BranchSettingsDto } from "@/services/branch.service";
+import { ErrorAlert } from "@/components/shared/ErrorAlert";
 
 interface BranchSettingsFormProps {
   branch: BranchDto;
@@ -49,14 +49,14 @@ export const BranchSettingsForm: React.FC<BranchSettingsFormProps> = ({ branch, 
       onUpdate();
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
-      setError(err.message || 'Failed to update settings');
+      setError(err.message || "Failed to update settings");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+    <div className="bg-white dark:bg-gray-800  rounded-lg border border-gray-200 dark:border-gray-700 p-6">
       <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
         Regional Settings
       </h2>
@@ -74,10 +74,10 @@ export const BranchSettingsForm: React.FC<BranchSettingsFormProps> = ({ branch, 
           <Select
             label="Language*"
             value={formData.language}
-            onChange={(e) => handleChange('language', e.target.value)}
+            onChange={(e) => handleChange("language", e.target.value)}
             options={[
-              { value: 'en', label: 'English' },
-              { value: 'ar', label: 'Arabic' }
+              { value: "en", label: "English" },
+              { value: "ar", label: "Arabic" },
             ]}
             required
           />
@@ -85,7 +85,7 @@ export const BranchSettingsForm: React.FC<BranchSettingsFormProps> = ({ branch, 
           <Input
             label="Currency*"
             value={formData.currency}
-            onChange={(e) => handleChange('currency', e.target.value)}
+            onChange={(e) => handleChange("currency", e.target.value)}
             placeholder="USD"
             required
           />
@@ -95,7 +95,7 @@ export const BranchSettingsForm: React.FC<BranchSettingsFormProps> = ({ branch, 
           <Input
             label="Time Zone*"
             value={formData.timeZone}
-            onChange={(e) => handleChange('timeZone', e.target.value)}
+            onChange={(e) => handleChange("timeZone", e.target.value)}
             placeholder="UTC"
             required
           />
@@ -103,7 +103,7 @@ export const BranchSettingsForm: React.FC<BranchSettingsFormProps> = ({ branch, 
           <Input
             label="Date Format*"
             value={formData.dateFormat}
-            onChange={(e) => handleChange('dateFormat', e.target.value)}
+            onChange={(e) => handleChange("dateFormat", e.target.value)}
             placeholder="MM/DD/YYYY"
             required
           />
@@ -113,7 +113,7 @@ export const BranchSettingsForm: React.FC<BranchSettingsFormProps> = ({ branch, 
           <Input
             label="Number Format*"
             value={formData.numberFormat}
-            onChange={(e) => handleChange('numberFormat', e.target.value)}
+            onChange={(e) => handleChange("numberFormat", e.target.value)}
             placeholder="en-US"
             required
           />
@@ -125,14 +125,14 @@ export const BranchSettingsForm: React.FC<BranchSettingsFormProps> = ({ branch, 
             min="0"
             max="100"
             value={formData.taxRate}
-            onChange={(e) => handleChange('taxRate', parseFloat(e.target.value))}
+            onChange={(e) => handleChange("taxRate", parseFloat(e.target.value))}
             required
           />
         </div>
 
         <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
           <Button type="submit" disabled={loading}>
-            {loading ? 'Saving...' : 'Save Settings'}
+            {loading ? "Saving..." : "Save Settings"}
           </Button>
         </div>
       </form>

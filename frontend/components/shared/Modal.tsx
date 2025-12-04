@@ -5,16 +5,16 @@
 
 "use client";
 
-import React, { Fragment } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
-import { IconButton } from './Button';
+import React, { Fragment } from "react";
+import { Dialog, Transition } from "@headlessui/react";
+import { IconButton } from "./Button";
 
 export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  size?: "sm" | "md" | "lg" | "xl" | "full";
   showCloseButton?: boolean;
   closeOnOverlayClick?: boolean;
 }
@@ -24,17 +24,17 @@ export const Modal: React.FC<ModalProps> = ({
   onClose,
   title,
   children,
-  size = 'md',
+  size = "md",
   showCloseButton = true,
   closeOnOverlayClick = true,
 }) => {
   // Size styles
   const sizeStyles = {
-    sm: 'max-w-md',
-    md: 'max-w-lg',
-    lg: 'max-w-2xl',
-    xl: 'max-w-4xl',
-    full: 'max-w-7xl',
+    sm: "max-w-md",
+    md: "max-w-lg",
+    lg: "max-w-2xl",
+    xl: "max-w-4xl",
+    full: "max-w-7xl",
   };
 
   const handleClose = () => {
@@ -72,7 +72,7 @@ export const Modal: React.FC<ModalProps> = ({
               leaveTo="opacity-0 scale-95"
             >
               <Dialog.Panel
-                className={`w-full ${sizeStyles[size]} transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all`}
+                className={`w-full ${sizeStyles[size]} transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800  p-6 text-left align-middle shadow-xl transition-all`}
               >
                 {/* Header */}
                 {(title || showCloseButton) && (
@@ -131,7 +131,7 @@ export interface ModalHeaderProps {
   className?: string;
 }
 
-export const ModalHeader: React.FC<ModalHeaderProps> = ({ children, className = '' }) => {
+export const ModalHeader: React.FC<ModalHeaderProps> = ({ children, className = "" }) => {
   return <div className={`mb-4 ${className}`}>{children}</div>;
 };
 
@@ -144,7 +144,7 @@ export interface ModalBodyProps {
   className?: string;
 }
 
-export const ModalBody: React.FC<ModalBodyProps> = ({ children, className = '' }) => {
+export const ModalBody: React.FC<ModalBodyProps> = ({ children, className = "" }) => {
   return <div className={`text-sm text-gray-700 dark:text-gray-300 ${className}`}>{children}</div>;
 };
 
@@ -157,10 +157,6 @@ export interface ModalFooterProps {
   className?: string;
 }
 
-export const ModalFooter: React.FC<ModalFooterProps> = ({ children, className = '' }) => {
-  return (
-    <div className={`mt-6 flex items-center justify-end gap-3 ${className}`}>
-      {children}
-    </div>
-  );
+export const ModalFooter: React.FC<ModalFooterProps> = ({ children, className = "" }) => {
+  return <div className={`mt-6 flex items-center justify-end gap-3 ${className}`}>{children}</div>;
 };

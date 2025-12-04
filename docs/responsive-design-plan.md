@@ -54,31 +54,37 @@ screens: {
 ### 1.3 Rationale
 
 **Mobile First (0-639px):**
+
 - Primary target: Cashiers using handheld devices or phones
 - Requires: Single-column layouts, bottom sheets, touch-optimized controls
 - Min touch target: 48x48px (WCAG 2.1 Level AAA)
 
 **Small (640-767px):**
+
 - Target: Large phones, small tablets
 - Allows: 2-column product grids, larger touch targets
 - Enhanced: Category filters in horizontal scroll
 
 **Medium (768-1023px):**
+
 - Target: Tablets in portrait mode
 - Allows: 3-4 column grids, side panels
 - Enhanced: Category sidebar appears, cart can be toggled
 
 **Large (1024px+):**
+
 - Target: Tablets (landscape), laptops, desktop POS terminals
 - Allows: Full multi-panel layout (categories + products + cart)
 - Enhanced: Full desktop experience with all panels visible
 
 **Extra Large (1280px+):**
+
 - Target: Standard desktop monitors
 - Allows: More columns in product grid (5-6), wider spacing
 - Enhanced: Comfortable viewing distance for cashiers
 
 **2XL+ (1536px+):**
+
 - Target: Large monitors, ultra-wide displays
 - Allows: Maximum 6-7 product columns, extended cart
 - Enhanced: Dashboard widgets, analytics panels
@@ -110,6 +116,7 @@ gap-3 sm:gap-4 lg:gap-5 xl:gap-6
 ```
 
 **Rationale:**
+
 - 2 columns on phones: fits most screens comfortably
 - 3-4 columns on tablets: balances information density and touch targets
 - 5-8 columns on desktop: maximizes screen real estate for cashiers
@@ -124,11 +131,13 @@ max-w-screen-3xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12
 ### 2.3 Flexbox Usage
 
 **Top Navigation Bar:**
+
 ```tsx
 flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6
 ```
 
 **Shopping Cart:**
+
 ```tsx
 // Mobile: Bottom sheet (full width)
 // Tablet+: Fixed right panel
@@ -136,6 +145,7 @@ flex flex-col h-full
 ```
 
 **Category Sidebar:**
+
 ```tsx
 // Mobile: Drawer overlay
 // Tablet (portrait): Top horizontal scroll
@@ -173,6 +183,7 @@ flex flex-col h-full
 ### 3.1 POS Page Layout
 
 **Current Issues:**
+
 - Cart hidden on mobile (`hidden md:block`)
 - Search bar cramped on small screens
 - Settings panel not optimized for mobile
@@ -180,6 +191,7 @@ flex flex-col h-full
 **Redesign Strategy:**
 
 #### Mobile (< 768px)
+
 ```
 ┌─────────────────────────┐
 │  [←] POS        [🛒][⚙️] │  ← Compact header
@@ -207,6 +219,7 @@ flex flex-col h-full
 ```
 
 #### Tablet (768px - 1023px)
+
 ```
 ┌────────────────────────────────────┐
 │ [←] POS    [Search...]  [🛒][⚙️]   │
@@ -230,6 +243,7 @@ flex flex-col h-full
 ```
 
 #### Desktop (1024px+)
+
 ```
 ┌───┬────────────────────────────┬────────┐
 │ C │ [←] POS  [Search...] [⚙️]  │ [Cart] │
@@ -250,6 +264,7 @@ flex flex-col h-full
 **File:** `frontend/components/sales/pos/ShoppingCart.tsx`
 
 **Current Issues:**
+
 - Completely hidden on mobile
 - No mobile cart experience
 
@@ -269,6 +284,7 @@ Features:
 ```
 
 **Implementation Details:**
+
 ```tsx
 // Sticky Bottom Bar
 <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden">
@@ -296,9 +312,10 @@ Features:
 ```
 
 **Styling:**
+
 ```css
 .mobile-cart-item {
-  @apply flex items-center gap-3 p-3 bg-white rounded-lg border-2 border-gray-200;
+  @apply flex items-center gap-3 p-3 bg-white dark:bg-gray-800  rounded-lg border-2 border-gray-200;
   min-height: 80px;
   touch-action: manipulation;
 }
@@ -313,7 +330,7 @@ Features:
 
 .mobile-quantity-button {
   @apply w-12 h-12 rounded-lg font-bold text-xl;
-  min-width: 48px;  /* WCAG touch target */
+  min-width: 48px; /* WCAG touch target */
   min-height: 48px;
 }
 ```
@@ -360,7 +377,7 @@ Features:
   onClick={() => handleProductClick(product)}
   className={`
     // Base styles
-    relative bg-white rounded-xl p-4
+    relative bg-white dark:bg-gray-800  rounded-xl p-4
     border-2 border-gray-200
 
     // Touch enhancements
@@ -387,7 +404,8 @@ Features:
 
 ```tsx
 // Adaptive image sizing
-<div className="
+<div
+  className="
   aspect-square
   bg-gray-100
   rounded-lg
@@ -397,7 +415,8 @@ Features:
   sm:max-w-[200px]
   md:max-w-[250px]
   lg:max-w-[300px]
-">
+"
+>
   <img
     src={imageUrl}
     alt={product.name}
@@ -417,9 +436,10 @@ Features:
 ```tsx
 <div className="text-left">
   {/* Product Name */}
-  <h4 className="
+  <h4
+    className="
     font-semibold
-    text-gray-900
+    text-gray-900 dark:text-gray-100
     line-clamp-2
 
     // Responsive font sizes
@@ -427,26 +447,31 @@ Features:
 
     // Minimum height to prevent layout shift
     min-h-[2.5rem] sm:min-h-[3rem]
-  ">
+  "
+  >
     {product.nameEn}
   </h4>
 
   {/* Price */}
-  <span className="
+  <span
+    className="
     font-bold
     text-blue-600
 
     // Responsive sizing
     text-lg sm:text-xl lg:text-2xl
-  ">
+  "
+  >
     ${product.sellingPrice.toFixed(2)}
   </span>
 
   {/* Stock Level */}
-  <span className="
+  <span
+    className="
     text-gray-500
     text-xs sm:text-sm
-  ">
+  "
+  >
     Stock: {product.stockLevel}
   </span>
 </div>
@@ -505,17 +530,19 @@ Features:
 
 ```tsx
 // Sticky top bar
-<div className="
+<div
+  className="
   sticky top-0 z-20
-  bg-white border-b
+  bg-white dark:bg-gray-800  border-b
   overflow-x-auto
   scrollbar-thin
 
   // Show on tablet only
   hidden md:block lg:hidden
-">
+"
+>
   <div className="flex gap-2 p-4">
-    {categories.map(category => (
+    {categories.map((category) => (
       <button
         key={category.id}
         className="
@@ -568,7 +595,7 @@ Features:
   className="
     hidden lg:flex
     absolute top-4
-    bg-white border rounded-r-lg
+    bg-white dark:bg-gray-800  border rounded-r-lg
     p-2
     shadow-md
     z-10
@@ -586,30 +613,36 @@ Features:
 **Responsive Behavior:**
 
 #### Mobile
+
 ```tsx
 // Full-screen modal
 <Dialog open={open} onOpenChange={onClose}>
-  <DialogContent className="
+  <DialogContent
+    className="
     // Mobile: full screen
     w-screen h-screen max-w-none
     sm:w-full sm:h-auto sm:max-w-lg
 
     rounded-none sm:rounded-xl
     p-4 sm:p-6
-  ">
+  "
+  >
     {/* Checkout form with mobile-optimized controls */}
   </DialogContent>
 </Dialog>
 ```
 
 #### Desktop
+
 ```tsx
 // Centered modal with max-width
-<DialogContent className="
+<DialogContent
+  className="
   max-w-2xl
   p-8
   rounded-xl
-">
+"
+>
   {/* Multi-column layout for payment options */}
 </DialogContent>
 ```
@@ -619,23 +652,28 @@ Features:
 **File:** `frontend/app/[locale]/branch/sales/pos/page.tsx:168-275`
 
 **Current Issues:**
+
 - Search bar gets cramped on small screens
 - Buttons too small on some devices
 
 **Responsive Redesign:**
 
 ```tsx
-<header className="
+<header
+  className="
   sticky top-0 z-50
-  bg-white border-b shadow-sm
-">
+  bg-white dark:bg-gray-800  border-b shadow-sm
+"
+>
   {/* Main Header */}
-  <div className="
+  <div
+    className="
     flex items-center justify-between
     gap-2 sm:gap-4
     px-3 sm:px-4 lg:px-6
     py-3 sm:py-4
-  ">
+  "
+  >
     {/* Left: Back Button + Title */}
     <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
       <button
@@ -659,16 +697,18 @@ Features:
       <div className="hidden sm:block">
         <h1 className="text-lg sm:text-xl font-bold">Point of Sale</h1>
         <p className="text-xs text-gray-600">
-          {isOnline ? '🟢 Online' : '🔴 Offline'}
+          {isOnline ? "🟢 Online" : "🔴 Offline"}
         </p>
       </div>
     </div>
 
     {/* Center: Search (Desktop) / Hidden (Mobile) */}
-    <div className="
+    <div
+      className="
       hidden md:flex
       flex-1 max-w-md mx-4
-    ">
+    "
+    >
       <input
         type="search"
         placeholder="Search products..."
@@ -699,7 +739,8 @@ Features:
       >
         <ShoppingCartIcon className="w-6 h-6 sm:w-7 sm:h-7" />
         {itemCount > 0 && (
-          <span className="
+          <span
+            className="
             absolute -top-1 -right-1
             bg-red-500 text-white
             text-xs font-bold
@@ -707,7 +748,8 @@ Features:
             min-w-[22px] h-[22px]
             flex items-center justify-center
             px-1
-          ">
+          "
+          >
             {itemCount}
           </span>
         )}
@@ -733,10 +775,12 @@ Features:
   </div>
 
   {/* Mobile Search Bar (Expandable) */}
-  <div className="
+  <div
+    className="
     block md:hidden
     px-3 pb-3
-  ">
+  "
+  >
     <input
       type="search"
       placeholder="Search products..."
@@ -754,10 +798,12 @@ Features:
 
   {/* Settings Panel */}
   {showSettings && (
-    <div className="
+    <div
+      className="
       border-t bg-gray-50
       p-4 sm:p-6
-    ">
+    "
+    >
       {/* Settings content */}
     </div>
   )}
@@ -796,22 +842,22 @@ fontSize: {
 
 ```tsx
 // Product Name
-className="text-sm sm:text-base lg:text-lg font-semibold"
+className = "text-sm sm:text-base lg:text-lg font-semibold";
 
 // Product Price
-className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600"
+className = "text-lg sm:text-xl lg:text-2xl font-bold text-blue-600";
 
 // Product SKU
-className="text-xs sm:text-sm text-gray-500"
+className = "text-xs sm:text-sm text-gray-500";
 
 // Section Headers
-className="text-xl sm:text-2xl lg:text-3xl font-bold"
+className = "text-xl sm:text-2xl lg:text-3xl font-bold";
 
 // Body Text
-className="text-base sm:text-lg"
+className = "text-base sm:text-lg";
 
 // Buttons
-className="text-base sm:text-lg font-medium"
+className = "text-base sm:text-lg font-medium";
 ```
 
 **Fluid Typography (Advanced):**
@@ -829,6 +875,7 @@ className="text-base sm:text-lg font-medium"
 ### 4.2 Button Sizes
 
 **Touch Target Guidelines:**
+
 - Minimum: 44x44px (WCAG 2.1 Level AA)
 - Recommended: 48x48px (WCAG 2.1 Level AAA)
 - Desktop: Can be smaller (36x36px) for mouse users
@@ -1258,36 +1305,36 @@ focus:ring-offset-2
 /* Primary Button */
 .btn-primary {
   background: #2563eb; /* Blue-600 */
-  color: #ffffff;      /* White on Blue-600 = 8.59:1 ✓ */
+  color: #ffffff; /* White on Blue-600 = 8.59:1 ✓ */
 }
 
 /* Secondary Button */
 .btn-secondary {
   background: #f3f4f6; /* Gray-100 */
-  color: #171717;      /* Gray-900 on Gray-100 = 16.05:1 ✓ */
+  color: #171717; /* Gray-900 on Gray-100 = 16.05:1 ✓ */
 }
 
 /* Destructive Button */
 .btn-destructive {
   background: #ef4444; /* Red-500 */
-  color: #ffffff;      /* White on Red-500 = 4.54:1 ✓ */
+  color: #ffffff; /* White on Red-500 = 4.54:1 ✓ */
 }
 
 /* Price (Blue-600) */
 .price-text {
-  color: #2563eb;      /* Blue-600 on White = 8.59:1 ✓ */
+  color: #2563eb; /* Blue-600 on White = 8.59:1 ✓ */
 }
 
 /* Out of Stock Badge */
 .badge-out-of-stock {
   background: #dc2626; /* Red-600 */
-  color: #ffffff;      /* White on Red-600 = 7.25:1 ✓ */
+  color: #ffffff; /* White on Red-600 = 7.25:1 ✓ */
 }
 
 /* Low Stock Badge */
 .badge-low-stock {
   background: #eab308; /* Yellow-500 */
-  color: #000000;      /* Black on Yellow-500 = 11.68:1 ✓ */
+  color: #000000; /* Black on Yellow-500 = 11.68:1 ✓ */
 }
 ```
 
@@ -1435,6 +1482,7 @@ const shouldAnimate = !window.matchMedia('(prefers-reduced-motion: reduce)').mat
 ## 6. Implementation Roadmap
 
 ### Phase 1: Foundation (Week 1)
+
 - [ ] Update `tailwind.config.ts` with custom breakpoints
 - [ ] Add responsive typography scales
 - [ ] Update `globals.css` with accessibility styles
@@ -1442,6 +1490,7 @@ const shouldAnimate = !window.matchMedia('(prefers-reduced-motion: reduce)').mat
 - [ ] Implement `prefers-reduced-motion` support
 
 ### Phase 2: Mobile Cart (Week 2)
+
 - [ ] Create `MobileCart.tsx` component
 - [ ] Implement bottom sheet/drawer UI
 - [ ] Add sticky bottom cart bar
@@ -1449,6 +1498,7 @@ const shouldAnimate = !window.matchMedia('(prefers-reduced-motion: reduce)').mat
 - [ ] Add touch gestures (swipe to close)
 
 ### Phase 3: Product Grid Enhancement (Week 2)
+
 - [ ] Update responsive grid breakpoints
 - [ ] Enhance touch targets (48x48px minimum)
 - [ ] Implement responsive image sizes
@@ -1456,6 +1506,7 @@ const shouldAnimate = !window.matchMedia('(prefers-reduced-motion: reduce)').mat
 - [ ] Optimize for performance (virtual scrolling if needed)
 
 ### Phase 4: Category Navigation (Week 3)
+
 - [ ] Implement mobile drawer for categories
 - [ ] Create horizontal scroll for tablet
 - [ ] Enhance desktop sidebar with collapse
@@ -1463,6 +1514,7 @@ const shouldAnimate = !window.matchMedia('(prefers-reduced-motion: reduce)').mat
 - [ ] Test accessibility
 
 ### Phase 5: Top Navigation (Week 3)
+
 - [ ] Redesign header for mobile
 - [ ] Move search to separate row on mobile
 - [ ] Optimize button sizes
@@ -1470,6 +1522,7 @@ const shouldAnimate = !window.matchMedia('(prefers-reduced-motion: reduce)').mat
 - [ ] Implement hamburger menu if needed
 
 ### Phase 6: Checkout Flow (Week 4)
+
 - [ ] Make checkout dialog responsive
 - [ ] Full-screen on mobile
 - [ ] Optimize payment method selection
@@ -1477,6 +1530,7 @@ const shouldAnimate = !window.matchMedia('(prefers-reduced-motion: reduce)').mat
 - [ ] Test complete checkout flow
 
 ### Phase 7: Testing & Refinement (Week 5)
+
 - [ ] Cross-browser testing (Chrome, Safari, Firefox, Edge)
 - [ ] Device testing (iOS, Android, tablets)
 - [ ] Accessibility audit (WCAG 2.1 AA)
@@ -1484,6 +1538,7 @@ const shouldAnimate = !window.matchMedia('(prefers-reduced-motion: reduce)').mat
 - [ ] User acceptance testing
 
 ### Phase 8: Documentation (Week 5)
+
 - [ ] Update component documentation
 - [ ] Create responsive design guidelines
 - [ ] Document breakpoint usage
@@ -1495,6 +1550,7 @@ const shouldAnimate = !window.matchMedia('(prefers-reduced-motion: reduce)').mat
 ## 7. Testing Checklist
 
 ### Device Testing
+
 - [ ] iPhone SE (375px)
 - [ ] iPhone 12/13/14 (390px)
 - [ ] iPhone 14 Pro Max (430px)
@@ -1507,16 +1563,19 @@ const shouldAnimate = !window.matchMedia('(prefers-reduced-motion: reduce)').mat
 - [ ] Ultra-wide (2560px)
 
 ### Browser Testing
+
 - [ ] Chrome (desktop & mobile)
 - [ ] Safari (desktop & mobile)
 - [ ] Firefox (desktop & mobile)
 - [ ] Edge (desktop)
 
 ### Orientation Testing
+
 - [ ] Portrait mode (all devices)
 - [ ] Landscape mode (all devices)
 
 ### Accessibility Testing
+
 - [ ] Keyboard navigation (Tab, Shift+Tab, Enter, Esc)
 - [ ] Screen reader (NVDA, JAWS, VoiceOver)
 - [ ] Touch target sizes (minimum 48x48px)
@@ -1526,6 +1585,7 @@ const shouldAnimate = !window.matchMedia('(prefers-reduced-motion: reduce)').mat
 - [ ] Reduced motion preference
 
 ### Performance Testing
+
 - [ ] Time to Interactive (TTI) < 3s
 - [ ] First Contentful Paint (FCP) < 1.5s
 - [ ] Largest Contentful Paint (LCP) < 2.5s
@@ -1544,7 +1604,7 @@ Here's the complete `tailwind.config.ts` with all responsive enhancements:
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  darkMode: 'class',
+  darkMode: "class",
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -1553,110 +1613,116 @@ const config: Config = {
   theme: {
     extend: {
       screens: {
-        'xs': '475px',
-        'sm': '640px',
-        'md': '768px',
-        'lg': '1024px',
-        'xl': '1280px',
-        '2xl': '1536px',
-        '3xl': '1920px',
+        xs: "475px",
+        sm: "640px",
+        md: "768px",
+        lg: "1024px",
+        xl: "1280px",
+        "2xl": "1536px",
+        "3xl": "1920px",
 
         // Device-specific
-        'touch': { 'raw': '(hover: none) and (pointer: coarse)' },
-        'mouse': { 'raw': '(hover: hover) and (pointer: fine)' },
-        'portrait': { 'raw': '(orientation: portrait)' },
-        'landscape': { 'raw': '(orientation: landscape)' },
+        touch: { raw: "(hover: none) and (pointer: coarse)" },
+        mouse: { raw: "(hover: hover) and (pointer: fine)" },
+        portrait: { raw: "(orientation: portrait)" },
+        landscape: { raw: "(orientation: landscape)" },
       },
 
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
         card: "var(--card)",
-        'card-foreground': "var(--card-foreground)",
+        "card-foreground": "var(--card-foreground)",
         primary: "var(--primary)",
-        'primary-foreground': "var(--primary-foreground)",
+        "primary-foreground": "var(--primary-foreground)",
         secondary: "var(--secondary)",
-        'secondary-foreground': "var(--secondary-foreground)",
+        "secondary-foreground": "var(--secondary-foreground)",
         muted: "var(--muted)",
-        'muted-foreground': "var(--muted-foreground)",
+        "muted-foreground": "var(--muted-foreground)",
         accent: "var(--accent)",
-        'accent-foreground': "var(--accent-foreground)",
+        "accent-foreground": "var(--accent-foreground)",
         destructive: "var(--destructive)",
-        'destructive-foreground': "var(--destructive-foreground)",
+        "destructive-foreground": "var(--destructive-foreground)",
         border: "var(--border)",
         input: "var(--input)",
         ring: "var(--ring)",
       },
 
       fontSize: {
-        'xs': ['0.75rem', { lineHeight: '1rem' }],
-        'sm': ['0.875rem', { lineHeight: '1.25rem' }],
-        'base': ['1rem', { lineHeight: '1.5rem' }],
-        'lg': ['1.125rem', { lineHeight: '1.75rem' }],
-        'xl': ['1.25rem', { lineHeight: '1.75rem' }],
-        '2xl': ['1.5rem', { lineHeight: '2rem' }],
-        '3xl': ['1.875rem', { lineHeight: '2.25rem' }],
-        '4xl': ['2.25rem', { lineHeight: '2.5rem' }],
+        xs: ["0.75rem", { lineHeight: "1rem" }],
+        sm: ["0.875rem", { lineHeight: "1.25rem" }],
+        base: ["1rem", { lineHeight: "1.5rem" }],
+        lg: ["1.125rem", { lineHeight: "1.75rem" }],
+        xl: ["1.25rem", { lineHeight: "1.75rem" }],
+        "2xl": ["1.5rem", { lineHeight: "2rem" }],
+        "3xl": ["1.875rem", { lineHeight: "2.25rem" }],
+        "4xl": ["2.25rem", { lineHeight: "2.5rem" }],
 
         // POS-specific
-        'price-sm': ['1.125rem', { lineHeight: '1.5rem', fontWeight: '700' }],
-        'price-md': ['1.5rem', { lineHeight: '2rem', fontWeight: '700' }],
-        'price-lg': ['2rem', { lineHeight: '2.5rem', fontWeight: '700' }],
+        "price-sm": ["1.125rem", { lineHeight: "1.5rem", fontWeight: "700" }],
+        "price-md": ["1.5rem", { lineHeight: "2rem", fontWeight: "700" }],
+        "price-lg": ["2rem", { lineHeight: "2.5rem", fontWeight: "700" }],
       },
 
       spacing: {
-        'safe-top': 'env(safe-area-inset-top)',
-        'safe-bottom': 'env(safe-area-inset-bottom)',
-        'safe-left': 'env(safe-area-inset-left)',
-        'safe-right': 'env(safe-area-inset-right)',
+        "safe-top": "env(safe-area-inset-top)",
+        "safe-bottom": "env(safe-area-inset-bottom)",
+        "safe-left": "env(safe-area-inset-left)",
+        "safe-right": "env(safe-area-inset-right)",
       },
 
       minHeight: {
-        'touch-target': '48px',
+        "touch-target": "48px",
       },
 
       minWidth: {
-        'touch-target': '48px',
+        "touch-target": "48px",
       },
 
       transitionProperty: {
-        'height': 'height',
-        'spacing': 'margin, padding',
+        height: "height",
+        spacing: "margin, padding",
       },
 
       animation: {
-        'slide-up': 'slideUp 0.3s ease-out',
-        'slide-down': 'slideDown 0.3s ease-out',
-        'slide-in': 'slideIn 0.3s ease-out',
-        'fade-in': 'fadeIn 0.2s ease-out',
-        'scale-in': 'scaleIn 0.2s ease-out',
-        'pulse-once': 'pulse 0.4s ease-out',
+        "slide-up": "slideUp 0.3s ease-out",
+        "slide-down": "slideDown 0.3s ease-out",
+        "slide-in": "slideIn 0.3s ease-out",
+        "fade-in": "fadeIn 0.2s ease-out",
+        "scale-in": "scaleIn 0.2s ease-out",
+        "pulse-once": "pulse 0.4s ease-out",
       },
 
       keyframes: {
         slideUp: {
-          '0%': { transform: 'translateY(100%)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
+          "0%": { transform: "translateY(100%)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
         },
         slideDown: {
-          '0%': { transform: 'translateY(-10px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
+          "0%": { transform: "translateY(-10px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
         },
         slideIn: {
-          '0%': { transform: 'translateX(100%)', opacity: '0' },
-          '100%': { transform: 'translateX(0)', opacity: '1' },
+          "0%": { transform: "translateX(100%)", opacity: "0" },
+          "100%": { transform: "translateX(0)", opacity: "1" },
         },
         fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
         },
         scaleIn: {
-          '0%': { transform: 'scale(0.95)', opacity: '0' },
-          '100%': { transform: 'scale(1)', opacity: '1' },
+          "0%": { transform: "scale(0.95)", opacity: "0" },
+          "100%": { transform: "scale(1)", opacity: "1" },
         },
         pulse: {
-          '0%, 100%': { transform: 'scale(1)', boxShadow: '0 0 0 0 rgba(37, 99, 235, 0.7)' },
-          '50%': { transform: 'scale(1.05)', boxShadow: '0 0 0 10px rgba(37, 99, 235, 0)' },
+          "0%, 100%": {
+            transform: "scale(1)",
+            boxShadow: "0 0 0 0 rgba(37, 99, 235, 0.7)",
+          },
+          "50%": {
+            transform: "scale(1.05)",
+            boxShadow: "0 0 0 10px rgba(37, 99, 235, 0)",
+          },
         },
       },
     },
@@ -1672,12 +1738,14 @@ export default config;
 ## 9. Additional Resources
 
 ### Responsive Design Tools
+
 - Chrome DevTools Device Mode
 - Responsively App (multi-device preview)
 - BrowserStack (real device testing)
 - LambdaTest (cross-browser testing)
 
 ### Accessibility Tools
+
 - axe DevTools (browser extension)
 - WAVE (web accessibility evaluation)
 - Lighthouse (Chrome DevTools)
@@ -1685,12 +1753,14 @@ export default config;
 - VoiceOver (macOS/iOS screen reader)
 
 ### Performance Tools
+
 - Lighthouse (performance audit)
 - WebPageTest (detailed performance analysis)
 - Chrome DevTools Performance tab
 - React DevTools Profiler
 
 ### Design References
+
 - Square POS (mobile-first design)
 - Shopify POS (responsive layout)
 - Toast POS (tablet-optimized)
@@ -1704,6 +1774,7 @@ export default config;
 This comprehensive responsive design plan provides a complete roadmap for transforming the Multi-POS application into a fully responsive, accessible, and performant system that works seamlessly across all devices.
 
 **Key Principles:**
+
 1. **Mobile-first**: Start with mobile and progressively enhance
 2. **Touch-optimized**: 48x48px minimum touch targets
 3. **Accessible**: WCAG 2.1 AA compliance
@@ -1711,6 +1782,7 @@ This comprehensive responsive design plan provides a complete roadmap for transf
 5. **Adaptive**: Smart layouts that adjust to context
 
 **Next Steps:**
+
 1. Review and approve this plan
 2. Begin Phase 1 implementation
 3. Conduct regular testing throughout development

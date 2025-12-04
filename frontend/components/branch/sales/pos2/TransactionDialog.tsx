@@ -5,6 +5,7 @@ import { X, CreditCard, Banknote, Percent, Users, Truck, UtensilsCrossed, Shoppi
 import styles from "./Pos2.module.css";
 import { ProductDto } from "@/types/api.types";
 import salesService from "@/services/sales.service";
+import { useToast } from "./useToast";
 
 interface OrderItem extends ProductDto {
   quantity: number;
@@ -46,6 +47,7 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
   subtotal,
   onSuccess,
 }) => {
+  const toast = useToast();
   const [orderType, setOrderType] = useState<OrderType>("takeaway");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [discountType, setDiscountType] = useState<DiscountType>("percentage");
@@ -87,21 +89,28 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
   const handleProcessTransaction = async () => {
     // Validation
     if (cart.length === 0) {
+      toast.error("Cart is empty", "Please add items to cart before processing transaction");
       setError("Cart is empty");
       return;
     }
 
     if (orderType === "delivery" && (!customer.name || !customer.phone || !customer.address)) {
+      toast.warning("Missing customer details", "Please fill in customer name, phone, and address for delivery orders");
       setError("Please fill in customer details for delivery orders");
       return;
     }
 
     if (orderType === "dine-in" && !table.tableNumber) {
+      toast.warning("Missing table selection", "Please select a table for dine-in orders");
       setError("Please select a table for dine-in orders");
       return;
     }
 
     if (paymentMethod === "cash" && paidAmount < total) {
+      toast.error(
+        "Insufficient payment",
+        `Amount paid ($${paidAmount.toFixed(2)}) is less than total ($${total.toFixed(2)}). Please collect more cash.`
+      );
       setError(`Insufficient payment. Amount paid ($${paidAmount.toFixed(2)}) is less than total ($${total.toFixed(2)})`);
       return;
     }
@@ -156,16 +165,34 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
       // Create the sale
       const sale = await salesService.createSale(saleData);
 
-      // Success - show success message
-      const successMessage = `Transaction Successful!\n\nInvoice #${sale.invoiceNumber}\nOrder Type: ${orderType.toUpperCase()}\nPayment: ${paymentMethod.replace("-", " ").toUpperCase()}\n\nSubtotal: $${subtotal.toFixed(2)}${discountAmount > 0 ? `\nDiscount: -$${discountAmount.toFixed(2)}\nAmount After Discount: $${taxableAmount.toFixed(2)}` : ""}\nTax (15%): $${tax.toFixed(2)}\nTotal: $${total.toFixed(2)}${paymentMethod === "cash" ? `\n\nPaid: $${paidAmount.toFixed(2)}\nChange: $${change.toFixed(2)}` : ""}`;
+      // Success - show success notification
+      const successDetails = paymentMethod === "cash"
+        ? `Invoice #${sale.invoiceNumber} | Total: $${total.toFixed(2)} | Paid: $${paidAmount.toFixed(2)} | Change: $${change.toFixed(2)}`
+        : `Invoice #${sale.invoiceNumber} | Total: $${total.toFixed(2)} | Payment: ${paymentMethod.replace("-", " ").toUpperCase()}`;
 
-      alert(successMessage);
+      toast.success(
+        "Transaction completed successfully!",
+        successDetails,
+        7000 // Show for 7 seconds
+      );
 
+      // Reset form and close
       onSuccess();
       onClose();
+
+      // Reset form state
+      setOrderType("takeaway");
+      setPaymentMethod("cash");
+      setDiscountValue(0);
+      setAmountPaid("");
+      setCustomer({ name: "", phone: "", email: "", address: "" });
+      setTable({ tableNumber: "", tableName: "" });
+      setDriver({ driverId: "", driverName: "" });
     } catch (err: any) {
       console.error("Error processing transaction:", err);
-      setError(err.message || "Failed to process transaction");
+      const errorMessage = err.message || "Failed to process transaction";
+      toast.error("Transaction failed", errorMessage, 8000);
+      setError(errorMessage);
     } finally {
       setProcessing(false);
     }

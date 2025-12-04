@@ -24,8 +24,8 @@
  * ```
  */
 
-import React from 'react';
-import Link from 'next/link';
+import React from "react";
+import Link from "next/link";
 
 export interface ActionCardProps {
   /** Card title */
@@ -37,7 +37,7 @@ export interface ActionCardProps {
   /** Background color class for icon container (e.g., "bg-blue-100") */
   iconBgColor?: string;
   /** Icon container shape */
-  iconShape?: 'circle' | 'rounded' | 'square';
+  iconShape?: "circle" | "rounded" | "square";
   /** Border color when hovered (e.g., "border-blue-500") */
   hoverBorderColor?: string;
   /** Background color for the whole card (e.g., "bg-blue-50") */
@@ -49,48 +49,56 @@ export interface ActionCardProps {
   /** Additional CSS classes */
   className?: string;
   /** Layout direction */
-  layout?: 'horizontal' | 'vertical';
+  layout?: "horizontal" | "vertical";
 }
 
 export const ActionCard: React.FC<ActionCardProps> = ({
   title,
   description,
   icon,
-  iconBgColor = 'bg-blue-100 dark:bg-blue-900/20',
-  iconShape = 'rounded',
-  hoverBorderColor = 'border-blue-500 dark:border-blue-400',
-  bgColor = 'bg-white dark:bg-gray-800',
+  iconBgColor = "bg-blue-100 dark:bg-blue-900/20",
+  iconShape = "rounded",
+  hoverBorderColor = "border-blue-500 dark:border-blue-400",
+  bgColor = "bg-white dark:bg-gray-800 ",
   onClick,
   href,
-  className = '',
-  layout = 'horizontal',
+  className = "",
+  layout = "horizontal",
 }) => {
   const shapeClass = {
-    circle: 'rounded-full',
-    rounded: 'rounded-lg',
-    square: 'rounded-none',
+    circle: "rounded-full",
+    rounded: "rounded-lg",
+    square: "rounded-none",
   }[iconShape];
 
   const content = (
     <>
-      {layout === 'vertical' && icon && (
+      {layout === "vertical" && icon && (
         <div className="text-3xl mb-3">
-          {typeof icon === 'string' ? icon : <div className="text-4xl">{icon}</div>}
+          {typeof icon === "string" ? icon : <div className="text-4xl">{icon}</div>}
         </div>
       )}
-      <div className={`flex items-center ${layout === 'horizontal' ? 'gap-4' : 'flex-col'}`}>
-        {layout === 'horizontal' && icon && (
+      <div className={`flex items-center ${layout === "horizontal" ? "gap-4" : "flex-col"}`}>
+        {layout === "horizontal" && icon && (
           <div
             className={`w-12 h-12 ${iconBgColor} ${shapeClass} flex items-center justify-center flex-shrink-0`}
           >
-            {typeof icon === 'string' ? <span className="text-2xl">{icon}</span> : icon}
+            {typeof icon === "string" ? <span className="text-2xl">{icon}</span> : icon}
           </div>
         )}
-        <div className={layout === 'vertical' ? 'text-center' : ''}>
-          <h3 className={`font-semibold text-gray-900 dark:text-gray-100 ${layout === 'vertical' ? 'text-lg mb-2' : ''}`}>
+        <div className={layout === "vertical" ? "text-center" : ""}>
+          <h3
+            className={`font-semibold text-gray-900 dark:text-gray-100 ${
+              layout === "vertical" ? "text-lg mb-2" : ""
+            }`}
+          >
             {title}
           </h3>
-          <p className={`text-sm text-gray-600 dark:text-gray-400 ${layout === 'vertical' ? '' : 'mt-1'}`}>
+          <p
+            className={`text-sm text-gray-600 dark:text-gray-400 ${
+              layout === "vertical" ? "" : "mt-1"
+            }`}
+          >
             {description}
           </p>
         </div>
@@ -98,7 +106,7 @@ export const ActionCard: React.FC<ActionCardProps> = ({
     </>
   );
 
-  const baseClasses = `${bgColor} border-2 border-gray-200 dark:border-gray-700 hover:border-${hoverBorderColor} rounded-lg p-6 hover:shadow-md transition-all ${className}`;
+  const baseClasses = `${bgColor} border-2 border-gray-200 dark:border-gray-700 hover:${hoverBorderColor} rounded-lg p-6 hover:shadow-md transition-all ${className}`;
 
   if (href) {
     return (

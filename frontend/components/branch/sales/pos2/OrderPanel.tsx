@@ -6,7 +6,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, ShoppingBag } from "lucide-react";
 import styles from "./Pos2.module.css";
 import { ProductDto } from "@/types/api.types";
 import { buildProductImageUrl } from "@/lib/image-utils";
@@ -136,13 +136,6 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
 
   return (
     <>
-      {/* Close button for mobile - only visible on small screens */}
-      {onClose && (
-        <button className={styles.cartCloseBtn} onClick={onClose} aria-label="Close cart">
-          <X size={24} />
-        </button>
-      )}
-
       {/* Action Buttons */}
       {/* <div className={styles.actionButtons}>
         <button className={styles.actionBtn}>
@@ -174,38 +167,37 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
       </div> */}
 
       {/* Header with Order Type Toggle */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <h2
+      <div className={styles.cartHeader}>
+        <div className={styles.cartTitle}>
+          <ShoppingBag size={20} />
+          <span>Cart</span>
+          {itemCount > 0 && (
+            <span
               style={{
-                fontSize: "1.25rem",
-                fontWeight: 700,
-                margin: 0,
-                color: "var(--text-primary)",
-              }}
-            >
-              Shopping Cart
-            </h2>
-            {/* <p
-              style={{ fontSize: "0.875rem", color: "var(--text-secondary)", marginTop: "0.25rem" }}
-            >
-              {itemCount} item{itemCount !== 1 ? "s" : ""}
-            </p> */}
-          </div>
-          {cart.length > 0 && (
-            <button
-              onClick={onClearAll}
-              style={{
-                fontSize: "0.875rem",
-                color: "#ef4444",
+                fontSize: "0.85rem",
                 fontWeight: 500,
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
+                color: "var(--muted-foreground)",
+                marginLeft: "0.25rem",
               }}
             >
+              ({itemCount})
+            </span>
+          )}
+        </div>
+        <div className={styles.cartActions}>
+          {cart.length > 0 && (
+            <button className={styles.clearAllBtn} onClick={onClearAll}>
               Clear All
+            </button>
+          )}
+          {onClose && (
+            <button
+              className={styles.cartCloseBtn}
+              onClick={onClose}
+              aria-label="Close cart"
+              style={{ position: "static", display: "flex" }}
+            >
+              <X size={24} />
             </button>
           )}
         </div>
@@ -246,18 +238,18 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
               style={{
                 fontSize: "1.125rem",
                 fontWeight: 600,
-                color: "var(--text-primary)",
+                color: "var(--foreground)",
                 marginBottom: "0.5rem",
               }}
             >
               Cart is empty
             </h3>
-            <p style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
+            <p style={{ fontSize: "0.875rem", color: "var(--muted-foreground)" }}>
               Add products from the grid to start a sale
             </p>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
             {cart.map((item) => {
               const isDeleting = deletingId === item.id;
               const isUpdating = updatingId === item.id;
@@ -272,17 +264,17 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                   style={{
                     padding: 8,
                     backgroundColor: isDeleting
-                      ? "#fee2e2"
+                      ? "var(--destructive)"
                       : isUpdating
-                      ? "#eff6ff"
+                      ? "var(--primary)"
                       : "transparent",
                     borderRadius: "0.75rem",
-                    borderTop: isUpdating ? "2px solid #3b82f6" : "2px solid transparent",
-                    borderRight: isUpdating ? "2px solid #3b82f6" : "2px solid transparent",
-                    borderLeft: isUpdating ? "2px solid #3b82f6" : "2px solid transparent",
-                    borderBottom: isUpdating ? "2px solid #3b82f6" : "1px solid #e5e7eb",
+                    borderTop: isUpdating ? "2px solid var(--primary)" : "2px solid transparent",
+                    borderRight: isUpdating ? "2px solid var(--primary)" : "2px solid transparent",
+                    borderLeft: isUpdating ? "2px solid var(--primary)" : "2px solid transparent",
+                    borderBottom: isUpdating ? "2px solid var(--primary)" : "1px solid var(--border)",
                     transition: "all 0.3s ease",
-                    opacity: isDeleting ? 0 : 1,
+                    opacity: isDeleting ? 0 : isUpdating ? 0.3 : 1,
                     transform: isDeleting ? "translateX(100%)" : "translateX(0)",
                     animation: "slideIn 0.3s ease-out",
                   }}
@@ -293,7 +285,7 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                       style={{
                         width: "64px",
                         height: "64px",
-                        backgroundColor: "#f3f4f6",
+                        backgroundColor: "var(--muted)",
                         borderRadius: "0.75rem",
                         overflow: "hidden",
                         flexShrink: 0,
@@ -345,7 +337,7 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                           <h4
                             style={{
                               fontWeight: 600,
-                              color: "var(--text-primary)",
+                              color: "var(--foreground)",
                               fontSize: "1rem",
                               lineHeight: 1.2,
                               margin: 0,
@@ -356,7 +348,7 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                           <p
                             style={{
                               fontSize: "0.875rem",
-                              color: "var(--text-secondary)",
+                              color: "var(--muted-foreground)",
                               marginTop: "0.25rem",
                             }}
                           >
@@ -415,7 +407,7 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                           justifyContent: "space-between",
                         }}
                       >
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                           <button
                             onClick={() =>
                               onUpdateQuantity(item.id, Math.max(0, item.quantity - 1))
@@ -424,11 +416,11 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                             style={{
                               width: "32px",
                               height: "32px",
-                              backgroundColor: "#e5e7eb",
+                              backgroundColor: "var(--secondary)",
                               border: "none",
                               borderRadius: "0.5rem",
                               fontWeight: 700,
-                              color: "#374151",
+                              color: "var(--foreground)",
                               fontSize: "1.25rem",
                               cursor: "pointer",
                               transition: "all 0.15s",
@@ -436,12 +428,12 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                             }}
                             onMouseEnter={(e) => {
                               if (!isDeleting) {
-                                e.currentTarget.style.backgroundColor = "#d1d5db";
+                                e.currentTarget.style.backgroundColor = "var(--muted)";
                                 e.currentTarget.style.transform = "scale(0.95)";
                               }
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = "#e5e7eb";
+                              e.currentTarget.style.backgroundColor = "var(--secondary)";
                               e.currentTarget.style.transform = "scale(1)";
                             }}
                           >
@@ -460,12 +452,14 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                               width: "64px",
                               height: "32px",
                               textAlign: "center",
-                              border: "2px solid #d1d5db",
+                              border: "2px solid var(--border)",
                               borderRadius: "0.5rem",
                               fontWeight: 600,
                               fontSize: "1.125rem",
                               transition: "all 0.2s",
                               opacity: isDeleting ? 0.5 : 1,
+                              backgroundColor: "var(--background)",
+                              color: "var(--foreground)",
                             }}
                           />
                           <button
@@ -474,11 +468,11 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                             style={{
                               width: "32px",
                               height: "32px",
-                              backgroundColor: "#e5e7eb",
+                              backgroundColor: "var(--secondary)",
                               border: "none",
                               borderRadius: "0.5rem",
                               fontWeight: 700,
-                              color: "#374151",
+                              color: "var(--foreground)",
                               fontSize: "1.25rem",
                               cursor: "pointer",
                               transition: "all 0.15s",
@@ -486,12 +480,12 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                             }}
                             onMouseEnter={(e) => {
                               if (!isDeleting) {
-                                e.currentTarget.style.backgroundColor = "#d1d5db";
+                                e.currentTarget.style.backgroundColor = "var(--muted)";
                                 e.currentTarget.style.transform = "scale(0.95)";
                               }
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = "#e5e7eb";
+                              e.currentTarget.style.backgroundColor = "var(--secondary)";
                               e.currentTarget.style.transform = "scale(1)";
                             }}
                           >
@@ -505,7 +499,7 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                             style={{
                               fontSize: "1.125rem",
                               fontWeight: 700,
-                              color: "var(--text-primary)",
+                              color: "var(--foreground)",
                               margin: 0,
                               transition: "all 0.3s",
                             }}
@@ -530,11 +524,14 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
             <span>Subtotal</span>
             <span>${subtotal.toFixed(2)}</span>
           </div>
-          <div className={`${styles.summaryRow} ${styles.total}`}>
-            <span>Items</span>
-            <span>{itemCount}</span>
+          <div className={styles.summaryRow}>
+            <span>Tax (15%)</span>
+            <span>${(subtotal * 0.15).toFixed(2)}</span>
           </div>
-
+          <div className={`${styles.summaryRow} ${styles.total}`}>
+            <span>Total</span>
+            <span>${(subtotal * 1.15).toFixed(2)}</span>
+          </div>
           <button
             className={styles.processBtn}
             onClick={handleOpenTransactionDialog}

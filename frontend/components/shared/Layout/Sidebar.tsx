@@ -5,10 +5,10 @@
 
 "use client";
 
-import React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
+import React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface MenuItem {
   label: string;
@@ -30,8 +30,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
   // Branch menu items
   const branchMenuItems: MenuItem[] = [
     {
-      label: 'Dashboard',
-      href: '/en/branch',
+      label: "Dashboard",
+      href: "/en/branch",
       icon: (
         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -44,8 +44,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
       ),
     },
     {
-      label: 'Sales',
-      href: '/en/branch/sales',
+      label: "Sales",
+      href: "/en/branch/sales",
       icon: (
         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -58,8 +58,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
       ),
     },
     {
-      label: 'Products',
-      href: '/en/branch/products',
+      label: "Products",
+      href: "/en/branch/products",
       icon: (
         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -72,8 +72,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
       ),
     },
     {
-      label: 'Customers',
-      href: '/en/branch/customers',
+      label: "Customers",
+      href: "/en/branch/customers",
       icon: (
         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -86,8 +86,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
       ),
     },
     {
-      label: 'Purchases',
-      href: '/en/branch/purchases',
+      label: "Purchases",
+      href: "/en/branch/purchases",
       icon: (
         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -100,8 +100,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
       ),
     },
     {
-      label: 'Suppliers',
-      href: '/en/branch/suppliers',
+      label: "Suppliers",
+      href: "/en/branch/suppliers",
       icon: (
         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -114,8 +114,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
       ),
     },
     {
-      label: 'Expenses',
-      href: '/en/branch/expenses',
+      label: "Expenses",
+      href: "/en/branch/expenses",
       icon: (
         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -128,8 +128,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
       ),
     },
     {
-      label: 'Reports',
-      href: '/en/branch/reports',
+      label: "Reports",
+      href: "/en/branch/reports",
       icon: (
         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -146,8 +146,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
   // Head office menu items
   const headOfficeMenuItems: MenuItem[] = [
     {
-      label: 'Dashboard',
-      href: '/en/head-office',
+      label: "Dashboard",
+      href: "/en/head-office",
       icon: (
         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -160,8 +160,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
       ),
     },
     {
-      label: 'Branches',
-      href: '/en/head-office/branches',
+      label: "Branches",
+      href: "/en/head-office/branches",
       icon: (
         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -174,8 +174,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
       ),
     },
     {
-      label: 'Users',
-      href: '/en/head-office/users',
+      label: "Users",
+      href: "/en/head-office/users",
       icon: (
         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -188,8 +188,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
       ),
     },
     {
-      label: 'Settings',
-      href: '/en/head-office/settings',
+      label: "Settings",
+      href: "/en/head-office/settings",
       icon: (
         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -208,8 +208,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
       ),
     },
     {
-      label: 'Audit Logs',
-      href: '/en/head-office/audit',
+      label: "Audit Logs",
+      href: "/en/head-office/audit",
       icon: (
         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -226,7 +226,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
   const menuItems = isHeadOfficeAdmin() ? headOfficeMenuItems : branchMenuItems;
 
   const isActive = (href: string) => {
-    if (href === '/en/branch' || href === '/en/head-office') {
+    if (href === "/en/branch" || href === "/en/head-office") {
       return pathname === href;
     }
     return pathname?.startsWith(href);
@@ -236,16 +236,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
     <>
       {/* Mobile overlay */}
       {isOpen && (
-        <div
-          className="fixed inset-0 bg-gray-600 bg-opacity-75 z-20 lg:hidden"
-          onClick={onClose}
-        />
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-75 z-20 lg:hidden" onClick={onClose} />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-gray-800  border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full">
@@ -284,12 +281,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
                   onClick={onClose}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     active
-                      ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
                 >
                   <span
-                    className={active ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}
+                    className={
+                      active
+                        ? "text-blue-600 dark:text-blue-400"
+                        : "text-gray-400 dark:text-gray-500"
+                    }
                   >
                     {item.icon}
                   </span>

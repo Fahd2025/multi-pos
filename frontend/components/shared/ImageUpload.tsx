@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useState, useRef } from 'react';
-import { OptimizedImage } from './OptimizedImage';
+import React, { useState, useRef } from "react";
+import { OptimizedImage } from "./OptimizedImage";
 
 interface ImageUploadProps {
   branchName: string;
@@ -30,9 +30,9 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   maxFiles = 5,
   onUpload,
   onRemove,
-  className = '',
-  label = 'Upload Image',
-  accept = 'image/jpeg,image/png,image/webp',
+  className = "",
+  label = "Upload Image",
+  accept = "image/jpeg,image/png,image/webp",
   cacheBust = false,
 }) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -46,12 +46,14 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     const fileArray = Array.from(files);
     const validFiles = fileArray.filter((file) => {
       // Validate file type
-      const validTypes = accept.split(',').map((t) => t.trim());
+      const validTypes = accept.split(",").map((t) => t.trim());
       return validTypes.some((type) => file.type === type);
     });
 
     // Limit number of files
-    const filesToAdd = multiple ? validFiles.slice(0, maxFiles - selectedFiles.length) : [validFiles[0]];
+    const filesToAdd = multiple
+      ? validFiles.slice(0, maxFiles - selectedFiles.length)
+      : [validFiles[0]];
 
     // Calculate the complete file list that will be stored
     const updatedFiles = !multiple ? filesToAdd : [...selectedFiles, ...filesToAdd];
@@ -138,8 +140,12 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         className={`
           relative border-2 border-dashed rounded-lg p-6 cursor-pointer
           transition-colors duration-200
-          ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
-          ${selectedFiles.length > 0 || currentImages.length > 0 ? 'bg-gray-50' : 'bg-white'}
+          ${isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300 hover:border-gray-400"}
+          ${
+            selectedFiles.length > 0 || currentImages.length > 0
+              ? "bg-gray-50"
+              : "bg-white dark:bg-gray-800 "
+          }
         `}
       >
         <input
@@ -170,7 +176,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
             <span className="font-semibold text-blue-600">Click to upload</span> or drag and drop
           </p>
           <p className="mt-1 text-xs text-gray-500">
-            {multiple ? `Up to ${maxFiles} images` : 'Single image'} (JPEG, PNG, WebP)
+            {multiple ? `Up to ${maxFiles} images` : "Single image"} (JPEG, PNG, WebP)
           </p>
         </div>
       </div>
@@ -181,7 +187,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           {currentImages.map((imageId, index) => (
             <div key={index} className="relative group">
               <OptimizedImage
-                key={`existing-image-${index}-${cacheBust ? 'refresh' : 'normal'}`} // Force re-render when cacheBust changes
+                key={`existing-image-${index}-${cacheBust ? "refresh" : "normal"}`} // Force re-render when cacheBust changes
                 branchName={branchName}
                 entityType={entityType}
                 entityId={entityId}
@@ -196,7 +202,12 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -220,7 +231,12 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
               <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
@@ -234,8 +250,10 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       {/* File Info */}
       {selectedFiles.length > 0 && (
         <div className="text-sm text-gray-600">
-          {selectedFiles.length} file{selectedFiles.length > 1 ? 's' : ''} selected
-          {multiple && selectedFiles.length < maxFiles && ` (${maxFiles - selectedFiles.length} more allowed)`}
+          {selectedFiles.length} file{selectedFiles.length > 1 ? "s" : ""} selected
+          {multiple &&
+            selectedFiles.length < maxFiles &&
+            ` (${maxFiles - selectedFiles.length} more allowed)`}
         </div>
       )}
     </div>

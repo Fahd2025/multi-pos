@@ -99,7 +99,9 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
       key: "username",
       label: "Username",
       sortable: true,
-      render: (value, row) => <div className="font-medium text-gray-900">{value}</div>,
+      render: (value, row) => (
+        <div className="font-medium text-gray-900 dark:text-gray-100">{value}</div>
+      ),
     },
     {
       key: "fullNameEn",
@@ -236,7 +238,9 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
       width: "180px",
       render: (value) => (
         <div className="text-sm">
-          <div className="font-medium text-gray-900">{new Date(value).toLocaleDateString()}</div>
+          <div className="font-medium text-gray-900 dark:text-gray-100">
+            {new Date(value).toLocaleDateString()}
+          </div>
           <div className="text-gray-500 text-xs">{new Date(value).toLocaleTimeString()}</div>
         </div>
       ),
@@ -308,7 +312,7 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
             <span>/</span>
             <span className="text-gray-900">Users</span>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Branch Users</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Branch Users</h1>
           <p className="text-gray-600">View and manage users assigned to this branch</p>
         </div>
 
@@ -338,17 +342,17 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
 
         {/* Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200">
             <p className="text-sm text-gray-600">Total Users</p>
-            <p className="text-2xl font-bold text-gray-900">{users.length}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{users.length}</p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200">
             <p className="text-sm text-gray-600">Active Users</p>
             <p className="text-2xl font-bold text-green-600">
               {users.filter((u) => u.isActive).length}
             </p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200">
             <p className="text-sm text-gray-600">Inactive Users</p>
             <p className="text-2xl font-bold text-gray-600">
               {users.filter((u) => !u.isActive).length}
@@ -357,8 +361,10 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
         </div>
 
         {/* DataTable */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Users List</h2>
+        <div className="bg-white dark:bg-gray-800  rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            Users List
+          </h2>
           <DataTable
             data={displayData}
             columns={columns}
@@ -399,7 +405,7 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
               label: "User",
               render: (value) => (
                 <div>
-                  <p className="font-medium text-gray-900">{value}</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">{value}</p>
                   <p className="text-sm text-gray-500">@{activityModal.data?.username}</p>
                 </div>
               ),
@@ -408,7 +414,7 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
           size="xl"
           customContent={
             <div className="mt-6">
-              <h3 className="text-sm font-semibold text-gray-900 mb-4">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">
                 Recent Activity ({selectedUserActivity.length} records)
               </h3>
               <DataTable

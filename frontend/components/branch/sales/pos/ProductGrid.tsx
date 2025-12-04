@@ -3,13 +3,13 @@
  * Display products in a responsive grid for POS
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { ProductDto } from '@/types/api.types';
-import inventoryService from '@/services/inventory.service';
-import { useAuth } from '@/hooks/useAuth';
-import { buildProductImageUrl } from '@/lib/image-utils';
+import { useState, useEffect } from "react";
+import { ProductDto } from "@/types/api.types";
+import inventoryService from "@/services/inventory.service";
+import { useAuth } from "@/hooks/useAuth";
+import { buildProductImageUrl } from "@/lib/image-utils";
 
 interface ProductGridProps {
   selectedCategoryId: string | null;
@@ -53,8 +53,8 @@ export default function ProductGrid({
       const response = await inventoryService.getProducts(params);
       setProducts(response.data || []);
     } catch (err: any) {
-      console.error('Failed to fetch products:', err);
-      setError('Failed to load products');
+      console.error("Failed to fetch products:", err);
+      setError("Failed to load products");
     } finally {
       setLoading(false);
     }
@@ -77,7 +77,7 @@ export default function ProductGrid({
         {[...Array(12)].map((_, i) => (
           <div
             key={i}
-            className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 animate-pulse min-h-[180px] sm:min-h-[200px] lg:min-h-[240px]"
+            className="bg-white dark:bg-gray-800  border border-gray-200 rounded-xl p-4 sm:p-5 animate-pulse min-h-[180px] sm:min-h-[200px] lg:min-h-[240px]"
           >
             <div className="aspect-square bg-gray-200 rounded-lg mb-3" />
             <div className="h-4 bg-gray-200 rounded mb-2" />
@@ -93,7 +93,7 @@ export default function ProductGrid({
       <div className="flex items-center justify-center min-h-[50vh] px-4">
         <div className="text-center max-w-md">
           <span className="text-6xl sm:text-7xl lg:text-8xl">⚠️</span>
-          <h3 className="mt-4 text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900">
+          <h3 className="mt-4 text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 dark:text-gray-100">
             Failed to load products
           </h3>
           <p className="mt-2 text-sm sm:text-base text-gray-600">{error}</p>
@@ -125,15 +125,15 @@ export default function ProductGrid({
       <div className="flex items-center justify-center min-h-[50vh] px-4">
         <div className="text-center max-w-md">
           <span className="text-6xl sm:text-7xl lg:text-8xl">📦</span>
-          <h3 className="mt-4 text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900">
+          <h3 className="mt-4 text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 dark:text-gray-100">
             No products found
           </h3>
           <p className="mt-2 text-sm sm:text-base text-gray-600">
             {searchQuery
               ? `No products match "${searchQuery}"`
               : selectedCategoryId
-              ? 'No products in this category'
-              : 'No products available'}
+              ? "No products in this category"
+              : "No products available"}
           </p>
         </div>
       </div>
@@ -144,8 +144,7 @@ export default function ProductGrid({
     <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 3xl:grid-cols-8 gap-3 sm:gap-4 lg:gap-5">
       {products.map((product) => {
         const isOutOfStock = product.stockLevel <= 0;
-        const isLowStock =
-          product.stockLevel > 0 && product.stockLevel < product.minStockThreshold;
+        const isLowStock = product.stockLevel > 0 && product.stockLevel < product.minStockThreshold;
         const isClicked = clickedProductId === product.id;
 
         return (
@@ -154,7 +153,7 @@ export default function ProductGrid({
             onClick={() => handleProductClick(product)}
             disabled={isOutOfStock}
             className={`
-              group relative bg-white
+              group relative bg-white dark:bg-gray-800 
               border-2 rounded-xl
               p-3 sm:p-4 lg:p-5
               transition-all duration-200
@@ -166,12 +165,14 @@ export default function ProductGrid({
 
               ${
                 isOutOfStock
-                  ? 'border-gray-200 opacity-50 cursor-not-allowed'
-                  : 'border-gray-200 hover:border-blue-500 hover:shadow-lg active:scale-95 cursor-pointer'
+                  ? "border-gray-200 opacity-50 cursor-not-allowed"
+                  : "border-gray-200 hover:border-blue-500 hover:shadow-lg active:scale-95 cursor-pointer"
               }
-              ${isClicked ? 'animate-pulse-once' : ''}
+              ${isClicked ? "animate-pulse-once" : ""}
             `}
-            aria-label={`${product.nameEn}, Price: $${product.sellingPrice.toFixed(2)}, Stock: ${product.stockLevel} units${isOutOfStock ? ', Out of stock' : ''}`}
+            aria-label={`${product.nameEn}, Price: $${product.sellingPrice.toFixed(2)}, Stock: ${
+              product.stockLevel
+            } units${isOutOfStock ? ", Out of stock" : ""}`}
             aria-disabled={isOutOfStock}
           >
             {/* Product Image */}
@@ -182,7 +183,7 @@ export default function ProductGrid({
                     branch.branchCode,
                     product.images[0].imagePath,
                     product.id,
-                    'thumb'
+                    "thumb"
                   )}
                   alt={product.nameEn}
                   className="w-full h-full object-cover"
@@ -211,34 +212,43 @@ export default function ProductGrid({
 
             {/* Product Info */}
             <div className="text-left">
-              <h4 className="
+              <h4
+                className="
                 font-semibold
                 text-sm sm:text-base lg:text-lg
-                text-gray-900
+                text-gray-900 dark:text-gray-100
                 line-clamp-2
                 group-hover:text-blue-600
                 min-h-[2.5rem] sm:min-h-[3rem]
                 mb-2
-              ">
+              "
+              >
                 {product.nameEn}
               </h4>
 
               <div className="flex items-center justify-between mt-2">
                 <div className="flex flex-col">
-                  <span className="
+                  <span
+                    className="
                     text-lg sm:text-xl lg:text-2xl
                     font-bold
                     text-blue-600
-                  " aria-label={`Price: ${product.sellingPrice.toFixed(2)} dollars`}>
+                  "
+                    aria-label={`Price: ${product.sellingPrice.toFixed(2)} dollars`}
+                  >
                     ${product.sellingPrice.toFixed(2)}
                   </span>
-                  <span className="text-xs sm:text-sm text-gray-500" aria-label={`Stock: ${product.stockLevel} units`}>
+                  <span
+                    className="text-xs sm:text-sm text-gray-500"
+                    aria-label={`Stock: ${product.stockLevel} units`}
+                  >
                     Stock: {product.stockLevel}
                   </span>
                 </div>
 
                 {!isOutOfStock && (
-                  <div className="
+                  <div
+                    className="
                     w-9 h-9 sm:w-10 sm:h-10 lg:w-12 lg:h-12
                     bg-blue-100 text-blue-600
                     rounded-full
@@ -246,7 +256,9 @@ export default function ProductGrid({
                     group-hover:bg-blue-600
                     group-hover:text-white
                     transition-colors
-                  " aria-hidden="true">
+                  "
+                    aria-hidden="true"
+                  >
                     <span className="text-xl sm:text-2xl font-bold">+</span>
                   </div>
                 )}

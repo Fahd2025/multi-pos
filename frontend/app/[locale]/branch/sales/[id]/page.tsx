@@ -105,7 +105,9 @@ export default function SaleDetailsPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <span className="text-6xl">⚠️</span>
-          <h2 className="mt-4 text-2xl font-bold text-gray-900">Failed to Load Sale</h2>
+          <h2 className="mt-4 text-2xl font-bold text-gray-900 dark:text-gray-100">
+            Failed to Load Sale
+          </h2>
           <p className="mt-2 text-gray-600">{error || "Sale not found"}</p>
           <div className="mt-6 flex gap-3 justify-center">
             <Button onClick={fetchSaleDetails} variant="primary">
@@ -160,22 +162,24 @@ export default function SaleDetailsPage() {
         {/* Left Column - Sale Information */}
         <div className="lg:col-span-2 space-y-6">
           {/* Transaction Info Card */}
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+          <div className="bg-white dark:bg-gray-800  border border-gray-200 rounded-lg shadow-sm">
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <h2 className="text-lg font-semibold text-gray-900">Transaction Information</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Transaction Information
+              </h2>
             </div>
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-600">Transaction ID</label>
-                  <p className="mt-1 text-lg font-mono font-semibold text-gray-900">
+                  <p className="mt-1 text-lg font-mono font-semibold text-gray-900 dark:text-gray-100">
                     {sale.transactionId}
                   </p>
                 </div>
                 {sale.invoiceNumber && (
                   <div>
                     <label className="text-sm font-medium text-gray-600">Invoice Number</label>
-                    <p className="mt-1 text-lg font-mono font-semibold text-gray-900">
+                    <p className="mt-1 text-lg font-mono font-semibold text-gray-900 dark:text-gray-100">
                       {sale.invoiceNumber}
                     </p>
                   </div>
@@ -185,34 +189,44 @@ export default function SaleDetailsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-600">Date & Time</label>
-                  <p className="mt-1 text-gray-900">{formatDate(sale.saleDate)}</p>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">
+                    {formatDate(sale.saleDate)}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600">Invoice Type</label>
-                  <p className="mt-1 text-gray-900">{getInvoiceTypeName(sale.invoiceType)}</p>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">
+                    {getInvoiceTypeName(sale.invoiceType)}
+                  </p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-600">Cashier</label>
-                  <p className="mt-1 text-gray-900">{sale.cashierName}</p>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">{sale.cashierName}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600">Customer</label>
-                  <p className="mt-1 text-gray-900">{sale.customerName || "Walk-in Customer"}</p>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">
+                    {sale.customerName || "Walk-in Customer"}
+                  </p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-600">Payment Method</label>
-                  <p className="mt-1 text-gray-900">{getPaymentMethodName(sale.paymentMethod)}</p>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">
+                    {getPaymentMethodName(sale.paymentMethod)}
+                  </p>
                 </div>
                 {sale.paymentReference && (
                   <div>
                     <label className="text-sm font-medium text-gray-600">Payment Reference</label>
-                    <p className="mt-1 text-gray-900 font-mono">{sale.paymentReference}</p>
+                    <p className="mt-1 text-gray-900 dark:text-gray-100 font-mono">
+                      {sale.paymentReference}
+                    </p>
                   </div>
                 )}
               </div>
@@ -220,7 +234,9 @@ export default function SaleDetailsPage() {
               {sale.notes && (
                 <div>
                   <label className="text-sm font-medium text-gray-600">Notes</label>
-                  <p className="mt-1 text-gray-900 bg-gray-50 rounded-lg p-3">{sale.notes}</p>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100 bg-gray-50 rounded-lg p-3">
+                    {sale.notes}
+                  </p>
                 </div>
               )}
 
@@ -238,9 +254,9 @@ export default function SaleDetailsPage() {
           </div>
 
           {/* Line Items Card */}
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+          <div className="bg-white dark:bg-gray-800  border border-gray-200 rounded-lg shadow-sm">
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Line Items ({sale.lineItems.length})
               </h2>
             </div>
@@ -268,20 +284,22 @@ export default function SaleDetailsPage() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white dark:bg-gray-800  divide-y divide-gray-200">
                   {sale.lineItems.map((item, index) => (
                     <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                         {index + 1}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm font-medium text-gray-900">{item.productName}</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {item.productName}
+                        </div>
                         <div className="text-sm text-gray-500">SKU: {item.productSku}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 text-right">
                         {item.quantity}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 text-right">
                         ${item.unitPrice.toFixed(2)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
@@ -300,7 +318,7 @@ export default function SaleDetailsPage() {
                           <span className="text-gray-400">-</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-gray-100 text-right">
                         ${item.lineTotal.toFixed(2)}
                       </td>
                     </tr>
@@ -314,14 +332,18 @@ export default function SaleDetailsPage() {
         {/* Right Column - Summary & Actions */}
         <div className="space-y-6">
           {/* Summary Card */}
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+          <div className="bg-white dark:bg-gray-800  border border-gray-200 rounded-lg shadow-sm">
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <h2 className="text-lg font-semibold text-gray-900">Order Summary</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Order Summary
+              </h2>
             </div>
             <div className="p-6 space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Subtotal</span>
-                <span className="font-medium text-gray-900">${sale.subtotal.toFixed(2)}</span>
+                <span className="font-medium text-gray-900 dark:text-gray-100">
+                  ${sale.subtotal.toFixed(2)}
+                </span>
               </div>
 
               {sale.totalDiscount > 0 && (
@@ -335,24 +357,26 @@ export default function SaleDetailsPage() {
 
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Tax</span>
-                <span className="font-medium text-gray-900">${sale.taxAmount.toFixed(2)}</span>
+                <span className="font-medium text-gray-900 dark:text-gray-100">
+                  ${sale.taxAmount.toFixed(2)}
+                </span>
               </div>
 
               <div className="border-t border-gray-200 pt-3">
                 <div className="flex justify-between">
-                  <span className="text-lg font-semibold text-gray-900">Total</span>
-                  <span className="text-2xl font-bold text-blue-600">
-                    ${sale.total.toFixed(2)}
+                  <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    Total
                   </span>
+                  <span className="text-2xl font-bold text-blue-600">${sale.total.toFixed(2)}</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Actions Card */}
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+          <div className="bg-white dark:bg-gray-800  border border-gray-200 rounded-lg shadow-sm">
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <h2 className="text-lg font-semibold text-gray-900">Actions</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Actions</h2>
             </div>
             <div className="p-6 space-y-3">
               <Button onClick={handlePrintInvoice} variant="primary" className="w-full">
@@ -364,11 +388,7 @@ export default function SaleDetailsPage() {
               </Button>
 
               {!sale.isVoided && (
-                <Button
-                  onClick={() => setVoidDialogOpen(true)}
-                  variant="danger"
-                  className="w-full"
-                >
+                <Button onClick={() => setVoidDialogOpen(true)} variant="danger" className="w-full">
                   🚫 Void Sale
                 </Button>
               )}
@@ -376,14 +396,16 @@ export default function SaleDetailsPage() {
           </div>
 
           {/* Metadata Card */}
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+          <div className="bg-white dark:bg-gray-800  border border-gray-200 rounded-lg shadow-sm">
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <h2 className="text-lg font-semibold text-gray-900">Metadata</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Metadata</h2>
             </div>
             <div className="p-6 space-y-3 text-sm">
               <div>
                 <label className="text-gray-600">Created At</label>
-                <p className="mt-1 text-gray-900">{formatDate(sale.createdAt)}</p>
+                <p className="mt-1 text-gray-900 dark:text-gray-100">
+                  {formatDate(sale.createdAt)}
+                </p>
               </div>
             </div>
           </div>
@@ -393,14 +415,14 @@ export default function SaleDetailsPage() {
       {/* Void Confirmation Dialog */}
       {voidDialogOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+          <div className="bg-white dark:bg-gray-800  rounded-lg shadow-xl max-w-md w-full">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900">Void Sale</h3>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">Void Sale</h3>
             </div>
             <div className="p-6">
               <p className="text-gray-600 mb-4">
-                Are you sure you want to void this sale? This action cannot be undone. The
-                inventory will be restored and the transaction will be marked as voided.
+                Are you sure you want to void this sale? This action cannot be undone. The inventory
+                will be restored and the transaction will be marked as voided.
               </p>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">

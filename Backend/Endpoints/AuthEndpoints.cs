@@ -1,3 +1,4 @@
+using Backend.Constants;
 using Backend.Data.HeadOffice;
 using Backend.Models.DTOs.HeadOffice.Auth;
 using Backend.Services.HeadOffice.Auth;
@@ -16,12 +17,12 @@ public static class AuthEndpoints
     /// </summary>
     public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
-        var authGroup = app.MapGroup("/api/v1/auth").WithTags("Authentication");
+        var authGroup = app.MapGroup(ApiRoutes.Auth.Group).WithTags("Authentication");
 
         // POST /api/v1/auth/login - Authenticate user
         authGroup
             .MapPost(
-                "/login",
+                ApiRoutes.Auth.Login,
                 async (
                     [FromBody] LoginRequest loginRequest,
                     IAuthService authService,

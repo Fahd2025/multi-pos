@@ -3,18 +3,18 @@
  * Search and select products for sale transactions
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { ProductDto } from '@/types/api.types';
-import inventoryService from '@/services/inventory.service';
+import { useState, useEffect, useCallback } from "react";
+import { ProductDto } from "@/types/api.types";
+import inventoryService from "@/services/inventory.service";
 
 interface ProductSearchProps {
   onProductSelect: (product: ProductDto) => void;
 }
 
 export default function ProductSearch({ onProductSelect }: ProductSearchProps) {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [products, setProducts] = useState<ProductDto[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<ProductDto[]>([]);
   const [loading, setLoading] = useState(false);
@@ -38,13 +38,13 @@ export default function ProductSearch({ onProductSelect }: ProductSearchProps) {
       setProducts(items);
 
       // If searching, show results immediately
-      if (search && search.trim() !== '') {
+      if (search && search.trim() !== "") {
         setFilteredProducts(items);
         setShowResults(true);
       }
     } catch (err: any) {
-      console.error('Failed to fetch products:', err);
-      setError('Failed to load products. Please try again.');
+      console.error("Failed to fetch products:", err);
+      setError("Failed to load products. Please try again.");
       setProducts([]);
       setFilteredProducts([]);
     } finally {
@@ -59,7 +59,7 @@ export default function ProductSearch({ onProductSelect }: ProductSearchProps) {
 
   // Search products when query changes
   useEffect(() => {
-    if (searchQuery.trim() === '') {
+    if (searchQuery.trim() === "") {
       setFilteredProducts([]);
       setShowResults(false);
       return;
@@ -75,16 +75,14 @@ export default function ProductSearch({ onProductSelect }: ProductSearchProps) {
 
   const handleProductSelect = (product: ProductDto) => {
     onProductSelect(product);
-    setSearchQuery('');
+    setSearchQuery("");
     setShowResults(false);
   };
 
   const handleBarcodeInput = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       // Search by exact barcode or SKU match
-      const product = products.find(
-        (p) => p.barcode === searchQuery || p.sku === searchQuery
-      );
+      const product = products.find((p) => p.barcode === searchQuery || p.sku === searchQuery);
 
       if (product) {
         handleProductSelect(product);
@@ -104,7 +102,7 @@ export default function ProductSearch({ onProductSelect }: ProductSearchProps) {
             handleProductSelect(items[0]);
           }
         } catch (err) {
-          console.error('Product not found:', err);
+          console.error("Product not found:", err);
         } finally {
           setLoading(false);
         }
@@ -126,9 +124,7 @@ export default function ProductSearch({ onProductSelect }: ProductSearchProps) {
             autoFocus
             disabled={loading}
           />
-          <span className="absolute right-3 top-3 text-gray-400">
-            {loading ? '⏳' : '🔍'}
-          </span>
+          <span className="absolute right-3 top-3 text-gray-400">{loading ? "⏳" : "🔍"}</span>
         </div>
       </div>
 
@@ -141,7 +137,7 @@ export default function ProductSearch({ onProductSelect }: ProductSearchProps) {
 
       {/* Search Results Dropdown */}
       {showResults && (
-        <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto">
+        <div className="absolute z-10 w-full mt-2 bg-white dark:bg-gray-800  border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto">
           {loading ? (
             <div className="p-4 text-center text-gray-500">
               <div className="animate-pulse">Searching products...</div>
@@ -160,7 +156,7 @@ export default function ProductSearch({ onProductSelect }: ProductSearchProps) {
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <h4 className="font-semibold text-gray-900">
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100">
                         {product.nameEn}
                       </h4>
                       {product.stockLevel < product.minStockThreshold && (

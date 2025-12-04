@@ -246,7 +246,7 @@ const handleSubmit = async (data: any) => {
 
 // 5. Add ImageUpload component
 {isOpen && (
-  <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 p-6 z-[45]">
+  <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800  border-t-2 border-gray-200 p-6 z-[45]">
     <ImageUpload
       branchName={branchName}
       entityType="YourEntityType"

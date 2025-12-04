@@ -35,7 +35,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart 
         <div
           style={{
             textAlign: "center",
-            color: "var(--text-secondary)",
+            color: "var(--muted-foreground)",
             gridColumn: "1 / -1",
             marginTop: "2rem",
           }}
@@ -77,7 +77,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart 
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    backgroundColor: "#f3f4f6",
+                    backgroundColor: "var(--muted)",
                     fontSize: "3rem",
                   }}
                 >

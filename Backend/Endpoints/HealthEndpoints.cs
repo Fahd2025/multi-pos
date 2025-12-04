@@ -1,3 +1,5 @@
+using Backend.Constants;
+
 namespace Backend.Endpoints;
 
 /// <summary>
@@ -10,7 +12,7 @@ public static class HealthEndpoints
     /// </summary>
     public static IEndpointRouteBuilder MapHealthEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
+        app.MapGet(ApiRoutes.Health.Base, () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
             .WithName("HealthCheck")
             .WithOpenApi();
 

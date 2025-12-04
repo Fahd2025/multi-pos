@@ -223,7 +223,7 @@ export default function BranchLayout({
 
       {/* Mobile Drawer Sidebar */}
       <aside
-        className={`fixed top-0 left-0 bottom-0 w-72 bg-white dark:bg-gray-800 shadow-xl border-r border-gray-200 dark:border-gray-700 z-50 transform transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto ${
+        className={`fixed top-0 left-0 bottom-0 w-72 bg-white dark:bg-gray-800  shadow-xl border-r border-gray-200 dark:border-gray-700 z-50 transform transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-label="Mobile navigation sidebar"
@@ -243,7 +243,7 @@ export default function BranchLayout({
 
       {/* Desktop Sidebar - Full Height */}
       <aside
-        className={`hidden lg:block h-screen bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out overflow-y-auto ${
+        className={`hidden lg:block h-screen bg-white dark:bg-gray-800  shadow-sm border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out overflow-y-auto ${
           isSidebarCollapsed ? "w-20" : "w-72"
         }`}
         aria-label="Desktop navigation sidebar"
@@ -264,7 +264,7 @@ export default function BranchLayout({
       {/* Right Section - Navbar + Content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Navbar - Next to Sidebar */}
-        <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+        <header className="bg-white dark:bg-gray-800  shadow-sm border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               {/* Left Section - Hamburger Menu and Logo */}
@@ -351,7 +351,7 @@ export default function BranchLayout({
         {/* Main Content Area */}
         <main className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900">
           <div className="p-4 sm:p-6 lg:p-8">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+            <div className="bg-white dark:bg-gray-800  rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
               {children}
             </div>
           </div>

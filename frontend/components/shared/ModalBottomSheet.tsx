@@ -211,8 +211,12 @@ export function ModalBottomSheet<T = any>({
     <>
       <style jsx>{`
         @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
         }
         @keyframes slideUpScale {
           from {
@@ -231,205 +235,212 @@ export function ModalBottomSheet<T = any>({
         aria-modal="true"
         aria-labelledby="modal-title"
       >
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-60 dark:bg-opacity-70 transition-opacity backdrop-blur-sm"
-        style={{ animation: "fadeIn 0.3s ease" }}
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Modal Container */}
-      <div className="flex min-h-full items-end justify-center sm:items-center p-0 sm:p-4">
+        {/* Backdrop */}
         <div
-          className={`relative bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl transform transition-all w-full ${sizeClasses[size]} ${className}`}
-          style={{
-            boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
-            animation: "slideUpScale 0.3s ease"
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 id="modal-title" className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              {title}
-            </h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 rounded p-1"
-              aria-label="Close modal"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
+          className="fixed inset-0 bg-black bg-opacity-60 dark:bg-opacity-70 transition-opacity backdrop-blur-sm"
+          style={{ animation: "fadeIn 0.3s ease" }}
+          onClick={onClose}
+          aria-hidden="true"
+        />
 
-          {/* Form Content */}
-          <form
-            onSubmit={handleSubmit}
-            className="px-6 py-4 max-h-[70vh] sm:max-h-[60vh] overflow-y-auto"
+        {/* Modal Container */}
+        <div className="flex min-h-full items-end justify-center sm:items-center p-0 sm:p-4">
+          <div
+            className={`relative bg-white dark:bg-gray-800  rounded-t-2xl sm:rounded-2xl transform transition-all w-full ${sizeClasses[size]} ${className}`}
+            style={{
+              boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
+              animation: "slideUpScale 0.3s ease",
+            }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="space-y-4">
-              {fields.map((field) => {
-                // Check condition
-                if (field.condition && !field.condition(formData)) {
-                  return null;
-                }
-
-                const fieldName = field.name as string;
-                const value = (formData as any)[fieldName] || "";
-                const error = errors[fieldName];
-                const hasError = touched.has(fieldName) && !!error;
-
-                return (
-                  <div key={fieldName}>
-                    <label
-                      htmlFor={fieldName}
-                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                    >
-                      {field.label}
-                      {field.required && <span className="text-red-500 dark:text-red-400 ml-1">*</span>}
-                    </label>
-
-                    {/* Text, Email, Password, Number, Date inputs */}
-                    {["text", "email", "password", "number", "date", "datetime-local"].includes(
-                      field.type
-                    ) && (
-                      <input
-                        type={field.type}
-                        id={fieldName}
-                        value={value}
-                        onChange={(e) =>
-                          handleChange(
-                            fieldName,
-                            field.type === "number" ? Number(e.target.value) : e.target.value
-                          )
-                        }
-                        onBlur={() => handleBlur(fieldName)}
-                        placeholder={field.placeholder}
-                        disabled={field.disabled || isSubmitting}
-                        className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:cursor-not-allowed ${
-                          hasError ? "border-red-500 dark:border-red-400" : "border-gray-300 dark:border-gray-600"
-                        }`}
-                        aria-invalid={hasError}
-                        aria-describedby={hasError ? `${fieldName}-error` : undefined}
-                      />
-                    )}
-
-                    {/* Textarea */}
-                    {field.type === "textarea" && (
-                      <textarea
-                        id={fieldName}
-                        value={value}
-                        onChange={(e) => handleChange(fieldName, e.target.value)}
-                        onBlur={() => handleBlur(fieldName)}
-                        placeholder={field.placeholder}
-                        disabled={field.disabled || isSubmitting}
-                        rows={4}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed ${
-                          hasError ? "border-red-500" : "border-gray-300"
-                        }`}
-                        aria-invalid={hasError}
-                        aria-describedby={hasError ? `${fieldName}-error` : undefined}
-                      />
-                    )}
-
-                    {/* Select */}
-                    {field.type === "select" && (
-                      <select
-                        id={fieldName}
-                        value={value}
-                        onChange={(e) => handleChange(fieldName, e.target.value)}
-                        onBlur={() => handleBlur(fieldName)}
-                        disabled={field.disabled || isSubmitting}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed ${
-                          hasError ? "border-red-500" : "border-gray-300"
-                        }`}
-                        aria-invalid={hasError}
-                        aria-describedby={hasError ? `${fieldName}-error` : undefined}
-                      >
-                        <option value="">Select {field.label}</option>
-                        {field.options?.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-
-                    {/* Checkbox */}
-                    {field.type === "checkbox" && (
-                      <div className="flex items-center">
-                        <input
-                          type="checkbox"
-                          id={fieldName}
-                          checked={!!value}
-                          onChange={(e) => handleChange(fieldName, e.target.checked)}
-                          onBlur={() => handleBlur(fieldName)}
-                          disabled={field.disabled || isSubmitting}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                        />
-                        <label htmlFor={fieldName} className="ml-2 text-sm text-gray-700">
-                          {field.placeholder || field.label}
-                        </label>
-                      </div>
-                    )}
-
-                    {/* Error Message */}
-                    {hasError && (
-                      <p
-                        id={`${fieldName}-error`}
-                        className="mt-1 text-sm text-red-500"
-                        role="alert"
-                      >
-                        {error}
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h2
+                id="modal-title"
+                className="text-xl font-semibold text-gray-900 dark:text-gray-100"
+              >
+                {title}
+              </h2>
+              <button
+                onClick={onClose}
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 rounded p-1"
+                aria-label="Close modal"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
             </div>
 
-            {/* Additional Content Section (e.g., Image Upload) */}
-            {additionalContent && (
-              <div className="mt-6 pt-6 border-t border-gray-200">{additionalContent}</div>
-            )}
-          </form>
+            {/* Form Content */}
+            <form
+              onSubmit={handleSubmit}
+              className="px-6 py-4 max-h-[70vh] sm:max-h-[60vh] overflow-y-auto"
+            >
+              <div className="space-y-4">
+                {fields.map((field) => {
+                  // Check condition
+                  if (field.condition && !field.condition(formData)) {
+                    return null;
+                  }
 
-          {/* Footer */}
-          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {mode === "create" ? "Creating..." : "Saving..."}
-                </>
-              ) : (
-                <>{mode === "create" ? "Create" : "Save"}</>
+                  const fieldName = field.name as string;
+                  const value = (formData as any)[fieldName] || "";
+                  const error = errors[fieldName];
+                  const hasError = touched.has(fieldName) && !!error;
+
+                  return (
+                    <div key={fieldName}>
+                      <label
+                        htmlFor={fieldName}
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                      >
+                        {field.label}
+                        {field.required && (
+                          <span className="text-red-500 dark:text-red-400 ml-1">*</span>
+                        )}
+                      </label>
+
+                      {/* Text, Email, Password, Number, Date inputs */}
+                      {["text", "email", "password", "number", "date", "datetime-local"].includes(
+                        field.type
+                      ) && (
+                        <input
+                          type={field.type}
+                          id={fieldName}
+                          value={value}
+                          onChange={(e) =>
+                            handleChange(
+                              fieldName,
+                              field.type === "number" ? Number(e.target.value) : e.target.value
+                            )
+                          }
+                          onBlur={() => handleBlur(fieldName)}
+                          placeholder={field.placeholder}
+                          disabled={field.disabled || isSubmitting}
+                          className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-800  dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:cursor-not-allowed ${
+                            hasError
+                              ? "border-red-500 dark:border-red-400"
+                              : "border-gray-300 dark:border-gray-600"
+                          }`}
+                          aria-invalid={hasError}
+                          aria-describedby={hasError ? `${fieldName}-error` : undefined}
+                        />
+                      )}
+
+                      {/* Textarea */}
+                      {field.type === "textarea" && (
+                        <textarea
+                          id={fieldName}
+                          value={value}
+                          onChange={(e) => handleChange(fieldName, e.target.value)}
+                          onBlur={() => handleBlur(fieldName)}
+                          placeholder={field.placeholder}
+                          disabled={field.disabled || isSubmitting}
+                          rows={4}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed ${
+                            hasError ? "border-red-500" : "border-gray-300"
+                          }`}
+                          aria-invalid={hasError}
+                          aria-describedby={hasError ? `${fieldName}-error` : undefined}
+                        />
+                      )}
+
+                      {/* Select */}
+                      {field.type === "select" && (
+                        <select
+                          id={fieldName}
+                          value={value}
+                          onChange={(e) => handleChange(fieldName, e.target.value)}
+                          onBlur={() => handleBlur(fieldName)}
+                          disabled={field.disabled || isSubmitting}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed ${
+                            hasError ? "border-red-500" : "border-gray-300"
+                          }`}
+                          aria-invalid={hasError}
+                          aria-describedby={hasError ? `${fieldName}-error` : undefined}
+                        >
+                          <option value="">Select {field.label}</option>
+                          {field.options?.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+
+                      {/* Checkbox */}
+                      {field.type === "checkbox" && (
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            id={fieldName}
+                            checked={!!value}
+                            onChange={(e) => handleChange(fieldName, e.target.checked)}
+                            onBlur={() => handleBlur(fieldName)}
+                            disabled={field.disabled || isSubmitting}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                          />
+                          <label htmlFor={fieldName} className="ml-2 text-sm text-gray-700">
+                            {field.placeholder || field.label}
+                          </label>
+                        </div>
+                      )}
+
+                      {/* Error Message */}
+                      {hasError && (
+                        <p
+                          id={`${fieldName}-error`}
+                          className="mt-1 text-sm text-red-500"
+                          role="alert"
+                        >
+                          {error}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Additional Content Section (e.g., Image Upload) */}
+              {additionalContent && (
+                <div className="mt-6 pt-6 border-t border-gray-200">{additionalContent}</div>
               )}
-            </button>
+            </form>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isSubmitting}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white dark:bg-gray-800  hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    {mode === "create" ? "Creating..." : "Saving..."}
+                  </>
+                ) : (
+                  <>{mode === "create" ? "Create" : "Save"}</>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
     </>
   );
 }

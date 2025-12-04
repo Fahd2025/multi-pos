@@ -3,11 +3,11 @@
  * Display Touch and Standard invoice formats with print functionality
  */
 
-'use client';
+"use client";
 
-import { useRef } from 'react';
-import { SaleDto } from '@/types/api.types';
-import { InvoiceType, PaymentMethod } from '@/types/enums';
+import { useRef } from "react";
+import { SaleDto } from "@/types/api.types";
+import { InvoiceType, PaymentMethod } from "@/types/enums";
 
 interface InvoiceDisplayProps {
   sale: SaleDto;
@@ -29,24 +29,24 @@ export default function InvoiceDisplay({ sale, onClose, onPrint }: InvoiceDispla
   const getPaymentMethodName = (method: PaymentMethod): string => {
     switch (method) {
       case PaymentMethod.Cash:
-        return 'Cash';
+        return "Cash";
       case PaymentMethod.Card:
-        return 'Card';
+        return "Card";
       case PaymentMethod.DigitalWallet:
-        return 'Digital Wallet';
+        return "Digital Wallet";
       default:
-        return 'Unknown';
+        return "Unknown";
     }
   };
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -54,11 +54,11 @@ export default function InvoiceDisplay({ sale, onClose, onPrint }: InvoiceDispla
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800  rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Modal Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">
-            {isTouchInvoice ? '📱 Touch Invoice' : '📄 Standard Invoice'}
+        <div className="sticky top-0 bg-white dark:bg-gray-800  border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+            {isTouchInvoice ? "📱 Touch Invoice" : "📄 Standard Invoice"}
           </h2>
           <div className="flex items-center gap-2">
             <button
@@ -121,9 +121,7 @@ export default function InvoiceDisplay({ sale, onClose, onPrint }: InvoiceDispla
                         <td className="py-2">{item.productName}</td>
                         <td className="text-right">{item.quantity}</td>
                         <td className="text-right">${item.discountedUnitPrice.toFixed(2)}</td>
-                        <td className="text-right font-medium">
-                          ${item.lineTotal.toFixed(2)}
-                        </td>
+                        <td className="text-right font-medium">${item.lineTotal.toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -192,11 +190,13 @@ export default function InvoiceDisplay({ sale, onClose, onPrint }: InvoiceDispla
               {/* Customer & Transaction Info */}
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Bill To:</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Bill To:</h3>
                   <div className="text-sm text-gray-600 space-y-1">
                     {sale.customerName ? (
                       <>
-                        <p className="font-medium text-gray-900">{sale.customerName}</p>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">
+                          {sale.customerName}
+                        </p>
                         <p>Customer ID: {sale.customerId}</p>
                       </>
                     ) : (
@@ -205,14 +205,14 @@ export default function InvoiceDisplay({ sale, onClose, onPrint }: InvoiceDispla
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Transaction Details:</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                    Transaction Details:
+                  </h3>
                   <div className="text-sm text-gray-600 space-y-1">
                     <p>Transaction ID: {sale.transactionId}</p>
                     <p>Cashier: {sale.cashierName}</p>
                     <p>Payment: {getPaymentMethodName(sale.paymentMethod)}</p>
-                    {sale.paymentReference && (
-                      <p>Reference: {sale.paymentReference}</p>
-                    )}
+                    {sale.paymentReference && <p>Reference: {sale.paymentReference}</p>}
                   </div>
                 </div>
               </div>
@@ -238,9 +238,7 @@ export default function InvoiceDisplay({ sale, onClose, onPrint }: InvoiceDispla
                         <td className="py-3 px-4 font-medium">{item.productName}</td>
                         <td className="py-3 px-4 text-gray-600">{item.productSku}</td>
                         <td className="text-right py-3 px-4">{item.quantity}</td>
-                        <td className="text-right py-3 px-4">
-                          ${item.unitPrice.toFixed(2)}
-                        </td>
+                        <td className="text-right py-3 px-4">${item.unitPrice.toFixed(2)}</td>
                         <td className="text-right py-3 px-4">
                           {item.discountValue > 0 ? (
                             <span className="text-green-600">
@@ -249,7 +247,7 @@ export default function InvoiceDisplay({ sale, onClose, onPrint }: InvoiceDispla
                                 : `$${item.discountValue.toFixed(2)}`}
                             </span>
                           ) : (
-                            '-'
+                            "-"
                           )}
                         </td>
                         <td className="text-right py-3 px-4 font-semibold">
@@ -288,7 +286,7 @@ export default function InvoiceDisplay({ sale, onClose, onPrint }: InvoiceDispla
               {/* Notes */}
               {sale.notes && (
                 <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="font-semibold text-gray-900 mb-2">Notes:</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Notes:</h3>
                   <p className="text-sm text-gray-600">{sale.notes}</p>
                 </div>
               )}

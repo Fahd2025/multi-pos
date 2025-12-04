@@ -30,7 +30,7 @@
  * ```
  */
 
-import React from 'react';
+import React from "react";
 
 export interface StatCardProps {
   /** Card title/label */
@@ -52,7 +52,7 @@ export interface StatCardProps {
   /** Value color class (default: "text-gray-900 dark:text-gray-100") */
   valueColor?: string;
   /** Value size class (default: "text-2xl" for md, "text-3xl" for lg) */
-  valueSize?: 'md' | 'lg';
+  valueSize?: "md" | "lg";
 }
 
 export const StatCard: React.FC<StatCardProps> = ({
@@ -60,28 +60,28 @@ export const StatCard: React.FC<StatCardProps> = ({
   value,
   description,
   icon,
-  iconBgColor = 'bg-gray-100 dark:bg-gray-700',
+  iconBgColor = "bg-gray-100 dark:bg-gray-700",
   footer,
   onClick,
-  className = '',
-  valueColor = 'text-gray-900 dark:text-gray-100',
-  valueSize = 'md',
+  className = "",
+  valueColor = "text-gray-900 dark:text-gray-100",
+  valueSize = "md",
 }) => {
-  const Component = onClick ? 'button' : 'div';
-  const valueSizeClass = valueSize === 'lg' ? 'text-3xl' : 'text-2xl';
+  const Component = onClick ? "button" : "div";
+  const valueSizeClass = valueSize === "lg" ? "text-3xl" : "text-2xl";
 
   return (
     <Component
       onClick={onClick}
-      className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm ${
-        onClick ? 'hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer' : ''
+      className={`bg-white dark:bg-gray-800  border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm ${
+        onClick ? "hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer" : ""
       } ${className}`}
     >
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">{title}</p>
           <p className={`${valueSizeClass} font-bold ${valueColor} mt-2`}>
-            {typeof value === 'number' ? value.toLocaleString() : value}
+            {typeof value === "number" ? value.toLocaleString() : value}
           </p>
           {description && (
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{description}</p>
@@ -91,7 +91,7 @@ export const StatCard: React.FC<StatCardProps> = ({
           <div
             className={`w-12 h-12 ${iconBgColor} rounded-full flex items-center justify-center flex-shrink-0 ml-4`}
           >
-            {typeof icon === 'string' ? <span className="text-2xl">{icon}</span> : icon}
+            {typeof icon === "string" ? <span className="text-2xl">{icon}</span> : icon}
           </div>
         )}
       </div>

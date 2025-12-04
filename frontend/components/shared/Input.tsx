@@ -34,7 +34,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
     // Base input styles
     const baseStyles =
-      "block rounded-lg border px-4 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100";
+      "block rounded-lg border px-4 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed bg-white dark:bg-gray-800  dark:bg-gray-700 text-gray-900 dark:text-gray-100";
 
     // State styles
     const stateStyles = hasError
@@ -53,7 +53,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       <div className={isFullWidth ? "w-full" : ""}>
         {/* Label */}
         {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label
+            htmlFor={inputId}
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          >
             {label}
             {props.required && <span className="text-red-500 dark:text-red-400 ml-1">*</span>}
           </label>

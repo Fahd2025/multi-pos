@@ -3,17 +3,12 @@
  * Modal for creating new purchase orders with line items
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import inventoryService from '@/services/inventory.service';
-import supplierService from '@/services/supplier.service';
-import {
-  PurchaseDto,
-  SupplierDto,
-  ProductDto,
-  CreatePurchaseLineItemDto,
-} from '@/types/api.types';
+import { useState, useEffect } from "react";
+import inventoryService from "@/services/inventory.service";
+import supplierService from "@/services/supplier.service";
+import { PurchaseDto, SupplierDto, ProductDto, CreatePurchaseLineItemDto } from "@/types/api.types";
 
 interface PurchaseFormModalProps {
   isOpen: boolean;
@@ -37,9 +32,9 @@ export default function PurchaseFormModal({
 
   // Form state
   const [formData, setFormData] = useState({
-    supplierId: '',
-    purchaseDate: new Date().toISOString().split('T')[0],
-    notes: '',
+    supplierId: "",
+    purchaseDate: new Date().toISOString().split("T")[0],
+    notes: "",
   });
 
   const [lineItems, setLineItems] = useState<LineItemForm[]>([]);
@@ -61,8 +56,8 @@ export default function PurchaseFormModal({
         // View mode - load existing purchase
         setFormData({
           supplierId: purchase.supplierId,
-          purchaseDate: purchase.purchaseDate.split('T')[0],
-          notes: purchase.notes || '',
+          purchaseDate: purchase.purchaseDate.split("T")[0],
+          notes: purchase.notes || "",
         });
         setLineItems(
           purchase.lineItems.map((item) => ({
@@ -76,9 +71,9 @@ export default function PurchaseFormModal({
       } else {
         // Create mode - reset form
         setFormData({
-          supplierId: '',
-          purchaseDate: new Date().toISOString().split('T')[0],
-          notes: '',
+          supplierId: "",
+          purchaseDate: new Date().toISOString().split("T")[0],
+          notes: "",
         });
         setLineItems([]);
       }
@@ -97,7 +92,7 @@ export default function PurchaseFormModal({
       setSuppliers(suppliersResponse.data);
       setProducts(productsData.data);
     } catch (err: any) {
-      setError(err.message || 'Failed to load dropdown data');
+      setError(err.message || "Failed to load dropdown data");
     }
   };
 
@@ -107,14 +102,16 @@ export default function PurchaseFormModal({
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
-    if (!formData.supplierId) errors.supplierId = 'Supplier is required';
-    if (!formData.purchaseDate) errors.purchaseDate = 'Purchase date is required';
-    if (lineItems.length === 0) errors.lineItems = 'At least one product is required';
+    if (!formData.supplierId) errors.supplierId = "Supplier is required";
+    if (!formData.purchaseDate) errors.purchaseDate = "Purchase date is required";
+    if (lineItems.length === 0) errors.lineItems = "At least one product is required";
 
     lineItems.forEach((item, index) => {
-      if (!item.productId) errors[`lineItem_${index}_product`] = 'Product is required';
-      if (!item.quantity || item.quantity <= 0) errors[`lineItem_${index}_quantity`] = 'Quantity must be greater than 0';
-      if (!item.unitCost || item.unitCost <= 0) errors[`lineItem_${index}_unitCost`] = 'Unit cost must be greater than 0';
+      if (!item.productId) errors[`lineItem_${index}_product`] = "Product is required";
+      if (!item.quantity || item.quantity <= 0)
+        errors[`lineItem_${index}_quantity`] = "Quantity must be greater than 0";
+      if (!item.unitCost || item.unitCost <= 0)
+        errors[`lineItem_${index}_unitCost`] = "Unit cost must be greater than 0";
     });
 
     setValidationErrors(errors);
@@ -128,7 +125,7 @@ export default function PurchaseFormModal({
     setLineItems([
       ...lineItems,
       {
-        productId: '',
+        productId: "",
         quantity: 1,
         unitCost: 0,
         lineTotal: 0,
@@ -154,14 +151,14 @@ export default function PurchaseFormModal({
     };
 
     // Auto-calculate line total
-    if (field === 'quantity' || field === 'unitCost') {
-      const quantity = field === 'quantity' ? parseFloat(value) || 0 : updatedItems[index].quantity;
-      const unitCost = field === 'unitCost' ? parseFloat(value) || 0 : updatedItems[index].unitCost;
+    if (field === "quantity" || field === "unitCost") {
+      const quantity = field === "quantity" ? parseFloat(value) || 0 : updatedItems[index].quantity;
+      const unitCost = field === "unitCost" ? parseFloat(value) || 0 : updatedItems[index].unitCost;
       updatedItems[index].lineTotal = quantity * unitCost;
     }
 
     // Get product name if product changed
-    if (field === 'productId') {
+    if (field === "productId") {
       const product = products.find((p) => p.id === value);
       updatedItems[index].productName = product?.nameEn;
       updatedItems[index].unitCost = product?.costPrice || 0;
@@ -217,8 +214,8 @@ export default function PurchaseFormModal({
       onSuccess();
       onClose();
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Failed to create purchase');
-      console.error('Failed to create purchase:', err);
+      setError(err.response?.data?.message || err.message || "Failed to create purchase");
+      console.error("Failed to create purchase:", err);
     } finally {
       setLoading(false);
     }
@@ -228,22 +225,22 @@ export default function PurchaseFormModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 my-8">
+      <div className="bg-white dark:bg-gray-800  rounded-lg shadow-xl max-w-4xl w-full mx-4 my-8">
         {/* Header */}
         <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">
-            {isViewMode ? 'Purchase Order Details' : 'Create Purchase Order'}
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            {isViewMode ? "Purchase Order Details" : "Create Purchase Order"}
           </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             ✕
           </button>
         </div>
 
         {/* Form Content */}
-        <form onSubmit={handleSubmit} className="px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+        <form
+          onSubmit={handleSubmit}
+          className="px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto"
+        >
           {error && (
             <div className="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md">
               {error}
@@ -253,7 +250,9 @@ export default function PurchaseFormModal({
           <div className="space-y-6">
             {/* Purchase Information */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Purchase Information</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                Purchase Information
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Supplier */}
                 <div>
@@ -262,13 +261,11 @@ export default function PurchaseFormModal({
                   </label>
                   <select
                     value={formData.supplierId}
-                    onChange={(e) =>
-                      setFormData({ ...formData, supplierId: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, supplierId: e.target.value })}
                     disabled={isViewMode}
                     className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      validationErrors.supplierId ? 'border-red-500' : 'border-gray-300'
-                    } ${isViewMode ? 'bg-gray-100' : ''}`}
+                      validationErrors.supplierId ? "border-red-500" : "border-gray-300"
+                    } ${isViewMode ? "bg-gray-100" : ""}`}
                   >
                     <option value="">-- Select Supplier --</option>
                     {suppliers
@@ -277,8 +274,10 @@ export default function PurchaseFormModal({
                         <option key={supplier.id} value={supplier.id}>
                           [{supplier.code}] {supplier.nameEn}
                           {supplier.totalPurchases > 0
-                            ? ` - ${supplier.totalPurchases} previous order${supplier.totalPurchases > 1 ? 's' : ''}`
-                            : ' - New supplier'}
+                            ? ` - ${supplier.totalPurchases} previous order${
+                                supplier.totalPurchases > 1 ? "s" : ""
+                              }`
+                            : " - New supplier"}
                         </option>
                       ))}
                   </select>
@@ -295,13 +294,11 @@ export default function PurchaseFormModal({
                   <input
                     type="date"
                     value={formData.purchaseDate}
-                    onChange={(e) =>
-                      setFormData({ ...formData, purchaseDate: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, purchaseDate: e.target.value })}
                     disabled={isViewMode}
                     className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      validationErrors.purchaseDate ? 'border-red-500' : 'border-gray-300'
-                    } ${isViewMode ? 'bg-gray-100' : ''}`}
+                      validationErrors.purchaseDate ? "border-red-500" : "border-gray-300"
+                    } ${isViewMode ? "bg-gray-100" : ""}`}
                   />
                   {validationErrors.purchaseDate && (
                     <p className="text-red-500 text-xs mt-1">{validationErrors.purchaseDate}</p>
@@ -317,7 +314,7 @@ export default function PurchaseFormModal({
                     disabled={isViewMode}
                     rows={2}
                     className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      isViewMode ? 'bg-gray-100' : ''
+                      isViewMode ? "bg-gray-100" : ""
                     }`}
                     placeholder="Optional purchase notes..."
                   />
@@ -328,7 +325,7 @@ export default function PurchaseFormModal({
             {/* Line Items */}
             <div>
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Products</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Products</h3>
                 {!isViewMode && (
                   <button
                     type="button"
@@ -357,15 +354,13 @@ export default function PurchaseFormModal({
                       </label>
                       <select
                         value={item.productId}
-                        onChange={(e) =>
-                          handleLineItemChange(index, 'productId', e.target.value)
-                        }
+                        onChange={(e) => handleLineItemChange(index, "productId", e.target.value)}
                         disabled={isViewMode}
                         className={`w-full px-2 py-1 text-sm border rounded-md ${
                           validationErrors[`lineItem_${index}_product`]
-                            ? 'border-red-500'
-                            : 'border-gray-300'
-                        } ${isViewMode ? 'bg-gray-100' : ''}`}
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        } ${isViewMode ? "bg-gray-100" : ""}`}
                       >
                         <option value="">-- Select --</option>
                         {products.map((product) => (
@@ -383,23 +378,19 @@ export default function PurchaseFormModal({
 
                     {/* Quantity */}
                     <div className="w-24">
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Qty
-                      </label>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Qty</label>
                       <input
                         type="number"
                         value={item.quantity}
-                        onChange={(e) =>
-                          handleLineItemChange(index, 'quantity', e.target.value)
-                        }
+                        onChange={(e) => handleLineItemChange(index, "quantity", e.target.value)}
                         disabled={isViewMode}
                         min="1"
                         step="1"
                         className={`w-full px-2 py-1 text-sm border rounded-md ${
                           validationErrors[`lineItem_${index}_quantity`]
-                            ? 'border-red-500'
-                            : 'border-gray-300'
-                        } ${isViewMode ? 'bg-gray-100' : ''}`}
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        } ${isViewMode ? "bg-gray-100" : ""}`}
                       />
                       {validationErrors[`lineItem_${index}_quantity`] && (
                         <p className="text-red-500 text-xs mt-1">
@@ -416,17 +407,15 @@ export default function PurchaseFormModal({
                       <input
                         type="number"
                         value={item.unitCost}
-                        onChange={(e) =>
-                          handleLineItemChange(index, 'unitCost', e.target.value)
-                        }
+                        onChange={(e) => handleLineItemChange(index, "unitCost", e.target.value)}
                         disabled={isViewMode}
                         min="0"
                         step="0.01"
                         className={`w-full px-2 py-1 text-sm border rounded-md ${
                           validationErrors[`lineItem_${index}_unitCost`]
-                            ? 'border-red-500'
-                            : 'border-gray-300'
-                        } ${isViewMode ? 'bg-gray-100' : ''}`}
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        } ${isViewMode ? "bg-gray-100" : ""}`}
                       />
                       {validationErrors[`lineItem_${index}_unitCost`] && (
                         <p className="text-red-500 text-xs mt-1">
@@ -437,9 +426,7 @@ export default function PurchaseFormModal({
 
                     {/* Line Total */}
                     <div className="w-28">
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Total
-                      </label>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Total</label>
                       <div className="px-2 py-1 text-sm bg-gray-100 border border-gray-300 rounded-md font-semibold">
                         ${item.lineTotal.toFixed(2)}
                       </div>
@@ -467,7 +454,7 @@ export default function PurchaseFormModal({
             <div className="flex justify-end items-center p-4 bg-blue-50 rounded-md">
               <div className="text-right">
                 <div className="text-sm text-gray-600">Total Purchase Cost</div>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                   ${calculateTotalCost().toFixed(2)}
                 </div>
               </div>
@@ -482,7 +469,7 @@ export default function PurchaseFormModal({
             onClick={onClose}
             className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
           >
-            {isViewMode ? 'Close' : 'Cancel'}
+            {isViewMode ? "Close" : "Cancel"}
           </button>
           {!isViewMode && (
             <button
@@ -491,7 +478,7 @@ export default function PurchaseFormModal({
               disabled={loading}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Creating...' : 'Create Purchase Order'}
+              {loading ? "Creating..." : "Create Purchase Order"}
             </button>
           )}
         </div>

@@ -171,7 +171,7 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
   return (
     <div className="fixed inset-0 flex flex-col bg-gray-100">
       {/* Top Bar */}
-      <div className="bg-white border-b border-gray-200 shadow-sm z-10 sticky top-0">
+      <div className="bg-white dark:bg-gray-800  border-b border-gray-200 shadow-sm z-10 sticky top-0">
         {/* Main Header Row */}
         <div className="flex items-center justify-between px-3 sm:px-4 lg:px-6 py-3">
           {/* Left: Back Button + Title */}
@@ -207,7 +207,9 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
               </svg>
             </button>
             <div className="hidden sm:block">
-              <h1 className="text-lg sm:text-xl font-bold text-gray-900">Point of Sale</h1>
+              <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
+                Point of Sale
+              </h1>
               <p className="text-xs text-gray-600">{isOnline ? "🟢 Online" : "🔴 Offline"}</p>
             </div>
           </div>
@@ -354,7 +356,7 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
                   className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
                     sidebarPosition === "left"
                       ? "bg-blue-600 text-white"
-                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
+                      : "bg-white dark:bg-gray-800  text-gray-700 border border-gray-300 hover:bg-gray-100"
                   }`}
                 >
                   Left Sidebar
@@ -364,7 +366,7 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
                   className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
                     sidebarPosition === "top"
                       ? "bg-blue-600 text-white"
-                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
+                      : "bg-white dark:bg-gray-800  text-gray-700 border border-gray-300 hover:bg-gray-100"
                   }`}
                 >
                   Top Bar
@@ -410,7 +412,7 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
             {/* Sidebar Toggle Button - Desktop */}
             <button
               onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              className="hidden md:flex absolute left-0 top-4 z-10 bg-white border border-gray-300 rounded-r-lg px-2 py-3 shadow-md hover:bg-gray-50 transition-all items-center justify-center"
+              className="hidden md:flex absolute left-0 top-4 z-10 bg-white dark:bg-gray-800  border border-gray-300 rounded-r-lg px-2 py-3 shadow-md hover:bg-gray-50 transition-all items-center justify-center"
               style={{ left: isSidebarCollapsed ? "0" : "256px" }}
               title={isSidebarCollapsed ? "Show categories" : "Hide categories"}
             >
@@ -453,9 +455,11 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
                   className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
                   onClick={() => setIsMobileCategoryOpen(false)}
                 />
-                <div className="md:hidden fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-white shadow-xl z-40 overflow-y-auto">
-                  <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-gray-900">Categories</h2>
+                <div className="md:hidden fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-white dark:bg-gray-800  shadow-xl z-40 overflow-y-auto">
+                  <div className="sticky top-0 bg-white dark:bg-gray-800  border-b border-gray-200 p-4 flex items-center justify-between">
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                      Categories
+                    </h2>
                     <button
                       onClick={() => setIsMobileCategoryOpen(false)}
                       className="p-3 hover:bg-gray-100 rounded-lg transition-all touch-manipulation active:scale-95 min-w-[48px] min-h-[48px] flex items-center justify-center"
@@ -543,9 +547,11 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
                   className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
                   onClick={() => setIsMobileCategoryOpen(false)}
                 />
-                <div className="md:hidden fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-white shadow-xl z-40 overflow-y-auto">
-                  <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-gray-900">Categories</h2>
+                <div className="md:hidden fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-white dark:bg-gray-800  shadow-xl z-40 overflow-y-auto">
+                  <div className="sticky top-0 bg-white dark:bg-gray-800  border-b border-gray-200 p-4 flex items-center justify-between">
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                      Categories
+                    </h2>
                     <button
                       onClick={() => setIsMobileCategoryOpen(false)}
                       className="p-3 hover:bg-gray-100 rounded-lg transition-all touch-manipulation active:scale-95 min-w-[48px] min-h-[48px] flex items-center justify-center"

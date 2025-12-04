@@ -80,31 +80,35 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
         />
 
         {/* Date Range Filter */}
-        <div className="mb-6 bg-white border border-gray-200 rounded-lg p-4 md:p-5 shadow-sm">
+        <div className="mb-6 bg-white dark:bg-gray-800  border border-gray-200 dark:border-gray-700 rounded-lg p-4 md:p-5 shadow-sm">
           <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">From Date</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  From Date
+                </label>
                 <input
                   type="date"
                   value={dateFrom}
                   onChange={(e) => setDateFrom(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800  dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">To Date</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  To Date
+                </label>
                 <input
                   type="date"
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800  dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400"
                 />
               </div>
             </div>
             <button
               onClick={handleDateFilterChange}
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors w-full sm:w-auto"
+              className="px-6 py-2.5 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors w-full sm:w-auto"
             >
               Apply
             </button>
@@ -162,10 +166,12 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
         {/* Sales Transactions Table */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900">Sales Transactions</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
+              Sales Transactions
+            </h2>
             <button
               onClick={() => setRefreshTrigger((prev) => prev + 1)}
-              className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+              className="px-4 py-2 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800  dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors shadow-sm"
             >
               🔄 Refresh
             </button>

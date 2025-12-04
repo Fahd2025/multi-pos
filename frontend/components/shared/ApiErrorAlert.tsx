@@ -113,7 +113,7 @@ export function ApiErrorAlert({ error, onRetry, onDismiss, className = "" }: Api
           {onRetry && (
             <button
               onClick={onRetry}
-              className="px-3 py-1 text-xs font-medium rounded bg-white bg-opacity-50 hover:bg-opacity-100 transition-colors"
+              className="px-3 py-1 text-xs font-medium rounded bg-white dark:bg-gray-800  bg-opacity-50 hover:bg-opacity-100 transition-colors"
             >
               Retry
             </button>
@@ -146,7 +146,7 @@ export function InlineApiError({ error, onRetry }: { error: any; onRetry?: () =>
       <div className="flex items-center justify-center py-8 px-4">
         <div className="text-center max-w-md">
           <div className="text-4xl mb-3">{isNetworkError ? "🔌" : "🔍"}</div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
             {isNetworkError ? "Connection Error" : "Service Unavailable"}
           </h3>
           <p className="text-sm text-gray-600 mb-4">
@@ -171,7 +171,9 @@ export function InlineApiError({ error, onRetry }: { error: any; onRetry?: () =>
     <div className="flex items-center justify-center py-8 px-4">
       <div className="text-center max-w-md">
         <div className="text-4xl mb-3">⚠️</div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Data</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          Error Loading Data
+        </h3>
         <p className="text-sm text-gray-600 mb-4">
           {error?.message || "An unexpected error occurred."}
         </p>
@@ -207,7 +209,7 @@ export function EmptyState({
     <div className="flex items-center justify-center py-12 px-4">
       <div className="text-center max-w-md">
         <div className="text-5xl mb-4">{icon}</div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{title}</h3>
         <p className="text-sm text-gray-600 mb-6">{message}</p>
         {action && (
           <button

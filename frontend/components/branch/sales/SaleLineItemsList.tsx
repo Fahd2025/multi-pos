@@ -3,11 +3,11 @@
  * Display and manage sale line items with quantity and discount controls
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { ProductDto } from '@/types/api.types';
-import { DiscountType } from '@/types/enums';
+import { useState } from "react";
+import { ProductDto } from "@/types/api.types";
+import { DiscountType } from "@/types/enums";
 
 export interface SaleLineItem {
   productId: string;
@@ -75,16 +75,16 @@ export default function SaleLineItemsList({
     return (
       <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
         <span className="text-6xl">🛒</span>
-        <h3 className="mt-4 text-lg font-medium text-gray-900">No items yet</h3>
+        <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">No items yet</h3>
         <p className="mt-2 text-gray-600">Search and add products to start a sale</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div className="bg-white dark:bg-gray-800  border border-gray-200 rounded-lg overflow-hidden">
       <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           Cart Items ({items.length})
         </h3>
       </div>
@@ -99,11 +99,11 @@ export default function SaleLineItemsList({
               {/* Product Info */}
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900">{item.productName}</h4>
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                    {item.productName}
+                  </h4>
                   <p className="text-sm text-gray-600">SKU: {item.productSku}</p>
-                  <p className="text-sm text-gray-600">
-                    ${item.unitPrice.toFixed(2)} per unit
-                  </p>
+                  <p className="text-sm text-gray-600">${item.unitPrice.toFixed(2)} per unit</p>
                 </div>
                 <button
                   onClick={() => onRemoveItem(index)}
@@ -116,9 +116,7 @@ export default function SaleLineItemsList({
 
               {/* Quantity Controls */}
               <div className="flex items-center gap-4 mb-3">
-                <label className="text-sm font-medium text-gray-700 w-20">
-                  Quantity:
-                </label>
+                <label className="text-sm font-medium text-gray-700 w-20">Quantity:</label>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleQuantityChange(index, -1)}
@@ -130,9 +128,7 @@ export default function SaleLineItemsList({
                   <input
                     type="number"
                     value={item.quantity}
-                    onChange={(e) =>
-                      onUpdateQuantity(index, parseInt(e.target.value) || 1)
-                    }
+                    onChange={(e) => onUpdateQuantity(index, parseInt(e.target.value) || 1)}
                     min="1"
                     className="w-16 text-center border border-gray-300 rounded-md py-1"
                   />
@@ -147,15 +143,11 @@ export default function SaleLineItemsList({
 
               {/* Discount Controls */}
               <div className="flex items-center gap-4 mb-3">
-                <label className="text-sm font-medium text-gray-700 w-20">
-                  Discount:
-                </label>
+                <label className="text-sm font-medium text-gray-700 w-20">Discount:</label>
                 <div className="flex items-center gap-2 flex-1">
                   <select
                     value={item.discountType}
-                    onChange={(e) =>
-                      handleDiscountTypeChange(index, Number(e.target.value))
-                    }
+                    onChange={(e) => handleDiscountTypeChange(index, Number(e.target.value))}
                     className="border border-gray-300 rounded-md px-3 py-1 text-sm"
                   >
                     <option value={DiscountType.None}>None</option>
@@ -169,27 +161,22 @@ export default function SaleLineItemsList({
                       value={item.discountValue}
                       onChange={(e) => handleDiscountValueChange(index, e.target.value)}
                       min="0"
-                      max={
-                        item.discountType === DiscountType.Percentage
-                          ? 100
-                          : item.unitPrice
-                      }
+                      max={item.discountType === DiscountType.Percentage ? 100 : item.unitPrice}
                       step={item.discountType === DiscountType.Percentage ? 1 : 0.01}
                       className="w-20 border border-gray-300 rounded-md px-3 py-1 text-sm"
                       placeholder="0"
                     />
                   )}
 
-                  {item.discountType !== DiscountType.None &&
-                    item.discountValue > 0 && (
-                      <span className="text-sm text-green-600 font-medium">
-                        Save: $
-                        {item.discountType === DiscountType.Percentage
-                          ? ((item.unitPrice * item.discountValue) / 100).toFixed(2)
-                          : item.discountValue.toFixed(2)}{' '}
-                        per unit
-                      </span>
-                    )}
+                  {item.discountType !== DiscountType.None && item.discountValue > 0 && (
+                    <span className="text-sm text-green-600 font-medium">
+                      Save: $
+                      {item.discountType === DiscountType.Percentage
+                        ? ((item.unitPrice * item.discountValue) / 100).toFixed(2)
+                        : item.discountValue.toFixed(2)}{" "}
+                      per unit
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -197,15 +184,12 @@ export default function SaleLineItemsList({
               <div className="flex items-center justify-between pt-3 border-t border-gray-200">
                 <span className="text-sm text-gray-600">Line Total:</span>
                 <div className="text-right">
-                  {item.discountType !== DiscountType.None &&
-                    item.discountValue > 0 && (
-                      <p className="text-sm text-gray-400 line-through">
-                        ${(item.unitPrice * item.quantity).toFixed(2)}
-                      </p>
-                    )}
-                  <p className="text-lg font-bold text-blue-600">
-                    ${lineTotal.toFixed(2)}
-                  </p>
+                  {item.discountType !== DiscountType.None && item.discountValue > 0 && (
+                    <p className="text-sm text-gray-400 line-through">
+                      ${(item.unitPrice * item.quantity).toFixed(2)}
+                    </p>
+                  )}
+                  <p className="text-lg font-bold text-blue-600">${lineTotal.toFixed(2)}</p>
                 </div>
               </div>
             </div>
@@ -217,9 +201,9 @@ export default function SaleLineItemsList({
       <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium text-gray-700">
-            Subtotal ({items.length} item{items.length !== 1 ? 's' : ''}):
+            Subtotal ({items.length} item{items.length !== 1 ? "s" : ""}):
           </span>
-          <span className="text-xl font-bold text-gray-900">
+          <span className="text-xl font-bold text-gray-900 dark:text-gray-100">
             ${items.reduce((sum, item) => sum + calculateLineTotal(item), 0).toFixed(2)}
           </span>
         </div>

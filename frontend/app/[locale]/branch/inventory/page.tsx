@@ -181,7 +181,7 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
       sortable: true,
       render: (value, row) => (
         <div>
-          <div className="text-sm font-medium text-gray-900">{value}</div>
+          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{value}</div>
           <div className="text-sm text-gray-500">{getCategoryName(row.categoryId)}</div>
         </div>
       ),
@@ -192,7 +192,7 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
       sortable: true,
       render: (value, row) => (
         <div>
-          <div className="text-sm text-gray-900">{value}</div>
+          <div className="text-sm text-gray-900 dark:text-gray-100">{value}</div>
           {row.barcode && <div className="text-sm text-gray-500">{row.barcode}</div>}
         </div>
       ),
@@ -202,7 +202,9 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
       label: "Price",
       sortable: true,
       render: (value) => (
-        <span className="text-sm font-medium text-gray-900">${value.toFixed(2)}</span>
+        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+          ${value.toFixed(2)}
+        </span>
       ),
     },
     {
@@ -211,7 +213,7 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
       sortable: true,
       render: (value, row) => (
         <div className="text-right">
-          <span className="text-sm font-semibold text-gray-900">{value}</span>
+          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{value}</span>
           <span className="text-xs text-gray-500 ml-1">/ {row.minStockThreshold}</span>
         </div>
       ),

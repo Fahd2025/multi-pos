@@ -3,12 +3,12 @@
  * Dashboard widget showing customer metrics
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import customerService from '@/services/customer.service';
-import { CustomerDto } from '@/types/api.types';
-import Link from 'next/link';
+import { useState, useEffect } from "react";
+import customerService from "@/services/customer.service";
+import { CustomerDto } from "@/types/api.types";
+import Link from "next/link";
 
 interface CustomerAnalyticsWidgetProps {
   locale: string;
@@ -44,7 +44,10 @@ export default function CustomerAnalyticsWidget({ locale }: CustomerAnalyticsWid
         pageSize: 1,
         isActive: true,
       });
-      setStats((prev) => ({ ...prev, activeCustomers: activeCustomersResponse.pagination.totalItems }));
+      setStats((prev) => ({
+        ...prev,
+        activeCustomers: activeCustomersResponse.pagination.totalItems,
+      }));
 
       // Get top customers by total purchases
       const topCustomersResponse = await customerService.getCustomers({
@@ -65,7 +68,7 @@ export default function CustomerAnalyticsWidget({ locale }: CustomerAnalyticsWid
       ).length;
       setStats((prev) => ({ ...prev, newThisMonth: newCustomers }));
     } catch (err) {
-      console.error('Error loading customer analytics:', err);
+      console.error("Error loading customer analytics:", err);
     } finally {
       setLoading(false);
     }
@@ -73,7 +76,7 @@ export default function CustomerAnalyticsWidget({ locale }: CustomerAnalyticsWid
 
   if (loading) {
     return (
-      <div className="bg-white rounded shadow p-6">
+      <div className="bg-white dark:bg-gray-800  rounded shadow p-6">
         <h3 className="text-lg font-bold mb-4">Customer Analytics</h3>
         <p className="text-gray-500">Loading...</p>
       </div>
@@ -81,10 +84,13 @@ export default function CustomerAnalyticsWidget({ locale }: CustomerAnalyticsWid
   }
 
   return (
-    <div className="bg-white rounded shadow p-6">
+    <div className="bg-white dark:bg-gray-800  rounded shadow p-6">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-bold">Customer Analytics</h3>
-        <Link href={`/${locale}/branch/customers`} className="text-blue-600 hover:underline text-sm">
+        <Link
+          href={`/${locale}/branch/customers`}
+          className="text-blue-600 hover:underline text-sm"
+        >
           View All
         </Link>
       </div>
@@ -111,7 +117,10 @@ export default function CustomerAnalyticsWidget({ locale }: CustomerAnalyticsWid
         {topCustomers.length > 0 ? (
           <div className="space-y-2">
             {topCustomers.map((customer, index) => (
-              <div key={customer.id} className="flex justify-between items-center text-sm border-b border-gray-100 pb-2">
+              <div
+                key={customer.id}
+                className="flex justify-between items-center text-sm border-b border-gray-100 pb-2"
+              >
                 <div className="flex items-center gap-2">
                   <span className="text-gray-400 font-medium">{index + 1}.</span>
                   <Link

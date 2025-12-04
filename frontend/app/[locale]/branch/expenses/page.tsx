@@ -329,7 +329,7 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded shadow mb-6">
+      <div className="bg-white dark:bg-gray-800  p-4 rounded shadow mb-6">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1">Category</label>

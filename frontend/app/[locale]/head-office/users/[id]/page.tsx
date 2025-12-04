@@ -113,7 +113,9 @@ export default function UserDetailsPage({
       width: "200px",
       render: (value) => (
         <div className="text-sm">
-          <div className="font-medium text-gray-900">{new Date(value).toLocaleDateString()}</div>
+          <div className="font-medium text-gray-900 dark:text-gray-100">
+            {new Date(value).toLocaleDateString()}
+          </div>
           <div className="text-gray-500">{new Date(value).toLocaleTimeString()}</div>
         </div>
       ),
@@ -216,7 +218,9 @@ export default function UserDetailsPage({
           </Link>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{user.fullNameEn}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                {user.fullNameEn}
+              </h1>
               <div className="flex items-center gap-3">
                 <span className="text-gray-600">@{user.username}</span>
                 <span
@@ -273,64 +277,90 @@ export default function UserDetailsPage({
         {activeTab === "details" && (
           <div className="space-y-6">
             {/* Profile Information */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Profile Information</h2>
+            <div className="bg-white dark:bg-gray-800  rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                Profile Information
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Username</label>
-                  <p className="mt-1 text-gray-900">{user.username}</p>
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Username
+                  </label>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">{user.username}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Email</label>
-                  <p className="mt-1 text-gray-900">{user.email}</p>
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Email
+                  </label>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">{user.email}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Full Name (English)</label>
-                  <p className="mt-1 text-gray-900">{user.fullNameEn}</p>
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Full Name (English)
+                  </label>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">{user.fullNameEn}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Full Name (Arabic)</label>
-                  <p className="mt-1 text-gray-900">{user.fullNameAr || "-"}</p>
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Full Name (Arabic)
+                  </label>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">{user.fullNameAr || "-"}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Phone</label>
-                  <p className="mt-1 text-gray-900">{user.phone || "-"}</p>
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Phone
+                  </label>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">{user.phone || "-"}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Preferred Language</label>
-                  <p className="mt-1 text-gray-900">
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Preferred Language
+                  </label>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">
                     {user.preferredLanguage === "en" ? "English" : "Arabic"}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Last Login</label>
-                  <p className="mt-1 text-gray-900">
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Last Login
+                  </label>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">
                     {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : "Never"}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Last Activity</label>
-                  <p className="mt-1 text-gray-900">
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Last Activity
+                  </label>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">
                     {user.lastActivityAt
                       ? new Date(user.lastActivityAt).toLocaleString()
                       : "No activity"}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Account Created</label>
-                  <p className="mt-1 text-gray-900">{new Date(user.createdAt).toLocaleString()}</p>
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Account Created
+                  </label>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">
+                    {new Date(user.createdAt).toLocaleString()}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Last Updated</label>
-                  <p className="mt-1 text-gray-900">{new Date(user.updatedAt).toLocaleString()}</p>
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Last Updated
+                  </label>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">
+                    {new Date(user.updatedAt).toLocaleString()}
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Branch Assignments */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="bg-white dark:bg-gray-800  rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   Branch Assignments ({user.assignedBranches.length})
                 </h2>
                 {!user.isHeadOfficeAdmin && (
@@ -380,7 +410,9 @@ export default function UserDetailsPage({
                       className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
                     >
                       <div>
-                        <h3 className="font-medium text-gray-900">{branch.branchNameEn}</h3>
+                        <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                          {branch.branchNameEn}
+                        </h3>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-xs text-gray-500">Code: {branch.branchCode}</span>
                           <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full font-medium">
@@ -409,30 +441,34 @@ export default function UserDetailsPage({
           <div className="space-y-6">
             {/* Activity Statistics */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                <p className="text-sm text-gray-600">Total Activities</p>
-                <p className="text-2xl font-bold text-gray-900">{activities.length}</p>
-                <p className="text-xs text-gray-400 mt-1">Last 100 activities</p>
+              <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Total Activities</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {activities.length}
+                </p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Last 100 activities</p>
               </div>
-              <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                <p className="text-sm text-gray-600">Most Recent</p>
-                <p className="text-lg font-bold text-blue-600">
+              <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Most Recent</p>
+                <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
                   {activities.length > 0
                     ? new Date(activities[0].timestamp).toLocaleDateString()
                     : "No activity"}
                 </p>
               </div>
-              <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                <p className="text-sm text-gray-600">Unique Actions</p>
-                <p className="text-2xl font-bold text-purple-600">
+              <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Unique Actions</p>
+                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                   {new Set(activities.map((a) => a.action)).size}
                 </p>
               </div>
             </div>
 
             {/* Activity Log Table */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h2>
+            <div className="bg-white dark:bg-gray-800  rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                Recent Activity
+              </h2>
               <DataTable
                 data={displayData}
                 columns={activityColumns}

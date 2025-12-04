@@ -78,7 +78,7 @@ export default function LoginPage() {
         </div>
 
         {/* Login Form */}
-        <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+        <div className="mt-8 bg-white dark:bg-gray-800  rounded-xl shadow-lg p-8">
           {/* Login Mode Tabs */}
           <div className="flex gap-2 p-1 mb-6 bg-gray-100 dark:bg-gray-700 rounded-lg">
             <button
@@ -86,7 +86,7 @@ export default function LoginPage() {
               onClick={() => setLoginMode("branch")}
               className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                 loginMode === "branch"
-                  ? "bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm"
+                  ? "bg-white dark:bg-gray-800  text-blue-600 dark:text-blue-400 shadow-sm"
                   : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
               }`}
             >
@@ -97,7 +97,7 @@ export default function LoginPage() {
               onClick={() => setLoginMode("headoffice")}
               className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                 loginMode === "headoffice"
-                  ? "bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm"
+                  ? "bg-white dark:bg-gray-800  text-blue-600 dark:text-blue-400 shadow-sm"
                   : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
               }`}
             >

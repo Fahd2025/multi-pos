@@ -14,7 +14,7 @@
  * ```
  */
 
-import React from 'react';
+import React from "react";
 
 export interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -29,7 +29,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   title,
   message,
   action,
-  className = '',
+  className = "",
 }) => {
   return (
     <div className={`text-center py-12 ${className}`}>
@@ -50,7 +50,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           />
         </svg>
       )}
-      <h3 className="mt-2 text-sm font-medium text-gray-900">{title}</h3>
+      <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">{title}</h3>
       {message && <p className="mt-1 text-sm text-gray-500">{message}</p>}
       {action && <div className="mt-6">{action}</div>}
     </div>

@@ -3,11 +3,11 @@
  * Test database connectivity for a branch
  */
 
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Button } from '@/components/shared/Button';
-import branchService from '@/services/branch.service';
+import React, { useState } from "react";
+import { Button } from "@/components/shared/Button";
+import branchService from "@/services/branch.service";
 
 interface DatabaseConnectionTestProps {
   branchId: string;
@@ -27,7 +27,7 @@ export const DatabaseConnectionTest: React.FC<DatabaseConnectionTestProps> = ({ 
     } catch (err: any) {
       setResult({
         success: false,
-        message: err.message || 'Connection test failed',
+        message: err.message || "Connection test failed",
       });
     } finally {
       setTesting(false);
@@ -35,7 +35,7 @@ export const DatabaseConnectionTest: React.FC<DatabaseConnectionTestProps> = ({ 
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+    <div className="bg-white dark:bg-gray-800  rounded-lg border border-gray-200 dark:border-gray-700 p-6">
       <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
         Database Connection Test
       </h2>
@@ -46,36 +46,34 @@ export const DatabaseConnectionTest: React.FC<DatabaseConnectionTestProps> = ({ 
       </p>
 
       <Button onClick={handleTest} disabled={testing} className="mb-4">
-        {testing ? 'Testing Connection...' : 'Test Connection'}
+        {testing ? "Testing Connection..." : "Test Connection"}
       </Button>
 
       {result && (
         <div
           className={`rounded-lg border p-4 ${
             result.success
-              ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-              : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+              ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
+              : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
           }`}
         >
           <div className="flex items-start">
-            <div className="flex-shrink-0 text-2xl mr-3">
-              {result.success ? '✅' : '❌'}
-            </div>
+            <div className="flex-shrink-0 text-2xl mr-3">{result.success ? "✅" : "❌"}</div>
             <div>
               <h3
                 className={`text-sm font-semibold mb-1 ${
                   result.success
-                    ? 'text-green-800 dark:text-green-400'
-                    : 'text-red-800 dark:text-red-400'
+                    ? "text-green-800 dark:text-green-400"
+                    : "text-red-800 dark:text-red-400"
                 }`}
               >
-                {result.success ? 'Connection Successful' : 'Connection Failed'}
+                {result.success ? "Connection Successful" : "Connection Failed"}
               </h3>
               <p
                 className={`text-sm ${
                   result.success
-                    ? 'text-green-700 dark:text-green-300'
-                    : 'text-red-700 dark:text-red-300'
+                    ? "text-green-700 dark:text-green-300"
+                    : "text-red-700 dark:text-red-300"
                 }`}
               >
                 {result.message}

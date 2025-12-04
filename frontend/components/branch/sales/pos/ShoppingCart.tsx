@@ -3,11 +3,11 @@
  * Display cart items with quantity controls and order summary
  */
 
-'use client';
+"use client";
 
-import { useRef, useEffect, useState } from 'react';
-import { SaleLineItem } from '../SaleLineItemsList';
-import { DiscountType } from '@/types/enums';
+import { useRef, useEffect, useState } from "react";
+import { SaleLineItem } from "../SaleLineItemsList";
+import { DiscountType } from "@/types/enums";
 
 interface ShoppingCartProps {
   items: SaleLineItem[];
@@ -36,8 +36,10 @@ export default function ShoppingCart({
   // Track quantity changes for animation
   useEffect(() => {
     items.forEach((item, index) => {
-      if (previousQuantities.current[index] !== undefined &&
-          previousQuantities.current[index] !== item.quantity) {
+      if (
+        previousQuantities.current[index] !== undefined &&
+        previousQuantities.current[index] !== item.quantity
+      ) {
         // Quantity changed, trigger animation
         setUpdatingIndex(index);
         setTimeout(() => setUpdatingIndex(null), 600); // Match animation duration
@@ -54,17 +56,21 @@ export default function ShoppingCart({
         setTimeout(() => {
           cartItemsRef.current?.scrollTo({
             top: cartItemsRef.current.scrollHeight,
-            behavior: 'smooth',
+            behavior: "smooth",
           });
         }, 100);
       }
-    } else if (items.length === previousItemsLength.current && items.length > 0 && lastUpdatedIndex !== undefined) {
+    } else if (
+      items.length === previousItemsLength.current &&
+      items.length > 0 &&
+      lastUpdatedIndex !== undefined
+    ) {
       // Quantity updated - scroll to the updated item
       if (itemRefs.current[lastUpdatedIndex]) {
         setTimeout(() => {
           itemRefs.current[lastUpdatedIndex]?.scrollIntoView({
-            behavior: 'smooth',
-            block: 'nearest',
+            behavior: "smooth",
+            block: "nearest",
           });
         }, 100);
       }
@@ -103,13 +109,13 @@ export default function ShoppingCart({
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <div className="h-full flex flex-col bg-white border-l border-gray-200">
+    <div className="h-full flex flex-col bg-white dark:bg-gray-800  border-l border-gray-200">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">Shopping Cart</h2>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Shopping Cart</h2>
           <p className="text-xs text-gray-600 mt-0.5">
-            {itemCount} item{itemCount !== 1 ? 's' : ''}
+            {itemCount} item{itemCount !== 1 ? "s" : ""}
           </p>
         </div>
         {items.length > 0 && (
@@ -127,12 +133,10 @@ export default function ShoppingCart({
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-6 text-center animate-fadeIn">
             <span className="text-6xl mb-4 animate-scaleIn">🛒</span>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
               Cart is empty
             </h3>
-            <p className="text-sm text-gray-600">
-              Add products from the grid to start a sale
-            </p>
+            <p className="text-sm text-gray-600">Add products from the grid to start a sale</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-200">
@@ -149,10 +153,10 @@ export default function ShoppingCart({
                   }}
                   className={`p-4 transition-all duration-300 animate-slideDown rounded-lg ${
                     isDeleting
-                      ? 'animate-delete-item bg-red-100 translate-x-full opacity-0'
+                      ? "animate-delete-item bg-red-100 translate-x-full opacity-0"
                       : isUpdating
-                      ? 'animate-quantity-update border-2'
-                      : 'hover:bg-gray-50 border-2 border-transparent'
+                      ? "animate-quantity-update border-2"
+                      : "hover:bg-gray-50 border-2 border-transparent"
                   }`}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
@@ -177,7 +181,7 @@ export default function ShoppingCart({
                       {/* Product Name & Remove Button */}
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1 pr-2">
-                          <h4 className="font-semibold text-gray-900 text-base leading-tight">
+                          <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-base leading-tight">
                             {item.productName}
                           </h4>
                           <p className="text-sm text-gray-500 mt-1">
@@ -190,8 +194,18 @@ export default function ShoppingCart({
                           className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95 touch-manipulation min-w-[40px] min-h-[40px] flex items-center justify-center disabled:opacity-50"
                           title="Remove item"
                         >
-                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          <svg
+                            className="w-6 h-6"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
                           </svg>
                         </button>
                       </div>
@@ -225,7 +239,7 @@ export default function ShoppingCart({
 
                         {/* Line Total */}
                         <div className="text-right">
-                          <p className="text-lg font-bold text-gray-900 transition-all duration-300">
+                          <p className="text-lg font-bold text-gray-900 dark:text-gray-100 transition-all duration-300">
                             ${lineTotal.toFixed(2)}
                           </p>
                         </div>
@@ -246,11 +260,15 @@ export default function ShoppingCart({
           <div className="p-4 space-y-2">
             <div className="flex justify-between text-sm transition-all duration-300">
               <span className="text-gray-600">Subtotal:</span>
-              <span className="font-medium text-gray-900">${subtotal.toFixed(2)}</span>
+              <span className="font-medium text-gray-900 dark:text-gray-100">
+                ${subtotal.toFixed(2)}
+              </span>
             </div>
             <div className="flex justify-between text-sm transition-all duration-300">
               <span className="text-gray-600">Tax (15%):</span>
-              <span className="font-medium text-gray-900">${tax.toFixed(2)}</span>
+              <span className="font-medium text-gray-900 dark:text-gray-100">
+                ${tax.toFixed(2)}
+              </span>
             </div>
             <div className="flex justify-between text-lg font-bold border-t border-gray-300 pt-2 transition-all duration-300">
               <span>Total:</span>

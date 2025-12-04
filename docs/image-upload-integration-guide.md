@@ -20,9 +20,9 @@ This guide explains how to add image upload functionality to entity forms (Produ
 ### 1. Import Required Dependencies
 
 ```tsx
-import { ImageUpload } from '@/components/shared/ImageUpload';
-import imageService from '@/services/image.service';
-import { useAuth } from '@/hooks/useAuth'; // For getting branch info
+import { ImageUpload } from "@/components/shared/ImageUpload";
+import imageService from "@/services/image.service";
+import { useAuth } from "@/hooks/useAuth"; // For getting branch info
 ```
 
 ### 2. Add State for Image Handling
@@ -50,7 +50,7 @@ const handleSubmit = async (data: any) => {
       setUploadingImages(true);
       await imageService.uploadMultipleImages(
         user.branchName,
-        'Products', // Entity type
+        "Products", // Entity type
         entityResult.id,
         selectedImages
       );
@@ -59,7 +59,7 @@ const handleSubmit = async (data: any) => {
     onSuccess();
     onClose();
   } catch (error) {
-    console.error('Error:', error);
+    console.error("Error:", error);
   } finally {
     setIsSubmitting(false);
     setUploadingImages(false);
@@ -80,7 +80,7 @@ There are two approaches:
 
 {/* Add ImageUpload below the modal */}
 {isOpen && (
-  <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-50">
+  <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800  border-t p-4 z-50">
     <ImageUpload
       branchName={user?.branchName || ''}
       entityType="Products"
@@ -141,7 +141,7 @@ export function ProductFormWithImages({ ... }) {
 
 ```tsx
 <ImageUpload
-  branchName={user?.branchName || ''}
+  branchName={user?.branchName || ""}
   entityType="Products"
   entityId={product?.id}
   multiple={true}
@@ -160,7 +160,7 @@ export function ProductFormWithImages({ ... }) {
 
 ```tsx
 <ImageUpload
-  branchName={user?.branchName || ''}
+  branchName={user?.branchName || ""}
   entityType="Categories"
   entityId={category?.id}
   multiple={false}
@@ -179,7 +179,7 @@ export function ProductFormWithImages({ ... }) {
 
 ```tsx
 <ImageUpload
-  branchName={user?.branchName || ''}
+  branchName={user?.branchName || ""}
   entityType="Customers"
   entityId={customer?.id}
   multiple={false}
@@ -200,7 +200,7 @@ export function ProductFormWithImages({ ... }) {
 
 ```tsx
 <ImageUpload
-  branchName={user?.branchName || ''}
+  branchName={user?.branchName || ""}
   entityType="Suppliers"
   entityId={supplier?.id}
   multiple={false}
@@ -238,7 +238,7 @@ export function ProductFormWithImages({ ... }) {
 
 ```tsx
 <ImageUpload
-  branchName={user?.branchName || ''}
+  branchName={user?.branchName || ""}
   entityType="Expenses"
   entityId={expense?.id}
   multiple={true}
@@ -279,11 +279,13 @@ For each form integration:
 After integrating image upload:
 
 1. **Create Mode**:
+
    - Create new entity without images → Should save successfully
    - Create new entity with images → Should upload images after save
    - Verify images appear on entity list/details
 
 2. **Edit Mode**:
+
    - Edit entity without changing images → Should preserve existing images
    - Edit entity and add new images → Should add to existing
    - Edit entity and remove images → Should delete from server
@@ -302,13 +304,23 @@ The imageService handles all API calls:
 await imageService.uploadImage(branchName, entityType, entityId, file);
 
 // Upload multiple images
-await imageService.uploadMultipleImages(branchName, entityType, entityId, files);
+await imageService.uploadMultipleImages(
+  branchName,
+  entityType,
+  entityId,
+  files
+);
 
 // Delete images
 await imageService.deleteImages(branchName, entityType, entityId);
 
 // Get image URL
-const url = imageService.getImageUrl(branchName, entityType, entityId, 'medium');
+const url = imageService.getImageUrl(
+  branchName,
+  entityType,
+  entityId,
+  "medium"
+);
 ```
 
 ## File Structure
@@ -346,18 +358,21 @@ frontend/
 ## Troubleshooting
 
 ### Images not uploading
+
 - Check user has branchName in auth context
 - Verify entity ID is available
 - Check network tab for upload errors
 - Ensure backend endpoint is accessible
 
 ### Images not displaying
+
 - Verify image was uploaded successfully
 - Check image URL is correct
 - Ensure backend serves images correctly
 - Check browser console for errors
 
 ### Form submission slow
+
 - Images upload sequentially by default
 - Consider showing progress indicator
 - Consider uploading in background after modal closes

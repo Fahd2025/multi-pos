@@ -241,8 +241,8 @@ export default function ExpenseCategoriesPage({ params }: { params: Promise<{ lo
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded shadow mb-6">
-        <label className="flex items-center">
+      <div className="bg-white dark:bg-gray-800  p-4 rounded shadow border border-gray-200 dark:border-gray-700 mb-6">
+        <label className="flex items-center text-gray-900 dark:text-gray-100">
           <input
             type="checkbox"
             checked={showInactive}
@@ -282,11 +282,13 @@ export default function ExpenseCategoriesPage({ params }: { params: Promise<{ lo
 
       {/* Create Category Modal */}
       {isFormOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800  rounded-lg shadow-xl max-w-md w-full">
             {/* Header */}
-            <div className="border-b px-6 py-4 flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Add Expense Category</h2>
+            <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                Add Expense Category
+              </h2>
               <button
                 onClick={() => {
                   setIsFormOpen(false);

@@ -232,7 +232,7 @@ export default function CustomerDetailsPage({
       {/* Customer Profile Card */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         {/* Profile Information */}
-        <div className="md:col-span-2 bg-white rounded shadow p-6">
+        <div className="md:col-span-2 bg-white dark:bg-gray-800  rounded shadow p-6">
           <h2 className="text-xl font-bold mb-4">Profile Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -283,7 +283,7 @@ export default function CustomerDetailsPage({
         </div>
 
         {/* Statistics Card */}
-        <div className="bg-white rounded shadow p-6">
+        <div className="bg-white dark:bg-gray-800  rounded shadow p-6">
           <h2 className="text-xl font-bold mb-4">Customer Statistics</h2>
           <div className="space-y-4">
             <div>
@@ -311,7 +311,7 @@ export default function CustomerDetailsPage({
       </div>
 
       {/* Purchase History */}
-      <div className="bg-white rounded shadow p-6">
+      <div className="bg-white dark:bg-gray-800  rounded shadow p-6">
         <h2 className="text-xl font-bold mb-4">Purchase History</h2>
 
         {historyLoading ? (

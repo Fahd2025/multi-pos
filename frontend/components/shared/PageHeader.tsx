@@ -20,7 +20,7 @@
  * ```
  */
 
-import React from 'react';
+import React from "react";
 
 export interface PageHeaderProps {
   /** Page title */
@@ -32,31 +32,31 @@ export interface PageHeaderProps {
   /** Additional CSS classes */
   className?: string;
   /** Title size */
-  titleSize?: 'sm' | 'md' | 'lg';
+  titleSize?: "sm" | "md" | "lg";
 }
 
 export const PageHeader: React.FC<PageHeaderProps> = ({
   title,
   description,
   actions,
-  className = '',
-  titleSize = 'lg',
+  className = "",
+  titleSize = "lg",
 }) => {
   const titleSizeClasses = {
-    sm: 'text-xl md:text-2xl',
-    md: 'text-2xl md:text-3xl',
-    lg: 'text-2xl md:text-3xl',
+    sm: "text-xl md:text-2xl",
+    md: "text-2xl md:text-3xl",
+    lg: "text-2xl md:text-3xl",
   }[titleSize];
 
   return (
-    <div className={`flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 ${className}`}>
+    <div
+      className={`flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 ${className}`}
+    >
       <div>
         <h1 className={`${titleSizeClasses} font-bold text-gray-900 dark:text-gray-100`}>
           {title}
         </h1>
-        {description && (
-          <p className="text-gray-600 dark:text-gray-400 mt-1">{description}</p>
-        )}
+        {description && <p className="text-gray-600 dark:text-gray-400 mt-1">{description}</p>}
       </div>
       {actions && <div className="flex flex-col sm:flex-row gap-3">{actions}</div>}
     </div>

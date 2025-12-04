@@ -77,7 +77,9 @@ export default function SupplierDetailsPage() {
       label: "PO Number",
       width: "120px",
       render: (value) => (
-        <span className="font-mono text-sm font-medium text-gray-900">{value}</span>
+        <span className="font-mono text-sm font-medium text-gray-900 dark:text-gray-100">
+          {value}
+        </span>
       ),
     },
     {
@@ -102,7 +104,7 @@ export default function SupplierDetailsPage() {
       label: "Total Cost",
       width: "120px",
       render: (value) => (
-        <span className="font-semibold text-gray-900">
+        <span className="font-semibold text-gray-900 dark:text-gray-100">
           ${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </span>
       ),
@@ -191,7 +193,9 @@ export default function SupplierDetailsPage() {
         <div className="mb-8 flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold text-gray-900">{supplier.nameEn}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                {supplier.nameEn}
+              </h1>
               <span
                 className={`px-3 py-1 text-sm font-medium rounded-full ${
                   supplier.isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
@@ -205,7 +209,7 @@ export default function SupplierDetailsPage() {
           </div>
           <button
             onClick={() => router.push(`/${locale}/branch/suppliers`)}
-            className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="px-4 py-2 text-gray-700 bg-white dark:bg-gray-800  border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             ← Back
           </button>
@@ -213,11 +217,11 @@ export default function SupplierDetailsPage() {
 
         {/* Statistics Cards */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white dark:bg-gray-800  p-6 rounded-lg shadow-sm border border-gray-200">
             <p className="text-sm text-gray-600 mb-1">Total Purchases</p>
             <p className="text-3xl font-bold text-blue-600">{supplier.totalPurchases}</p>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white dark:bg-gray-800  p-6 rounded-lg shadow-sm border border-gray-200">
             <p className="text-sm text-gray-600 mb-1">Total Spent</p>
             <p className="text-3xl font-bold text-purple-600">
               $
@@ -227,9 +231,9 @@ export default function SupplierDetailsPage() {
               })}
             </p>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white dark:bg-gray-800  p-6 rounded-lg shadow-sm border border-gray-200">
             <p className="text-sm text-gray-600 mb-1">Last Purchase</p>
-            <p className="text-xl font-bold text-gray-900">
+            <p className="text-xl font-bold text-gray-900 dark:text-gray-100">
               {supplier.lastPurchaseDate
                 ? new Date(supplier.lastPurchaseDate).toLocaleDateString()
                 : "Never"}
@@ -274,15 +278,17 @@ export default function SupplierDetailsPage() {
 
         {/* Tab Content */}
         {activeTab === "details" && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Contact Information</h2>
+          <div className="bg-white dark:bg-gray-800  rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
+              Contact Information
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Contact Details */}
               <div className="space-y-4">
                 {supplier.email && (
                   <div>
                     <label className="text-sm font-medium text-gray-500">Email</label>
-                    <p className="mt-1 text-gray-900">
+                    <p className="mt-1 text-gray-900 dark:text-gray-100">
                       <a
                         href={`mailto:${supplier.email}`}
                         className="text-blue-600 hover:text-blue-800"
@@ -295,7 +301,7 @@ export default function SupplierDetailsPage() {
                 {supplier.phone && (
                   <div>
                     <label className="text-sm font-medium text-gray-500">Phone</label>
-                    <p className="mt-1 text-gray-900">
+                    <p className="mt-1 text-gray-900 dark:text-gray-100">
                       <a
                         href={`tel:${supplier.phone}`}
                         className="text-blue-600 hover:text-blue-800"
@@ -308,13 +314,18 @@ export default function SupplierDetailsPage() {
                 {supplier.addressEn && (
                   <div>
                     <label className="text-sm font-medium text-gray-500">Address (English)</label>
-                    <p className="mt-1 text-gray-900 whitespace-pre-wrap">{supplier.addressEn}</p>
+                    <p className="mt-1 text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
+                      {supplier.addressEn}
+                    </p>
                   </div>
                 )}
                 {supplier.addressAr && (
                   <div>
                     <label className="text-sm font-medium text-gray-500">Address (Arabic)</label>
-                    <p className="mt-1 text-gray-900 whitespace-pre-wrap" dir="rtl">
+                    <p
+                      className="mt-1 text-gray-900 dark:text-gray-100 whitespace-pre-wrap"
+                      dir="rtl"
+                    >
                       {supplier.addressAr}
                     </p>
                   </div>
@@ -326,7 +337,7 @@ export default function SupplierDetailsPage() {
                 {supplier.paymentTerms && (
                   <div>
                     <label className="text-sm font-medium text-gray-500">Payment Terms</label>
-                    <p className="mt-1 text-gray-900 whitespace-pre-wrap">
+                    <p className="mt-1 text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
                       {supplier.paymentTerms}
                     </p>
                   </div>
@@ -334,20 +345,20 @@ export default function SupplierDetailsPage() {
                 {supplier.deliveryTerms && (
                   <div>
                     <label className="text-sm font-medium text-gray-500">Delivery Terms</label>
-                    <p className="mt-1 text-gray-900 whitespace-pre-wrap">
+                    <p className="mt-1 text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
                       {supplier.deliveryTerms}
                     </p>
                   </div>
                 )}
                 <div>
                   <label className="text-sm font-medium text-gray-500">Created Date</label>
-                  <p className="mt-1 text-gray-900">
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">
                     {new Date(supplier.createdAt).toLocaleDateString()}
                   </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Last Updated</label>
-                  <p className="mt-1 text-gray-900">
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">
                     {new Date(supplier.updatedAt).toLocaleDateString()}
                   </p>
                 </div>
@@ -357,8 +368,10 @@ export default function SupplierDetailsPage() {
         )}
 
         {activeTab === "history" && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Purchase History</h2>
+          <div className="bg-white dark:bg-gray-800  rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
+              Purchase History
+            </h2>
             {purchases.length > 0 ? (
               <DataTable
                 data={displayPurchases}
@@ -385,7 +398,9 @@ export default function SupplierDetailsPage() {
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No purchase orders</h3>
+                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                  No purchase orders
+                </h3>
                 <p className="mt-1 text-sm text-gray-500">
                   Get started by creating a purchase order with this supplier.
                 </p>

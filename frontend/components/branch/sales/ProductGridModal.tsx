@@ -3,11 +3,11 @@
  * Display products in a responsive grid for easy selection
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { ProductDto } from '@/types/api.types';
-import inventoryService from '@/services/inventory.service';
+import { useState, useEffect } from "react";
+import { ProductDto } from "@/types/api.types";
+import inventoryService from "@/services/inventory.service";
 
 interface ProductGridModalProps {
   isOpen: boolean;
@@ -24,8 +24,8 @@ export default function ProductGridModal({
   const [filteredProducts, setFilteredProducts] = useState<ProductDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
 
   useEffect(() => {
@@ -52,8 +52,8 @@ export default function ProductGridModal({
       setProducts(response.data || []);
       setFilteredProducts(response.data || []);
     } catch (err: any) {
-      console.error('Failed to fetch products:', err);
-      setError(err.message || 'Failed to load products');
+      console.error("Failed to fetch products:", err);
+      setError(err.message || "Failed to load products");
     } finally {
       setLoading(false);
     }
@@ -70,7 +70,7 @@ export default function ProductGridModal({
         }))
       );
     } catch (err) {
-      console.error('Failed to fetch categories:', err);
+      console.error("Failed to fetch categories:", err);
     }
   };
 
@@ -98,7 +98,7 @@ export default function ProductGridModal({
 
   const handleProductClick = (product: ProductDto) => {
     onProductSelect(product);
-    setSearchQuery('');
+    setSearchQuery("");
     // Don't close modal - allow multiple selections
   };
 
@@ -114,16 +114,14 @@ export default function ProductGridModal({
 
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col">
+        <div className="relative bg-white dark:bg-gray-800  rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-200">
             <div>
-              <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
                 Select Products
               </h2>
-              <p className="text-sm text-gray-600 mt-1">
-                Tap on products to add them to your sale
-              </p>
+              <p className="text-sm text-gray-600 mt-1">Tap on products to add them to your sale</p>
             </div>
             <button
               onClick={onClose}
@@ -166,7 +164,7 @@ export default function ProductGridModal({
             </div>
 
             <div className="mt-2 text-sm text-gray-600">
-              {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found
+              {filteredProducts.length} product{filteredProducts.length !== 1 ? "s" : ""} found
             </div>
           </div>
 
@@ -183,7 +181,7 @@ export default function ProductGridModal({
               <div className="flex items-center justify-center h-64">
                 <div className="text-center">
                   <span className="text-6xl">⚠️</span>
-                  <h3 className="mt-4 text-lg font-semibold text-gray-900">
+                  <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
                     Failed to load products
                   </h3>
                   <p className="mt-2 text-sm text-gray-600">{error}</p>
@@ -199,7 +197,7 @@ export default function ProductGridModal({
               <div className="flex items-center justify-center h-64">
                 <div className="text-center">
                   <span className="text-6xl">📦</span>
-                  <h3 className="mt-4 text-lg font-semibold text-gray-900">
+                  <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
                     No products found
                   </h3>
                   <p className="mt-2 text-sm text-gray-600">
@@ -213,7 +211,7 @@ export default function ProductGridModal({
                   <button
                     key={product.id}
                     onClick={() => handleProductClick(product)}
-                    className="group bg-white border-2 border-gray-200 rounded-lg p-3 md:p-4 hover:border-blue-500 hover:shadow-lg transition-all duration-200 touch-manipulation active:scale-95"
+                    className="group bg-white dark:bg-gray-800  border-2 border-gray-200 rounded-lg p-3 md:p-4 hover:border-blue-500 hover:shadow-lg transition-all duration-200 touch-manipulation active:scale-95"
                   >
                     {/* Product Image Placeholder */}
                     <div className="aspect-square bg-gray-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
@@ -230,13 +228,11 @@ export default function ProductGridModal({
 
                     {/* Product Info */}
                     <div className="text-left">
-                      <h4 className="font-semibold text-sm md:text-base text-gray-900 line-clamp-2 group-hover:text-blue-600 min-h-[2.5rem]">
+                      <h4 className="font-semibold text-sm md:text-base text-gray-900 dark:text-gray-100 line-clamp-2 group-hover:text-blue-600 min-h-[2.5rem]">
                         {product.nameEn}
                       </h4>
 
-                      <p className="text-xs text-gray-500 mt-1">
-                        SKU: {product.sku}
-                      </p>
+                      <p className="text-xs text-gray-500 mt-1">SKU: {product.sku}</p>
 
                       <div className="mt-2 flex items-center justify-between">
                         <span className="text-lg md:text-xl font-bold text-blue-600">

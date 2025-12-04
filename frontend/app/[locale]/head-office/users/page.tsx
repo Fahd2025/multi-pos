@@ -98,7 +98,9 @@ export default function UsersManagementPage({ params }: { params: Promise<{ loca
       key: "fullNameEn",
       label: "Full Name",
       sortable: true,
-      render: (value, row) => <div className="font-medium text-gray-900">{value}</div>,
+      render: (value, row) => (
+        <div className="font-medium text-gray-900 dark:text-gray-100">{value}</div>
+      ),
     },
     {
       key: "email",
@@ -482,23 +484,23 @@ export default function UsersManagementPage({ params }: { params: Promise<{ loca
 
         {/* Statistics */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200">
             <p className="text-sm text-gray-600">Total Users</p>
-            <p className="text-2xl font-bold text-gray-900">{users.length}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{users.length}</p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200">
             <p className="text-sm text-gray-600">Active Users</p>
             <p className="text-2xl font-bold text-green-600">
               {users.filter((u) => u.isActive).length}
             </p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200">
             <p className="text-sm text-gray-600">Head Office Admins</p>
             <p className="text-2xl font-bold text-purple-600">
               {users.filter((u) => u.isHeadOfficeAdmin).length}
             </p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200">
             <p className="text-sm text-gray-600">Branch Users</p>
             <p className="text-2xl font-bold text-blue-600">
               {users.filter((u) => !u.isHeadOfficeAdmin).length}

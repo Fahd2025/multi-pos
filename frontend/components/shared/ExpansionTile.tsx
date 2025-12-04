@@ -30,9 +30,9 @@
  * ```
  */
 
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 export interface ExpansionTileDetail {
   label: string;
@@ -42,7 +42,7 @@ export interface ExpansionTileDetail {
 export interface ExpansionTileAction {
   label: string;
   onClick: () => void;
-  variant?: 'primary' | 'secondary' | 'danger' | 'success';
+  variant?: "primary" | "secondary" | "danger" | "success";
   icon?: React.ReactNode;
   condition?: boolean;
 }
@@ -79,22 +79,18 @@ export function ExpansionTile({
   subtitle,
   badge,
   imageUrl,
-  imageAlt = '',
+  imageAlt = "",
   details = [],
   actions = [],
   children,
   defaultExpanded = false,
   onImageClick,
   rowNumber,
-  defaultIcon = '🖼️',
+  defaultIcon = "🖼️",
 }: ExpansionTileProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
-  const images = imageUrl
-    ? Array.isArray(imageUrl)
-      ? imageUrl
-      : [imageUrl]
-    : [];
+  const images = imageUrl ? (Array.isArray(imageUrl) ? imageUrl : [imageUrl]) : [];
   const firstImage = images[0];
   const hasMultipleImages = images.length > 1;
 
@@ -110,7 +106,7 @@ export function ExpansionTile({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-gray-800  border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden">
       {/* Header - Always Visible */}
       <div
         className="p-4 cursor-pointer active:bg-gray-50 dark:active:bg-gray-700 transition-colors"
@@ -128,7 +124,9 @@ export function ExpansionTile({
           {(imageUrl || images.length > 0) && (
             <div className="flex-shrink-0">
               <div
-                className={`w-16 h-16 relative ${onImageClick && firstImage ? 'cursor-pointer' : ''}`}
+                className={`w-16 h-16 relative ${
+                  onImageClick && firstImage ? "cursor-pointer" : ""
+                }`}
                 onClick={onImageClick && firstImage ? handleImageClick : undefined}
               >
                 {firstImage ? (
@@ -177,7 +175,9 @@ export function ExpansionTile({
                 {details.slice(0, 2).map((detail, index) => (
                   <div key={index} className="flex items-center gap-2 text-sm">
                     <span className="text-gray-500 dark:text-gray-400">{detail.label}:</span>
-                    <span className="text-gray-900 dark:text-gray-100 font-medium">{detail.value}</span>
+                    <span className="text-gray-900 dark:text-gray-100 font-medium">
+                      {detail.value}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -188,7 +188,7 @@ export function ExpansionTile({
           <div className="flex-shrink-0 ml-2">
             <svg
               className={`w-5 h-5 text-gray-400 dark:text-gray-500 transition-transform duration-200 ${
-                isExpanded ? 'rotate-180' : ''
+                isExpanded ? "rotate-180" : ""
               }`}
               fill="none"
               stroke="currentColor"
@@ -212,10 +212,7 @@ export function ExpansionTile({
           {details.length > 0 && (
             <div className="px-4 py-3 space-y-2">
               {details.map((detail, index) => (
-                <div
-                  key={index}
-                  className="flex items-start justify-between gap-4 text-sm"
-                >
+                <div key={index} className="flex items-start justify-between gap-4 text-sm">
                   <span className="text-gray-600 dark:text-gray-400 font-medium min-w-[100px]">
                     {detail.label}
                   </span>
@@ -245,13 +242,13 @@ export function ExpansionTile({
 
                 const variantClasses = {
                   primary:
-                    'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white border-blue-600 dark:border-blue-500',
+                    "bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white border-blue-600 dark:border-blue-500",
                   secondary:
-                    'bg-white hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600',
+                    "bg-white dark:bg-gray-800  hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600",
                   danger:
-                    'bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white border-red-600 dark:border-red-500',
+                    "bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white border-red-600 dark:border-red-500",
                   success:
-                    'bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white border-green-600 dark:border-green-500',
+                    "bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white border-green-600 dark:border-green-500",
                 };
 
                 return (
@@ -262,7 +259,7 @@ export function ExpansionTile({
                       action.onClick();
                     }}
                     className={`flex-1 min-w-[80px] px-4 py-2 rounded-lg border font-medium text-sm transition-colors ${
-                      variantClasses[action.variant || 'primary']
+                      variantClasses[action.variant || "primary"]
                     }`}
                   >
                     {action.icon && <span className="mr-1">{action.icon}</span>}

@@ -3,7 +3,7 @@
  * Reusable dropdown select field
  */
 
-import React, { forwardRef } from 'react';
+import React, { forwardRef } from "react";
 
 export interface SelectOption {
   value: string | number;
@@ -29,30 +29,31 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       options,
       placeholder,
       isFullWidth = true,
-      className = '',
+      className = "",
       id,
       ...props
     },
     ref
   ) => {
-    const selectId = id || label?.toLowerCase().replace(/\s+/g, '-');
+    const selectId = id || label?.toLowerCase().replace(/\s+/g, "-");
     const hasError = !!error;
 
     // Base select styles
-    const baseStyles = 'block rounded-lg border px-4 py-2 pr-10 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed appearance-none bg-white dark:bg-gray-700';
+    const baseStyles =
+      "block rounded-lg border px-4 py-2 pr-10 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed appearance-none bg-white dark:bg-gray-800  dark:bg-gray-700";
 
     // State styles
     const stateStyles = hasError
-      ? 'border-red-300 dark:border-red-600 text-red-900 dark:text-red-300 focus:ring-red-500 dark:focus:ring-red-400 focus:border-red-500 dark:focus:border-red-400'
-      : 'border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400';
+      ? "border-red-300 dark:border-red-600 text-red-900 dark:text-red-300 focus:ring-red-500 dark:focus:ring-red-400 focus:border-red-500 dark:focus:border-red-400"
+      : "border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400";
 
     // Width styles
-    const widthStyles = isFullWidth ? 'w-full' : '';
+    const widthStyles = isFullWidth ? "w-full" : "";
 
     const selectStyles = `${baseStyles} ${stateStyles} ${widthStyles} ${className}`;
 
     return (
-      <div className={isFullWidth ? 'w-full' : ''}>
+      <div className={isFullWidth ? "w-full" : ""}>
         {/* Label */}
         {label && (
           <label
@@ -73,11 +74,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             className={selectStyles}
             aria-invalid={hasError}
             aria-describedby={
-              error
-                ? `${selectId}-error`
-                : helperText
-                ? `${selectId}-helper`
-                : undefined
+              error ? `${selectId}-error` : helperText ? `${selectId}-helper` : undefined
             }
             {...props}
           >
@@ -87,11 +84,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               </option>
             )}
             {options.map((option) => (
-              <option
-                key={option.value}
-                value={option.value}
-                disabled={option.disabled}
-              >
+              <option key={option.value} value={option.value} disabled={option.disabled}>
                 {option.label}
               </option>
             ))}
@@ -99,12 +92,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
 
           {/* Dropdown icon */}
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400 dark:text-gray-500">
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -133,4 +121,4 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   }
 );
 
-Select.displayName = 'Select';
+Select.displayName = "Select";

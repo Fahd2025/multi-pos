@@ -75,6 +75,7 @@ export const API_ROUTES = {
   // Branches
   BRANCHES: {
     BASE: `/api/${API_VERSION}/branches`,
+    LOOKUP: `/api/${API_VERSION}/branches/lookup`,
     BY_ID: (id: string) => `/api/${API_VERSION}/branches/${id}`,
     SETTINGS: (id: string) => `/api/${API_VERSION}/branches/${id}/settings`,
     TEST_CONNECTION: (id: string) => `/api/${API_VERSION}/branches/${id}/test-connection`,
@@ -85,6 +86,8 @@ export const API_ROUTES = {
     BASE: `/api/${API_VERSION}/users`,
     BY_ID: (id: string) => `/api/${API_VERSION}/users/${id}`,
     ASSIGN_BRANCH: (id: string) => `/api/${API_VERSION}/users/${id}/assign-branch`,
+    REMOVE_BRANCH_ASSIGNMENT: (userId: string, branchId: string) =>
+      `/api/${API_VERSION}/users/${userId}/branches/${branchId}`,
     ACTIVITY: (id: string) => `/api/${API_VERSION}/users/${id}/activity`,
   },
 
@@ -98,9 +101,12 @@ export const API_ROUTES = {
   // Images
   IMAGES: {
     UPLOAD: `/api/${API_VERSION}/images/upload`,
+    UPLOAD_MULTIPLE: `/api/${API_VERSION}/images/upload-multiple`,
     GET: (branchName: string, entityType: string, entityId: string, size: string) =>
       `/api/${API_VERSION}/images/${branchName}/${entityType}/${entityId}/${size}`,
-    DELETE: (id: string) => `/api/${API_VERSION}/images/${id}`,
+    UPDATE_PRODUCT: (id: string) => `/api/${API_VERSION}/images/products/${id}`,
+    DELETE: (branchName: string, entityType: string, entityId: string) =>
+      `/api/${API_VERSION}/images/${branchName}/${entityType}/${entityId}`,
   },
 
   // Reports
