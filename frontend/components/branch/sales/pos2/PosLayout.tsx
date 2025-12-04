@@ -8,6 +8,7 @@ import { ProductGrid } from "./ProductGrid";
 import { OrderPanel } from "./OrderPanel";
 import inventoryService from "@/services/inventory.service";
 import { CategoryDto, ProductDto } from "@/types/api.types";
+import { playErrorBeep, playSuccessBeep } from "@/lib/utils";
 
 interface CartItem extends ProductDto {
   quantity: number;
@@ -82,29 +83,6 @@ export default function PosLayout() {
 
   const branchCode = getBranchCode();
 
-  // Play success beep sound
-  const playSuccessBeep = () => {
-    try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      oscillator.frequency.value = 800;
-      oscillator.type = "sine";
-
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.1);
-    } catch (error) {
-      console.log("Audio not supported");
-    }
-  };
-
   const handleAddToCart = (product: ProductDto) => {
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id);
@@ -121,10 +99,12 @@ export default function PosLayout() {
   };
 
   const handleRemoveItem = (id: string) => {
+    playErrorBeep();
     setCart((prev) => prev.filter((item) => item.id !== id));
   };
 
   const handleClearAll = () => {
+    playErrorBeep();
     setCart([]);
   };
 
@@ -133,17 +113,13 @@ export default function PosLayout() {
       handleRemoveItem(id);
       return;
     }
-
-    setCart((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, quantity } : item))
-    );
+    playSuccessBeep();
+    setCart((prev) => prev.map((item) => (item.id === id ? { ...item, quantity } : item)));
   };
 
   // Filter products by category
   const filteredProducts =
-    activeCategory === "all"
-      ? products
-      : products.filter((p) => p.categoryId === activeCategory);
+    activeCategory === "all" ? products : products.filter((p) => p.categoryId === activeCategory);
 
   // Calculate cart item count
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -163,7 +139,14 @@ export default function PosLayout() {
   if (loading) {
     return (
       <div className={styles.container}>
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+          }}
+        >
           <div>Loading...</div>
         </div>
       </div>
@@ -173,7 +156,14 @@ export default function PosLayout() {
   if (error) {
     return (
       <div className={styles.container}>
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+          }}
+        >
           <div style={{ color: "red" }}>{error}</div>
         </div>
       </div>
@@ -204,15 +194,10 @@ export default function PosLayout() {
       </div>
 
       {/* Backdrop overlay for mobile */}
-      {isCartVisible && (
-        <div
-          className={styles.cartBackdrop}
-          onClick={handleToggleCart}
-        />
-      )}
+      {isCartVisible && <div className={styles.cartBackdrop} onClick={handleToggleCart} />}
 
       {/* Order Panel with conditional visibility class */}
-      <div className={`${styles.orderPanel} ${isCartVisible ? styles.cartVisible : ''}`}>
+      <div className={`${styles.orderPanel} ${isCartVisible ? styles.cartVisible : ""}`}>
         <OrderPanel
           cart={cart}
           onRemoveItem={handleRemoveItem}

@@ -58,7 +58,7 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
           aria-label="Hide sidebar"
           title="Hide sidebar"
         >
-          <ChevronLeft size={32} />
+          <ChevronLeft size={36} />
         </button>
       )}
 

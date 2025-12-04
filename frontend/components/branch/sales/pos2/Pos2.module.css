@@ -35,7 +35,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 1.5rem;
+  padding: 1.5rem 1rem 0 1rem;
   gap: 1.5rem;
   overflow-y: auto;
 }
@@ -74,7 +74,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.2rem;
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
@@ -318,8 +318,7 @@
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1.5rem;
   overflow-y: auto;
-  padding-top: 0.5rem;
-  padding-bottom: 1rem;
+  padding: 0.5rem;
 }
 
 .productCard {
@@ -651,6 +650,7 @@
 /* Hide number input spinners */
 .quantityInput {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .quantityInput::-webkit-outer-spin-button,
@@ -674,6 +674,7 @@
   cursor: pointer;
   transition: all 0.2s;
   flex-shrink: 0;
+  margin: 0 .5rem;
 }
 
 .cartToggleBtn:hover {
@@ -688,14 +689,14 @@
 /* Cart Badge */
 .cartBadge {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: -8px;
+  right: -8px;
   background-color: #ef4444;
   color: white;
-  font-size: 0.75rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  min-width: 20px;
-  height: 20px;
+  min-width: 28px;
+  height: 28px;
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -1316,9 +1317,8 @@
   /* Main content takes full width */
   .mainContent {
     flex: 1;
-    padding: 1rem;
-    gap: 0.5rem;
     padding: 0.5rem;
+    gap: 0.5rem;
   }
 
   /* Hide order panel by default on mobile */
@@ -1609,4 +1609,48 @@
     overflow: hidden;
     border-left: none;
   }
+}
+
+/* Steam Animation for cart icon update */
+@keyframes steam {
+  0% {
+    background-position: 0 0;
+  }
+  50% {
+    background-position: 400% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+@keyframes pulseZoom {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+.animateCart {
+  /* No transform on the button itself, just trigger pseudo-elements */
+  z-index: 1; /* Ensure button content is above glow */
+  animation: pulseZoom 0.5s ease-in-out;
+}
+
+.animateCart::before,
+.animateCart::after {
+  content: '';
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  background: linear-gradient(45deg, #fb0094, #0000ff, #00ff00, #ffff00, #ff0000, #fb0094, #0000ff, #00ff00, #ffff00, #ff0000);
+  background-size: 400%;
+  width: calc(100% + 4px);
+  height: calc(100% + 4px);
+  z-index: -1;
+  border-radius: var(--radius-md); /* Match button border radius */
+  animation: steam 10s linear infinite;
+}
+
+.animateCart::after {
+  filter: blur(10px); /* Reduced blur for smaller element */
 }

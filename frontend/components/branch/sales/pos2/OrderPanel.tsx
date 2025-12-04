@@ -187,11 +187,11 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
             >
               Shopping Cart
             </h2>
-            <p
+            {/* <p
               style={{ fontSize: "0.875rem", color: "var(--text-secondary)", marginTop: "0.25rem" }}
             >
               {itemCount} item{itemCount !== 1 ? "s" : ""}
-            </p>
+            </p> */}
           </div>
           {cart.length > 0 && (
             <button
@@ -418,7 +418,7 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                           <button
                             onClick={() =>
-                              onUpdateQuantity(item.id, Math.max(1, item.quantity - 1))
+                              onUpdateQuantity(item.id, Math.max(0, item.quantity - 1))
                             }
                             disabled={isDeleting}
                             style={{
