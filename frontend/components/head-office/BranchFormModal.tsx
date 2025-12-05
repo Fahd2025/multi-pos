@@ -45,7 +45,6 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
     code: "",
     nameEn: "",
     nameAr: "",
-    loginName: "",
     email: "",
     phone: "",
     databaseProvider: 0, // SQLite by default
@@ -69,7 +68,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
     if (!logoPath) return null;
 
     // Check if it's the new URL path format
-    if (logoPath.startsWith('/api/v1/images/')) {
+    if (logoPath.startsWith("/api/v1/images/")) {
       // Extract the ID from: /api/v1/images/{branchCode}/branches/{id}/{size}
       const match = logoPath.match(/\/branches\/([a-f0-9-]+)\//i);
       if (match && match[1]) {
@@ -88,7 +87,6 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
         code: branch.code,
         nameEn: branch.nameEn,
         nameAr: branch.nameAr,
-        loginName: branch.loginName,
         email: branch.email || "",
         phone: branch.phone || "",
         databaseProvider: ["SQLite", "MSSQL", "PostgreSQL", "MySQL"].indexOf(
@@ -116,7 +114,6 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
         code: "",
         nameEn: "",
         nameAr: "",
-        loginName: "",
         email: "",
         phone: "",
         databaseProvider: 0,
@@ -136,11 +133,21 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
     setSelectedImages([]);
   }, [branch, isOpen]);
 
-  // Update default port when database provider changes
+  // Update default port and SQLite settings when database provider changes
   useEffect(() => {
     if (!isEditMode) {
       const defaultPort = branchService.getDefaultPort(formData.databaseProvider);
-      setFormData((prev) => ({ ...prev, dbPort: defaultPort }));
+      setFormData((prev) => ({
+        ...prev,
+        dbPort: defaultPort,
+        // For SQLite, set default values (these are ignored by backend, which only uses branch code)
+        ...(formData.databaseProvider === 0
+          ? {
+              dbServer: "",
+              dbName: "",
+            }
+          : {}),
+      }));
     }
   }, [formData.databaseProvider, isEditMode]);
 
@@ -187,6 +194,11 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
     try {
       let savedBranch;
 
+      // For SQLite, set default values (backend ignores these and only uses branch code)
+      const isSQLite = formData.databaseProvider === 0;
+      const finalDbServer = isSQLite ? "SQLite" : formData.dbServer;
+      const finalDbName = isSQLite ? "SQLite" : formData.dbName;
+
       if (isEditMode && branch) {
         // Update branch
         const updateDto: UpdateBranchDto = {
@@ -195,8 +207,8 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
           email: formData.email || undefined,
           phone: formData.phone || undefined,
           databaseProvider: formData.databaseProvider,
-          dbServer: formData.dbServer,
-          dbName: formData.dbName,
+          dbServer: finalDbServer,
+          dbName: finalDbName,
           dbPort: formData.dbPort,
           dbUsername: formData.dbUsername || undefined,
           dbPassword: formData.dbPassword || undefined,
@@ -213,12 +225,11 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
           code: formData.code,
           nameEn: formData.nameEn,
           nameAr: formData.nameAr,
-          loginName: formData.loginName,
           email: formData.email || undefined,
           phone: formData.phone || undefined,
           databaseProvider: formData.databaseProvider,
-          dbServer: formData.dbServer,
-          dbName: formData.dbName,
+          dbServer: finalDbServer,
+          dbName: finalDbName,
           dbPort: formData.dbPort,
           dbUsername: formData.dbUsername || undefined,
           dbPassword: formData.dbPassword || undefined,
@@ -316,24 +327,14 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
             Basic Information
           </h3>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Branch Code*"
-              value={formData.code}
-              onChange={(e) => handleChange("code", e.target.value)}
-              disabled={isEditMode}
-              placeholder="B001"
-              required
-            />
-            <Input
-              label="Login Name*"
-              value={formData.loginName}
-              onChange={(e) => handleChange("loginName", e.target.value)}
-              disabled={isEditMode}
-              placeholder="branch001"
-              required
-            />
-          </div>
+          <Input
+            label="Branch Code*"
+            value={formData.code}
+            onChange={(e) => handleChange("code", e.target.value)}
+            disabled={isEditMode}
+            placeholder="B001"
+            required
+          />
 
           <div className="grid grid-cols-2 gap-4">
             <Input
@@ -384,45 +385,62 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
             required
           />
 
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Database Server*"
-              value={formData.dbServer}
-              onChange={(e) => handleChange("dbServer", e.target.value)}
-              placeholder={formData.databaseProvider === 0 ? "./data/branches" : "localhost"}
-              required
-            />
-            <Input
-              label="Database Name*"
-              value={formData.dbName}
-              onChange={(e) => handleChange("dbName", e.target.value)}
-              placeholder="branch_db"
-              required
-            />
-          </div>
+          {/* SQLite - Show info message only */}
+          {formData.databaseProvider === 0 && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-sm text-blue-800 dark:text-blue-400">
+              Database will be automatically created at:{" "}
+              <code className="font-mono">
+                Upload/Branches/{formData.code || "[branch-code]"}/Database/
+                {formData.code || "[branch-code]"}.db
+              </code>
+            </div>
+          )}
 
-          <div className="grid grid-cols-3 gap-4">
-            <Input
-              label="Port*"
-              type="number"
-              value={formData.dbPort}
-              onChange={(e) => handleChange("dbPort", parseInt(e.target.value))}
-              required
-            />
-            <Input
-              label="Username"
-              value={formData.dbUsername}
-              onChange={(e) => handleChange("dbUsername", e.target.value)}
-              placeholder="sa"
-            />
-            <Input
-              label="Password"
-              type="password"
-              value={formData.dbPassword}
-              onChange={(e) => handleChange("dbPassword", e.target.value)}
-              placeholder={isEditMode ? "(unchanged)" : ""}
-            />
-          </div>
+          {/* Other providers - Show server and name fields */}
+          {formData.databaseProvider !== 0 && (
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Database Server*"
+                value={formData.dbServer}
+                onChange={(e) => handleChange("dbServer", e.target.value)}
+                placeholder="localhost"
+                required
+              />
+              <Input
+                label="Database Name*"
+                value={formData.dbName}
+                onChange={(e) => handleChange("dbName", e.target.value)}
+                placeholder="branch_db"
+                required
+              />
+            </div>
+          )}
+
+          {/* Port, Username, Password - Not needed for SQLite */}
+          {formData.databaseProvider !== 0 && (
+            <div className="grid grid-cols-3 gap-4">
+              <Input
+                label="Port*"
+                type="number"
+                value={formData.dbPort}
+                onChange={(e) => handleChange("dbPort", parseInt(e.target.value))}
+                required
+              />
+              <Input
+                label="Username"
+                value={formData.dbUsername}
+                onChange={(e) => handleChange("dbUsername", e.target.value)}
+                placeholder="sa"
+              />
+              <Input
+                label="Password"
+                type="password"
+                value={formData.dbPassword}
+                onChange={(e) => handleChange("dbPassword", e.target.value)}
+                placeholder={isEditMode ? "(unchanged)" : ""}
+              />
+            </div>
+          )}
 
           {/* SSL Configuration - MSSQL */}
           {formData.databaseProvider === 1 && (

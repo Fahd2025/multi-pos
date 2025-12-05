@@ -199,11 +199,24 @@ export function DataTable<T>({
 
               // Build image URLs
               let imageUrls: string[] = [];
+              let largeImageUrls: string[] = [];
               let hasImageColumn = false;
               if (imageColumn) {
                 hasImageColumn = true;
                 const urls = imageColumn.getImageUrl(row);
-                imageUrls = Array.isArray(urls) ? urls : [urls];
+                const originalUrls = Array.isArray(urls) ? urls : [urls];
+
+                // Convert URLs to thumbnail size for display
+                imageUrls = originalUrls.map(url => {
+                  if (!url) return url;
+                  return url.replace(/\/(thumb|medium|large|original)(\?|$)/, '/thumb$2');
+                });
+
+                // Get large size URLs for click handler
+                largeImageUrls = originalUrls.map(url => {
+                  if (!url) return url;
+                  return url.replace(/\/(thumb|medium|large|original)(\?|$)/, '/large$2');
+                });
               }
 
               // Build actions
@@ -242,7 +255,7 @@ export function DataTable<T>({
                   defaultIcon={imageColumn?.defaultIcon}
                   onImageClick={
                     imageColumn?.onImageClick
-                      ? (images) => imageColumn.onImageClick?.(row, images)
+                      ? (images) => imageColumn.onImageClick?.(row, largeImageUrls)
                       : undefined
                   }
                 />
@@ -491,7 +504,22 @@ export function DataTable<T>({
                       (() => {
                         const imageUrls = imageColumn.getImageUrl(row);
                         const images = Array.isArray(imageUrls) ? imageUrls : [imageUrls];
-                        const firstImage = images[0];
+
+                        // Convert URLs to thumbnail size
+                        const thumbnailImages = images.map(url => {
+                          if (!url) return url;
+                          // Replace size part with /thumb
+                          return url.replace(/\/(thumb|medium|large|original)(\?|$)/, '/thumb$2');
+                        });
+
+                        // Get large size URLs for click handler
+                        const largeImages = images.map(url => {
+                          if (!url) return url;
+                          // Replace size part with /large
+                          return url.replace(/\/(thumb|medium|large|original)(\?|$)/, '/large$2');
+                        });
+
+                        const firstThumbnail = thumbnailImages[0];
                         const hasMultipleImages = images.length > 1;
                         const imageSize = imageColumn.size || 64;
 
@@ -501,15 +529,15 @@ export function DataTable<T>({
                               className="relative"
                               style={{ width: imageSize, height: imageSize }}
                             >
-                              {firstImage ? (
+                              {firstThumbnail ? (
                                 <div
                                   className={`w-full h-full relative ${
                                     imageColumn.onImageClick ? "cursor-pointer" : ""
                                   }`}
-                                  onClick={() => imageColumn.onImageClick?.(row, images)}
+                                  onClick={() => imageColumn.onImageClick?.(row, largeImages)}
                                 >
                                   <img
-                                    src={firstImage}
+                                    src={firstThumbnail}
                                     alt={imageColumn.getAltText(row)}
                                     className="w-full h-full object-cover rounded border border-gray-200 dark:border-gray-600"
                                   />
@@ -560,28 +588,67 @@ export function DataTable<T>({
                               return null;
                             }
 
-                            const variantClasses = {
+                            // Icon-based color variants with improved contrast
+                            const iconVariantClasses = {
                               primary:
-                                "text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300",
+                                "text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30",
                               secondary:
-                                "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300",
+                                "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700",
                               danger:
-                                "text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300",
+                                "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30",
                               success:
-                                "text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300",
+                                "text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30",
                             };
+
+                            // Get default icon based on label if no icon provided
+                            const getDefaultIcon = (label: string) => {
+                              const lowerLabel = label.toLowerCase();
+                              if (lowerLabel.includes("view") || lowerLabel.includes("see") || lowerLabel.includes("show")) {
+                                return (
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                  </svg>
+                                );
+                              }
+                              if (lowerLabel.includes("edit") || lowerLabel.includes("update") || lowerLabel.includes("modify")) {
+                                return (
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                );
+                              }
+                              if (lowerLabel.includes("delete") || lowerLabel.includes("remove")) {
+                                return (
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                );
+                              }
+                              if (lowerLabel.includes("stock") || lowerLabel.includes("inventory")) {
+                                return (
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                  </svg>
+                                );
+                              }
+                              // Default icon for other actions
+                              return action.icon || label;
+                            };
+
+                            const displayIcon = action.icon || getDefaultIcon(action.label);
 
                             return (
                               <button
                                 key={index}
                                 onClick={() => action.onClick(row)}
                                 className={`${
-                                  variantClasses[action.variant || "primary"]
-                                } hover:underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded px-2 py-1 transition-colors`}
+                                  iconVariantClasses[action.variant || "primary"]
+                                } p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-200`}
                                 aria-label={`${action.label} row ${rowKey}`}
+                                title={action.label}
                               >
-                                {action.icon && <span className="mr-1">{action.icon}</span>}
-                                {action.label}
+                                {displayIcon}
                               </button>
                             );
                           })}

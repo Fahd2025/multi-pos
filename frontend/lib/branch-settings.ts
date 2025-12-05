@@ -4,7 +4,7 @@
 
 import { ApiResponse, BranchSettings, UpdateBranchSettings } from "@/types/branch-settings";
 import api from "@/services/api";
-import { API_ROUTES } from "@/lib/constants";
+import { API_ROUTES, API_BASE_URL } from "@/lib/constants";
 
 /**
  * Get branch settings

@@ -1,6 +1,7 @@
 using Backend.Data.HeadOffice;
 using Backend.Models.DTOs.HeadOffice.Users;
 using Backend.Models.Entities.HeadOffice;
+using HeadOfficeUser = Backend.Models.Entities.HeadOffice.User; // Alias to avoid ambiguity
 using Backend.Utilities;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,7 +28,7 @@ public class UserService : IUserService
         int pageSize = 50)
     {
         var query = _context.Users
-            .Include(u => u.BranchUsers)
+            .Include(u => u.BranchUserAssignments)
             .ThenInclude(bu => bu.Branch)
             .AsQueryable();
 
@@ -40,13 +41,13 @@ public class UserService : IUserService
         // Filter by branch
         if (branchId.HasValue)
         {
-            query = query.Where(u => u.BranchUsers.Any(bu => bu.BranchId == branchId.Value && bu.IsActive));
+            query = query.Where(u => u.BranchUserAssignments.Any(bu => bu.BranchId == branchId.Value && bu.IsActive));
         }
 
         // Filter by role
         if (role.HasValue)
         {
-            query = query.Where(u => u.BranchUsers.Any(bu => bu.Role == role.Value && bu.IsActive));
+            query = query.Where(u => u.BranchUserAssignments.Any(bu => bu.Role == role.Value && bu.IsActive));
         }
 
         // Search by username, email, or full name
@@ -79,7 +80,7 @@ public class UserService : IUserService
     public async Task<UserDto?> GetUserByIdAsync(Guid userId)
     {
         var user = await _context.Users
-            .Include(u => u.BranchUsers)
+            .Include(u => u.BranchUserAssignments)
             .ThenInclude(bu => bu.Branch)
             .FirstOrDefaultAsync(u => u.Id == userId);
 
@@ -135,7 +136,7 @@ public class UserService : IUserService
                 throw new InvalidOperationException($"Invalid role: '{assignment.Role}'");
             }
 
-            var branchUser = new BranchUser
+            var branchUser = new BranchUserAssignment
             {
                 Id = Guid.NewGuid(),
                 UserId = user.Id,
@@ -146,7 +147,7 @@ public class UserService : IUserService
                 AssignedBy = createdByUserId
             };
 
-            _context.BranchUsers.Add(branchUser);
+            _context.BranchUserAssignments.Add(branchUser);
         }
 
         await _context.SaveChangesAsync();
@@ -216,7 +217,7 @@ public class UserService : IUserService
         user.UpdatedAt = DateTime.UtcNow;
 
         // Deactivate all branch assignments
-        var branchUsers = await _context.BranchUsers
+        var branchUsers = await _context.BranchUserAssignments
             .Where(bu => bu.UserId == userId)
             .ToListAsync();
 
@@ -256,7 +257,7 @@ public class UserService : IUserService
         }
 
         // Check if assignment already exists
-        var existingAssignment = await _context.BranchUsers
+        var existingAssignment = await _context.BranchUserAssignments
             .FirstOrDefaultAsync(bu => bu.UserId == userId && bu.BranchId == assignDto.BranchId);
 
         if (existingAssignment != null)
@@ -268,7 +269,7 @@ public class UserService : IUserService
         else
         {
             // Create new assignment
-            var branchUser = new BranchUser
+            var branchUser = new BranchUserAssignment
             {
                 Id = Guid.NewGuid(),
                 UserId = userId,
@@ -279,7 +280,7 @@ public class UserService : IUserService
                 AssignedBy = assignedByUserId
             };
 
-            _context.BranchUsers.Add(branchUser);
+            _context.BranchUserAssignments.Add(branchUser);
         }
 
         await _context.SaveChangesAsync();
@@ -287,7 +288,7 @@ public class UserService : IUserService
 
     public async Task RemoveBranchAssignmentAsync(Guid userId, Guid branchId, Guid removedByUserId)
     {
-        var branchUser = await _context.BranchUsers
+        var branchUser = await _context.BranchUserAssignments
             .FirstOrDefaultAsync(bu => bu.UserId == userId && bu.BranchId == branchId);
 
         if (branchUser == null)
@@ -342,11 +343,11 @@ public class UserService : IUserService
             LastActivityAt = user.LastActivityAt,
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt,
-            AssignedBranchIds = user.BranchUsers
+            AssignedBranchIds = user.BranchUserAssignments
                 .Where(bu => bu.IsActive)
                 .Select(bu => bu.BranchId)
                 .ToList(),
-            AssignedBranches = user.BranchUsers
+            AssignedBranches = user.BranchUserAssignments
                 .Where(bu => bu.IsActive)
                 .Select(bu => new UserBranchDto
                 {

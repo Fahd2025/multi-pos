@@ -75,7 +75,7 @@ public class SyncService : ISyncService
         }
 
         // Get user's branch context
-        var user = await _headOfficeContext.Users.Include(u => u.BranchUsers)
+        var user = await _headOfficeContext.Users.Include(u => u.BranchUserAssignments)
             .ThenInclude(bu => bu.Branch)
             .FirstOrDefaultAsync(u => u.Id == cashierId);
 
@@ -84,7 +84,7 @@ public class SyncService : ISyncService
             throw new InvalidOperationException("User not found");
         }
 
-        var branchUser = user.BranchUsers.FirstOrDefault(bu => bu.IsActive);
+        var branchUser = user.BranchUserAssignments.FirstOrDefault(bu => bu.IsActive);
         if (branchUser == null || branchUser.Branch == null)
         {
             throw new InvalidOperationException("User has no active branch assignment");

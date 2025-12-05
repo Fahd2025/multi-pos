@@ -139,7 +139,7 @@ export default function BranchesManagementPage({
       render: (value, row) => (
         <div>
           <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{value}</div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">{row.loginName}</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">{row.nameAr}</div>
         </div>
       ),
     },

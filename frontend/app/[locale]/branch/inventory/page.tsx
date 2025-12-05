@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense, useCallback } from "react";
 import { use } from "react";
 import inventoryService from "@/services/inventory.service";
 import { ProductDto, CategoryDto } from "@/types/api.types";
@@ -31,6 +31,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { ImageCarousel } from "@/components/shared/image-carousel";
 import { Dialog, DialogContent, DialogTitle } from "@/components/shared/RadixDialog";
 import { API_BASE_URL } from "@/lib/constants";
+import { Barcode } from "lucide-react";
 
 export default function InventoryPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
@@ -53,6 +54,26 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
   const [selectedProduct, setSelectedProduct] = useState<ProductDto | undefined>(undefined);
   const [isImageCarouselOpen, setIsImageCarouselOpen] = useState(false);
   const [selectedProductImages, setSelectedProductImages] = useState<string[]>([]);
+
+  const [barcodeDialogOpen, setBarcodeDialogOpen] = useState(false);
+  const [barcodeProduct, setBarcodeProduct] = useState<{
+    name: string;
+    sellingPrice: number;
+    barcode: string;
+  }>({ name: "", sellingPrice: 0, barcode: "" });
+  const BarcodePreviewDialog = lazy(() =>
+    import("@/components/branch/inventory/BarcodePreviewDialog").then((mod) => ({
+      default: mod.BarcodePreviewDialog,
+    }))
+  );
+  const handlePrintBarcode = useCallback((product: ProductDto) => {
+    setBarcodeProduct({
+      name: product.nameEn,
+      sellingPrice: product.sellingPrice,
+      barcode: product.barcode || "",
+    });
+    setBarcodeDialogOpen(true);
+  }, []);
 
   // Hooks
   const confirmation = useConfirmation();
@@ -232,6 +253,14 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
 
   // Define row actions
   const actions: DataTableAction<ProductDto>[] = [
+    {
+      label: "Barcode",
+      icon: <Barcode className="h-4 w-4" />,
+      onClick: (row) => {
+        handlePrintBarcode(row);
+      },
+      variant: "secondary",
+    },
     {
       label: "📊 Stock",
       onClick: (row) => {
@@ -472,6 +501,19 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
           />
         </DialogContent>
       </Dialog>
+
+      {/* Barcode Preview Dialog - lazy loaded */}
+      {barcodeDialogOpen && (
+        <Suspense fallback={<div />}>
+          <BarcodePreviewDialog
+            open={barcodeDialogOpen}
+            onOpenChange={setBarcodeDialogOpen}
+            productName={barcodeProduct.name}
+            sellingPrice={barcodeProduct.sellingPrice}
+            barcode={barcodeProduct.barcode}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

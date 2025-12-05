@@ -48,7 +48,6 @@ export interface Branch {
   code: string;
   nameEn: string;
   nameAr: string;
-  loginName: string;
   addressEn?: string;
   addressAr?: string;
   email?: string;

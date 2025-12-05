@@ -1,4 +1,5 @@
 using Backend.Models.Entities.Branch;
+using BranchUser = Backend.Models.Entities.Branch.User; // Alias to avoid confusion with HeadOffice.User
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Data.Branch;
@@ -8,6 +9,7 @@ public class BranchDbContext : DbContext
     public BranchDbContext(DbContextOptions<BranchDbContext> options)
         : base(options) { }
 
+    public DbSet<BranchUser> Users { get; set; }
     public DbSet<Category> Categories { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<ProductImage> ProductImages { get; set; }
@@ -25,6 +27,17 @@ public class BranchDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // User configuration (Branch-specific users)
+        modelBuilder.Entity<BranchUser>(entity =>
+        {
+            entity.ToTable("Users"); // Table name
+            entity.HasIndex(e => e.Username).IsUnique();
+            entity.HasIndex(e => e.Email);
+            entity.HasIndex(e => e.Role);
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => e.LastLoginAt);
+        });
 
         // Category configuration
         modelBuilder.Entity<Category>(entity =>

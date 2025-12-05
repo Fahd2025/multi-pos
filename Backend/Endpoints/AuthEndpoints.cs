@@ -199,7 +199,7 @@ public static class AuthEndpoints
                         }
 
                         var user = await headOfficeDb
-                            .Users.Include(u => u.BranchUsers)
+                            .Users.Include(u => u.BranchUserAssignments)
                             .ThenInclude(bu => bu.Branch)
                             .FirstOrDefaultAsync(u => u.Id == userId.Value);
 
@@ -231,7 +231,7 @@ public static class AuthEndpoints
                                     isActive = user.IsActive,
                                     lastLoginAt = user.LastLoginAt,
                                     branches = user
-                                        .BranchUsers.Select(bu => new
+                                        .BranchUserAssignments.Select(bu => new
                                         {
                                             branchId = bu.BranchId,
                                             branchCode = bu.Branch?.Code,

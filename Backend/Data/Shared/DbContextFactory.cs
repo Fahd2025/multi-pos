@@ -85,13 +85,14 @@ public class DbContextFactory
 
     private string BuildSqliteConnectionString(BranchEntity branch)
     {
-        // Store SQLite databases in Backend/Upload/Branches/[Code]/Database/
+        // Store SQLite databases in Backend/Upload/Branches/[Code]/Database/[Code].db
+        // We only use the branch code - dbServer and dbName fields are ignored for SQLite
         var uploadPath = Path.Combine(
             "Upload",
             "Branches",
             branch.Code,
             "Database",
-            $"{branch.DbName}.db"
+            $"{branch.Code}.db"
         );
 
         // Ensure directory exists

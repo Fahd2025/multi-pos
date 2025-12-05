@@ -2,8 +2,9 @@ using Backend.Data.Branch;
 using Backend.Data.HeadOffice;
 using Backend.Data.Shared;
 using Backend.Models.DTOs.HeadOffice.Branches;
-using Backend.Models.Entities.Branch;
+using Backend.Models.Entities.Branch; // For Category, Product, etc.
 using Backend.Models.Entities.HeadOffice;
+using HeadOfficeUser = Backend.Models.Entities.HeadOffice.User;
 using Backend.Services.Branch.Images;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
@@ -19,27 +20,18 @@ public class BranchService : IBranchService
     private readonly DbContextFactory _dbContextFactory;
     private readonly ILogger<BranchService> _logger;
     private readonly IImageService _imageService;
-    private readonly string _uploadsPath;
 
     public BranchService(
         HeadOfficeDbContext headOfficeContext,
         DbContextFactory dbContextFactory,
         ILogger<BranchService> logger,
-        IImageService imageService,
-        IConfiguration configuration
+        IImageService imageService
     )
     {
         _headOfficeContext = headOfficeContext;
         _dbContextFactory = dbContextFactory;
         _logger = logger;
         _imageService = imageService;
-        _uploadsPath = configuration["UploadsPath"] ?? Path.Combine(Directory.GetCurrentDirectory(), "uploads", "logos");
-
-        // Ensure uploads directory exists
-        if (!Directory.Exists(_uploadsPath))
-        {
-            Directory.CreateDirectory(_uploadsPath);
-        }
     }
 
     public async Task<(List<BranchDto> Branches, int TotalCount)> GetBranchesAsync(
@@ -73,7 +65,7 @@ public class BranchService : IBranchService
             .OrderBy(b => b.Code)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Include(b => b.BranchUsers)
+            .Include(b => b.BranchUserAssignments)
             .Select(b => new BranchDto
             {
                 Id = b.Id,
@@ -107,7 +99,7 @@ public class BranchService : IBranchService
                 CreatedAt = b.CreatedAt,
                 UpdatedAt = b.UpdatedAt,
                 CreatedBy = b.CreatedBy,
-                UserCount = b.BranchUsers.Count(bu => bu.IsActive),
+                UserCount = b.BranchUserAssignments.Count(bu => bu.IsActive),
             })
             .ToListAsync();
 
@@ -132,7 +124,7 @@ public class BranchService : IBranchService
     public async Task<BranchDto?> GetBranchByIdAsync(Guid id)
     {
         var branch = await _headOfficeContext
-            .Branches.Include(b => b.BranchUsers)
+            .Branches.Include(b => b.BranchUserAssignments)
             .FirstOrDefaultAsync(b => b.Id == id);
 
         if (branch == null)
@@ -173,7 +165,7 @@ public class BranchService : IBranchService
             CreatedAt = branch.CreatedAt,
             UpdatedAt = branch.UpdatedAt,
             CreatedBy = branch.CreatedBy,
-            UserCount = branch.BranchUsers.Count(bu => bu.IsActive),
+            UserCount = branch.BranchUserAssignments.Count(bu => bu.IsActive),
         };
     }
 
@@ -503,7 +495,7 @@ public class BranchService : IBranchService
         }
 
         var userCount = await _headOfficeContext
-            .BranchUsers.Where(bu => bu.BranchId == id && bu.IsActive)
+            .BranchUserAssignments.Where(bu => bu.BranchId == id && bu.IsActive)
             .CountAsync();
 
         return new BranchDto
@@ -1115,14 +1107,14 @@ public class BranchService : IBranchService
             u.Username == "admin"
         );
 
-        User user;
+        HeadOfficeUser user;
         if (existingAdminUser != null)
         {
             // Use existing admin user
             user = existingAdminUser;
 
             // Check if admin is already assigned to this branch
-            var existingAssignment = await _headOfficeContext.BranchUsers.AnyAsync(bu =>
+            var existingAssignment = await _headOfficeContext.BranchUserAssignments.AnyAsync(bu =>
                 bu.UserId == user.Id && bu.BranchId == branch.Id
             );
 
@@ -1145,7 +1137,7 @@ public class BranchService : IBranchService
             // Create new admin user
             _logger.LogInformation("Creating admin user for branch {BranchCode}", branch.Code);
 
-            user = new User
+            user = new HeadOfficeUser
             {
                 Id = Guid.NewGuid(),
                 Username = "admin",
@@ -1165,7 +1157,7 @@ public class BranchService : IBranchService
         }
 
         // Create branch user assignment with Manager role (highest branch-level role)
-        var branchUser = new BranchUser
+        var branchUser = new BranchUserAssignment
         {
             Id = Guid.NewGuid(),
             UserId = user.Id,
@@ -1176,7 +1168,7 @@ public class BranchService : IBranchService
             AssignedBy = branch.CreatedBy,
         };
 
-        _headOfficeContext.BranchUsers.Add(branchUser);
+        _headOfficeContext.BranchUserAssignments.Add(branchUser);
         await _headOfficeContext.SaveChangesAsync();
 
         _logger.LogInformation(

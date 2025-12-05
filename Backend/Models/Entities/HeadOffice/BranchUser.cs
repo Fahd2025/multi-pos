@@ -2,7 +2,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Backend.Models.Entities.HeadOffice;
 
-public class BranchUser
+/// <summary>
+/// BranchUserAssignment - Links central HeadOffice users to branches
+/// This is different from Branch.BranchUser which represents branch-specific local users
+/// </summary>
+public class BranchUserAssignment
 {
     [Key]
     public Guid Id { get; set; }

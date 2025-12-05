@@ -1,8 +1,8 @@
 using Backend.Data.Branch;
 using Backend.Data.Shared;
-using Backend.Models.Entities.Branch;
 using Backend.Models.Entities.HeadOffice;
 using BranchEntity = Backend.Models.Entities.HeadOffice.Branch;
+using HeadOfficeUser = Backend.Models.Entities.HeadOffice.User;
 using Backend.Utilities;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +18,7 @@ public static class HeadOfficeDbSeeder
         // Seed default admin user
         if (!await context.Users.AnyAsync())
         {
-            var adminUser = new User
+            var adminUser = new HeadOfficeUser
             {
                 Id = Guid.NewGuid(),
                 Username = "admin",
@@ -110,7 +110,7 @@ public static class HeadOfficeDbSeeder
             // Assign admin user to all branches
             var adminUser = await context.Users.FirstAsync(u => u.Username == "admin");
 
-            var branchUser1 = new BranchUser
+            var branchUser1 = new BranchUserAssignment
             {
                 Id = Guid.NewGuid(),
                 UserId = adminUser.Id,
@@ -121,7 +121,7 @@ public static class HeadOfficeDbSeeder
                 AssignedBy = adminUser.Id,
             };
 
-            var branchUser2 = new BranchUser
+            var branchUser2 = new BranchUserAssignment
             {
                 Id = Guid.NewGuid(),
                 UserId = adminUser.Id,
@@ -132,7 +132,7 @@ public static class HeadOfficeDbSeeder
                 AssignedBy = adminUser.Id,
             };
 
-            var branchUser3 = new BranchUser
+            var branchUser3 = new BranchUserAssignment
             {
                 Id = Guid.NewGuid(),
                 UserId = adminUser.Id,
@@ -143,7 +143,7 @@ public static class HeadOfficeDbSeeder
                 AssignedBy = adminUser.Id,
             };
 
-            context.BranchUsers.AddRange(branchUser1, branchUser2, branchUser3);
+            context.BranchUserAssignments.AddRange(branchUser1, branchUser2, branchUser3);
             await context.SaveChangesAsync();
 
             Console.WriteLine("✓ Admin user assigned to all branches");

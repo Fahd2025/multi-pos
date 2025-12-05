@@ -12,10 +12,12 @@ import branchService, { BranchDto } from "@/services/branch.service";
 import { BranchFormModal } from "@/components/head-office/BranchFormModal";
 import { BranchSettingsForm } from "@/components/head-office/BranchSettingsForm";
 import { DatabaseConnectionTest } from "@/components/head-office/DatabaseConnectionTest";
+import { BranchUsersTab } from "@/components/head-office/BranchUsersTab";
 import { Button } from "@/components/shared/Button";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { ErrorAlert } from "@/components/shared/ErrorAlert";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 export default function BranchDetailsPage({
   params,
@@ -28,10 +30,24 @@ export default function BranchDetailsPage({
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"info" | "settings" | "users" | "database">("info");
   const [showEditModal, setShowEditModal] = useState(false);
+  const [isHeadOfficeAdmin, setIsHeadOfficeAdmin] = useState(false);
 
   useEffect(() => {
     loadBranch();
+    checkUserRole();
   }, [id]);
+
+  const checkUserRole = () => {
+    try {
+      const userStr = localStorage.getItem(STORAGE_KEYS.USER);
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        setIsHeadOfficeAdmin(user.isHeadOfficeAdmin || false);
+      }
+    } catch (err) {
+      console.error("Error checking user role:", err);
+    }
+  };
 
   const loadBranch = async () => {
     try {
@@ -89,7 +105,7 @@ export default function BranchDetailsPage({
             </StatusBadge>
           </div>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Code: {branch.code} • Login: {branch.loginName}
+            Code: {branch.code}
           </p>
         </div>
         <Button onClick={() => setShowEditModal(true)}>Edit Branch</Button>
@@ -141,12 +157,6 @@ export default function BranchDetailsPage({
                   <dt className="text-sm text-gray-600 dark:text-gray-400">Arabic Name</dt>
                   <dd className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
                     {branch.nameAr}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-sm text-gray-600 dark:text-gray-400">Login Name</dt>
-                  <dd className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {branch.loginName}
                   </dd>
                 </div>
                 {branch.email && (
@@ -274,17 +284,11 @@ export default function BranchDetailsPage({
         {activeTab === "settings" && <BranchSettingsForm branch={branch} onUpdate={loadBranch} />}
 
         {activeTab === "users" && (
-          <div className="bg-white dark:bg-gray-800  rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-              Branch Users
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              User management for this branch will be available in User Story 6 (T216-T248).
-            </p>
-            <p className="mt-2 text-sm text-gray-500 dark:text-gray-500">
-              Total users assigned: {branch.userCount}
-            </p>
-          </div>
+          <BranchUsersTab
+            branchId={branch.id}
+            branchName={branch.nameEn}
+            isHeadOfficeAdmin={isHeadOfficeAdmin}
+          />
         )}
 
         {activeTab === "database" && <DatabaseConnectionTest branchId={branch.id} />}

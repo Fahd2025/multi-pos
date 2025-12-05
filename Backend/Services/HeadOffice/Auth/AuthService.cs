@@ -94,7 +94,7 @@ public class AuthService : IAuthService
             }
 
             // For regular users, check if they have access to this branch
-            var branchUser = await _context.BranchUsers.FirstOrDefaultAsync(bu =>
+            var branchUser = await _context.BranchUserAssignments.FirstOrDefaultAsync(bu =>
                 bu.UserId == user.Id && bu.BranchId == branch.Id && bu.IsActive
             );
 
@@ -211,7 +211,7 @@ public class AuthService : IAuthService
         {
             // Get user's first active branch assignment
             var branchUser = await _context
-                .BranchUsers.Include(bu => bu.Branch)
+                .BranchUserAssignments.Include(bu => bu.Branch)
                 .Where(bu => bu.UserId == user.Id && bu.IsActive && bu.Branch.IsActive)
                 .FirstOrDefaultAsync();
 
@@ -292,7 +292,7 @@ public class AuthService : IAuthService
         }
 
         // Get user's branch assignments
-        var userBranches = await _context.BranchUsers
+        var userBranches = await _context.BranchUserAssignments
             .Include(bu => bu.Branch)
             .Where(bu => bu.UserId == user.Id && bu.IsActive && bu.Branch.IsActive)
             .Select(bu => new UserBranchInfo

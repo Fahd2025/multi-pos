@@ -49,7 +49,15 @@
       "Bash(tree -L 3 -d Backend/Services Backend/Data Backend/Models/DTOs)",
       "Bash(dotnet script:*)",
       "Bash(dotnet run:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(if [ -d \"Backend/uploads\" ])",
+      "Bash(then rm -rf Backend/uploads)",
+      "Bash(else echo \"Backend/uploads folder does not exist\")",
+      "Bash(fi)",
+      "Bash(if [ -d \"Backend\\uploads\" ])",
+      "Bash(then rm -rf \"Backend\\uploads\")",
+      "Bash(else echo \"Backend\\uploads folder not found with backslashes\")",
+      "Bash(dotnet ef:*)"
     ],
     "deny": [],
     "ask": []

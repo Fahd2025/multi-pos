@@ -116,7 +116,7 @@ public class Branch
     public Guid CreatedBy { get; set; }
 
     // Navigation properties
-    public ICollection<BranchUser> BranchUsers { get; set; } = new List<BranchUser>();
+    public ICollection<BranchUserAssignment> BranchUserAssignments { get; set; } = new List<BranchUserAssignment>();
 }
 
 public enum DatabaseProvider

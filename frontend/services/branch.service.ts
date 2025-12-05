@@ -14,7 +14,6 @@ export interface BranchDto {
   code: string;
   nameEn: string;
   nameAr: string;
-  loginName: string;
   addressEn?: string;
   addressAr?: string;
   email?: string;
@@ -53,7 +52,6 @@ export interface BranchLookupDto {
   code: string;
   nameEn: string;
   nameAr: string;
-  loginName: string;
 }
 
 /**
@@ -63,7 +61,6 @@ export interface CreateBranchDto {
   code: string;
   nameEn: string;
   nameAr: string;
-  loginName: string;
   addressEn?: string;
   addressAr?: string;
   email?: string;
@@ -193,8 +190,8 @@ class BranchService {
    * Get branch by ID
    */
   async getBranchById(id: string): Promise<BranchDto> {
-    const response = await api.get<BranchDto>(`/api/v1/branches/${id}`);
-    return response.data;
+    const response = await api.get<{ success: boolean; data: BranchDto }>(`/api/v1/branches/${id}`);
+    return response.data.data;
   }
 
   /**
@@ -226,16 +223,16 @@ class BranchService {
    * Get branch settings
    */
   async getBranchSettings(id: string): Promise<BranchSettingsDto> {
-    const response = await api.get<BranchSettingsDto>(`/api/v1/branches/${id}/settings`);
-    return response.data;
+    const response = await api.get<{ success: boolean; data: BranchSettingsDto }>(`/api/v1/branches/${id}/settings`);
+    return response.data.data;
   }
 
   /**
    * Update branch settings
    */
   async updateBranchSettings(id: string, settings: BranchSettingsDto): Promise<BranchSettingsDto> {
-    const response = await api.put<BranchSettingsDto>(`/api/v1/branches/${id}/settings`, settings);
-    return response.data;
+    const response = await api.put<{ success: boolean; data: BranchSettingsDto }>(`/api/v1/branches/${id}/settings`, settings);
+    return response.data.data;
   }
 
   // ==================== DATABASE OPERATIONS ====================

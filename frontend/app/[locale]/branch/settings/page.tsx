@@ -17,11 +17,7 @@ import {
   DATE_FORMATS,
   NUMBER_FORMATS,
 } from "@/types/branch-settings";
-import {
-  getBranchSettings,
-  updateBranchSettings,
-  uploadBranchLogo,
-} from "@/lib/branch-settings";
+import { getBranchSettings, updateBranchSettings, uploadBranchLogo } from "@/lib/branch-settings";
 import { authService } from "@/services/auth.service";
 import { API_BASE_URL } from "@/lib/constants";
 
@@ -78,7 +74,7 @@ export default function BranchSettingsPage() {
 
       const data = await getBranchSettings(branch.branchId);
 
-      console.log('Branch Settings API Response:', {
+      console.log("Branch Settings API Response:", {
         id: data.id,
         code: data.code,
         logoPath: data.logoPath,
@@ -106,38 +102,42 @@ export default function BranchSettingsPage() {
       });
 
       // Set logo URL if available
-      if (data.logoPath && data.logoPath.trim() !== '') {
+      if (data.logoPath && data.logoPath.trim() !== "") {
         try {
           let absoluteLogoUrl: string;
 
           // Check if logoPath is in new format (starts with /api/v1/)
-          if (data.logoPath.startsWith('/api/v1/')) {
+          if (data.logoPath.startsWith("/api/v1/")) {
             // New format: just prepend the base URL
             absoluteLogoUrl = `${API_BASE_URL}${data.logoPath}`;
           } else {
             // Old format (GUID): construct the URL using branch code and ID
             absoluteLogoUrl = `${API_BASE_URL}/api/v1/images/${data.code}/branches/${data.id}/thumb`;
-            console.warn('Branch has old logo format (GUID):', data.logoPath, '- constructing URL from branch data');
+            console.warn(
+              "Branch has old logo format (GUID):",
+              data.logoPath,
+              "- constructing URL from branch data"
+            );
           }
 
           // Validate URL before setting it
           new URL(absoluteLogoUrl);
-          console.log('Loading logo from logoPath:', {
+          console.log("Loading logo from logoPath:", {
             logoPath: data.logoPath,
             absoluteUrl: absoluteLogoUrl,
-            format: data.logoPath.startsWith('/api/v1/') ? 'new' : 'old (GUID)'
+            format: data.logoPath.startsWith("/api/v1/") ? "new" : "old (GUID)",
           });
           setLogoUrl(absoluteLogoUrl);
           setImageError(false);
         } catch (err) {
-          console.error('Invalid logo path:', data.logoPath, err);
-          setLogoUrl('');
+          console.error("Invalid logo path:", data.logoPath, err);
+          setLogoUrl("");
           setImageError(true);
         }
       } else {
         // No logo available
-        console.log('No logo path found in branch settings');
-        setLogoUrl('');
+        console.log("No logo path found in branch settings");
+        setLogoUrl("");
         setImageError(false);
       }
     } catch (err) {
@@ -170,12 +170,12 @@ export default function BranchSettingsPage() {
           const absoluteLogoUrl = `${API_BASE_URL}${logoResult.logoUrl}`;
           // Validate URL before setting it
           new URL(absoluteLogoUrl);
-          console.log('Uploaded logo URL:', absoluteLogoUrl);
+          console.log("Uploaded logo URL:", absoluteLogoUrl);
           setLogoUrl(absoluteLogoUrl);
           setImageError(false);
         } catch (err) {
-          console.error('Invalid uploaded logo URL:', logoResult.logoUrl, err);
-          throw new Error('Invalid logo URL received from server');
+          console.error("Invalid uploaded logo URL:", logoResult.logoUrl, err);
+          throw new Error("Invalid logo URL received from server");
         }
       }
 
@@ -250,11 +250,13 @@ export default function BranchSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
+    <div>
+      <div>
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Branch Settings</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            Branch Settings
+          </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Manage your branch information, regional preferences, and tax configuration
           </p>
@@ -690,7 +692,7 @@ export default function BranchSettingsPage() {
               <div className="flex items-center gap-6">
                 {logoUrl && logoUrl.trim() !== "" && !imageError ? (
                   <div className="relative w-32 h-32 border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-700">
-                    {logoUrl.startsWith('http') ? (
+                    {logoUrl.startsWith("http") ? (
                       // Use regular img for external URLs to avoid Next.js image optimization issues
                       <div className="w-full h-full flex items-center justify-center p-2">
                         <img
@@ -698,7 +700,7 @@ export default function BranchSettingsPage() {
                           alt="Branch Logo"
                           className="max-w-full max-h-full object-contain"
                           onError={() => {
-                            console.error('Failed to load image:', logoUrl);
+                            console.error("Failed to load image:", logoUrl);
                             setImageError(true);
                           }}
                           onLoad={() => {
@@ -714,9 +716,9 @@ export default function BranchSettingsPage() {
                         alt="Branch Logo"
                         fill
                         className="object-contain p-2"
-                        unoptimized={logoUrl.startsWith('blob:')}
+                        unoptimized={logoUrl.startsWith("blob:")}
                         onError={() => {
-                          console.error('Failed to load image:', logoUrl);
+                          console.error("Failed to load image:", logoUrl);
                           setImageError(true);
                         }}
                         onLoadingComplete={() => {
@@ -729,7 +731,9 @@ export default function BranchSettingsPage() {
                 ) : imageError ? (
                   <div className="relative w-32 h-32 border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                     <p className="text-xs text-gray-500 dark:text-gray-400 text-center p-2">
-                      Logo unavailable.<br />Please upload a new one.
+                      Logo unavailable.
+                      <br />
+                      Please upload a new one.
                     </p>
                   </div>
                 ) : null}

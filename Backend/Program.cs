@@ -51,6 +51,9 @@ builder.Services.AddDbContext<HeadOfficeDbContext>(options =>
 // Configure DbContextFactory
 builder.Services.AddSingleton<DbContextFactory>();
 
+// Configure Branch Database Migrator
+builder.Services.AddScoped<BranchDatabaseMigrator>();
+
 // Configure JWT Authentication
 var jwtSecretKey =
     builder.Configuration["Jwt:SecretKey"]
@@ -122,6 +125,10 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     Backend.Services.Shared.Reports.IReportService,
     Backend.Services.Shared.Reports.ReportService
+>();
+builder.Services.AddScoped<
+    Backend.Services.Branch.Users.IBranchUserService,
+    Backend.Services.Branch.Users.BranchUserService
 >();
 
 builder.Services.AddHttpContextAccessor();
@@ -224,6 +231,10 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<HeadOfficeDbContext>();
     await DbSeeder.SeedAsync(context);
+
+    // Ensure all branch databases have the latest schema
+    var branchMigrator = scope.ServiceProvider.GetRequiredService<BranchDatabaseMigrator>();
+    await branchMigrator.EnsureAllBranchDatabasesAsync();
 }
 
 // Configure the HTTP request pipeline
@@ -284,6 +295,9 @@ app.MapBranchEndpoints();
 
 // Users
 app.MapUserEndpoints();
+
+// Branch Users
+app.MapBranchUserEndpoints();
 
 // Audit
 app.MapAuditEndpoints();
