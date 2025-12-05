@@ -61,6 +61,26 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
     taxRate: 0,
   });
 
+  /**
+   * Extract entity ID from logoPath URL
+   * Handles both new format (/api/v1/images/B001/branches/{id}/thumb) and legacy format (just ID)
+   */
+  const extractImageIdFromPath = (logoPath: string | null): string | null => {
+    if (!logoPath) return null;
+
+    // Check if it's the new URL path format
+    if (logoPath.startsWith('/api/v1/images/')) {
+      // Extract the ID from: /api/v1/images/{branchCode}/branches/{id}/{size}
+      const match = logoPath.match(/\/branches\/([a-f0-9-]+)\//i);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+
+    // Legacy format or unknown - return as-is
+    return logoPath;
+  };
+
   // Initialize form data when branch prop changes
   useEffect(() => {
     if (branch) {
@@ -219,6 +239,8 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
         // Delete existing logo if user removed it OR is replacing it with a new one
         if (logoWasRemoved || newLogoSelected) {
           try {
+            // Use branch.id for deletion, not logoPath
+            // This works regardless of logoPath format (URL path or legacy ID)
             const success = await imageService.deleteImages(branch.code, "Branches", branch.id);
             if (success) {
               console.log("Successfully deleted old branch logo from server");
@@ -236,13 +258,26 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
         // Upload new logo if selected
         setUploadingImages(true);
         try {
+          // First, upload the image to storage
           await imageService.uploadImage(
             savedBranch.code, // Use branch code for path construction
             "Branches",
             savedBranch.id,
             selectedImages[0] // Single logo
           );
-          console.log("Successfully uploaded new branch logo");
+          console.log("Successfully uploaded new branch logo to storage");
+
+          // Then, update the branch record with the new logo path
+          // The logo path follows the pattern: /api/v1/images/{branchCode}/branches/{id}/thumb
+          const newLogoPath = `/api/v1/images/${savedBranch.code}/branches/${savedBranch.id}/thumb`;
+
+          // Update ONLY the logo path field
+          const logoUpdateDto: UpdateBranchDto = {
+            logoPath: newLogoPath,
+          };
+
+          await branchService.updateBranch(savedBranch.id, logoUpdateDto);
+          console.log("Successfully updated branch with new logo path:", newLogoPath);
         } catch (error) {
           console.error("Error uploading logo:", error);
           // Don't fail the whole operation
@@ -482,7 +517,9 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
             branchName={branch?.code || "HeadOffice"}
             entityType="Branches"
             entityId={branch?.id}
-            currentImages={currentLogoPath ? [currentLogoPath] : []}
+            currentImages={
+              currentLogoPath ? [extractImageIdFromPath(currentLogoPath) || currentLogoPath] : []
+            }
             multiple={false}
             maxFiles={1}
             onUpload={handleImageUpload}

@@ -4,7 +4,9 @@ using Backend.Data.Shared;
 using Backend.Models.DTOs.HeadOffice.Branches;
 using Backend.Models.Entities.Branch;
 using Backend.Models.Entities.HeadOffice;
+using Backend.Services.Branch.Images;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace Backend.Services.HeadOffice.Branches;
 
@@ -16,16 +18,28 @@ public class BranchService : IBranchService
     private readonly HeadOfficeDbContext _headOfficeContext;
     private readonly DbContextFactory _dbContextFactory;
     private readonly ILogger<BranchService> _logger;
+    private readonly IImageService _imageService;
+    private readonly string _uploadsPath;
 
     public BranchService(
         HeadOfficeDbContext headOfficeContext,
         DbContextFactory dbContextFactory,
-        ILogger<BranchService> logger
+        ILogger<BranchService> logger,
+        IImageService imageService,
+        IConfiguration configuration
     )
     {
         _headOfficeContext = headOfficeContext;
         _dbContextFactory = dbContextFactory;
         _logger = logger;
+        _imageService = imageService;
+        _uploadsPath = configuration["UploadsPath"] ?? Path.Combine(Directory.GetCurrentDirectory(), "uploads", "logos");
+
+        // Ensure uploads directory exists
+        if (!Directory.Exists(_uploadsPath))
+        {
+            Directory.CreateDirectory(_uploadsPath);
+        }
     }
 
     public async Task<(List<BranchDto> Branches, int TotalCount)> GetBranchesAsync(
@@ -445,6 +459,11 @@ public class BranchService : IBranchService
             branch.IsActive = updateBranchDto.IsActive.Value;
         }
 
+        if (updateBranchDto.LogoPath != null)
+        {
+            branch.LogoPath = updateBranchDto.LogoPath;
+        }
+
         branch.UpdatedAt = DateTime.UtcNow;
 
         await _headOfficeContext.SaveChangesAsync();
@@ -545,26 +564,65 @@ public class BranchService : IBranchService
 
     public async Task<BranchSettingsDto?> GetBranchSettingsAsync(Guid id)
     {
-        var branch = await _headOfficeContext.Branches.FindAsync(id);
+        var branch = await _headOfficeContext.Branches.AsNoTracking().FirstOrDefaultAsync(b => b.Id == id);
         if (branch == null)
         {
             return null;
         }
 
+        // Determine the logo URL
+        string? logoUrl = null;
+        if (!string.IsNullOrEmpty(branch.LogoPath))
+        {
+            // Check if LogoPath is already in the correct URL format (starts with /api/v1/)
+            if (branch.LogoPath.StartsWith("/api/v1/"))
+            {
+                logoUrl = branch.LogoPath;
+            }
+            // Check if it's an old format (file system path or GUID)
+            else if (File.Exists(branch.LogoPath) || Guid.TryParse(branch.LogoPath, out _) || Guid.TryParse(Path.GetFileNameWithoutExtension(branch.LogoPath), out _))
+            {
+                // Old format detected - clear it (user will need to re-upload)
+                _logger.LogWarning("Branch {BranchId} has old logo format: {LogoPath}. Logo will need to be re-uploaded.", id, branch.LogoPath);
+                logoUrl = null;
+            }
+            else
+            {
+                // Unknown format, return it as-is (might be a full URL)
+                logoUrl = branch.LogoPath;
+            }
+        }
+
         return new BranchSettingsDto
         {
-            Language = branch.Language,
-            Currency = branch.Currency,
+            Id = branch.Id,
+            Code = branch.Code,
+            NameEn = branch.NameEn,
+            NameAr = branch.NameAr,
+            AddressEn = ParseAddress(branch.AddressEn),
+            AddressAr = ParseAddress(branch.AddressAr),
+            Phone = branch.Phone,
+            Email = branch.Email,
+            VatNumber = branch.TaxNumber,
+            CommercialRegistrationNumber = branch.CRN,
+            LogoPath = branch.LogoPath,
+            LogoUrl = logoUrl,
             TimeZone = branch.TimeZone,
+            Currency = branch.Currency,
+            Language = branch.Language,
             DateFormat = branch.DateFormat,
             NumberFormat = branch.NumberFormat,
+            EnableTax = branch.EnableTax,
             TaxRate = branch.TaxRate,
+            PriceIncludesTax = branch.PriceIncludesTax,
+            IsActive = branch.IsActive,
+            UpdatedAt = branch.UpdatedAt
         };
     }
 
     public async Task<BranchSettingsDto> UpdateBranchSettingsAsync(
         Guid id,
-        BranchSettingsDto settingsDto
+        UpdateBranchSettingsDto settingsDto
     )
     {
         var branch = await _headOfficeContext.Branches.FindAsync(id);
@@ -573,12 +631,31 @@ public class BranchService : IBranchService
             throw new KeyNotFoundException($"Branch with ID {id} not found");
         }
 
-        branch.Language = settingsDto.Language;
-        branch.Currency = settingsDto.Currency;
+        // Update branch information
+        branch.NameEn = settingsDto.NameEn;
+        branch.NameAr = settingsDto.NameAr;
+        branch.Phone = settingsDto.Phone;
+        branch.Email = settingsDto.Email;
+        branch.TaxNumber = settingsDto.VatNumber;
+        branch.CRN = settingsDto.CommercialRegistrationNumber;
+
+        // Update addresses (serialize structured address to JSON string)
+        branch.AddressEn = SerializeAddress(settingsDto.AddressEn);
+        branch.AddressAr = SerializeAddress(settingsDto.AddressAr);
+
+        // Update regional settings
         branch.TimeZone = settingsDto.TimeZone;
+        branch.Currency = settingsDto.Currency;
+        branch.Language = settingsDto.Language;
         branch.DateFormat = settingsDto.DateFormat;
         branch.NumberFormat = settingsDto.NumberFormat;
+
+        // Update tax settings
+        branch.EnableTax = settingsDto.EnableTax;
         branch.TaxRate = settingsDto.TaxRate;
+        branch.PriceIncludesTax = settingsDto.PriceIncludesTax;
+
+        // Update metadata
         branch.UpdatedAt = DateTime.UtcNow;
 
         await _headOfficeContext.SaveChangesAsync();
@@ -589,7 +666,76 @@ public class BranchService : IBranchService
             branch.Id
         );
 
-        return settingsDto;
+        return await GetBranchSettingsAsync(id) ?? throw new InvalidOperationException("Failed to retrieve updated settings");
+    }
+
+    public async Task<string> UploadBranchLogoAsync(Guid id, Stream fileStream, string fileName)
+    {
+        var branch = await _headOfficeContext.Branches.FindAsync(id);
+        if (branch == null)
+        {
+            throw new KeyNotFoundException($"Branch with ID {id} not found");
+        }
+
+        // Use the ImageService to upload the logo
+        // This will store it in the proper location: Uploads/Branches/{branchCode}/branches/{id}-{size}.webp
+        var result = await _imageService.UploadImageAsync(
+            branch.Code,
+            "branches",
+            id,
+            fileStream,
+            fileName
+        );
+
+        if (!result.Success)
+        {
+            throw new InvalidOperationException($"Failed to upload branch logo: {result.ErrorMessage}");
+        }
+
+        // Store the logo path reference (we'll use the image URL pattern)
+        branch.LogoPath = $"/api/v1/images/{branch.Code}/branches/{id}/thumb";
+        branch.UpdatedAt = DateTime.UtcNow;
+        await _headOfficeContext.SaveChangesAsync();
+
+        _logger.LogInformation("Uploaded logo for branch {BranchCode} ({BranchId})", branch.Code, branch.Id);
+
+        return branch.LogoPath;
+    }
+
+    private AddressDto? ParseAddress(string? fullAddress)
+    {
+        if (string.IsNullOrWhiteSpace(fullAddress))
+        {
+            return null;
+        }
+
+        // Try to parse JSON first (if address was saved as structured data)
+        try
+        {
+            var address = JsonSerializer.Deserialize<AddressDto>(fullAddress);
+            if (address != null) return address;
+        }
+        catch
+        {
+            // Not JSON, treat as plain text
+        }
+
+        // Return as short address
+        return new AddressDto
+        {
+            ShortAddress = fullAddress
+        };
+    }
+
+    private string? SerializeAddress(AddressDto? address)
+    {
+        if (address == null)
+        {
+            return null;
+        }
+
+        // Serialize as JSON for structured storage
+        return JsonSerializer.Serialize(address);
     }
 
     public async Task<(bool Success, string Message)> TestDatabaseConnectionAsync(Guid id)

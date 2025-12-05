@@ -321,8 +321,12 @@ public static class BranchEndpoints
                 {
                     try
                     {
-                        // Check if user is head office admin
-                        if (httpContext.Items["IsHeadOfficeAdmin"] as bool? != true)
+                        // Check if user is head office admin or branch manager of this branch
+                        var isHeadOfficeAdmin = httpContext.Items["IsHeadOfficeAdmin"] as bool? == true;
+                        var branchId = httpContext.Items["BranchId"] as Guid?;
+                        var role = httpContext.Items["Role"] as string;
+
+                        if (!isHeadOfficeAdmin && (branchId != id || role != "Manager"))
                         {
                             return Results.Forbid();
                         }
@@ -364,15 +368,19 @@ public static class BranchEndpoints
                 "/{id:guid}/settings",
                 async (
                     Guid id,
-                    [FromBody] BranchSettingsDto dto,
+                    [FromBody] UpdateBranchSettingsDto dto,
                     IBranchService branchService,
                     HttpContext httpContext
                 ) =>
                 {
                     try
                     {
-                        // Check if user is head office admin
-                        if (httpContext.Items["IsHeadOfficeAdmin"] as bool? != true)
+                        // Check if user is head office admin or branch manager
+                        var isHeadOfficeAdmin = httpContext.Items["IsHeadOfficeAdmin"] as bool? == true;
+                        var branchId = httpContext.Items["BranchId"] as Guid?;
+                        var role = httpContext.Items["Role"] as string;
+
+                        if (!isHeadOfficeAdmin && (branchId != id || role != "Manager"))
                         {
                             return Results.Forbid();
                         }
@@ -408,6 +416,156 @@ public static class BranchEndpoints
             )
             .RequireAuthorization()
             .WithName("UpdateBranchSettings")
+            .WithOpenApi();
+
+        // POST /api/v1/branches/:id/logo - Upload branch logo
+        branchGroup
+            .MapPost(
+                "/{id:guid}/logo",
+                async (
+                    Guid id,
+                    HttpContext httpContext,
+                    IBranchService branchService
+                ) =>
+                {
+                    try
+                    {
+                        // Check if user is head office admin or branch manager
+                        var isHeadOfficeAdmin = httpContext.Items["IsHeadOfficeAdmin"] as bool? == true;
+                        var branchId = httpContext.Items["BranchId"] as Guid?;
+                        var role = httpContext.Items["Role"] as string;
+
+                        if (!isHeadOfficeAdmin && (branchId != id || role != "Manager"))
+                        {
+                            return Results.Forbid();
+                        }
+
+                        var file = httpContext.Request.Form.Files.FirstOrDefault();
+                        if (file == null || file.Length == 0)
+                        {
+                            return Results.BadRequest(
+                                new { success = false, error = new { code = "NO_FILE", message = "No file uploaded" } }
+                            );
+                        }
+
+                        // Validate file type
+                        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".svg" };
+                        var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                        if (!allowedExtensions.Contains(fileExtension))
+                        {
+                            return Results.BadRequest(
+                                new
+                                {
+                                    success = false,
+                                    error = new
+                                    {
+                                        code = "INVALID_FILE_TYPE",
+                                        message = "Only image files are allowed (jpg, jpeg, png, gif, svg)"
+                                    }
+                                }
+                            );
+                        }
+
+                        // Validate file size (max 5MB)
+                        if (file.Length > 5 * 1024 * 1024)
+                        {
+                            return Results.BadRequest(
+                                new
+                                {
+                                    success = false,
+                                    error = new { code = "FILE_TOO_LARGE", message = "File size must not exceed 5MB" }
+                                }
+                            );
+                        }
+
+                        using var stream = file.OpenReadStream();
+                        var logoUrl = await branchService.UploadBranchLogoAsync(id, stream, file.FileName);
+
+                        return Results.Ok(
+                            new
+                            {
+                                success = true,
+                                data = new { logoPath = logoUrl, logoUrl },
+                                message = "Logo uploaded successfully"
+                            }
+                        );
+                    }
+                    catch (KeyNotFoundException ex)
+                    {
+                        return Results.NotFound(
+                            new
+                            {
+                                success = false,
+                                error = new { code = "NOT_FOUND", message = ex.Message },
+                            }
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(
+                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                        );
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .DisableAntiforgery()
+            .WithName("UploadBranchLogo")
+            .WithOpenApi();
+
+        // GET /api/v1/branches/:id/logo - Get branch logo
+        branchGroup
+            .MapGet(
+                "/{id:guid}/logo",
+                async (Guid id, IBranchService branchService) =>
+                {
+                    try
+                    {
+                        var settings = await branchService.GetBranchSettingsAsync(id);
+                        if (settings == null || string.IsNullOrEmpty(settings.LogoPath))
+                        {
+                            return Results.NotFound(
+                                new
+                                {
+                                    success = false,
+                                    error = new { code = "NOT_FOUND", message = "Logo not found" },
+                                }
+                            );
+                        }
+
+                        if (!File.Exists(settings.LogoPath))
+                        {
+                            return Results.NotFound(
+                                new
+                                {
+                                    success = false,
+                                    error = new { code = "FILE_NOT_FOUND", message = "Logo file not found" },
+                                }
+                            );
+                        }
+
+                        var fileExtension = Path.GetExtension(settings.LogoPath).ToLowerInvariant();
+                        var contentType = fileExtension switch
+                        {
+                            ".jpg" or ".jpeg" => "image/jpeg",
+                            ".png" => "image/png",
+                            ".gif" => "image/gif",
+                            ".svg" => "image/svg+xml",
+                            _ => "application/octet-stream"
+                        };
+
+                        return Results.File(settings.LogoPath, contentType);
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(
+                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                        );
+                    }
+                }
+            )
+            .AllowAnonymous()
+            .WithName("GetBranchLogo")
             .WithOpenApi();
 
         // POST /api/v1/branches/:id/test-connection - Test branch database connection
@@ -451,6 +609,76 @@ public static class BranchEndpoints
             )
             .RequireAuthorization()
             .WithName("TestBranchConnection")
+            .WithOpenApi();
+
+        // POST /api/v1/branches/:id/fix-logo-path - Fix legacy logo path format
+        branchGroup
+            .MapPost(
+                "/{id:guid}/fix-logo-path",
+                async (
+                    Guid id,
+                    IBranchService branchService,
+                    HttpContext httpContext
+                ) =>
+                {
+                    try
+                    {
+                        // Check if user is head office admin
+                        if (httpContext.Items["IsHeadOfficeAdmin"] as bool? != true)
+                        {
+                            return Results.Forbid();
+                        }
+
+                        var branch = await branchService.GetBranchByIdAsync(id);
+                        if (branch == null)
+                        {
+                            return Results.NotFound(
+                                new
+                                {
+                                    success = false,
+                                    error = new { code = "NOT_FOUND", message = $"Branch with ID {id} not found" },
+                                }
+                            );
+                        }
+
+                        // Check if logoPath is in old format (just a GUID or file path)
+                        if (!string.IsNullOrEmpty(branch.LogoPath) && !branch.LogoPath.StartsWith("/api/v1/"))
+                        {
+                            // Convert to new format
+                            var newLogoPath = $"/api/v1/images/{branch.Code}/branches/{id}/thumb";
+                            var updateDto = new UpdateBranchDto { LogoPath = newLogoPath };
+                            await branchService.UpdateBranchAsync(id, updateDto);
+
+                            return Results.Ok(
+                                new
+                                {
+                                    success = true,
+                                    message = "Logo path updated to new format",
+                                    data = new { oldPath = branch.LogoPath, newPath = newLogoPath },
+                                }
+                            );
+                        }
+                        else if (string.IsNullOrEmpty(branch.LogoPath))
+                        {
+                            return Results.Ok(new { success = true, message = "Branch has no logo" });
+                        }
+                        else
+                        {
+                            return Results.Ok(
+                                new { success = true, message = "Logo path is already in correct format" }
+                            );
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(
+                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                        );
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("FixBranchLogoPath")
             .WithOpenApi();
 
         return app;

@@ -112,13 +112,22 @@ export default function BranchesManagementPage({
 
   /**
    * Construct image URL for branch logos
+   * Handles both legacy ID format and new URL path format
    */
   const getBranchImageUrl = (
-    imageId: string,
+    logoPathOrId: string,
     branchCode: string,
     size: "thumb" | "medium" | "large" | "original" = "thumb"
   ) => {
-    return `${API_BASE_URL}/api/v1/images/${branchCode}/branches/${imageId}/${size}`;
+    // Check if logoPath is already a URL path (starts with /api/v1/)
+    if (logoPathOrId.startsWith('/api/v1/')) {
+      // It's already a URL path, convert size if needed
+      const basePath = logoPathOrId.replace(/\/(thumb|medium|large|original)$/, '');
+      return `${API_BASE_URL}${basePath}/${size}`;
+    }
+
+    // Legacy format: treat as ID
+    return `${API_BASE_URL}/api/v1/images/${branchCode}/branches/${logoPathOrId}/${size}`;
   };
 
   // Define table columns
@@ -325,8 +334,18 @@ export default function BranchesManagementPage({
           }
           showRowNumbers
           imageColumn={{
-            getImageUrl: (row) =>
-              row.logoPath ? getBranchImageUrl(row.logoPath, row.code, "large") : "",
+            getImageUrl: (row) => {
+              // Only construct URL if logoPath exists and is valid
+              if (!row.logoPath || row.logoPath.trim() === '') {
+                return '';
+              }
+              try {
+                return getBranchImageUrl(row.logoPath, row.code, "large");
+              } catch (error) {
+                console.error('Error constructing logo URL for branch:', row.code, error);
+                return '';
+              }
+            },
             getAltText: (row) => row.nameEn,
             onImageClick: (row, images) => {
               if (images[0]) {

@@ -120,6 +120,7 @@ export interface UpdateBranchDto {
   numberFormat?: string;
   taxRate?: number;
   isActive?: boolean;
+  logoPath?: string;
 }
 
 /**

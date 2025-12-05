@@ -182,8 +182,9 @@ public static class ImageEndpoints
                                 var branchEntity = await headOfficeDbContext.Branches.FindAsync(entityId);
                                 if (branchEntity != null)
                                 {
-                                    // For branches, store the entity ID in LogoPath to reference the image
-                                    branchEntity.LogoPath = entityId.ToString();
+                                    // For branches, store the full URL path to reference the image
+                                    // Format: /api/v1/images/{branchCode}/branches/{id}/thumb
+                                    branchEntity.LogoPath = $"/api/v1/images/{branchName}/branches/{entityId}/thumb";
                                     await headOfficeDbContext.SaveChangesAsync();
                                 }
                             }
@@ -325,6 +326,7 @@ public static class ImageEndpoints
                     }
                 }
             )
+            .AllowAnonymous()
             .WithName("ServeImage")
             .WithOpenApi();
 
@@ -453,6 +455,7 @@ public static class ImageEndpoints
                                 var branchEntity = await headOfficeDbContext.Branches.FindAsync(entityId);
                                 if (branchEntity != null)
                                 {
+                                    // Clear the logoPath when deleting the image
                                     branchEntity.LogoPath = null;
                                     await headOfficeDbContext.SaveChangesAsync();
                                 }

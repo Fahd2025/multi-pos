@@ -96,6 +96,10 @@ builder.Services.AddScoped<
     Backend.Services.Branch.Expenses.ExpenseService
 >();
 builder.Services.AddScoped<
+    Backend.Services.Branch.Images.IImageService,
+    Backend.Services.Branch.Images.ImageService
+>();
+builder.Services.AddScoped<
     Backend.Services.HeadOffice.Branches.IBranchService,
     Backend.Services.HeadOffice.Branches.BranchService
 >();

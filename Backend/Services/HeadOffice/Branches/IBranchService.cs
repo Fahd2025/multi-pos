@@ -50,7 +50,12 @@ public interface IBranchService
     /// <summary>
     /// Updates branch settings
     /// </summary>
-    Task<BranchSettingsDto> UpdateBranchSettingsAsync(Guid id, BranchSettingsDto settingsDto);
+    Task<BranchSettingsDto> UpdateBranchSettingsAsync(Guid id, UpdateBranchSettingsDto settingsDto);
+
+    /// <summary>
+    /// Uploads branch logo
+    /// </summary>
+    Task<string> UploadBranchLogoAsync(Guid id, Stream fileStream, string fileName);
 
     /// <summary>
     /// Tests database connection for a branch

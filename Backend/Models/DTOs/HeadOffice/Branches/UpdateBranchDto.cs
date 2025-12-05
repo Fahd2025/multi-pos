@@ -86,4 +86,7 @@ public class UpdateBranchDto
     public decimal? TaxRate { get; set; }
 
     public bool? IsActive { get; set; }
+
+    [StringLength(500, ErrorMessage = "Logo path cannot exceed 500 characters")]
+    public string? LogoPath { get; set; }
 }

@@ -99,6 +99,12 @@ public class Branch
     public decimal TaxRate { get; set; } = 0;
 
     [Required]
+    public bool EnableTax { get; set; } = false;
+
+    [Required]
+    public bool PriceIncludesTax { get; set; } = false;
+
+    [Required]
     public bool IsActive { get; set; } = true;
 
     [Required]

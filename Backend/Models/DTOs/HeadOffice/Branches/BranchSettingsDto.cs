@@ -1,34 +1,38 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Backend.Models.DTOs.HeadOffice.Branches;
 
 /// <summary>
-/// Data transfer object for branch settings (localization and tax configuration)
+/// Data transfer object for comprehensive branch settings (branch info, regional, and tax configuration)
 /// </summary>
 public class BranchSettingsDto
 {
-    [Required(ErrorMessage = "Language is required")]
-    [StringLength(10, ErrorMessage = "Language code cannot exceed 10 characters")]
-    [RegularExpression(@"^(en|ar)$", ErrorMessage = "Language must be 'en' or 'ar'")]
-    public string Language { get; set; } = "en";
+    public Guid Id { get; set; }
+    public string Code { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Currency is required")]
-    [StringLength(10, ErrorMessage = "Currency code cannot exceed 10 characters")]
-    public string Currency { get; set; } = "USD";
+    // Branch Information
+    public string NameEn { get; set; } = string.Empty;
+    public string NameAr { get; set; } = string.Empty;
+    public AddressDto? AddressEn { get; set; }
+    public AddressDto? AddressAr { get; set; }
+    public string? Phone { get; set; }
+    public string? Email { get; set; }
+    public string? VatNumber { get; set; }
+    public string? CommercialRegistrationNumber { get; set; }
+    public string? LogoPath { get; set; }
+    public string? LogoUrl { get; set; }
 
-    [Required(ErrorMessage = "Time zone is required")]
-    [StringLength(100, ErrorMessage = "Time zone cannot exceed 100 characters")]
+    // Regional Settings
     public string TimeZone { get; set; } = "UTC";
-
-    [Required(ErrorMessage = "Date format is required")]
-    [StringLength(50, ErrorMessage = "Date format cannot exceed 50 characters")]
+    public string Currency { get; set; } = "USD";
+    public string Language { get; set; } = "en";
     public string DateFormat { get; set; } = "MM/DD/YYYY";
-
-    [Required(ErrorMessage = "Number format is required")]
-    [StringLength(50, ErrorMessage = "Number format cannot exceed 50 characters")]
     public string NumberFormat { get; set; } = "en-US";
 
-    [Required(ErrorMessage = "Tax rate is required")]
-    [Range(0, 100, ErrorMessage = "Tax rate must be between 0 and 100")]
-    public decimal TaxRate { get; set; } = 0;
+    // Tax Settings
+    public bool EnableTax { get; set; }
+    public decimal TaxRate { get; set; }
+    public bool PriceIncludesTax { get; set; }
+
+    // Metadata
+    public bool IsActive { get; set; }
+    public DateTime UpdatedAt { get; set; }
 }
