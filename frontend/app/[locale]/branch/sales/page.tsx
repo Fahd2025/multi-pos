@@ -1,15 +1,11 @@
-/**
- * Sales Management Page
- * Comprehensive sales dashboard with statistics, transaction management, and quick actions
- */
-
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import SalesStatistics from "@/components/branch/sales/SalesStatistics";
 import SalesTable from "@/components/branch/sales/SalesTable";
-import NewInvoiceModal from "@/components/branch/sales/NewInvoiceModal";
+import NewInvoiceModal from "@/components/branch/sales/NewInvoiceModal"; // Keeping for backward compatibility if needed, or removing usage
+import CreateSalesInvoiceForm from "@/components/branch/sales/CreateSalesInvoiceForm";
 import ProductGridModal from "@/components/branch/sales/ProductGridModal";
 import { ProductDto, SaleDto } from "@/types/api.types";
 import { PageHeader, ActionCard, InfoBanner, Button } from "@/components/shared";
@@ -17,9 +13,14 @@ import { PageHeader, ActionCard, InfoBanner, Button } from "@/components/shared"
 export default function SalesPage({ params }: { params: Promise<{ locale: string }> }) {
   const router = useRouter();
 
+  // View state
+  const [viewMode, setViewMode] = useState<"dashboard" | "create-invoice">("dashboard");
+
   // Modal states
-  const [showNewInvoiceModal, setShowNewInvoiceModal] = useState(false);
   const [showProductGridModal, setShowProductGridModal] = useState(false);
+  // Keeping NewInvoiceModal state just in case, or we can remove it if we fully replace it.
+  // The user requested a "detailed sales invoice form", implying replacement of the simple modal for the main action.
+  const [showNewInvoiceModal, setShowNewInvoiceModal] = useState(false);
 
   // Date filter states
   const [dateFrom, setDateFrom] = useState("");
@@ -29,7 +30,7 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleNewInvoiceSuccess = (sale: SaleDto) => {
-    setShowNewInvoiceModal(false);
+    setViewMode("dashboard");
     setRefreshTrigger((prev) => prev + 1);
   };
 
@@ -39,17 +40,25 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
 
   const handleProductSelect = (product: ProductDto) => {
     // When product is selected from grid, go to POS with the product
-    // For now, just navigate to POS
     router.push("/branch/sales/pos");
   };
 
   const handleDateFilterChange = () => {
-    // Trigger statistics refresh when date filter changes
     setRefreshTrigger((prev) => prev + 1);
   };
 
+  // If in Create Invoice mode, show the form
+  if (viewMode === "create-invoice") {
+    return (
+      <CreateSalesInvoiceForm
+        onCancel={() => setViewMode("dashboard")}
+        onSuccess={handleNewInvoiceSuccess}
+      />
+    );
+  }
+
   return (
-    <div>
+    <div className="animate-in fade-in duration-300">
       <div>
         <PageHeader
           title="Sales Management"
@@ -66,7 +75,7 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
                 Go to Point of Sale
               </Button>
               <Button
-                onClick={() => setShowNewInvoiceModal(true)}
+                onClick={() => setViewMode("create-invoice")}
                 variant="primary"
                 size="lg"
                 className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
@@ -80,7 +89,7 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
         />
 
         {/* Date Range Filter */}
-        <div className="mb-6 bg-white dark:bg-gray-800  border border-gray-200 dark:border-gray-700 rounded-lg p-4 md:p-5 shadow-sm">
+        <div className="mb-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 md:p-5 shadow-sm">
           <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
               <div>
@@ -91,7 +100,7 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
                   type="date"
                   value={dateFrom}
                   onChange={(e) => setDateFrom(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800  dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400"
+                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400"
                 />
               </div>
               <div>
@@ -102,7 +111,7 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
                   type="date"
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800  dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400"
+                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400"
                 />
               </div>
             </div>
@@ -137,11 +146,11 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
 
           <ActionCard
             title="Quick Invoice"
-            description="Fast entry"
+            description="Detailed entry"
             icon="⚡"
             layout="vertical"
             hoverBorderColor="border-green-500"
-            onClick={() => setShowNewInvoiceModal(true)}
+            onClick={() => setViewMode("create-invoice")}
           />
 
           <ActionCard
@@ -171,7 +180,7 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
             </h2>
             <button
               onClick={() => setRefreshTrigger((prev) => prev + 1)}
-              className="px-4 py-2 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800  dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors shadow-sm"
+              className="px-4 py-2 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors shadow-sm"
             >
               🔄 Refresh
             </button>
@@ -187,7 +196,7 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
               search
             </li>
             <li>
-              • Use <strong>New Invoice</strong> for quick sales with barcode scanner or dropdown
+              • Use <strong>New Invoice</strong> for the detailed invoice creation form
             </li>
             <li>
               • Use <strong>Product Grid</strong> for visual product selection with images
@@ -199,10 +208,14 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
       </div>
 
       {/* Modals */}
+      {/* Kept wrapper for backward compatibility if needed, but primary path is now full page form */}
       <NewInvoiceModal
         isOpen={showNewInvoiceModal}
         onClose={() => setShowNewInvoiceModal(false)}
-        onSuccess={handleNewInvoiceSuccess}
+        onSuccess={() => {
+          setShowNewInvoiceModal(false);
+          setRefreshTrigger((prev) => prev + 1);
+        }}
       />
 
       <ProductGridModal
