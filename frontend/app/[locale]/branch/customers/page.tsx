@@ -138,12 +138,12 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
 
   // Define table columns
   const columns: DataTableColumn<CustomerDto>[] = [
-    {
-      key: "code",
-      label: "Code",
-      sortable: true,
-      width: "100px",
-    },
+    // {
+    //   key: "code",
+    //   label: "Code",
+    //   sortable: true,
+    //   width: "100px",
+    // },
     {
       key: "nameEn",
       label: "Name",
@@ -175,16 +175,16 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
       sortable: true,
       render: (value) => `$${value.toFixed(2)}`,
     },
-    {
-      key: "visitCount",
-      label: "Visit Count",
-      sortable: true,
-    },
-    {
-      key: "loyaltyPoints",
-      label: "Loyalty Points",
-      sortable: true,
-    },
+    // {
+    //   key: "visitCount",
+    //   label: "Visit Count",
+    //   sortable: true,
+    // },
+    // {
+    //   key: "loyaltyPoints",
+    //   label: "Loyalty Points",
+    //   sortable: true,
+    // },
     {
       key: "isActive",
       label: "Status",
@@ -340,6 +340,139 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
         cancelLabel="Cancel"
         isProcessing={confirmation.isProcessing}
       />
+
+      {/* View Customer Modal */}
+      {viewModal.isOpen && viewModal.data && (
+        <Dialog open={viewModal.isOpen} onOpenChange={() => viewModal.close()}>
+          <DialogContent className="max-w-2xl">
+            <DialogTitle className="text-xl font-bold mb-4">Customer Details</DialogTitle>
+            <div className="space-y-4">
+              {/* Customer Logo */}
+              {viewModal.data.logoPath && (
+                <div className="flex justify-center mb-6">
+                  <img
+                    src={getCustomerImageUrl(viewModal.data.logoPath, viewModal.data.id, "large")}
+                    alt={viewModal.data.nameEn}
+                    className="w-32 h-32 rounded-full object-cover border-2 border-gray-200"
+                  />
+                </div>
+              )}
+
+              {/* Customer Information */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Name (English)
+                  </label>
+                  <p className="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">
+                    {viewModal.data.nameEn}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Name (Arabic)
+                  </label>
+                  <p className="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">
+                    {viewModal.data.nameAr || "-"}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Email
+                  </label>
+                  <p className="mt-1 text-base text-gray-900 dark:text-gray-100">
+                    {viewModal.data.email || "-"}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Phone
+                  </label>
+                  <p className="mt-1 text-base text-gray-900 dark:text-gray-100">
+                    {viewModal.data.phone || "-"}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Address
+                  </label>
+                  <p className="mt-1 text-base text-gray-900 dark:text-gray-100">
+                    {viewModal.data.addressEn || "-"}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Status
+                  </label>
+                  <div className="mt-1">
+                    <StatusBadge variant={viewModal.data.isActive ? "success" : "danger"}>
+                      {viewModal.data.isActive ? "Active" : "Inactive"}
+                    </StatusBadge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Purchase Statistics */}
+              <div className="border-t pt-4 mt-4">
+                <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
+                  Purchase Statistics
+                </h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded">
+                    <label className="block text-xs font-medium text-blue-600 dark:text-blue-400">
+                      Total Purchases
+                    </label>
+                    <p className="mt-1 text-xl font-bold text-blue-900 dark:text-blue-100">
+                      ${viewModal.data.totalPurchases.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded">
+                    <label className="block text-xs font-medium text-green-600 dark:text-green-400">
+                      Visit Count
+                    </label>
+                    <p className="mt-1 text-xl font-bold text-green-900 dark:text-green-100">
+                      {viewModal.data.visitCount || 0}
+                    </p>
+                  </div>
+                  <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded">
+                    <label className="block text-xs font-medium text-purple-600 dark:text-purple-400">
+                      Loyalty Points
+                    </label>
+                    <p className="mt-1 text-xl font-bold text-purple-900 dark:text-purple-100">
+                      {viewModal.data.loyaltyPoints || 0}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notes */}
+              {/* {viewModal.data.notes && (
+                <div className="border-t pt-4 mt-4">
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">Notes</label>
+                  <p className="mt-1 text-base text-gray-900 dark:text-gray-100 whitespace-pre-wrap">{viewModal.data.notes}</p>
+                </div>
+              )} */}
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-2 border-t pt-4 mt-4">
+                <Button variant="secondary" size="md" onClick={() => viewModal.close()}>
+                  Close
+                </Button>
+                <Button
+                  variant="primary"
+                  size="md"
+                  onClick={() => {
+                    viewModal.close();
+                    handleEdit(viewModal.data!);
+                  }}
+                >
+                  Edit Customer
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Image Carousel Modal */}
       <Dialog open={isImageCarouselOpen} onOpenChange={setIsImageCarouselOpen}>

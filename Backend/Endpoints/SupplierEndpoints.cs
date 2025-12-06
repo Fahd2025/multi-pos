@@ -97,6 +97,80 @@ public static class SupplierEndpoints
             .WithName("GetSuppliers")
             .WithOpenApi();
 
+        // GET /api/v1/suppliers/{id} - Get a supplier by ID
+        suppliersGroup
+            .MapGet(
+                "/{id:guid}",
+                async (
+                    Guid id,
+                    HttpContext httpContext,
+                    ISupplierService supplierService
+                ) =>
+                {
+                    try
+                    {
+                        // Check if user has manager role or higher
+                        var userRole = httpContext
+                            .User.FindFirst(System.Security.Claims.ClaimTypes.Role)
+                            ?.Value;
+                        if (
+                            userRole != "Manager"
+                            && userRole != "Admin"
+                            && httpContext.Items["IsHeadOfficeAdmin"] as bool? != true
+                        )
+                        {
+                            return Results.Forbid();
+                        }
+
+                        // Get branch from context
+                        var branch =
+                            httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                        if (branch == null)
+                        {
+                            return Results.BadRequest(
+                                new
+                                {
+                                    success = false,
+                                    error = new
+                                    {
+                                        code = "BRANCH_NOT_FOUND",
+                                        message = "Branch context not found",
+                                    },
+                                }
+                            );
+                        }
+
+                        var supplier = await supplierService.GetSupplierByIdAsync(branch.Id, id);
+
+                        if (supplier == null)
+                        {
+                            return Results.NotFound(
+                                new
+                                {
+                                    success = false,
+                                    error = new
+                                    {
+                                        code = "NOT_FOUND",
+                                        message = $"Supplier with ID {id} not found",
+                                    },
+                                }
+                            );
+                        }
+
+                        return Results.Ok(new { success = true, data = supplier });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(
+                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                        );
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("GetSupplierById")
+            .WithOpenApi();
+
         // POST /api/v1/suppliers - Create a new supplier
         suppliersGroup
             .MapPost(

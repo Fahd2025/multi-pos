@@ -341,7 +341,7 @@ export interface CategoryDto {
   imagePath?: string;
   displayOrder: number;
   isActive: boolean;
-  productsCount: number;
+  productCount: number;
 }
 
 export interface CreateCategoryDto {
@@ -597,7 +597,7 @@ export interface InventoryReportDto {
 export interface ProductsByCategoryDto {
   categoryId: string;
   categoryName: string;
-  productsCount: number;
+  productCount: number;
   totalValue: number;
 }
 

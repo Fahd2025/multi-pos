@@ -6,7 +6,7 @@ export { Header } from './Header';
 export type { HeaderProps } from './Header';
 
 export { Sidebar } from './Sidebar';
-export type { SidebarProps, MenuItem } from './Sidebar';
+export type { SidebarProps, MenuItem, SidebarHeaderProps } from './Sidebar';
 
 export { Footer } from './Footer';
 export type { FooterProps } from './Footer';

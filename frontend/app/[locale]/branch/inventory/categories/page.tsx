@@ -131,14 +131,14 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
 
   // Define table columns
   const columns: DataTableColumn<CategoryDto>[] = [
-    {
-      key: "code",
-      label: "Code",
-      sortable: true,
-      render: (value) => (
-        <div className="font-medium text-gray-900 dark:text-gray-100">{value}</div>
-      ),
-    },
+    // {
+    //   key: "code",
+    //   label: "Code",
+    //   sortable: true,
+    //   render: (value) => (
+    //     <div className="font-medium text-gray-900 dark:text-gray-100">{value}</div>
+    //   ),
+    // },
     {
       key: "nameEn",
       label: "Name",
@@ -161,18 +161,30 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
         </div>
       ),
     },
+    // {
+    //   key: "parentCategoryId",
+    //   label: "Parent Category",
+    //   sortable: true,
+    //   render: (value) => <div className="text-sm text-gray-500">{getParentName(value)}</div>,
+    // },
     {
-      key: "parentCategoryId",
-      label: "Parent Category",
+      key: "productCount",
+      label: "Products",
       sortable: true,
-      render: (value) => <div className="text-sm text-gray-500">{getParentName(value)}</div>,
+      render: (value) => (
+        <div className="text-center">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+            {value}
+          </span>
+        </div>
+      ),
     },
-    {
-      key: "displayOrder",
-      label: "Display Order",
-      sortable: true,
-      render: (value) => <div className="text-center text-sm text-gray-500">{value}</div>,
-    },
+    // {
+    //   key: "displayOrder",
+    //   label: "Display Order",
+    //   sortable: true,
+    //   render: (value) => <div className="text-center text-sm text-gray-500">{value}</div>,
+    // },
   ];
 
   // Define row actions

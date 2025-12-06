@@ -202,6 +202,10 @@ export interface FormField<T> {
   defaultValue?: any;
   /** Whether field is disabled */
   disabled?: boolean;
+  /** Helper text to display below the field */
+  helperText?: string;
+  /** Text direction (for RTL languages) */
+  dir?: "ltr" | "rtl";
   /** Conditional rendering */
   condition?: (formData: Partial<T>) => boolean;
 }

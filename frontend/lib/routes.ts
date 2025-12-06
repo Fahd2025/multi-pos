@@ -38,11 +38,17 @@ export const HEAD_OFFICE_ROUTES = {
   USERS: (locale: string) => `/${locale}/head-office/users`,
   USER_DETAIL: (locale: string, id: string) => `/${locale}/head-office/users/${id}`,
 
-  // Analytics
-  ANALYTICS: (locale: string) => `/${locale}/head-office/analytics`,
+  // Migrations
+  MIGRATIONS: (locale: string) => `/${locale}/head-office/migrations`,
 
   // Audit Logs
   AUDIT_LOGS: (locale: string) => `/${locale}/head-office/audit-logs`,
+
+  // Analytics
+  ANALYTICS: (locale: string) => `/${locale}/head-office/analytics`,
+
+  // Settings
+  SETTINGS: (locale: string) => `/${locale}/head-office/settings`,
 };
 
 /**
@@ -80,6 +86,9 @@ export const BRANCH_ROUTES = {
   // Reports
   REPORTS: (locale: string) => `/${locale}/branch/reports`,
 
+  // Users
+  USERS: (locale: string) => `/${locale}/branch/users`,
+
   // Settings
   SETTINGS: (locale: string) => `/${locale}/branch/settings`,
   SETTINGS_USERS: (locale: string) => `/${locale}/branch/settings/users`,
@@ -114,6 +123,7 @@ export const getBranchNavigation = (locale: string) => [
   { name: 'Purchases', href: BRANCH_ROUTES.PURCHASES(locale), icon: '📥' },
   { name: 'Expenses', href: BRANCH_ROUTES.EXPENSES(locale), icon: '💸' },
   { name: 'Reports', href: BRANCH_ROUTES.REPORTS(locale), icon: '📈' },
+  { name: 'Users', href: BRANCH_ROUTES.USERS(locale), icon: '👥' },
   { name: 'Settings', href: BRANCH_ROUTES.SETTINGS(locale), icon: '⚙️' },
 ];
 
@@ -124,6 +134,8 @@ export const getHeadOfficeNavigation = (locale: string) => [
   { name: 'Dashboard', href: HEAD_OFFICE_ROUTES.DASHBOARD(locale), icon: '📊' },
   { name: 'Branches', href: HEAD_OFFICE_ROUTES.BRANCHES(locale), icon: '🏢' },
   { name: 'Users', href: HEAD_OFFICE_ROUTES.USERS(locale), icon: '👥' },
+  { name: 'Migrations', href: HEAD_OFFICE_ROUTES.MIGRATIONS(locale), icon: '🔄' },
   { name: 'Audit Logs', href: HEAD_OFFICE_ROUTES.AUDIT_LOGS(locale), icon: '📋' },
   { name: 'Analytics', href: HEAD_OFFICE_ROUTES.ANALYTICS(locale), icon: '📈' },
+  { name: 'Settings', href: HEAD_OFFICE_ROUTES.SETTINGS(locale), icon: '⚙️' },
 ];

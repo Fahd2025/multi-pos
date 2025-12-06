@@ -15,7 +15,7 @@ interface Category {
   nameEn: string;
   nameAr: string;
   description?: string;
-  productsCount?: number;
+  productCount?: number;
   imagePath?: string;
 }
 
@@ -142,8 +142,8 @@ export default function CategorySidebar({
           {!isHorizontal && (
             <div className="flex-1 min-w-0">
               <span className="font-semibold text-base truncate block">{category.nameEn}</span>
-              {category.productsCount !== undefined && (
-                <div className="text-xs mt-0.5 opacity-75">{category.productsCount} items</div>
+              {category.productCount !== undefined && (
+                <div className="text-xs mt-0.5 opacity-75">{category.productCount} items</div>
               )}
             </div>
           )}

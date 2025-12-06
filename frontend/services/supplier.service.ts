@@ -51,8 +51,8 @@ class SupplierService {
    * Get supplier by ID
    */
   async getSupplierById(id: string): Promise<SupplierDto> {
-    const response = await api.get<SupplierDto>(`/api/v1/suppliers/${id}`);
-    return response.data;
+    const response = await api.get<{ data: SupplierDto }>(`/api/v1/suppliers/${id}`);
+    return response.data.data;
   }
 
   /**
@@ -90,11 +90,11 @@ class SupplierService {
     if (filters.page) params.append('page', filters.page.toString());
     if (filters.pageSize) params.append('pageSize', filters.pageSize.toString());
 
-    const response = await api.get<PurchaseDto[]>(
+    const response = await api.get<{ data: PurchaseDto[] }>(
       `/api/v1/suppliers/${id}/history?${params.toString()}`
     );
 
-    return response.data;
+    return response.data.data;
   }
 
   /**

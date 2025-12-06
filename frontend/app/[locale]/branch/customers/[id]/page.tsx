@@ -202,31 +202,37 @@ export default function CustomerDetailsPage({
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <div>
-          <Link
-            href={`/${locale}/branch/customers`}
-            className="text-blue-600 hover:underline mb-2 inline-block"
-          >
-            ← Back to Customers
-          </Link>
-          <h1 className="text-3xl font-bold">{customer.nameEn}</h1>
-          {customer.nameAr && (
-            <p className="text-gray-600" dir="rtl">
-              {customer.nameAr}
-            </p>
-          )}
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              {customer.nameEn}
+            </h1>
+            <StatusBadge variant={customer.isActive ? "success" : "danger"}>
+              {customer.isActive ? "Active" : "Inactive"}
+            </StatusBadge>
+          </div>
+          {customer.nameAr && <p className="text-lg text-gray-600">{customer.nameAr}</p>}
+          <p className="text-gray-500 font-mono mt-1">{customer.code}</p>
         </div>
-        <div className="flex gap-2">
+
+        <button
+          onClick={() => router.push(`/${locale}/branch/customers`)}
+          className="px-4 py-2 text-gray-700 bg-white dark:bg-gray-800  border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        >
+          ← Back to Customers
+        </button>
+
+        {/* <div className="flex gap-2">
           <Button variant="primary" size="md" onClick={() => setIsEditModalOpen(true)}>
             Edit
           </Button>
           <Button variant="danger" size="md" onClick={handleDelete}>
             Delete
           </Button>
-        </div>
+        </div> */}
       </div>
 
       {/* Customer Profile Card */}
@@ -235,16 +241,6 @@ export default function CustomerDetailsPage({
         <div className="md:col-span-2 bg-white dark:bg-gray-800  rounded shadow p-6">
           <h2 className="text-xl font-bold mb-4">Profile Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-gray-600">Customer Code</p>
-              <p className="font-medium">{customer.code}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Status</p>
-              <StatusBadge variant={customer.isActive ? "success" : "danger"}>
-                {customer.isActive ? "Active" : "Inactive"}
-              </StatusBadge>
-            </div>
             {customer.email && (
               <div>
                 <p className="text-sm text-gray-600">Email</p>
@@ -316,7 +312,7 @@ export default function CustomerDetailsPage({
 
         {historyLoading ? (
           <LoadingSpinner size="md" text="Loading purchase history..." />
-        ) : (
+        ) : purchaseHistory.length > 0 ? (
           <DataTable
             data={displayHistory}
             columns={historyColumns}
@@ -330,6 +326,36 @@ export default function CustomerDetailsPage({
             onSortChange={handleSortChange}
             emptyMessage="This customer has not made any purchases yet."
           />
+        ) : (
+          <div className="text-center py-12">
+            <svg
+              className="mx-auto h-12 w-12 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+              No sales orders
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Get started by creating a sales order with this customer.
+            </p>
+            <div className="mt-6">
+              <Link
+                href={`/${locale}/branch/sales`}
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Go to Sales
+              </Link>
+            </div>
+          </div>
         )}
       </div>
 

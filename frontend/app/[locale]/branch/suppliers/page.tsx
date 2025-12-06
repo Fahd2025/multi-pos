@@ -20,6 +20,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { API_BASE_URL } from "@/lib/constants";
 import { ImageCarousel } from "@/components/shared/image-carousel";
 import { Dialog, DialogContent, DialogTitle } from "@/components/shared/RadixDialog";
+import Link from "next/link";
 
 export default function SuppliersPage() {
   const params = useParams();
@@ -95,26 +96,30 @@ export default function SuppliersPage() {
 
   // Define table columns
   const columns: DataTableColumn<SupplierDto>[] = [
-    {
-      key: "code",
-      label: "Code",
-      sortable: true,
-      width: "100px",
-      render: (value) => (
-        <span className="font-mono text-sm font-medium text-gray-900 dark:text-gray-100">
-          {value}
-        </span>
-      ),
-    },
+    // {
+    //   key: "code",
+    //   label: "Code",
+    //   sortable: true,
+    //   width: "100px",
+    //   render: (value) => (
+    //     <span className="font-mono text-sm font-medium text-gray-900 dark:text-gray-100">
+    //       {value}
+    //     </span>
+    //   ),
+    // },
     {
       key: "nameEn",
       label: "Supplier Name",
       sortable: true,
+
       render: (value, row) => (
-        <div>
+        <Link
+          href={`/${locale}/branch/suppliers/${row.id}`}
+          className="text-blue-600 hover:underline font-medium"
+        >
           <div className="font-medium text-gray-900 dark:text-gray-100">{value}</div>
           {row.nameAr && <div className="text-sm text-gray-500">{row.nameAr}</div>}
-        </div>
+        </Link>
       ),
     },
     {
@@ -134,17 +139,17 @@ export default function SuppliersPage() {
       width: "100px",
       render: (value) => <span className="font-medium text-blue-600">{value}</span>,
     },
-    {
-      key: "totalSpent",
-      label: "Total Spent",
-      sortable: true,
-      width: "120px",
-      render: (value) => (
-        <span className="font-semibold text-gray-900 dark:text-gray-100">
-          ${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </span>
-      ),
-    },
+    // {
+    //   key: "totalSpent",
+    //   label: "Total Spent",
+    //   sortable: true,
+    //   width: "120px",
+    //   render: (value) => (
+    //     <span className="font-semibold text-gray-900 dark:text-gray-100">
+    //       ${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+    //     </span>
+    //   ),
+    // },
     {
       key: "lastPurchaseDate",
       label: "Last Purchase",
