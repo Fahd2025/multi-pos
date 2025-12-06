@@ -1,11 +1,11 @@
 // Migration Types for Frontend
 
 export type MigrationStatus =
-  | 'Pending'
-  | 'InProgress'
-  | 'Completed'
-  | 'Failed'
-  | 'RequiresManualIntervention';
+  | "Pending"
+  | "InProgress"
+  | "Completed"
+  | "Failed"
+  | "RequiresManualIntervention";
 
 export interface MigrationResult {
   success: boolean;

@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from "react";
 import { DataTable } from "@/components/shared";
-import { ModalBottomSheet, FeaturedDialog, ConfirmationDialog } from "@/components/shared";
+import { FeaturedDialog, ConfirmationDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { useModal, useConfirmation } from "@/hooks/useModal";
 import {
@@ -81,7 +81,10 @@ export const BranchUsersTab: React.FC<BranchUsersTabProps> = ({
   };
 
   // Adapter for sort change
-  const handleSortChange = (config: { key: keyof BranchUserDto | string; direction: "asc" | "desc" }) => {
+  const handleSortChange = (config: {
+    key: keyof BranchUserDto | string;
+    direction: "asc" | "desc";
+  }) => {
     handleSort(config.key);
   };
 
@@ -118,7 +121,11 @@ export const BranchUsersTab: React.FC<BranchUsersTabProps> = ({
           Cashier: "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400",
         };
         return (
-          <span className={`px-2 py-1 text-xs font-medium rounded-full ${colorMap[value] || "bg-gray-100 text-gray-800"}`}>
+          <span
+            className={`px-2 py-1 text-xs font-medium rounded-full ${
+              colorMap[value] || "bg-gray-100 text-gray-800"
+            }`}
+          >
             {value}
           </span>
         );
@@ -441,7 +448,9 @@ export const BranchUsersTab: React.FC<BranchUsersTabProps> = ({
               d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
             />
           </svg>
-          <h3 className="mt-4 text-sm font-medium text-gray-900 dark:text-gray-100">No users assigned</h3>
+          <h3 className="mt-4 text-sm font-medium text-gray-900 dark:text-gray-100">
+            No users assigned
+          </h3>
           <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
             {isHeadOfficeAdmin
               ? "Get started by creating users for this branch."
@@ -477,7 +486,7 @@ export const BranchUsersTab: React.FC<BranchUsersTabProps> = ({
 
       {/* Modals */}
       {isHeadOfficeAdmin && (
-        <ModalBottomSheet
+        <FeaturedDialog
           isOpen={createEditModal.isOpen}
           onClose={createEditModal.close}
           title={createEditModal.mode === "create" ? "Create New User" : "Edit User"}
@@ -494,16 +503,35 @@ export const BranchUsersTab: React.FC<BranchUsersTabProps> = ({
         isOpen={viewModal.isOpen}
         onClose={viewModal.close}
         title="User Details"
-        data={viewModal.data || ({} as BranchUserDto)}
-        fields={displayFields}
-        actions={[
-          {
-            label: "Close",
-            onClick: () => viewModal.close(),
-            variant: "secondary",
-          },
-        ]}
+        mode="edit"
+        fields={[]}
+        onSubmit={() => viewModal.close()}
+        showSubmitButton={false}
+        cancelLabel="Close"
         size="md"
+        additionalContent={
+          <div className="space-y-4">
+            {viewModal.data &&
+              displayFields.map((field) => (
+                <div
+                  key={field.key.toString()}
+                  className="grid grid-cols-3 gap-4 border-b border-gray-100 dark:border-gray-700 pb-2 last:border-0"
+                >
+                  <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    {field.label}
+                  </div>
+                  <div className="col-span-2 text-sm text-gray-900 dark:text-gray-100">
+                    {field.render
+                      ? field.render(
+                          viewModal.data![field.key as keyof BranchUserDto],
+                          viewModal.data!
+                        )
+                      : String(viewModal.data![field.key as keyof BranchUserDto] || "-")}
+                  </div>
+                </div>
+              ))}
+          </div>
+        }
       />
 
       <ConfirmationDialog

@@ -9,8 +9,7 @@
 
 import React, { useState, useEffect } from "react";
 import { use } from "react";
-import { DataTable } from "@/components/shared";
-import { FeaturedDialog } from "@/components/shared";
+import { DataTable, FeaturedDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { useModal } from "@/hooks/useModal";
 import { DataTableColumn, DataTableAction, DisplayField } from "@/types/data-table.types";
@@ -387,9 +386,32 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
         isOpen={viewModal.isOpen}
         onClose={viewModal.close}
         title="User Details"
-        data={viewModal.data || ({} as UserDto)}
-        fields={displayFields}
+        mode="edit"
+        fields={[]}
+        onSubmit={() => viewModal.close()}
+        showSubmitButton={false}
+        cancelLabel="Close"
         size="lg"
+        additionalContent={
+          <div className="space-y-4">
+            {viewModal.data &&
+              displayFields.map((field) => (
+                <div
+                  key={field.key.toString()}
+                  className="grid grid-cols-3 gap-4 border-b border-gray-100 dark:border-gray-700 pb-2 last:border-0"
+                >
+                  <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    {field.label}
+                  </div>
+                  <div className="col-span-2 text-sm text-gray-900 dark:text-gray-100">
+                    {field.render
+                      ? field.render(viewModal.data![field.key as keyof UserDto], viewModal.data!)
+                      : String(viewModal.data![field.key as keyof UserDto] || "-")}
+                  </div>
+                </div>
+              ))}
+          </div>
+        }
       />
 
       {/* Activity Modal */}
@@ -398,38 +420,42 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
           isOpen={activityModal.isOpen}
           onClose={activityModal.close}
           title={`Activity Log - ${activityModal.data.fullNameEn}`}
-          data={activityModal.data}
-          fields={[
-            {
-              key: "fullNameEn",
-              label: "User",
-              render: (value) => (
-                <div>
-                  <p className="font-medium text-gray-900 dark:text-gray-100">{value}</p>
-                  <p className="text-sm text-gray-500">@{activityModal.data?.username}</p>
-                </div>
-              ),
-            },
-          ]}
+          mode="edit"
+          fields={[]}
+          onSubmit={() => activityModal.close()}
+          showSubmitButton={false}
+          cancelLabel="Close"
           size="xl"
-          customContent={
-            <div className="mt-6">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                Recent Activity ({selectedUserActivity.length} records)
-              </h3>
-              <DataTable
-                data={activityTable.data}
-                columns={activityColumns}
-                getRowKey={(row) => row.id}
-                pagination
-                paginationConfig={activityTable.paginationConfig}
-                onPageChange={activityTable.handlePageChange}
-                onPageSizeChange={activityTable.handlePageSizeChange}
-                sortable
-                sortConfig={activityTable.sortConfig ?? undefined}
-                onSortChange={handleActivitySortChange}
-                emptyMessage="No activity records found for this user."
-              />
+          additionalContent={
+            <div>
+              <div className="mb-6 grid grid-cols-3 gap-4 border-b border-gray-100 dark:border-gray-700 pb-2">
+                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">User</div>
+                <div className="col-span-2">
+                  <p className="font-medium text-gray-900 dark:text-gray-100">
+                    {activityModal.data.fullNameEn}
+                  </p>
+                  <p className="text-sm text-gray-500">@{activityModal.data.username}</p>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                  Recent Activity ({selectedUserActivity.length} records)
+                </h3>
+                <DataTable
+                  data={activityTable.data}
+                  columns={activityColumns}
+                  getRowKey={(row) => row.id}
+                  pagination
+                  paginationConfig={activityTable.paginationConfig}
+                  onPageChange={activityTable.handlePageChange}
+                  onPageSizeChange={activityTable.handlePageSizeChange}
+                  sortable
+                  sortConfig={activityTable.sortConfig ?? undefined}
+                  onSortChange={handleActivitySortChange}
+                  emptyMessage="No activity records found for this user."
+                />
+              </div>
             </div>
           }
         />

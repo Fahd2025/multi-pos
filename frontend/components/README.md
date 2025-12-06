@@ -18,6 +18,7 @@ A comprehensive, reusable component library for handling data tables with modals
 A generic data table with pagination, sorting, filtering, and row selection.
 
 **Features:**
+
 - Customizable columns with render functions
 - Client-side sorting
 - Pagination with configurable page sizes
@@ -27,29 +28,25 @@ A generic data table with pagination, sorting, filtering, and row selection.
 - Fully accessible
 
 **Usage:**
+
 ```tsx
-import { DataTable } from '@/components/data-table';
-import { useDataTable } from '@/hooks/useDataTable';
+import { DataTable } from "@/components/data-table";
+import { useDataTable } from "@/hooks/useDataTable";
 
 const MyPage = () => {
-  const {
-    data,
-    paginationConfig,
-    sortConfig,
-    handlePageChange,
-    handleSort
-  } = useDataTable(myData, { pageSize: 10 });
+  const { data, paginationConfig, sortConfig, handlePageChange, handleSort } = useDataTable(
+    myData,
+    { pageSize: 10 }
+  );
 
   return (
     <DataTable
       data={data}
       columns={[
-        { key: 'name', label: 'Name', sortable: true },
-        { key: 'price', label: 'Price', render: (v) => `$${v}` }
+        { key: "name", label: "Name", sortable: true },
+        { key: "price", label: "Price", render: (v) => `$${v}` },
       ]}
-      actions={[
-        { label: 'Edit', onClick: handleEdit, variant: 'primary' }
-      ]}
+      actions={[{ label: "Edit", onClick: handleEdit, variant: "primary" }]}
       getRowKey={(row) => row.id}
       pagination
       paginationConfig={paginationConfig}
@@ -61,11 +58,12 @@ const MyPage = () => {
 };
 ```
 
-### 2. ModalBottomSheet
+### 2. FeaturedDialog
 
 A bottom sheet modal for creating and editing data with dynamic form generation.
 
 **Features:**
+
 - Dynamic form generation from field configuration
 - Built-in validation with custom rules
 - Support for multiple input types
@@ -74,28 +72,27 @@ A bottom sheet modal for creating and editing data with dynamic form generation.
 - Loading states
 
 **Usage:**
+
 ```tsx
-import { ModalBottomSheet } from '@/components/modals';
-import { useModal } from '@/hooks/useModal';
+import { FeaturedDialog } from "@/components/modals";
+import { useModal } from "@/hooks/useModal";
 
 const MyPage = () => {
   const modal = useModal<Product>();
 
   const fields = [
-    { name: 'name', label: 'Name', type: 'text', required: true },
-    { name: 'price', label: 'Price', type: 'number', required: true },
+    { name: "name", label: "Name", type: "text", required: true },
+    { name: "price", label: "Price", type: "number", required: true },
     {
-      name: 'category',
-      label: 'Category',
-      type: 'select',
-      options: [
-        { label: 'Electronics', value: 'electronics' }
-      ]
-    }
+      name: "category",
+      label: "Category",
+      type: "select",
+      options: [{ label: "Electronics", value: "electronics" }],
+    },
   ];
 
   return (
-    <ModalBottomSheet
+    <FeaturedDialog
       isOpen={modal.isOpen}
       onClose={modal.close}
       title="Create Product"
@@ -112,15 +109,17 @@ const MyPage = () => {
 A modal dialog for displaying detailed information about a selected entry.
 
 **Features:**
+
 - Clean, card-based layout
 - Customizable field rendering
 - Optional action buttons
 - Responsive design
 
 **Usage:**
+
 ```tsx
-import { FeaturedDialog } from '@/components/modals';
-import { useModal } from '@/hooks/useModal';
+import { FeaturedDialog } from "@/components/modals";
+import { useModal } from "@/hooks/useModal";
 
 const MyPage = () => {
   const dialog = useModal<Product>();
@@ -132,12 +131,10 @@ const MyPage = () => {
       title="Product Details"
       data={dialog.data}
       fields={[
-        { key: 'name', label: 'Name' },
-        { key: 'price', label: 'Price', render: (v) => `$${v}` }
+        { key: "name", label: "Name" },
+        { key: "price", label: "Price", render: (v) => `$${v}` },
       ]}
-      actions={[
-        { label: 'Edit', onClick: handleEdit, variant: 'primary' }
-      ]}
+      actions={[{ label: "Edit", onClick: handleEdit, variant: "primary" }]}
     />
   );
 };
@@ -148,27 +145,29 @@ const MyPage = () => {
 A modal dialog for confirming user actions.
 
 **Features:**
+
 - Visual variants (danger, warning, info, success)
 - Custom messages and labels
 - Async action support with loading states
 - Keyboard shortcuts (Enter/Esc)
 
 **Usage:**
+
 ```tsx
-import { ConfirmationDialog } from '@/components/modals';
-import { useConfirmation } from '@/hooks/useModal';
+import { ConfirmationDialog } from "@/components/modals";
+import { useConfirmation } from "@/hooks/useModal";
 
 const MyPage = () => {
   const confirmation = useConfirmation();
 
   const handleDelete = (item) => {
     confirmation.ask(
-      'Delete Item',
+      "Delete Item",
       `Are you sure you want to delete ${item.name}?`,
       async () => {
         await deleteItem(item.id);
       },
-      'danger'
+      "danger"
     );
   };
 
@@ -194,21 +193,21 @@ Manages DataTable state including pagination, sorting, and filtering.
 
 ```tsx
 const {
-  data,                    // Processed data (filtered, sorted, paginated)
-  paginationConfig,        // Pagination configuration
-  sortConfig,              // Current sort configuration
-  filters,                 // Current filters
-  selectedRows,            // Selected row keys
-  handlePageChange,        // Handle page change
-  handlePageSizeChange,    // Handle page size change
-  handleSort,              // Handle sort change
-  handleFilter,            // Handle filter change
-  removeFilter,            // Remove a filter
-  resetFilters,            // Reset all filters
-  handleSelectionChange,   // Handle selection change
-  selectAll,               // Select all rows
-  deselectAll,             // Deselect all rows
-  isAllSelected            // Check if all rows are selected
+  data, // Processed data (filtered, sorted, paginated)
+  paginationConfig, // Pagination configuration
+  sortConfig, // Current sort configuration
+  filters, // Current filters
+  selectedRows, // Selected row keys
+  handlePageChange, // Handle page change
+  handlePageSizeChange, // Handle page size change
+  handleSort, // Handle sort change
+  handleFilter, // Handle filter change
+  removeFilter, // Remove a filter
+  resetFilters, // Reset all filters
+  handleSelectionChange, // Handle selection change
+  selectAll, // Select all rows
+  deselectAll, // Deselect all rows
+  isAllSelected, // Check if all rows are selected
 } = useDataTable(rawData, options);
 ```
 
@@ -219,15 +218,15 @@ Manages modal state and operations.
 ```tsx
 const modal = useModal<DataType>();
 
-modal.open(data, 'edit');    // Open modal with data
-modal.close();               // Close modal
-modal.setData(data);         // Update modal data
-modal.setMode('create');     // Update modal mode
+modal.open(data, "edit"); // Open modal with data
+modal.close(); // Close modal
+modal.setData(data); // Update modal data
+modal.setMode("create"); // Update modal mode
 
 // Access state
-modal.isOpen    // boolean
-modal.data      // DataType | null
-modal.mode      // 'create' | 'edit' | 'view' | 'delete' | 'custom'
+modal.isOpen; // boolean
+modal.data; // DataType | null
+modal.mode; // 'create' | 'edit' | 'view' | 'delete' | 'custom'
 ```
 
 ### useConfirmation
@@ -238,21 +237,23 @@ Specialized hook for confirmation dialogs.
 const confirmation = useConfirmation();
 
 confirmation.ask(
-  'Delete Item',
-  'Are you sure?',
-  async () => { /* action */ },
-  'danger'
+  "Delete Item",
+  "Are you sure?",
+  async () => {
+    /* action */
+  },
+  "danger"
 );
 
-confirmation.confirm();      // Confirm and execute
-confirmation.cancel();       // Cancel and close
+confirmation.confirm(); // Confirm and execute
+confirmation.cancel(); // Cancel and close
 
 // Access state
-confirmation.isOpen          // boolean
-confirmation.title           // string
-confirmation.message         // string
-confirmation.variant         // 'danger' | 'warning' | 'info' | 'success'
-confirmation.isProcessing    // boolean
+confirmation.isOpen; // boolean
+confirmation.title; // string
+confirmation.message; // string
+confirmation.variant; // 'danger' | 'warning' | 'info' | 'success'
+confirmation.isProcessing; // boolean
 ```
 
 ## 📝 TypeScript Types
@@ -265,7 +266,7 @@ All types are defined in `@/types/data-table.types.ts`:
 - `SortConfig<T>` - Sorting configuration
 - `FilterConfig<T>` - Filter configuration
 - `PaginationConfig` - Pagination configuration
-- `ModalBottomSheetProps<T>` - Modal props
+- `FeaturedDialogProps<T>` - Modal props
 - `FormField<T>` - Form field configuration
 - `FeaturedDialogProps<T>` - Dialog props
 - `DisplayField<T>` - Display field configuration
@@ -324,9 +325,11 @@ Components are optimized for performance:
 ## 📚 Examples
 
 See the complete working example at:
+
 - `app/[locale]/examples/data-table-demo/page.tsx`
 
 This example demonstrates:
+
 - Full CRUD operations
 - All component integrations
 - Custom rendering
@@ -340,10 +343,10 @@ This example demonstrates:
 
 ```tsx
 interface UseDataTableOptions<T> {
-  pageSize?: number;           // Initial page size (default: 10)
-  sortable?: boolean;          // Enable client-side sorting (default: true)
-  filterable?: boolean;        // Enable client-side filtering (default: true)
-  pagination?: boolean;        // Enable pagination (default: true)
+  pageSize?: number; // Initial page size (default: 10)
+  sortable?: boolean; // Enable client-side sorting (default: true)
+  filterable?: boolean; // Enable client-side filtering (default: true)
+  pagination?: boolean; // Enable pagination (default: true)
   initialSort?: SortConfig<T>; // Initial sort configuration
 }
 ```
@@ -351,6 +354,7 @@ interface UseDataTableOptions<T> {
 ### Modal Sizes
 
 Available sizes for modals and dialogs:
+
 - `sm`: 28rem (max-w-md)
 - `md`: 42rem (max-w-2xl)
 - `lg`: 56rem (max-w-4xl)
@@ -372,16 +376,19 @@ Available sizes for modals and dialogs:
 ### Common Issues
 
 **Table not sorting:**
+
 - Ensure `sortable` prop is true
 - Check if columns have `sortable: false`
 - Verify `onSortChange` handler is provided
 
 **Form validation not working:**
+
 - Check field validation rules
 - Ensure `required` fields are marked
 - Verify custom validation functions return proper error messages
 
 **Modal not closing:**
+
 - Check if `onClose` handler is provided
 - Ensure no errors in form submission
 - Verify `isSubmitting` state is managed correctly
@@ -393,6 +400,7 @@ This component library is part of the multi-pos project.
 ## 🤝 Contributing
 
 When adding new features:
+
 1. Maintain TypeScript type safety
 2. Add proper documentation
 3. Include usage examples

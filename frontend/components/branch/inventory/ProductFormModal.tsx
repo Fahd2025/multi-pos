@@ -1,6 +1,6 @@
 /**
  * Product Form Modal
- * Modal for adding/editing products using generic ModalBottomSheet
+ * Modal for adding/editing products using generic FeaturedDialog
  */
 
 "use client";
@@ -8,7 +8,7 @@
 import { useState } from "react";
 import { ProductDto, CategoryDto, CreateProductDto, UpdateProductDto } from "@/types/api.types";
 import inventoryService from "@/services/inventory.service";
-import { ModalBottomSheet } from "@/components/shared";
+import { FeaturedDialog } from "@/components/shared";
 import { FormField } from "@/types/data-table.types";
 import { useApiError } from "@/hooks/useApiError";
 import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
@@ -168,7 +168,7 @@ export default function ProductFormModal({
         </div>
       )}
 
-      <ModalBottomSheet
+      <FeaturedDialog
         isOpen={isOpen}
         onClose={handleClose}
         title={product ? "Edit Product" : "Add New Product"}

@@ -71,7 +71,7 @@ Complete working implementation demonstrating:
 - Loading states (form + image upload)
 - Error handling
 - Display of existing images
-- Integration with ModalBottomSheet
+- Integration with FeaturedDialog
 
 **Usage**:
 

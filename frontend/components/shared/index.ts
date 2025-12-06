@@ -19,8 +19,6 @@ export { ApiErrorAlert, InlineApiError, EmptyState } from "./ApiErrorAlert";
 export { LoadingSpinner } from "./LoadingSpinner";
 export { ErrorAlert, SuccessAlert } from "./ErrorAlert";
 export { StatusBadge, getStockStatusVariant } from "./StatusBadge";
-export { Modal } from "./Modal";
-export { Dialog } from "./Dialog";
 
 // Custom Generic Components
 export { StatCard } from "./StatCard";
@@ -42,7 +40,15 @@ export { Checkbox } from "./Checkbox";
 // UI Components (previously in ui folder)
 export { Button, IconButton } from "./Button";
 export type { ButtonProps, IconButtonProps } from "./Button";
-export { Card, CardHeader, CardFooter, CardTitle, CardAction, CardDescription, CardContent } from "./card";
+export {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardAction,
+  CardDescription,
+  CardContent,
+} from "./card";
 export {
   Dialog as UIDialog,
   DialogClose,
@@ -53,17 +59,50 @@ export {
   DialogOverlay,
   DialogPortal,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
 } from "./RadixDialog";
 export { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs";
-export { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell, TableCaption } from "./table";
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableCaption,
+} from "./table";
 export { Badge } from "./badge";
 export { Avatar } from "./avatar";
 export { Label } from "./label";
 export { Textarea } from "./textarea";
 export { Separator } from "./separator";
-export { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetFooter, SheetTitle, SheetDescription } from "./sheet";
-export { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuCheckboxItem, DropdownMenuRadioItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuGroup, DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuRadioGroup } from "./dropdown-menu";
+export {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetFooter,
+  SheetTitle,
+  SheetDescription,
+} from "./sheet";
+export {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuGroup,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuRadioGroup,
+} from "./dropdown-menu";
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "./tooltip";
 export { Accordion } from "./accordion";
 export { ImageCarousel } from "./image-carousel";
@@ -71,10 +110,17 @@ export { MultiImageUpload } from "./multi-image-upload";
 export { Spinner } from "./spinner";
 export { Toaster } from "./sonner";
 export { Barcode } from "./barcode";
-export { Form, FormItem, FormLabel, FormControl, FormDescription, FormMessage, FormField } from "./form";
+export {
+  Form,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormDescription,
+  FormMessage,
+  FormField,
+} from "./form";
 
 // Modal Components (previously in modals folder)
-export { ModalBottomSheet } from "./ModalBottomSheet";
 export { FeaturedDialog } from "./FeaturedDialog";
 export { ConfirmationDialog } from "./ConfirmationDialog";
 

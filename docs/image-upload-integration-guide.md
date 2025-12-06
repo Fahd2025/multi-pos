@@ -74,7 +74,7 @@ There are two approaches:
 #### Approach A: Add to Existing Modal (Recommended for Simple Cases)
 
 ```tsx
-<ModalBottomSheet
+<FeaturedDialog
   {/* ... existing props ... */}
 />
 
@@ -104,7 +104,7 @@ export function ProductFormWithImages({ ... }) {
     <div className="modal-container">
       {/* Form fields */}
       <div className="form-section">
-        {/* Render form fields manually or use ModalBottomSheet */}
+        {/* Render form fields manually or use FeaturedDialog */}
       </div>
 
       {/* Image upload section */}

@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 import { CustomerDto, CreateCustomerDto, UpdateCustomerDto } from "@/types/api.types";
 import customerService from "@/services/customer.service";
 import imageService from "@/services/image.service";
-import { ModalBottomSheet } from "@/components/shared";
+import { FeaturedDialog } from "@/components/shared";
 import { ImageUpload } from "@/components/shared/ImageUpload";
 import { FormField } from "@/types/data-table.types";
 import { useApiError } from "@/hooks/useApiError";
@@ -234,7 +234,7 @@ export default function CustomerFormModal({
       )}
 
       {/* Main Form Modal */}
-      <ModalBottomSheet
+      <FeaturedDialog
         isOpen={isOpen}
         onClose={handleClose}
         title={customer ? "Edit Customer" : "Add New Customer"}

@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 import { SupplierDto, CreateSupplierDto, UpdateSupplierDto } from "@/types/api.types";
 import supplierService from "@/services/supplier.service";
 import imageService from "@/services/image.service";
-import { ModalBottomSheet } from "@/components/shared";
+import { FeaturedDialog } from "@/components/shared";
 import { ImageUpload } from "@/components/shared/ImageUpload";
 import { FormField } from "@/types/data-table.types";
 import { useApiError } from "@/hooks/useApiError";
@@ -222,7 +222,7 @@ export default function SupplierFormModal({
       )}
 
       {/* Main Form Modal */}
-      <ModalBottomSheet
+      <FeaturedDialog
         isOpen={isOpen}
         onClose={handleClose}
         title={supplier ? "Edit Supplier" : "Add New Supplier"}

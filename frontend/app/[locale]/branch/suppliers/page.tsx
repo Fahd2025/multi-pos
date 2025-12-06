@@ -9,8 +9,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { DataTable, StatCard } from "@/components/shared";
-import { FeaturedDialog, ConfirmationDialog } from "@/components/shared";
+import { DataTable, StatCard, ConfirmationDialog, FeaturedDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { useModal, useConfirmation } from "@/hooks/useModal";
 import { DataTableColumn, DataTableAction, DisplayField } from "@/types/data-table.types";
@@ -457,28 +456,59 @@ export default function SuppliersPage() {
         isOpen={viewModal.isOpen}
         onClose={viewModal.close}
         title="Supplier Details"
-        data={viewModal.data || ({} as SupplierDto)}
-        fields={displayFields}
-        actions={[
-          {
-            label: "Edit",
-            onClick: (data) => {
-              viewModal.close();
-              setSelectedSupplier(data);
-              setIsModalOpen(true);
-            },
-            variant: "primary",
-          },
-          {
-            label: "Delete",
-            onClick: (data) => {
-              viewModal.close();
-              handleDeleteClick(data);
-            },
-            variant: "danger",
-          },
-        ]}
+        mode="edit"
+        fields={[]}
+        onSubmit={() => {
+          if (viewModal.data) {
+            viewModal.close();
+            setSelectedSupplier(viewModal.data);
+            setIsModalOpen(true);
+          }
+        }}
+        submitLabel="Edit"
+        showSubmitButton={true}
+        cancelLabel="Close"
         size="lg"
+        additionalContent={
+          <div className="space-y-4">
+            {viewModal.data &&
+              displayFields.map((field) => (
+                <div
+                  key={field.key.toString()}
+                  className="grid grid-cols-3 gap-4 border-b border-gray-100 dark:border-gray-700 pb-2 last:border-0"
+                >
+                  <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    {field.label}
+                  </div>
+                  <div className="col-span-2 text-sm text-gray-900 dark:text-gray-100">
+                    {field.render
+                      ? field.render(
+                          viewModal.data![field.key as keyof SupplierDto],
+                          viewModal.data!
+                        )
+                      : String(viewModal.data![field.key as keyof SupplierDto] || "-")}
+                  </div>
+                </div>
+              ))}
+
+            {/* Additional actions that were in FeaturedDialog can be placed here as buttons if needed, 
+              but Edit is now the primary action. Delete was secondary, we can add a danger button here if really needed. */}
+            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-start">
+              <button
+                type="button"
+                onClick={() => {
+                  if (viewModal.data) {
+                    viewModal.close();
+                    handleDeleteClick(viewModal.data);
+                  }
+                }}
+                className="px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
+              >
+                Delete Supplier
+              </button>
+            </div>
+          </div>
+        }
       />
 
       <ConfirmationDialog

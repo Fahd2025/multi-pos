@@ -12,7 +12,7 @@ import { CustomerDto } from "@/types/api.types";
 import Link from "next/link";
 import CustomerFormModal from "@/components/branch/customers/CustomerFormModal";
 import { DataTable } from "@/components/shared";
-import { ModalBottomSheet, FeaturedDialog, ConfirmationDialog } from "@/components/shared";
+import { ConfirmationDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { useModal, useConfirmation } from "@/hooks/useModal";
 import { DataTableColumn, DataTableAction } from "@/types/data-table.types";

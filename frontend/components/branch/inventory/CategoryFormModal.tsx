@@ -9,7 +9,7 @@ import { useState } from "react";
 import { CategoryDto } from "@/types/api.types";
 import inventoryService from "@/services/inventory.service";
 import imageService from "@/services/image.service";
-import { ModalBottomSheet } from "@/components/shared";
+import { FeaturedDialog } from "@/components/shared";
 import { ImageUpload } from "@/components/shared/ImageUpload";
 import { FormField } from "@/types/data-table.types";
 import { useApiError } from "@/hooks/useApiError";
@@ -185,7 +185,7 @@ export default function CategoryFormModal({
       )}
 
       {/* Main Form Modal */}
-      <ModalBottomSheet
+      <FeaturedDialog
         isOpen={isOpen}
         onClose={handleClose}
         title={category ? "Edit Category" : "Add New Category"}

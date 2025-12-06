@@ -14,7 +14,7 @@ import { useState, useEffect } from "react";
 import { ProductDto, CategoryDto, CreateProductDto, UpdateProductDto } from "@/types/api.types";
 import inventoryService from "@/services/inventory.service";
 import imageService from "@/services/image.service";
-import { ModalBottomSheet } from "@/components/shared";
+import { FeaturedDialog } from "@/components/shared";
 import { MultiImageUpload } from "@/components/shared/multi-image-upload";
 import { FormField } from "@/types/data-table.types";
 import { useApiError } from "@/hooks/useApiError";
@@ -281,7 +281,7 @@ export default function ProductFormModalWithImages({
       )}
 
       {/* Main Form Modal */}
-      <ModalBottomSheet
+      <FeaturedDialog
         isOpen={isOpen}
         onClose={handleClose}
         title={product ? "Edit Product" : "Add New Product"}

@@ -14,7 +14,7 @@ import React, { useState, useEffect } from "react";
 import { use } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/shared";
-import { ConfirmationDialog, ModalBottomSheet } from "@/components/shared";
+import { ConfirmationDialog, FeaturedDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { useModal, useConfirmation } from "@/hooks/useModal";
 import { DataTableColumn, FormField } from "@/types/data-table.types";

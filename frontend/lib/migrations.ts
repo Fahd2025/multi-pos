@@ -30,7 +30,6 @@ function createHeaders(): HeadersInit {
 
   return headers;
 }
-
 /**
  * Apply migrations to a specific branch
  */

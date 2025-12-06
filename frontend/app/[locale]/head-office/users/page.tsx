@@ -11,7 +11,7 @@
 import React, { useState, useEffect } from "react";
 import { use } from "react";
 import { DataTable } from "@/components/shared";
-import { ModalBottomSheet, FeaturedDialog, ConfirmationDialog } from "@/components/shared";
+import { FeaturedDialog, ConfirmationDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { useModal, useConfirmation } from "@/hooks/useModal";
 import {
@@ -510,7 +510,7 @@ export default function UsersManagementPage({ params }: { params: Promise<{ loca
       </div>
 
       {/* Modals */}
-      <ModalBottomSheet
+      <FeaturedDialog
         isOpen={createEditModal.isOpen}
         onClose={createEditModal.close}
         title={createEditModal.mode === "create" ? "Create New User" : "Edit User"}
@@ -526,26 +526,52 @@ export default function UsersManagementPage({ params }: { params: Promise<{ loca
         isOpen={viewModal.isOpen}
         onClose={viewModal.close}
         title="User Details"
-        data={viewModal.data || ({} as UserDto)}
-        fields={displayFields}
-        actions={[
-          {
-            label: "Edit",
-            onClick: (data) => {
-              viewModal.close();
-              createEditModal.open(data, "edit");
-            },
-            variant: "primary",
-          },
-          {
-            label: "View Activity",
-            onClick: (data) => {
-              window.location.href = `/${locale}/head-office/users/${data.id}`;
-            },
-            variant: "secondary",
-          },
-        ]}
+        mode="edit"
+        fields={[]}
+        onSubmit={() => {
+          if (viewModal.data) {
+            viewModal.close();
+            createEditModal.open(viewModal.data, "edit");
+          }
+        }}
+        submitLabel="Edit"
+        showSubmitButton={true}
+        cancelLabel="Close"
         size="lg"
+        additionalContent={
+          <div className="space-y-4">
+            {viewModal.data &&
+              displayFields.map((field) => (
+                <div
+                  key={field.key.toString()}
+                  className="grid grid-cols-3 gap-4 border-b border-gray-100 dark:border-gray-700 pb-2 last:border-0"
+                >
+                  <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    {field.label}
+                  </div>
+                  <div className="col-span-2 text-sm text-gray-900 dark:text-gray-100">
+                    {field.render
+                      ? field.render(viewModal.data![field.key as keyof UserDto], viewModal.data!)
+                      : String(viewModal.data![field.key as keyof UserDto] || "-")}
+                  </div>
+                </div>
+              ))}
+
+            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-start">
+              <button
+                type="button"
+                onClick={() => {
+                  if (viewModal.data) {
+                    window.location.href = `/${locale}/head-office/users/${viewModal.data.id}`;
+                  }
+                }}
+                className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+              >
+                View Activity
+              </button>
+            </div>
+          </div>
+        }
       />
 
       <ConfirmationDialog

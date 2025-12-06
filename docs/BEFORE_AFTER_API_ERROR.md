@@ -12,9 +12,14 @@ This document shows a real-world example of refactoring a component to use the `
 "use client";
 
 import { useState } from "react";
-import { ProductDto, CategoryDto, CreateProductDto, UpdateProductDto } from "@/types/api.types";
+import {
+  ProductDto,
+  CategoryDto,
+  CreateProductDto,
+  UpdateProductDto,
+} from "@/types/api.types";
 import inventoryService from "@/services/inventory.service";
-import { ModalBottomSheet } from "@/components/modals";
+import { FeaturedDialog } from "@/components/modals";
 import { FormField } from "@/types/data-table.types";
 
 export default function ProductFormModal({
@@ -52,7 +57,7 @@ export default function ProductFormModal({
   };
 
   return (
-    <ModalBottomSheet
+    <FeaturedDialog
       isOpen={isOpen}
       onClose={onClose}
       title={product ? "Edit Product" : "Add New Product"}
@@ -70,9 +75,14 @@ export default function ProductFormModal({
 "use client";
 
 import { useState } from "react";
-import { ProductDto, CategoryDto, CreateProductDto, UpdateProductDto } from "@/types/api.types";
+import {
+  ProductDto,
+  CategoryDto,
+  CreateProductDto,
+  UpdateProductDto,
+} from "@/types/api.types";
 import inventoryService from "@/services/inventory.service";
-import { ModalBottomSheet } from "@/components/modals";
+import { FeaturedDialog } from "@/components/modals";
 import { FormField } from "@/types/data-table.types";
 import { useApiError } from "@/hooks/useApiError"; // ✅ Import hook
 import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert"; // ✅ Import error component
@@ -85,7 +95,8 @@ export default function ProductFormModal({
   categories,
 }: ProductFormModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { error, isError, executeWithErrorHandling, clearError } = useApiError(); // ✅ Use hook
+  const { error, isError, executeWithErrorHandling, clearError } =
+    useApiError(); // ✅ Use hook
 
   const handleSubmit = async (data: any) => {
     setIsSubmitting(true);
@@ -131,7 +142,7 @@ export default function ProductFormModal({
         </div>
       )}
 
-      <ModalBottomSheet
+      <FeaturedDialog
         isOpen={isOpen}
         onClose={handleClose} // ✅ Use handleClose to clear errors
         title={product ? "Edit Product" : "Add New Product"}

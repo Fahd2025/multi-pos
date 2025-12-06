@@ -142,7 +142,7 @@ export interface ModalProps {
 }
 
 // Modal Bottom Sheet props
-export interface ModalBottomSheetProps<T = any> extends Omit<ModalProps, "children"> {
+export interface FeaturedDialogProps<T = any> extends Omit<ModalProps, "children"> {
   /** Form mode: create or edit */
   mode: "create" | "edit";
   /** Initial data for edit mode */
@@ -155,6 +155,14 @@ export interface ModalBottomSheetProps<T = any> extends Omit<ModalProps, "childr
   isSubmitting?: boolean;
   /** Optional additional content to render after form fields (e.g., image upload) */
   additionalContent?: React.ReactNode;
+  /** Optional submit button label */
+  submitLabel?: string;
+  /** Optional cancel button label */
+  cancelLabel?: string;
+  /** Whether to show the footer buttons (default: true) */
+  showFooter?: boolean;
+  /** Whether to show the submit button (default: true) */
+  showSubmitButton?: boolean;
 }
 
 // Form field configuration
@@ -196,36 +204,6 @@ export interface FormField<T> {
   disabled?: boolean;
   /** Conditional rendering */
   condition?: (formData: Partial<T>) => boolean;
-}
-
-// Featured Dialog props
-export interface FeaturedDialogProps<T = any> {
-  /** Whether dialog is open */
-  isOpen: boolean;
-  /** Callback to close dialog */
-  onClose: () => void;
-  /** Dialog title */
-  title: string;
-  /** Data to display (optional for create mode) */
-  data?: T;
-  /** Field definitions for displaying data (for display mode) */
-  fields?: DisplayField<T>[];
-  /** Optional actions (e.g., Edit, Delete) */
-  actions?: DialogAction<T>[];
-  /** Optional size variant */
-  size?: "sm" | "md" | "lg" | "xl";
-  /** Optional custom content to display after fields */
-  customContent?: React.ReactNode;
-  /** Form mode: 'display' (default) or 'form' for editable forms */
-  mode?: "display" | "create" | "edit";
-  /** Form fields configuration (for form mode) */
-  formFields?: FormField<T>[];
-  /** Callback on form submit (for form mode) */
-  onSubmit?: (data: T) => Promise<void> | void;
-  /** Whether form is submitting (for form mode) */
-  isSubmitting?: boolean;
-  /** Initial data for edit mode */
-  initialData?: T;
 }
 
 // Display field configuration

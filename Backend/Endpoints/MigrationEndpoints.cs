@@ -82,7 +82,7 @@ public static class MigrationEndpoints
         .Produces(200);
 
         // Get migration status for all branches
-        group.MapGet("/branches/status", [Authorize(Roles = "Admin")] async (
+        group.MapGet("/branches/status", async (
             Backend.Data.HeadOffice.HeadOfficeDbContext context) =>
         {
             var states = await context.BranchMigrationStates
@@ -104,6 +104,7 @@ public static class MigrationEndpoints
 
             return Results.Ok(states);
         })
+        .RequireAuthorization(policy => policy.RequireRole("Admin"))
         .WithName("GetAllMigrationStatus")
         .WithSummary("Get migration status for all branches")
         .Produces(200);

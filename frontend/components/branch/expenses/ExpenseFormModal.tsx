@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 import expenseService from "@/services/expense.service";
 import imageService from "@/services/image.service";
 import { ExpenseDto, CreateExpenseDto, ExpenseCategoryDto } from "@/types/api.types";
-import { ModalBottomSheet } from "@/components/shared";
+import { FeaturedDialog } from "@/components/shared";
 import { ImageUpload } from "@/components/shared/ImageUpload";
 import { FormField } from "@/types/data-table.types";
 import { useApiError } from "@/hooks/useApiError";
@@ -237,7 +237,7 @@ export default function ExpenseFormModal({
       )}
 
       {/* Main Form Modal */}
-      <ModalBottomSheet
+      <FeaturedDialog
         isOpen={isOpen}
         onClose={handleClose}
         title={expense ? "Edit Expense" : "Add New Expense"}
