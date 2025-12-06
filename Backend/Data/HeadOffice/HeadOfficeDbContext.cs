@@ -16,6 +16,7 @@ public class HeadOfficeDbContext : DbContext
     public DbSet<MainSetting> MainSettings { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
     public DbSet<UserActivityLog> UserActivityLogs { get; set; }
+    public DbSet<BranchMigrationState> BranchMigrationStates { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -100,6 +101,21 @@ public class HeadOfficeDbContext : DbContext
                 .HasOne(e => e.User)
                 .WithMany(u => u.ActivityLogs)
                 .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // BranchMigrationState configuration
+        modelBuilder.Entity<BranchMigrationState>(entity =>
+        {
+            entity.HasIndex(e => e.BranchId).IsUnique();
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.LastAttemptAt);
+            entity.HasIndex(e => e.LockExpiresAt);
+
+            entity
+                .HasOne(e => e.Branch)
+                .WithMany()
+                .HasForeignKey(e => e.BranchId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

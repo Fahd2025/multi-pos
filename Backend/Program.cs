@@ -51,8 +51,16 @@ builder.Services.AddDbContext<HeadOfficeDbContext>(options =>
 // Configure DbContextFactory
 builder.Services.AddSingleton<DbContextFactory>();
 
-// Configure Branch Database Migrator
-builder.Services.AddScoped<BranchDatabaseMigrator>();
+// Migration Services
+builder.Services.AddScoped<Backend.Services.Shared.Migrations.SqliteMigrationStrategy>();
+builder.Services.AddScoped<Backend.Services.Shared.Migrations.SqlServerMigrationStrategy>();
+builder.Services.AddScoped<Backend.Services.Shared.Migrations.PostgreSqlMigrationStrategy>();
+builder.Services.AddScoped<Backend.Services.Shared.Migrations.MySqlMigrationStrategy>();
+builder.Services.AddScoped<Backend.Services.Shared.Migrations.MigrationStrategyFactory>();
+builder.Services.AddScoped<Backend.Services.Shared.Migrations.IBranchMigrationManager, Backend.Services.Shared.Migrations.BranchMigrationManager>();
+
+// Background Service for automatic migrations
+builder.Services.AddHostedService<Backend.Services.Shared.Migrations.MigrationOrchestrator>();
 
 // Configure JWT Authentication
 var jwtSecretKey =
@@ -230,11 +238,31 @@ if (!string.IsNullOrEmpty(connectionString))
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<HeadOfficeDbContext>();
+
+    // Ensure HeadOffice database is migrated
+    await context.Database.MigrateAsync();
+
+    // Seed default data
     await DbSeeder.SeedAsync(context);
 
-    // Ensure all branch databases have the latest schema
-    var branchMigrator = scope.ServiceProvider.GetRequiredService<BranchDatabaseMigrator>();
-    await branchMigrator.EnsureAllBranchDatabasesAsync();
+    // Use new migration system for branch databases
+    var migrationManager = scope.ServiceProvider.GetRequiredService<Backend.Services.Shared.Migrations.IBranchMigrationManager>();
+    var result = await migrationManager.ApplyMigrationsToAllBranchesAsync();
+
+    if (!result.Success)
+    {
+        app.Logger.LogWarning(
+            "Some branch migrations failed: {Error}. Background service will retry automatically.",
+            result.ErrorMessage
+        );
+    }
+    else
+    {
+        app.Logger.LogInformation(
+            "Successfully migrated {Count} branch databases",
+            result.BranchesSucceeded
+        );
+    }
 }
 
 // Configure the HTTP request pipeline
@@ -307,6 +335,9 @@ app.MapImageEndpoints();
 
 // Reports
 app.MapReportEndpoints();
+
+// Migrations (HeadOfficeAdmin only)
+app.MapMigrationEndpoints();
 
 app.Run();
 

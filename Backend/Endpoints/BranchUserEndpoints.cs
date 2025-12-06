@@ -422,8 +422,8 @@ public static class BranchUserEndpoints
         // Ensure branch database schema is up to date
         using (var scope = serviceProvider.CreateScope())
         {
-            var migrator = scope.ServiceProvider.GetRequiredService<BranchDatabaseMigrator>();
-            await migrator.EnsureBranchDatabaseSchemaAsync(branch);
+            var migrationManager = scope.ServiceProvider.GetRequiredService<Backend.Services.Shared.Migrations.IBranchMigrationManager>();
+            await migrationManager.ApplyMigrationsAsync(branch.Id);
         }
 
         var branchContext = dbContextFactory.CreateBranchContext(branch);

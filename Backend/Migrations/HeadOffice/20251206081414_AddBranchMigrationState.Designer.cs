@@ -3,6 +3,7 @@ using System;
 using Backend.Data.HeadOffice;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Backend.Migrations.HeadOffice
 {
     [DbContext(typeof(HeadOfficeDbContext))]
-    partial class HeadOfficeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251206081414_AddBranchMigrationState")]
+    partial class AddBranchMigrationState
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");

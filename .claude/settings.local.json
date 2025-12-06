@@ -57,7 +57,10 @@
       "Bash(if [ -d \"Backend\\uploads\" ])",
       "Bash(then rm -rf \"Backend\\uploads\")",
       "Bash(else echo \"Backend\\uploads folder not found with backslashes\")",
-      "Bash(dotnet ef:*)"
+      "Bash(dotnet ef:*)",
+      "Bash(if [ -f \"Data/Shared/BranchDatabaseMigrator.cs\" ])",
+      "Bash(then rm \"Data/Shared/BranchDatabaseMigrator.cs\")",
+      "Bash(else echo \"File not found\")"
     ],
     "deny": [],
     "ask": []
