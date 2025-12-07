@@ -101,10 +101,9 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
    * Load products and categories
    */
   useEffect(() => {
-    if (canManage()) {
-      loadData();
-    }
-  }, [selectedCategory, showLowStock, showOutOfStock, canManage]);
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategory, showLowStock, showOutOfStock]); // Removed canManage - RoleGuard handles permission
 
   const loadData = async () => {
     setLoading(true);

@@ -57,12 +57,11 @@ export default function SuppliersPage() {
   const viewModal = useModal<SupplierDto>();
   const confirmation = useConfirmation();
 
-  // Load suppliers on mount (only if user has permission)
+  // Load suppliers on mount
   useEffect(() => {
-    if (canManage()) {
-      loadSuppliers();
-    }
-  }, [canManage]);
+    loadSuppliers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount - RoleGuard handles permission
 
   const loadSuppliers = async () => {
     try {

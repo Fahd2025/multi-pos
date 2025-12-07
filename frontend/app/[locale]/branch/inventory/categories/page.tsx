@@ -63,10 +63,9 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
    * Load categories
    */
   useEffect(() => {
-    if (canManage()) {
-      loadCategories();
-    }
-  }, [canManage]);
+    loadCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount - RoleGuard handles permission
 
   const loadCategories = async () => {
     try {

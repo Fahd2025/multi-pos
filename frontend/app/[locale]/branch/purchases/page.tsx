@@ -58,10 +58,9 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
    * Load purchases
    */
   useEffect(() => {
-    if (canManage()) {
-      loadData();
-    }
-  }, [canManage]);
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount - RoleGuard handles permission
 
   const loadData = async () => {
     try {

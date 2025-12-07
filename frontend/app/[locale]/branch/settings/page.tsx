@@ -64,10 +64,9 @@ export default function BranchSettingsPage() {
 
   // Load settings on mount
   useEffect(() => {
-    if (canManage()) {
-      loadSettings();
-    }
-  }, [canManage]);
+    loadSettings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount - RoleGuard handles permission
 
   const loadSettings = async () => {
     try {

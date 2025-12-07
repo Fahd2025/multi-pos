@@ -51,8 +51,11 @@ export interface RoleGuardProps {
   /** Optional content to render if user lacks permission */
   fallback?: React.ReactNode;
 
-  /** If true, shows loading state while checking auth */
+  /** If true, shows loading state while checking auth (default: true) */
   showLoading?: boolean;
+
+  /** If true, uses full-page loading indicator (default: false) */
+  fullPage?: boolean;
 }
 
 export const RoleGuard: React.FC<RoleGuardProps> = ({
@@ -61,17 +64,34 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
   requirePermission,
   children,
   fallback = null,
-  showLoading = false,
+  showLoading = true, // Changed default to true to prevent flash
+  fullPage = false,
 }) => {
   const { user, branch, isAuthenticated, isLoading, isHeadOfficeAdmin, hasRole } = useAuth();
 
-  // Show loading state if requested
-  if (isLoading && showLoading) {
-    return (
-      <div className="inline-flex items-center">
-        <div className="animate-pulse h-4 w-16 bg-gray-200 rounded"></div>
-      </div>
-    );
+  // Show loading state while auth is being checked
+  if (isLoading) {
+    if (showLoading) {
+      // Full-page loading indicator
+      if (fullPage) {
+        return (
+          <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+              <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+            </div>
+          </div>
+        );
+      }
+      // Inline loading indicator
+      return (
+        <div className="inline-flex items-center">
+          <div className="animate-pulse h-4 w-16 bg-gray-200 rounded"></div>
+        </div>
+      );
+    }
+    // Don't show fallback while loading - prevents flash of "Access Denied"
+    return null;
   }
 
   // Not authenticated - hide content

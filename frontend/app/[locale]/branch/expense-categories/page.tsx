@@ -59,10 +59,9 @@ export default function ExpenseCategoriesPage({ params }: { params: Promise<{ lo
    * Load expense categories
    */
   useEffect(() => {
-    if (canManage()) {
-      loadCategories();
-    }
-  }, [showInactive, canManage]);
+    loadCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showInactive]); // Removed canManage - RoleGuard handles permission
 
   const loadCategories = async () => {
     try {

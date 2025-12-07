@@ -550,6 +550,7 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
   return (
     <RoleGuard
       requireRole={UserRole.Manager}
+      fullPage={true}
       fallback={
         <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
           <div className="text-6xl">🔒</div>

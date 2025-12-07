@@ -56,19 +56,17 @@ export default function SupplierDetailsPage({
    * Load supplier details
    */
   useEffect(() => {
-    if (canManage()) {
-      loadSupplier();
-    }
-  }, [id, canManage]);
+    loadSupplier();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]); // Removed canManage - RoleGuard handles permission
 
   /**
    * Load purchase history
    */
   useEffect(() => {
-    if (canManage()) {
-      loadPurchaseHistory();
-    }
-  }, [id, canManage]);
+    loadPurchaseHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]); // Removed canManage - RoleGuard handles permission
 
   const loadSupplier = async () => {
     try {
