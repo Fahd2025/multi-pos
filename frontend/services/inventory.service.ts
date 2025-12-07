@@ -32,6 +32,20 @@ export interface ProductFilters {
 }
 
 /**
+ * Purchase filter parameters
+ */
+export interface PurchaseFilters {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  startDate?: string;
+  endDate?: string;
+  supplierName?: string;
+  status?: 'received' | 'pending';
+  paymentStatus?: 'paid' | 'partial' | 'unpaid';
+}
+
+/**
  * Inventory Service
  * Handles all inventory-related API operations
  */
@@ -164,10 +178,42 @@ class InventoryService {
   // ==================== PURCHASES ====================
 
   /**
-   * Get purchases
+   * Get purchases with filtering and pagination
    */
-  async getPurchases(page: number = 1, pageSize: number = 20): Promise<PaginationResponse<PurchaseDto>> {
-    const response = await api.get(`/api/v1/purchases?page=${page}&pageSize=${pageSize}`);
+  async getPurchases(filters: PurchaseFilters = {}): Promise<PaginationResponse<PurchaseDto>> {
+    const params = new URLSearchParams();
+
+    if (filters.page) params.append('page', filters.page.toString());
+    if (filters.pageSize) params.append('pageSize', filters.pageSize.toString());
+    if (filters.search) params.append('search', filters.search);
+    if (filters.startDate) params.append('startDate', filters.startDate);
+    if (filters.endDate) params.append('endDate', filters.endDate);
+    if (filters.supplierName) params.append('supplierName', filters.supplierName);
+    if (filters.status) params.append('status', filters.status);
+
+    // Map payment status string to enum value
+    if (filters.paymentStatus) {
+      let paymentStatusValue: number;
+      switch (filters.paymentStatus) {
+        case 'unpaid':
+          paymentStatusValue = 0; // Pending
+          break;
+        case 'partial':
+          paymentStatusValue = 1; // Partial
+          break;
+        case 'paid':
+          paymentStatusValue = 2; // Paid
+          break;
+        default:
+          paymentStatusValue = 0;
+      }
+      params.append('paymentStatus', paymentStatusValue.toString());
+    }
+
+    const response = await api.get<PaginationResponse<PurchaseDto>>(
+      `/api/v1/purchases?${params.toString()}`
+    );
+
     return response.data;
   }
 

@@ -410,6 +410,9 @@ public static class InventoryEndpoints
                     DateTime? startDate = null,
                     DateTime? endDate = null,
                     int? paymentStatus = null,
+                    string? search = null,
+                    string? supplierName = null,
+                    string? status = null,
                     int page = 1,
                     int pageSize = 50
                 ) =>
@@ -421,6 +424,9 @@ public static class InventoryEndpoints
                             startDate,
                             endDate,
                             paymentStatus,
+                            search,
+                            supplierName,
+                            status,
                             page,
                             pageSize
                         );

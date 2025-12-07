@@ -47,10 +47,17 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Filters
+  // Filter input states (draft)
+  const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState("");
+
+  // Applied filters (active)
+  const [appliedFilters, setAppliedFilters] = useState({
+    search: "",
+    role: "all",
+    status: "all",
+  });
 
   // Error handling
   const { error, errorMessage, isError, setError, clearError } = useApiError();
@@ -82,10 +89,11 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount - RoleGuard already handles permission check
 
-  // Apply filters whenever users, filters, or search changes
+  // Apply filters whenever users or applied filters change
   useEffect(() => {
     applyFilters();
-  }, [users, roleFilter, statusFilter, searchQuery]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [users, appliedFilters]);
 
   const loadUsers = async () => {
     try {
@@ -105,20 +113,20 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
     let filtered = [...users];
 
     // Role filter
-    if (roleFilter !== "all") {
-      filtered = filtered.filter((u) => u.role === roleFilter);
+    if (appliedFilters.role !== "all") {
+      filtered = filtered.filter((u) => u.role === appliedFilters.role);
     }
 
     // Status filter
-    if (statusFilter === "active") {
+    if (appliedFilters.status === "active") {
       filtered = filtered.filter((u) => u.isActive);
-    } else if (statusFilter === "inactive") {
+    } else if (appliedFilters.status === "inactive") {
       filtered = filtered.filter((u) => !u.isActive);
     }
 
     // Search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
+    if (appliedFilters.search.trim()) {
+      const query = appliedFilters.search.toLowerCase();
       filtered = filtered.filter(
         (u) =>
           u.username.toLowerCase().includes(query) ||
@@ -131,6 +139,86 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
 
     setFilteredUsers(filtered);
   };
+
+  // Filter management functions
+  const handleApplyFilters = () => {
+    setAppliedFilters({
+      search: searchQuery,
+      role: roleFilter,
+      status: statusFilter,
+    });
+  };
+
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setRoleFilter("all");
+    setStatusFilter("all");
+    setAppliedFilters({
+      search: "",
+      role: "all",
+      status: "all",
+    });
+  };
+
+  const handleRemoveFilter = (filterType: string) => {
+    const newFilters = { ...appliedFilters };
+
+    switch (filterType) {
+      case "search":
+        newFilters.search = "";
+        setSearchQuery("");
+        break;
+      case "role":
+        newFilters.role = "all";
+        setRoleFilter("all");
+        break;
+      case "status":
+        newFilters.status = "all";
+        setStatusFilter("all");
+        break;
+    }
+
+    setAppliedFilters(newFilters);
+  };
+
+  const getActiveFilterCount = () => {
+    let count = 0;
+    if (appliedFilters.role !== "all") count++;
+    if (appliedFilters.status !== "all") count++;
+    return count;
+  };
+
+  const getActiveFilters = () => {
+    const filters: { type: string; label: string; value: string }[] = [];
+
+    if (appliedFilters.search) {
+      filters.push({
+        type: "search",
+        label: "Search",
+        value: appliedFilters.search,
+      });
+    }
+    if (appliedFilters.role !== "all") {
+      filters.push({
+        type: "role",
+        label: "Role",
+        value: appliedFilters.role,
+      });
+    }
+    if (appliedFilters.status !== "all") {
+      filters.push({
+        type: "status",
+        label: "Status",
+        value: appliedFilters.status === "active" ? "Active" : "Inactive",
+      });
+    }
+
+    return filters;
+  };
+
+  const activeFilters = getActiveFilters();
+  const activeFilterCount = getActiveFilterCount();
+  const hasActiveFilters = activeFilters.length > 0;
 
   const handleCreate = async (data: CreateBranchUserDto) => {
     try {
@@ -654,85 +742,145 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
           </div>
         </div>
 
-        {/* Filters and Search */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-            Filters & Search
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Search */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Search
-              </label>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by name, username, email..."
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
-              />
-            </div>
-
-            {/* Role Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Role
-              </label>
-              <select
-                value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
+        {/* Active Filters Display */}
+        {activeFilters.length > 0 && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-5 py-3 mb-6">
+            <div className="flex items-center flex-wrap gap-2">
+              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                Active Filters:
+              </span>
+              {activeFilters.map((filter) => (
+                <span
+                  key={filter.type}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100 rounded-full text-sm font-medium"
+                >
+                  <span className="font-semibold">{filter.label}:</span>
+                  <span>{filter.value}</span>
+                  <button
+                    onClick={() => handleRemoveFilter(filter.type)}
+                    className="ml-1 hover:bg-blue-200 dark:hover:bg-blue-700 rounded-full p-0.5 transition-colors"
+                    aria-label={`Remove ${filter.label} filter`}
+                  >
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </span>
+              ))}
+              <button
+                onClick={handleResetFilters}
+                className="ml-2 text-sm text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 font-medium underline"
               >
-                <option value="all">All Roles</option>
-                <option value="Manager">Manager</option>
-                <option value="Cashier">Cashier</option>
-              </select>
-            </div>
-
-            {/* Status Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Status
-              </label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
-              >
-                <option value="all">All Status</option>
-                <option value="active">Active Only</option>
-                <option value="inactive">Inactive Only</option>
-              </select>
+                Clear All
+              </button>
             </div>
           </div>
-
-          {/* Results count */}
-          <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-            Showing {filteredUsers.length} of {users.length} users
-          </div>
-        </div>
+        )}
 
         {/* DataTable */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-            Users List
-          </h2>
-          <DataTable
-            data={displayData}
-            columns={columns}
-            actions={actions}
-            getRowKey={(row) => row.id}
-            pagination
-            paginationConfig={paginationConfig}
-            onPageChange={handlePageChange}
-            onPageSizeChange={handlePageSizeChange}
-            sortable
-            sortConfig={sortConfig ?? undefined}
-            onSortChange={handleSortChange}
-            emptyMessage="No users found. Click 'Add User' to create your first user."
-          />
-        </div>
+        <DataTable
+          data={displayData}
+          columns={columns}
+          actions={actions}
+          getRowKey={(row) => row.id}
+          pagination
+          paginationConfig={paginationConfig}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          sortable
+          sortConfig={sortConfig ?? undefined}
+          onSortChange={handleSortChange}
+          emptyMessage="No users found. Click 'Add User' to create your first user."
+          // Filter integration
+          showFilterButton
+          activeFilterCount={activeFilterCount}
+          showResetButton={hasActiveFilters}
+          onResetFilters={handleResetFilters}
+          searchBar={
+            <div className="flex items-center gap-2 flex-1">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleApplyFilters();
+                    }
+                  }}
+                  placeholder="Search by name, username, email, phone..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+                />
+              </div>
+              <button
+                onClick={handleApplyFilters}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium whitespace-nowrap"
+              >
+                Apply Filters
+              </button>
+            </div>
+          }
+          filterSection={
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Role Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Role
+                </label>
+                <select
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                >
+                  <option value="all">All Roles</option>
+                  <option value="Manager">Manager</option>
+                  <option value="Cashier">Cashier</option>
+                </select>
+              </div>
+
+              {/* Status Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Status
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                >
+                  <option value="all">All Status</option>
+                  <option value="active">Active Only</option>
+                  <option value="inactive">Inactive Only</option>
+                </select>
+              </div>
+            </div>
+          }
+        />
       </div>
 
       {/* Create User Modal */}

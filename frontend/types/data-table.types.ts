@@ -61,6 +61,8 @@ export interface PaginationConfig {
   pageSize: number;
   /** Total number of items */
   totalItems: number;
+  /** Total number of pages (optional, can be calculated from totalItems and pageSize) */
+  totalPages?: number;
 }
 
 // Image column configuration

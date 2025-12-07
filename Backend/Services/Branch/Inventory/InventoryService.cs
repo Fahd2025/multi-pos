@@ -572,6 +572,9 @@ public class InventoryService : IInventoryService
         DateTime? startDate = null,
         DateTime? endDate = null,
         int? paymentStatus = null,
+        string? search = null,
+        string? supplierName = null,
+        string? status = null,
         int page = 1,
         int pageSize = 50)
     {
@@ -587,6 +590,20 @@ public class InventoryService : IInventoryService
             query = query.Where(p => p.SupplierId == supplierId.Value);
         }
 
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchLower = search.ToLower();
+            query = query.Where(p =>
+                p.PurchaseOrderNumber.ToLower().Contains(searchLower) ||
+                p.Supplier.NameEn.ToLower().Contains(searchLower) ||
+                (p.Notes != null && p.Notes.ToLower().Contains(searchLower)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(supplierName))
+        {
+            query = query.Where(p => p.Supplier.NameEn == supplierName);
+        }
+
         if (startDate.HasValue)
         {
             query = query.Where(p => p.PurchaseDate >= startDate.Value);
@@ -600,6 +617,18 @@ public class InventoryService : IInventoryService
         if (paymentStatus.HasValue)
         {
             query = query.Where(p => (int)p.PaymentStatus == paymentStatus.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            if (status.ToLower() == "received")
+            {
+                query = query.Where(p => p.ReceivedDate != null);
+            }
+            else if (status.ToLower() == "pending")
+            {
+                query = query.Where(p => p.ReceivedDate == null);
+            }
         }
 
         var totalCount = await query.CountAsync();

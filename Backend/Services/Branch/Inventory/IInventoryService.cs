@@ -41,6 +41,9 @@ public interface IInventoryService
         DateTime? startDate = null,
         DateTime? endDate = null,
         int? paymentStatus = null,
+        string? search = null,
+        string? supplierName = null,
+        string? status = null,
         int page = 1,
         int pageSize = 50);
 

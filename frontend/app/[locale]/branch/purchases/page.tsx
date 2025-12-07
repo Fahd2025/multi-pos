@@ -5,10 +5,10 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { use } from "react";
 import { useRouter } from "next/navigation";
-import inventoryService from "@/services/inventory.service";
+import inventoryService, { PurchaseFilters } from "@/services/inventory.service";
 import { PurchaseDto } from "@/types/api.types";
 import PurchaseFormModal from "@/components/branch/inventory/PurchaseFormModal";
 import { DataTable } from "@/components/shared";
@@ -30,6 +30,7 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
   const { canManage } = usePermission();
 
   const [purchases, setPurchases] = useState<PurchaseDto[]>([]);
+  const [allPurchases, setAllPurchases] = useState<PurchaseDto[]>([]); // For stats calculation
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any | null>(null);
 
@@ -37,13 +38,29 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
   const [selectedPurchase, setSelectedPurchase] = useState<PurchaseDto | undefined>(undefined);
 
-  // Filter states
+  // Filter states (input values)
   const [searchQuery, setSearchQuery] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedSupplier, setSelectedSupplier] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<string>("all");
+
+  // Applied filters (what's actually being used in the API call)
+  const [appliedFilters, setAppliedFilters] = useState({
+    search: "",
+    startDate: "",
+    endDate: "",
+    supplier: "all",
+    status: "all",
+    paymentStatus: "all",
+  });
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const pageSize = 20;
 
   // Hooks
   const confirmation = useConfirmation();
@@ -72,143 +89,50 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
     }
   };
 
-  /**
-   * Filter purchases based on search and filter criteria
-   */
-  const filteredPurchases = useMemo(() => {
-    return purchases.filter((purchase) => {
-      // Search filter
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        const matchesSearch =
-          purchase.purchaseOrderNumber.toLowerCase().includes(query) ||
-          purchase.supplierName.toLowerCase().includes(query) ||
-          (purchase.notes && purchase.notes.toLowerCase().includes(query));
-        if (!matchesSearch) return false;
-      }
-
-      // Date range filter
-      if (startDate) {
-        const purchaseDate = new Date(purchase.purchaseDate);
-        const filterStartDate = new Date(startDate);
-        if (purchaseDate < filterStartDate) return false;
-      }
-      if (endDate) {
-        const purchaseDate = new Date(purchase.purchaseDate);
-        const filterEndDate = new Date(endDate);
-        filterEndDate.setHours(23, 59, 59, 999); // Include the entire end date
-        if (purchaseDate > filterEndDate) return false;
-      }
-
-      // Supplier filter
-      if (selectedSupplier !== "all" && purchase.supplierName !== selectedSupplier) {
-        return false;
-      }
-
-      // Status filter (received/pending)
-      if (selectedStatus !== "all") {
-        const isReceived = !!purchase.receivedDate;
-        if (selectedStatus === "received" && !isReceived) return false;
-        if (selectedStatus === "pending" && isReceived) return false;
-      }
-
-      // Payment status filter
-      if (selectedPaymentStatus !== "all") {
-        const paymentStatus = getPaymentStatus(
-          purchase.paymentStatus,
-          purchase.amountPaid,
-          purchase.totalCost
-        );
-        if (selectedPaymentStatus === "paid" && paymentStatus.label !== "Paid") return false;
-        if (selectedPaymentStatus === "partial" && paymentStatus.label !== "Partial") return false;
-        if (selectedPaymentStatus === "unpaid" && paymentStatus.label !== "Unpaid") return false;
-      }
-
-      return true;
-    });
-  }, [
+  // DataTable hook for client-side display (pagination handled server-side)
+  const { paginationConfig, handlePageChange: handleDataTablePageChange } = useDataTable(
     purchases,
-    searchQuery,
-    startDate,
-    endDate,
-    selectedSupplier,
-    selectedStatus,
-    selectedPaymentStatus,
-  ]);
-
-  // DataTable hook
-  const {
-    data: displayData,
-    paginationConfig,
-    sortConfig,
-    handlePageChange,
-    handlePageSizeChange,
-    handleSort,
-  } = useDataTable(filteredPurchases, {
-    pageSize: 20,
-    sortable: true,
-    pagination: true,
-  });
+    {
+      pageSize,
+      sortable: false,
+      pagination: true,
+    }
+  );
 
   /**
-   * Get unique suppliers for filter dropdown
+   * Get unique suppliers for filter dropdown (from all purchases for stats)
    */
-  const uniqueSuppliers = Array.from(new Set(purchases.map((p) => p.supplierName))).sort();
+  const uniqueSuppliers = Array.from(new Set(allPurchases.map((p) => p.supplierName))).sort();
 
   /**
    * Reset all filters
    */
-  const handleResetFilters = () => {
+  const handleResetFilters = async () => {
+    // Reset all filter states
     setSearchQuery("");
     setStartDate("");
     setEndDate("");
     setSelectedSupplier("all");
     setSelectedStatus("all");
     setSelectedPaymentStatus("all");
-  };
+    setAppliedFilters({
+      search: "",
+      startDate: "",
+      endDate: "",
+      supplier: "all",
+      status: "all",
+      paymentStatus: "all",
+    });
+    setCurrentPage(1);
 
-  /**
-   * Count active filters
-   */
-  const activeFilterCount = useMemo(() => {
-    let count = 0;
-    if (startDate) count++;
-    if (endDate) count++;
-    if (selectedSupplier !== "all") count++;
-    if (selectedStatus !== "all") count++;
-    if (selectedPaymentStatus !== "all") count++;
-    return count;
-  }, [startDate, endDate, selectedSupplier, selectedStatus, selectedPaymentStatus]);
-
-  /**
-   * Check if any filters are active
-   */
-  const hasActiveFilters = activeFilterCount > 0 || !!searchQuery;
-
-  /**
-   * Load purchases
-   */
-  useEffect(() => {
-    loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount - RoleGuard handles permission
-
-  const loadData = async () => {
+    // Fetch with empty filters
     try {
       setLoading(true);
       setError(null);
-
-      // Note: The API supports pagination, but for the DataTable client-side model we load all or handle server-side
-      // For this implementation, we'll stick to the pattern used in other pages (client-side pagination of loaded data)
-      // or if the API is strictly server-side, we might need to adjust.
-      // Based on previous code, it was fetching with page/pageSize.
-      // If we want to use the generic DataTable fully client-side features, we should fetch all or adapt.
-      // However, the previous code was: await inventoryService.getPurchases(currentPage, pageSize);
-      // Let's assume we fetch a larger set or the first page.
-      // To keep it consistent with other pages that seem to load data and then use DataTable:
-
-      const purchasesResponse = await inventoryService.getPurchases(1, 1000); // Fetching more for client-side table
-      setPurchases(purchasesResponse.data || []);
+      const response = await inventoryService.getPurchases({ page: 1, pageSize });
+      setPurchases(response.data);
+      setTotalPages(response.pagination.totalPages);
+      setTotalItems(response.pagination.totalItems);
     } catch (err: any) {
       setError(err);
       console.error("Failed to load purchases:", err);
@@ -216,6 +140,231 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
       setLoading(false);
     }
   };
+
+  /**
+   * Count active filters (based on applied filters, not input values)
+   */
+  const getActiveFilterCount = () => {
+    let count = 0;
+    if (appliedFilters.startDate) count++;
+    if (appliedFilters.endDate) count++;
+    if (appliedFilters.supplier !== "all") count++;
+    if (appliedFilters.status !== "all") count++;
+    if (appliedFilters.paymentStatus !== "all") count++;
+    return count;
+  };
+
+  const activeFilterCount = getActiveFilterCount();
+
+  /**
+   * Check if any filters are active (based on applied filters, not input values)
+   */
+  const hasActiveFilters = activeFilterCount > 0 || !!appliedFilters.search;
+
+  /**
+   * Fetch purchases with server-side filtering and pagination
+   */
+  const fetchPurchases = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const filters: PurchaseFilters = {
+        page: currentPage,
+        pageSize,
+        search: searchQuery || undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+        supplierName: selectedSupplier !== "all" ? selectedSupplier : undefined,
+        status: selectedStatus !== "all" ? (selectedStatus as "received" | "pending") : undefined,
+        paymentStatus:
+          selectedPaymentStatus !== "all"
+            ? (selectedPaymentStatus as "paid" | "partial" | "unpaid")
+            : undefined,
+      };
+
+      const response = await inventoryService.getPurchases(filters);
+      setPurchases(response.data);
+      setTotalPages(response.pagination.totalPages);
+      setTotalItems(response.pagination.totalItems);
+    } catch (err: any) {
+      setError(err);
+      console.error("Failed to load purchases:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Fetch all purchases for statistics (without filters)
+   */
+  const fetchAllPurchases = async () => {
+    try {
+      const response = await inventoryService.getPurchases({ page: 1, pageSize: 10000 });
+      setAllPurchases(response.data || []);
+    } catch (err: any) {
+      console.error("Failed to load all purchases for stats:", err);
+    }
+  };
+
+  /**
+   * Load data on mount and when filters/pagination change
+   */
+  useEffect(() => {
+    fetchPurchases();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage]);
+
+  /**
+   * Load all purchases for stats on mount
+   */
+  useEffect(() => {
+    fetchAllPurchases();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /**
+   * Apply filters (called by Apply Filters button)
+   */
+  const handleApplyFilters = () => {
+    // Save the current filter values as applied filters
+    setAppliedFilters({
+      search: searchQuery,
+      startDate: startDate,
+      endDate: endDate,
+      supplier: selectedSupplier,
+      status: selectedStatus,
+      paymentStatus: selectedPaymentStatus,
+    });
+    setCurrentPage(1);
+    fetchPurchases();
+  };
+
+  /**
+   * Remove individual filter
+   */
+  const handleRemoveFilter = async (filterType: string) => {
+    // Reset the specific filter in both input and applied states
+    switch (filterType) {
+      case "search":
+        setSearchQuery("");
+        setAppliedFilters((prev) => ({ ...prev, search: "" }));
+        break;
+      case "startDate":
+        setStartDate("");
+        setAppliedFilters((prev) => ({ ...prev, startDate: "" }));
+        break;
+      case "endDate":
+        setEndDate("");
+        setAppliedFilters((prev) => ({ ...prev, endDate: "" }));
+        break;
+      case "supplier":
+        setSelectedSupplier("all");
+        setAppliedFilters((prev) => ({ ...prev, supplier: "all" }));
+        break;
+      case "status":
+        setSelectedStatus("all");
+        setAppliedFilters((prev) => ({ ...prev, status: "all" }));
+        break;
+      case "paymentStatus":
+        setSelectedPaymentStatus("all");
+        setAppliedFilters((prev) => ({ ...prev, paymentStatus: "all" }));
+        break;
+    }
+
+    // Reset to first page and trigger refetch
+    setCurrentPage(1);
+
+    // Build updated filters for immediate fetch
+    const updatedFilters: PurchaseFilters = {
+      page: 1,
+      pageSize,
+      search: filterType === "search" ? undefined : searchQuery || undefined,
+      startDate: filterType === "startDate" ? undefined : startDate || undefined,
+      endDate: filterType === "endDate" ? undefined : endDate || undefined,
+      supplierName:
+        filterType === "supplier"
+          ? undefined
+          : selectedSupplier !== "all"
+          ? selectedSupplier
+          : undefined,
+      status:
+        filterType === "status"
+          ? undefined
+          : selectedStatus !== "all"
+          ? (selectedStatus as "received" | "pending")
+          : undefined,
+      paymentStatus:
+        filterType === "paymentStatus"
+          ? undefined
+          : selectedPaymentStatus !== "all"
+          ? (selectedPaymentStatus as "paid" | "partial" | "unpaid")
+          : undefined,
+    };
+
+    // Fetch with updated filters immediately
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await inventoryService.getPurchases(updatedFilters);
+      setPurchases(response.data);
+      setTotalPages(response.pagination.totalPages);
+      setTotalItems(response.pagination.totalItems);
+    } catch (err: any) {
+      setError(err);
+      console.error("Failed to load purchases:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Get active filter labels for display (based on applied filters, not current inputs)
+   */
+  const getActiveFilters = () => {
+    const filters: { type: string; label: string; value: string }[] = [];
+
+    if (appliedFilters.search) {
+      filters.push({ type: "search", label: "Search", value: appliedFilters.search });
+    }
+    if (appliedFilters.startDate) {
+      filters.push({
+        type: "startDate",
+        label: "From",
+        value: new Date(appliedFilters.startDate).toLocaleDateString(),
+      });
+    }
+    if (appliedFilters.endDate) {
+      filters.push({
+        type: "endDate",
+        label: "To",
+        value: new Date(appliedFilters.endDate).toLocaleDateString(),
+      });
+    }
+    if (appliedFilters.supplier !== "all") {
+      filters.push({ type: "supplier", label: "Supplier", value: appliedFilters.supplier });
+    }
+    if (appliedFilters.status !== "all") {
+      filters.push({
+        type: "status",
+        label: "Status",
+        value: appliedFilters.status.charAt(0).toUpperCase() + appliedFilters.status.slice(1),
+      });
+    }
+    if (appliedFilters.paymentStatus !== "all") {
+      filters.push({
+        type: "paymentStatus",
+        label: "Payment",
+        value:
+          appliedFilters.paymentStatus.charAt(0).toUpperCase() +
+          appliedFilters.paymentStatus.slice(1),
+      });
+    }
+
+    return filters;
+  };
+
+  const activeFilters = getActiveFilters();
 
   /**
    * Handle receive purchase
@@ -227,13 +376,21 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
       async () => {
         try {
           await inventoryService.receivePurchase(id);
-          loadData(); // Reload list
+          fetchPurchases(); // Reload list
+          fetchAllPurchases(); // Update stats
         } catch (err: any) {
           setError(`Failed to receive purchase: ${err.message}`);
         }
       },
       "success"
     );
+  };
+
+  /**
+   * Handle page change (convert from 0-based to 1-based)
+   */
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page + 1); // Convert back to 1-based
   };
 
   // Define table columns
@@ -330,14 +487,6 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
     },
   ];
 
-  // Adapter for sort change
-  const handleSortChange = (config: {
-    key: keyof PurchaseDto | string;
-    direction: "asc" | "desc";
-  }) => {
-    handleSort(config.key);
-  };
-
   return (
     <RoleGuard
       requireRole={UserRole.Manager}
@@ -380,40 +529,135 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
 
         {/* Error Message */}
         {error && (
-          <ApiErrorAlert error={error} onRetry={loadData} onDismiss={() => setError(null)} />
+          <ApiErrorAlert error={error} onRetry={fetchPurchases} onDismiss={() => setError(null)} />
         )}
 
         {/* Loading State */}
         {loading && <LoadingSpinner size="lg" text="Loading purchases..." />}
 
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            title="Total Purchase Orders"
+            value={allPurchases.length}
+            icon="📦"
+            iconBgColor="bg-blue-100 dark:bg-blue-900/20"
+          />
+          <StatCard
+            title="Pending Receipt"
+            value={allPurchases.filter((p) => !p.receivedDate).length}
+            icon="⏳"
+            iconBgColor="bg-yellow-100 dark:bg-yellow-900/20"
+            valueColor="text-yellow-600 dark:text-yellow-500"
+          />
+          <StatCard
+            title="Received"
+            value={allPurchases.filter((p) => p.receivedDate).length}
+            icon="✅"
+            iconBgColor="bg-green-100 dark:bg-green-900/20"
+            valueColor="text-green-600 dark:text-green-500"
+          />
+          <StatCard
+            title="Total Value"
+            value={`$${allPurchases.reduce((sum, p) => sum + p.totalCost, 0).toFixed(2)}`}
+            icon="💰"
+            iconBgColor="bg-purple-100 dark:bg-purple-900/20"
+          />
+        </div>
+
+        {/* Active Filters Display - Full Width */}
+        {!loading && !error && activeFilters.length > 0 && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-5 py-3">
+            <div className="flex items-center flex-wrap gap-2">
+              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                Active Filters:
+              </span>
+              {activeFilters.map((filter) => (
+                <span
+                  key={filter.type}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100 rounded-full text-sm font-medium"
+                >
+                  <span className="font-semibold">{filter.label}:</span>
+                  <span>{filter.value}</span>
+                  <button
+                    onClick={() => handleRemoveFilter(filter.type)}
+                    className="ml-1 hover:bg-blue-200 dark:hover:bg-blue-700 rounded-full p-0.5 transition-colors"
+                    title={`Remove ${filter.label} filter`}
+                  >
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </span>
+              ))}
+              <button
+                onClick={handleResetFilters}
+                className="ml-2 text-sm text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 font-medium underline"
+              >
+                Clear All
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Purchases DataTable or Error */}
         {!loading && !error && (
           <DataTable
-            data={displayData}
+            data={purchases}
             columns={columns}
             actions={actions}
             getRowKey={(row) => row.id}
+            loading={loading}
             pagination
             paginationConfig={paginationConfig}
             onPageChange={handlePageChange}
-            onPageSizeChange={handlePageSizeChange}
-            sortable
-            sortConfig={sortConfig ?? undefined}
-            onSortChange={handleSortChange}
             emptyMessage="No purchase orders found. Click 'New Purchase Order' to create one."
             showFilterButton
             activeFilterCount={activeFilterCount}
             showResetButton={hasActiveFilters}
             onResetFilters={handleResetFilters}
             searchBar={
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg
-                    className="h-5 w-5 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg
+                      className="h-5 w-5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search purchases..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleApplyFilters()}
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
+                  />
+                </div>
+                <button
+                  onClick={handleApplyFilters}
+                  className="px-4 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors whitespace-nowrap"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -421,14 +665,7 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
                       d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                     />
                   </svg>
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search purchases..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
-                />
+                </button>
               </div>
             }
             filterSection={
@@ -516,40 +753,41 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
                     </select>
                   </div>
                 </div>
+
+                {/* Filter Actions */}
+                <div className="flex justify-end gap-2">
+                  {/* <button
+                    onClick={handleResetFilters}
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                      Clear Filters
+                    </div>
+                  </button> */}
+                  <button
+                    onClick={handleApplyFilters}
+                    className="px-6 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+                  >
+                    Apply Filters
+                  </button>
+                </div>
               </div>
             }
           />
         )}
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard
-            title="Total Purchase Orders"
-            value={purchases.length}
-            icon="📦"
-            iconBgColor="bg-blue-100 dark:bg-blue-900/20"
-          />
-          <StatCard
-            title="Pending Receipt"
-            value={purchases.filter((p) => !p.receivedDate).length}
-            icon="⏳"
-            iconBgColor="bg-yellow-100 dark:bg-yellow-900/20"
-            valueColor="text-yellow-600 dark:text-yellow-500"
-          />
-          <StatCard
-            title="Received"
-            value={purchases.filter((p) => p.receivedDate).length}
-            icon="✅"
-            iconBgColor="bg-green-100 dark:bg-green-900/20"
-            valueColor="text-green-600 dark:text-green-500"
-          />
-          <StatCard
-            title="Total Value"
-            value={`$${purchases.reduce((sum, p) => sum + p.totalCost, 0).toFixed(2)}`}
-            icon="💰"
-            iconBgColor="bg-purple-100 dark:bg-purple-900/20"
-          />
-        </div>
 
         {/* Purchase Form Modal */}
         <PurchaseFormModal
@@ -559,7 +797,8 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
             setSelectedPurchase(undefined);
           }}
           onSuccess={() => {
-            loadData();
+            fetchPurchases();
+            fetchAllPurchases();
           }}
           purchase={selectedPurchase}
         />

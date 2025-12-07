@@ -18,6 +18,7 @@ import { Button } from "@/components/shared/Button";
 import { StatusBadge, getApprovalStatusVariant } from "@/components/shared/StatusBadge";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { ErrorAlert } from "@/components/shared/ErrorAlert";
+import { StatCard } from "@/components/shared";
 import { DataTable } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
@@ -35,15 +36,30 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
   const { canManage } = usePermission();
 
   const [expenses, setExpenses] = useState<ExpenseDto[]>([]);
+  const [allExpenses, setAllExpenses] = useState<ExpenseDto[]>([]); // For stats calculation
   const [categories, setCategories] = useState<ExpenseCategoryDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filter states
+  // Filter states (input values)
   const [categoryFilter, setCategoryFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<number | undefined>(undefined);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+
+  // Applied filters (what's actually being used in the API call)
+  const [appliedFilters, setAppliedFilters] = useState({
+    category: "",
+    status: undefined as number | undefined,
+    startDate: "",
+    endDate: "",
+  });
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const pageSize = 20;
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -54,54 +70,127 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
   // Hooks
   const confirmation = useConfirmation();
 
-  // DataTable hook
+  // DataTable hook (disabled client-side pagination since we use server-side)
   const {
     data: displayData,
-    paginationConfig,
     sortConfig,
-    handlePageChange,
-    handlePageSizeChange,
     handleSort,
   } = useDataTable(expenses, {
     pageSize: 20,
     sortable: true,
-    pagination: true,
+    pagination: false, // Disable client-side pagination
   });
 
   /**
-   * Load expenses and categories
+   * Count active filters (based on applied filters, not input values)
+   */
+  const getActiveFilterCount = () => {
+    let count = 0;
+    if (appliedFilters.category) count++;
+    if (appliedFilters.status !== undefined) count++;
+    if (appliedFilters.startDate) count++;
+    if (appliedFilters.endDate) count++;
+    return count;
+  };
+
+  const activeFilterCount = getActiveFilterCount();
+
+  /**
+   * Check if any filters are active (based on applied filters, not input values)
+   */
+  const hasActiveFilters = activeFilterCount > 0;
+
+  /**
+   * Get active filter labels for display (based on applied filters)
+   */
+  const getActiveFilters = () => {
+    const filters: { type: string; label: string; value: string }[] = [];
+
+    if (appliedFilters.category) {
+      const category = categories.find((c) => c.id === appliedFilters.category);
+      filters.push({
+        type: "category",
+        label: "Category",
+        value: category?.nameEn || appliedFilters.category,
+      });
+    }
+    if (appliedFilters.status !== undefined) {
+      filters.push({
+        type: "status",
+        label: "Status",
+        value: getStatusLabel(appliedFilters.status),
+      });
+    }
+    if (appliedFilters.startDate) {
+      filters.push({
+        type: "startDate",
+        label: "From",
+        value: new Date(appliedFilters.startDate).toLocaleDateString(),
+      });
+    }
+    if (appliedFilters.endDate) {
+      filters.push({
+        type: "endDate",
+        label: "To",
+        value: new Date(appliedFilters.endDate).toLocaleDateString(),
+      });
+    }
+
+    return filters;
+  };
+
+  const activeFilters = getActiveFilters();
+
+  /**
+   * Load expenses with server-side filtering and pagination
    */
   useEffect(() => {
-    loadData();
+    loadExpenses();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryFilter, statusFilter, startDate, endDate]); // Removed canManage - RoleGuard handles permission
+  }, [currentPage]);
 
-  const loadData = async () => {
+  /**
+   * Load categories on mount
+   */
+  useEffect(() => {
+    loadCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /**
+   * Load all expenses for statistics (without filters)
+   */
+  useEffect(() => {
+    loadAllExpenses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      const categoriesData = await expenseService.getExpenseCategories();
+      setCategories(categoriesData);
+    } catch (err: any) {
+      console.error("Failed to load categories:", err);
+    }
+  };
+
+  const loadExpenses = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Load categories (for filter dropdown)
-      const categoriesData = await expenseService.getExpenseCategories();
-      setCategories(categoriesData);
-
-      // Load expenses
-      // Note: API supports pagination. For client-side DataTable, we fetch a larger set or adapt.
-      // Previous code used server-side pagination: page: currentPage, pageSize: pageSize
-      // Here we will fetch a reasonable amount for client-side handling or we should implement server-side DataTable.
-      // Given the "replace with example page" instruction, and example page uses client-side DataTable hook,
-      // we'll fetch a larger set (e.g. 1000) or just the first page if we assume limited data.
-      // Let's fetch more to be safe for client-side sorting/pagination.
       const response = await expenseService.getExpenses({
-        page: 1,
-        pageSize: 1000,
-        categoryId: categoryFilter || undefined,
-        approvalStatus: statusFilter,
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
+        page: currentPage,
+        pageSize,
+        categoryId: appliedFilters.category || undefined,
+        approvalStatus: appliedFilters.status,
+        startDate: appliedFilters.startDate || undefined,
+        endDate: appliedFilters.endDate || undefined,
       });
 
       setExpenses(response.data);
+      setTotalPages(response.pagination.totalPages);
+      setTotalItems(response.pagination.totalItems);
     } catch (err: any) {
       setError(err.message || "Failed to load expenses");
       console.error("Error loading expenses:", err);
@@ -110,9 +199,119 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
     }
   };
 
+  /**
+   * Fetch all expenses for statistics (without filters)
+   */
+  const loadAllExpenses = async () => {
+    try {
+      const response = await expenseService.getExpenses({ page: 1, pageSize: 10000 });
+      setAllExpenses(response.data || []);
+    } catch (err: any) {
+      console.error("Failed to load all expenses for stats:", err);
+    }
+  };
+
+  /**
+   * Apply filters (called by Apply Filters button)
+   */
   const handleApplyFilters = () => {
-    // Filters are applied via useEffect dependencies
-    loadData();
+    // Save the current filter values as applied filters
+    setAppliedFilters({
+      category: categoryFilter,
+      status: statusFilter,
+      startDate: startDate,
+      endDate: endDate,
+    });
+    setCurrentPage(1);
+    // Will trigger loadExpenses via useEffect
+    setTimeout(() => loadExpenses(), 0);
+  };
+
+  /**
+   * Reset all filters
+   */
+  const handleResetFilters = async () => {
+    // Reset all filter states
+    setCategoryFilter("");
+    setStatusFilter(undefined);
+    setStartDate("");
+    setEndDate("");
+    setAppliedFilters({
+      category: "",
+      status: undefined,
+      startDate: "",
+      endDate: "",
+    });
+    setCurrentPage(1);
+
+    // Fetch with empty filters
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await expenseService.getExpenses({ page: 1, pageSize });
+      setExpenses(response.data);
+      setTotalPages(response.pagination.totalPages);
+      setTotalItems(response.pagination.totalItems);
+    } catch (err: any) {
+      setError(err.message || "Failed to load expenses");
+      console.error("Error loading expenses:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Remove individual filter
+   */
+  const handleRemoveFilter = async (filterType: string) => {
+    // Reset the specific filter in both input and applied states
+    switch (filterType) {
+      case "category":
+        setCategoryFilter("");
+        setAppliedFilters((prev) => ({ ...prev, category: "" }));
+        break;
+      case "status":
+        setStatusFilter(undefined);
+        setAppliedFilters((prev) => ({ ...prev, status: undefined }));
+        break;
+      case "startDate":
+        setStartDate("");
+        setAppliedFilters((prev) => ({ ...prev, startDate: "" }));
+        break;
+      case "endDate":
+        setEndDate("");
+        setAppliedFilters((prev) => ({ ...prev, endDate: "" }));
+        break;
+    }
+
+    // Reset to first page and trigger refetch
+    setCurrentPage(1);
+
+    // Build updated filters for immediate fetch
+    const updatedFilters = {
+      page: 1,
+      pageSize,
+      categoryId:
+        filterType === "category" ? undefined : categoryFilter || undefined,
+      approvalStatus: filterType === "status" ? undefined : statusFilter,
+      startDate: filterType === "startDate" ? undefined : startDate || undefined,
+      endDate: filterType === "endDate" ? undefined : endDate || undefined,
+    };
+
+    // Fetch with updated filters immediately
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await expenseService.getExpenses(updatedFilters);
+      setExpenses(response.data);
+      setTotalPages(response.pagination.totalPages);
+      setTotalItems(response.pagination.totalItems);
+    } catch (err: any) {
+      setError(err.message || "Failed to load expenses");
+      console.error("Error loading expenses:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEdit = (expense: ExpenseDto) => {
@@ -142,7 +341,8 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
       async () => {
         try {
           await expenseService.deleteExpense(expenseId);
-          loadData();
+          loadExpenses();
+          loadAllExpenses(); // Update stats
         } catch (err: any) {
           setError(err.message || "Failed to delete expense");
         }
@@ -158,13 +358,21 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
       async () => {
         try {
           await expenseService.approveExpense(expenseId, approved);
-          loadData();
+          loadExpenses();
+          loadAllExpenses(); // Update stats
         } catch (err: any) {
           setError(err.message || `Failed to ${approved ? "approve" : "reject"} expense`);
         }
       },
       approved ? "success" : "warning"
     );
+  };
+
+  /**
+   * Handle page change (convert from 0-based to 1-based)
+   */
+  const handlePageChangeWrapper = (page: number) => {
+    setCurrentPage(page + 1); // Convert back to 1-based
   };
 
   const getStatusLabel = (status: number) => {
@@ -348,62 +556,81 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white dark:bg-gray-800  p-4 rounded shadow mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Category</label>
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2"
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <StatCard
+          title="Total Expenses"
+          value={allExpenses.length}
+          icon="💸"
+          iconBgColor="bg-red-100 dark:bg-red-900/20"
+        />
+        <StatCard
+          title="Pending Approval"
+          value={allExpenses.filter((e) => e.approvalStatus === 0).length}
+          icon="⏳"
+          iconBgColor="bg-yellow-100 dark:bg-yellow-900/20"
+          valueColor="text-yellow-600 dark:text-yellow-500"
+        />
+        <StatCard
+          title="Approved"
+          value={allExpenses.filter((e) => e.approvalStatus === 1).length}
+          icon="✅"
+          iconBgColor="bg-green-100 dark:bg-green-900/20"
+          valueColor="text-green-600 dark:text-green-500"
+        />
+        <StatCard
+          title="Total Amount"
+          value={`$${allExpenses.reduce((sum, e) => sum + e.amount, 0).toFixed(2)}`}
+          icon="💰"
+          iconBgColor="bg-purple-100 dark:bg-purple-900/20"
+          valueColor="text-purple-600 dark:text-purple-500"
+        />
+      </div>
+
+      {/* Active Filters Display - Full Width */}
+      {!loading && !error && activeFilters.length > 0 && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-5 py-3 mb-6">
+          <div className="flex items-center flex-wrap gap-2">
+            <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+              Active Filters:
+            </span>
+            {activeFilters.map((filter) => (
+              <span
+                key={filter.type}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100 rounded-full text-sm font-medium"
+              >
+                <span className="font-semibold">{filter.label}:</span>
+                <span>{filter.value}</span>
+                <button
+                  onClick={() => handleRemoveFilter(filter.type)}
+                  className="ml-1 hover:bg-blue-200 dark:hover:bg-blue-700 rounded-full p-0.5 transition-colors"
+                  title={`Remove ${filter.label} filter`}
+                >
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </span>
+            ))}
+            <button
+              onClick={handleResetFilters}
+              className="ml-2 text-sm text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 font-medium underline"
             >
-              <option value="">All Categories</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {locale === "ar" ? cat.nameAr : cat.nameEn}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Status</label>
-            <select
-              value={statusFilter ?? ""}
-              onChange={(e) => setStatusFilter(e.target.value ? Number(e.target.value) : undefined)}
-              className="w-full border border-gray-300 rounded px-3 py-2"
-            >
-              <option value="">All Statuses</option>
-              <option value="0">Pending</option>
-              <option value="1">Approved</option>
-              <option value="2">Rejected</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Start Date</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2"
-            ></input>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">End Date</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2"
-            ></input>
-          </div>
-          <div className="flex items-end">
-            <Button onClick={handleApplyFilters} variant="secondary" isFullWidth>
-              Apply Filters
-            </Button>
+              Clear All
+            </button>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Error Message */}
       {error && <ErrorAlert message={error} onDismiss={() => setError(null)} className="mb-4" />}
@@ -418,15 +645,103 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
           columns={columns}
           actions={actions}
           getRowKey={(row) => row.id}
+          loading={loading}
           pagination
-          paginationConfig={paginationConfig}
-          onPageChange={handlePageChange}
-          onPageSizeChange={handlePageSizeChange}
+          paginationConfig={{
+            currentPage: currentPage - 1, // Convert to 0-based for DataTable
+            totalPages,
+            pageSize,
+            totalItems,
+          }}
+          onPageChange={handlePageChangeWrapper}
           sortable
           sortConfig={sortConfig ?? undefined}
           onSortChange={handleSortChange}
           emptyMessage="No expenses found. Add your first expense to get started."
           showRowNumbers
+          showFilterButton
+          activeFilterCount={activeFilterCount}
+          showResetButton={hasActiveFilters}
+          onResetFilters={handleResetFilters}
+          filterSection={
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Category Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Category
+                  </label>
+                  <select
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
+                  >
+                    <option value="">All Categories</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {locale === "ar" ? cat.nameAr : cat.nameEn}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Status Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Status
+                  </label>
+                  <select
+                    value={statusFilter ?? ""}
+                    onChange={(e) =>
+                      setStatusFilter(e.target.value ? Number(e.target.value) : undefined)
+                    }
+                    className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
+                  >
+                    <option value="">All Statuses</option>
+                    <option value="0">Pending</option>
+                    <option value="1">Approved</option>
+                    <option value="2">Rejected</option>
+                  </select>
+                </div>
+
+                {/* Start Date Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
+                  />
+                </div>
+
+                {/* End Date Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Filter Actions */}
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={handleApplyFilters}
+                  className="px-6 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+                >
+                  Apply Filters
+                </button>
+              </div>
+            </div>
+          }
           imageColumn={{
             getImageUrl: (row) =>
               row.receiptImagePath ? getExpenseImageUrl(row.receiptImagePath, row.id, "large") : "",
@@ -457,7 +772,8 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
           onSuccess={() => {
             setIsModalOpen(false);
             setSelectedExpense(undefined);
-            loadData();
+            loadExpenses();
+            loadAllExpenses(); // Update stats
           }}
         />
       )}

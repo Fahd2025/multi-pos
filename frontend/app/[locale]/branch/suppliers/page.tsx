@@ -33,6 +33,7 @@ export default function SuppliersPage() {
   const { canManage } = usePermission();
 
   const [suppliers, setSuppliers] = useState<SupplierDto[]>([]);
+  const [allSuppliers, setAllSuppliers] = useState<SupplierDto[]>([]); // For stats calculation
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,38 +41,197 @@ export default function SuppliersPage() {
   const [isImageCarouselOpen, setIsImageCarouselOpen] = useState(false);
   const [selectedSupplierImage, setSelectedSupplierImage] = useState<string>("");
 
+  // Filter states (input values)
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showActiveOnly, setShowActiveOnly] = useState(true);
+
+  // Applied filters (what's actually being used in the API call)
+  const [appliedFilters, setAppliedFilters] = useState({
+    search: "",
+    isActive: true,
+  });
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const pageSize = 20;
+
   // Initialize hooks
   const {
     data: displayData,
-    paginationConfig,
     sortConfig,
-    handlePageChange,
-    handlePageSizeChange,
     handleSort,
   } = useDataTable(suppliers, {
     pageSize: 20,
     sortable: true,
-    pagination: true,
+    pagination: false, // Disable client-side pagination
   });
 
   const viewModal = useModal<SupplierDto>();
   const confirmation = useConfirmation();
 
-  // Load suppliers on mount
+  /**
+   * Count active filters (based on applied filters, not input values)
+   */
+  const getActiveFilterCount = () => {
+    let count = 0;
+    if (!appliedFilters.isActive) count++; // Count if "show all" is active
+    return count;
+  };
+
+  const activeFilterCount = getActiveFilterCount();
+
+  /**
+   * Check if any filters are active (based on applied filters, not input values)
+   */
+  const hasActiveFilters = activeFilterCount > 0 || !!appliedFilters.search;
+
+  /**
+   * Get active filter labels for display (based on applied filters)
+   */
+  const getActiveFilters = () => {
+    const filters: { type: string; label: string; value: string }[] = [];
+
+    if (appliedFilters.search) {
+      filters.push({ type: "search", label: "Search", value: appliedFilters.search });
+    }
+    if (!appliedFilters.isActive) {
+      filters.push({ type: "isActive", label: "Status", value: "All (Active & Inactive)" });
+    }
+
+    return filters;
+  };
+
+  const activeFilters = getActiveFilters();
+
+  /**
+   * Load suppliers with server-side filtering and pagination
+   */
   useEffect(() => {
     loadSuppliers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount - RoleGuard handles permission
+  }, [currentPage]);
+
+  /**
+   * Load all suppliers for statistics (without filters)
+   */
+  useEffect(() => {
+    loadAllSuppliers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const loadSuppliers = async () => {
     try {
       setIsLoading(true);
       setError(null);
       const response = await supplierService.getSuppliers({
-        includeInactive: false,
-        pageSize: 1000, // Load all for client-side filtering
+        page: currentPage,
+        pageSize,
+        searchTerm: appliedFilters.search || undefined,
+        includeInactive: !appliedFilters.isActive,
       });
       setSuppliers(response.data);
+      setTotalPages(response.pagination.totalPages);
+      setTotalItems(response.pagination.totalItems);
+    } catch (err) {
+      setError("Failed to load suppliers. Please try again.");
+      console.error("Error loading suppliers:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Fetch all suppliers for statistics (without filters)
+   */
+  const loadAllSuppliers = async () => {
+    try {
+      const response = await supplierService.getSuppliers({ page: 1, pageSize: 10000 });
+      setAllSuppliers(response.data || []);
+    } catch (err) {
+      console.error("Failed to load all suppliers for stats:", err);
+    }
+  };
+
+  /**
+   * Apply filters (called by Apply Filters button)
+   */
+  const handleApplyFilters = () => {
+    // Save the current filter values as applied filters
+    setAppliedFilters({
+      search: searchTerm,
+      isActive: showActiveOnly,
+    });
+    setCurrentPage(1);
+    // Will trigger loadSuppliers via useEffect
+    setTimeout(() => loadSuppliers(), 0);
+  };
+
+  /**
+   * Reset all filters
+   */
+  const handleResetFilters = async () => {
+    // Reset all filter states
+    setSearchTerm("");
+    setShowActiveOnly(true);
+    setAppliedFilters({
+      search: "",
+      isActive: true,
+    });
+    setCurrentPage(1);
+
+    // Fetch with empty filters
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await supplierService.getSuppliers({ page: 1, pageSize });
+      setSuppliers(response.data);
+      setTotalPages(response.pagination.totalPages);
+      setTotalItems(response.pagination.totalItems);
+    } catch (err) {
+      setError("Failed to load suppliers. Please try again.");
+      console.error("Error loading suppliers:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Remove individual filter
+   */
+  const handleRemoveFilter = async (filterType: string) => {
+    // Reset the specific filter in both input and applied states
+    switch (filterType) {
+      case "search":
+        setSearchTerm("");
+        setAppliedFilters((prev) => ({ ...prev, search: "" }));
+        break;
+      case "isActive":
+        setShowActiveOnly(true);
+        setAppliedFilters((prev) => ({ ...prev, isActive: true }));
+        break;
+    }
+
+    // Reset to first page and trigger refetch
+    setCurrentPage(1);
+
+    // Build updated filters for immediate fetch
+    const updatedFilters = {
+      page: 1,
+      pageSize,
+      searchTerm: filterType === "search" ? undefined : searchTerm || undefined,
+      includeInactive: filterType === "isActive" ? false : !showActiveOnly,
+    };
+
+    // Fetch with updated filters immediately
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await supplierService.getSuppliers(updatedFilters);
+      setSuppliers(response.data);
+      setTotalPages(response.pagination.totalPages);
+      setTotalItems(response.pagination.totalItems);
     } catch (err) {
       setError("Failed to load suppliers. Please try again.");
       console.error("Error loading suppliers:", err);
@@ -262,6 +422,13 @@ export default function SuppliersPage() {
     },
   ];
 
+  /**
+   * Handle page change (convert from 0-based to 1-based)
+   */
+  const handlePageChangeWrapper = (page: number) => {
+    setCurrentPage(page + 1); // Convert back to 1-based
+  };
+
   // Handlers
   const handleCreate = () => {
     setSelectedSupplier(undefined);
@@ -270,6 +437,7 @@ export default function SuppliersPage() {
 
   const handleSuccess = async () => {
     await loadSuppliers();
+    await loadAllSuppliers(); // Update stats
     setIsModalOpen(false);
     setSelectedSupplier(undefined);
   };
@@ -291,6 +459,7 @@ export default function SuppliersPage() {
         try {
           await supplierService.deleteSupplier(supplier.id);
           await loadSuppliers();
+          await loadAllSuppliers(); // Update stats
         } catch (err: any) {
           setError(err.message || "Failed to delete supplier");
           console.error("Error deleting supplier:", err);
@@ -300,12 +469,12 @@ export default function SuppliersPage() {
     );
   };
 
-  // Calculate statistics
+  // Calculate statistics (based on all suppliers, not filtered)
   const stats = {
-    total: suppliers.length,
-    active: suppliers.filter((s) => s.isActive).length,
-    totalSpent: suppliers.reduce((sum, s) => sum + s.totalSpent, 0),
-    totalPurchases: suppliers.reduce((sum, s) => sum + s.totalPurchases, 0),
+    total: allSuppliers.length,
+    active: allSuppliers.filter((s) => s.isActive).length,
+    totalSpent: allSuppliers.reduce((sum, s) => sum + s.totalSpent, 0),
+    totalPurchases: allSuppliers.reduce((sum, s) => sum + s.totalPurchases, 0),
   };
 
   if (isLoading) {
@@ -412,28 +581,50 @@ export default function SuppliersPage() {
           />
         </div>
 
-        {/* Actions Bar */}
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-600">
-              Showing {displayData.length} of {suppliers.length} suppliers
-            </p>
+        {/* Active Filters Display - Full Width */}
+        {!isLoading && !error && activeFilters.length > 0 && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-5 py-3 mb-6">
+            <div className="flex items-center flex-wrap gap-2">
+              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                Active Filters:
+              </span>
+              {activeFilters.map((filter) => (
+                <span
+                  key={filter.type}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100 rounded-full text-sm font-medium"
+                >
+                  <span className="font-semibold">{filter.label}:</span>
+                  <span>{filter.value}</span>
+                  <button
+                    onClick={() => handleRemoveFilter(filter.type)}
+                    className="ml-1 hover:bg-blue-200 dark:hover:bg-blue-700 rounded-full p-0.5 transition-colors"
+                    title={`Remove ${filter.label} filter`}
+                  >
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </span>
+              ))}
+              <button
+                onClick={handleResetFilters}
+                className="ml-2 text-sm text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 font-medium underline"
+              >
+                Clear All
+              </button>
+            </div>
           </div>
-          <button
-            onClick={handleCreate}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            Add Supplier
-          </button>
-        </div>
+        )}
 
         {/* DataTable */}
         <DataTable
@@ -441,15 +632,101 @@ export default function SuppliersPage() {
           columns={columns}
           actions={actions}
           getRowKey={(row) => row.id}
+          loading={isLoading}
           pagination
-          paginationConfig={paginationConfig}
-          onPageChange={handlePageChange}
-          onPageSizeChange={handlePageSizeChange}
+          paginationConfig={{
+            currentPage: currentPage - 1, // Convert to 0-based for DataTable
+            totalPages,
+            pageSize,
+            totalItems,
+          }}
+          onPageChange={handlePageChangeWrapper}
           sortable
           sortConfig={sortConfig ?? undefined}
           onSortChange={handleSortChange}
           emptyMessage="No suppliers found. Click 'Add Supplier' to create one."
           showRowNumbers
+          showFilterButton
+          activeFilterCount={activeFilterCount}
+          showResetButton={hasActiveFilters}
+          onResetFilters={handleResetFilters}
+          searchBar={
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search by name, code, email, phone..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleApplyFilters()}
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
+                />
+              </div>
+              <button
+                onClick={handleApplyFilters}
+                className="px-4 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors whitespace-nowrap"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </button>
+            </div>
+          }
+          filterSection={
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Active Status Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Status
+                  </label>
+                  <div className="flex items-center h-10 px-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700">
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={showActiveOnly}
+                        onChange={(e) => setShowActiveOnly(e.target.checked)}
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                      />
+                      <span className="ml-2 text-sm text-gray-900 dark:text-gray-100">
+                        Show Active Only
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Filter Actions */}
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={handleApplyFilters}
+                  className="px-6 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+                >
+                  Apply Filters
+                </button>
+              </div>
+            </div>
+          }
           imageColumn={{
             getImageUrl: (row) =>
               row.logoPath ? getSupplierImageUrl(row.logoPath, row.id, "large") : "",
