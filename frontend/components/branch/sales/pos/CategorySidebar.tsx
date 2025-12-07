@@ -12,6 +12,7 @@ import {
   Salad,
   Cake,
   ChevronLeft,
+  Menu,
 } from "lucide-react";
 import styles from "./Pos2.module.css";
 import { CategoryDto } from "@/types/api.types";
@@ -58,7 +59,7 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
           aria-label="Hide sidebar"
           title="Hide sidebar"
         >
-          <ChevronLeft size={36} />
+          <Menu size={32} />
         </button>
       )}
 

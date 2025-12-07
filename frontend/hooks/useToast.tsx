@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback } from "react";
-import { ToastContainer, ToastMessage, ToastType } from "./Toast";
+import { ToastContainer, ToastMessage, ToastType } from "../components/branch/sales/pos/Toast";
 import { playSuccessBeep, playErrorBeep } from "@/lib/utils";
 
 interface ToastContextValue {

@@ -1,11 +1,20 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, CreditCard, Banknote, Percent, Users, Truck, UtensilsCrossed, ShoppingBag } from "lucide-react";
+import {
+  X,
+  CreditCard,
+  Banknote,
+  Percent,
+  Users,
+  Truck,
+  UtensilsCrossed,
+  ShoppingBag,
+} from "lucide-react";
 import styles from "./Pos2.module.css";
 import { ProductDto } from "@/types/api.types";
 import salesService from "@/services/sales.service";
-import { useToast } from "./useToast";
+import { useToast } from "../../../../hooks/useToast";
 
 interface OrderItem extends ProductDto {
   quantity: number;
@@ -95,7 +104,10 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
     }
 
     if (orderType === "delivery" && (!customer.name || !customer.phone || !customer.address)) {
-      toast.warning("Missing customer details", "Please fill in customer name, phone, and address for delivery orders");
+      toast.warning(
+        "Missing customer details",
+        "Please fill in customer name, phone, and address for delivery orders"
+      );
       setError("Please fill in customer details for delivery orders");
       return;
     }
@@ -109,9 +121,15 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
     if (paymentMethod === "cash" && paidAmount < total) {
       toast.error(
         "Insufficient payment",
-        `Amount paid ($${paidAmount.toFixed(2)}) is less than total ($${total.toFixed(2)}). Please collect more cash.`
+        `Amount paid ($${paidAmount.toFixed(2)}) is less than total ($${total.toFixed(
+          2
+        )}). Please collect more cash.`
       );
-      setError(`Insufficient payment. Amount paid ($${paidAmount.toFixed(2)}) is less than total ($${total.toFixed(2)})`);
+      setError(
+        `Insufficient payment. Amount paid ($${paidAmount.toFixed(
+          2
+        )}) is less than total ($${total.toFixed(2)})`
+      );
       return;
     }
 
@@ -121,14 +139,14 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
     try {
       // Map order type to invoice type
       const invoiceTypeMap: Record<OrderType, number> = {
-        "delivery": 2,
+        delivery: 2,
         "dine-in": 0,
-        "takeaway": 1,
+        takeaway: 1,
       };
 
       // Map payment method to enum
       const paymentMethodMap: Record<PaymentMethod, number> = {
-        "cash": 0,
+        cash: 0,
         "credit-card": 1,
         "debit-card": 2,
         "mobile-payment": 3,
@@ -166,9 +184,14 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
       const sale = await salesService.createSale(saleData);
 
       // Success - show success notification
-      const successDetails = paymentMethod === "cash"
-        ? `Invoice #${sale.invoiceNumber} | Total: $${total.toFixed(2)} | Paid: $${paidAmount.toFixed(2)} | Change: $${change.toFixed(2)}`
-        : `Invoice #${sale.invoiceNumber} | Total: $${total.toFixed(2)} | Payment: ${paymentMethod.replace("-", " ").toUpperCase()}`;
+      const successDetails =
+        paymentMethod === "cash"
+          ? `Invoice #${sale.invoiceNumber} | Total: $${total.toFixed(
+              2
+            )} | Paid: $${paidAmount.toFixed(2)} | Change: $${change.toFixed(2)}`
+          : `Invoice #${sale.invoiceNumber} | Total: $${total.toFixed(2)} | Payment: ${paymentMethod
+              .replace("-", " ")
+              .toUpperCase()}`;
 
       toast.success(
         "Transaction completed successfully!",
@@ -218,7 +241,9 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
             <label className={styles.formLabel}>Order Type</label>
             <div className={styles.orderTypeGrid}>
               <button
-                className={`${styles.orderTypeBtn} ${orderType === "delivery" ? styles.active : ""}`}
+                className={`${styles.orderTypeBtn} ${
+                  orderType === "delivery" ? styles.active : ""
+                }`}
                 onClick={() => setOrderType("delivery")}
               >
                 <Truck size={24} />
@@ -232,7 +257,9 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
                 <span>Dine-in</span>
               </button>
               <button
-                className={`${styles.orderTypeBtn} ${orderType === "takeaway" ? styles.active : ""}`}
+                className={`${styles.orderTypeBtn} ${
+                  orderType === "takeaway" ? styles.active : ""
+                }`}
                 onClick={() => setOrderType("takeaway")}
               >
                 <ShoppingBag size={24} />
@@ -352,28 +379,36 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
             <label className={styles.formLabel}>Payment Method</label>
             <div className={styles.paymentMethodGrid}>
               <button
-                className={`${styles.paymentMethodBtn} ${paymentMethod === "cash" ? styles.active : ""}`}
+                className={`${styles.paymentMethodBtn} ${
+                  paymentMethod === "cash" ? styles.active : ""
+                }`}
                 onClick={() => setPaymentMethod("cash")}
               >
                 <Banknote size={20} />
                 <span>Cash</span>
               </button>
               <button
-                className={`${styles.paymentMethodBtn} ${paymentMethod === "credit-card" ? styles.active : ""}`}
+                className={`${styles.paymentMethodBtn} ${
+                  paymentMethod === "credit-card" ? styles.active : ""
+                }`}
                 onClick={() => setPaymentMethod("credit-card")}
               >
                 <CreditCard size={20} />
                 <span>Credit Card</span>
               </button>
               <button
-                className={`${styles.paymentMethodBtn} ${paymentMethod === "debit-card" ? styles.active : ""}`}
+                className={`${styles.paymentMethodBtn} ${
+                  paymentMethod === "debit-card" ? styles.active : ""
+                }`}
                 onClick={() => setPaymentMethod("debit-card")}
               >
                 <CreditCard size={20} />
                 <span>Debit Card</span>
               </button>
               <button
-                className={`${styles.paymentMethodBtn} ${paymentMethod === "mobile-payment" ? styles.active : ""}`}
+                className={`${styles.paymentMethodBtn} ${
+                  paymentMethod === "mobile-payment" ? styles.active : ""
+                }`}
                 onClick={() => setPaymentMethod("mobile-payment")}
               >
                 <CreditCard size={20} />
@@ -467,20 +502,12 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
           )}
 
           {/* Error Message */}
-          {error && (
-            <div className={styles.errorMessage}>
-              {error}
-            </div>
-          )}
+          {error && <div className={styles.errorMessage}>{error}</div>}
         </div>
 
         {/* Footer */}
         <div className={styles.dialogFooter}>
-          <button
-            className={styles.cancelBtn}
-            onClick={onClose}
-            disabled={processing}
-          >
+          <button className={styles.cancelBtn} onClick={onClose} disabled={processing}>
             Cancel
           </button>
           <button

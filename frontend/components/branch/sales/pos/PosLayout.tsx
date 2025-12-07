@@ -6,7 +6,7 @@ import { CategorySidebar } from "./CategorySidebar";
 import { TopBar } from "./TopBar";
 import { ProductGrid } from "./ProductGrid";
 import { OrderPanel } from "./OrderPanel";
-import { ToastProvider } from "./useToast";
+import { ToastProvider } from "../../../../hooks/useToast";
 import inventoryService from "@/services/inventory.service";
 import { CategoryDto, ProductDto } from "@/types/api.types";
 import { playErrorBeep, playSuccessBeep } from "@/lib/utils";
