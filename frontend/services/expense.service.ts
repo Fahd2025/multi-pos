@@ -12,6 +12,7 @@ import { ExpenseDto, CreateExpenseDto, ExpenseCategoryDto, PaginationResponse, A
 export interface ExpenseFilters {
   page?: number;
   pageSize?: number;
+  search?: string;
   categoryId?: string;
   startDate?: string;
   endDate?: string;
@@ -54,6 +55,7 @@ class ExpenseService {
     if (filters.approvalStatus !== undefined) {
       params.append('approvalStatus', filters.approvalStatus.toString());
     }
+    if (filters.search) params.append('search', filters.search);
 
     const response = await api.get<PaginationResponse<ExpenseDto>>(
       `/api/v1/expenses?${params.toString()}`

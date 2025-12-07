@@ -12,8 +12,7 @@ import { ExpenseDto, CreateExpenseDto, ExpenseCategoryDto } from "@/types/api.ty
 import { FeaturedDialog } from "@/components/shared";
 import { ImageUpload } from "@/components/shared/ImageUpload";
 import { FormField } from "@/types/data-table.types";
-import { useApiError } from "@/hooks/useApiError";
-import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
+import { useApiOperation } from "@/hooks/useApiOperation";
 
 interface ExpenseFormModalProps {
   isOpen: boolean;
@@ -32,11 +31,10 @@ export default function ExpenseFormModal({
   onClose,
   onSuccess,
 }: ExpenseFormModalProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { execute, isLoading } = useApiOperation();
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [currentReceiptPath, setCurrentReceiptPath] = useState<string | null>(null); // Track current receipt path separately
-  const { error, isError, executeWithErrorHandling, clearError } = useApiError();
 
   // Initialize currentReceiptPath when expense changes
   useEffect(() => {
@@ -132,9 +130,8 @@ export default function ExpenseFormModal({
       throw new Error("Branch information is missing. Please refresh the page and try again.");
     }
 
-    setIsSubmitting(true);
-
-    const result = await executeWithErrorHandling(async () => {
+    await execute({
+      operation: async () => {
       const dto: CreateExpenseDto = {
         expenseCategoryId: data.expenseCategoryId,
         amount: Number(data.amount),
@@ -196,21 +193,19 @@ export default function ExpenseFormModal({
         }
       }
 
-      return savedExpense;
+        return savedExpense;
+      },
+      successMessage: expense ? "Expense updated successfully" : "Expense created successfully",
+      successDetail: `${data.descriptionEn} - $${Number(data.amount).toFixed(2)}`,
+      onSuccess: () => {
+        onSuccess();
+        onClose();
+        setSelectedImages([]);
+      },
     });
-
-    setIsSubmitting(false);
-
-    if (result) {
-      onSuccess();
-      onClose();
-      clearError();
-      setSelectedImages([]);
-    }
   };
 
   const handleClose = () => {
-    clearError();
     setSelectedImages([]);
     setCurrentReceiptPath(expense?.receiptImagePath || null);
     onClose();
@@ -229,13 +224,6 @@ export default function ExpenseFormModal({
 
   return (
     <>
-      {/* Error Display */}
-      {isOpen && isError && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[60] max-w-2xl w-full px-4">
-          <ApiErrorAlert error={error} onDismiss={clearError} />
-        </div>
-      )}
-
       {/* Main Form Modal */}
       <FeaturedDialog
         isOpen={isOpen}
@@ -245,7 +233,7 @@ export default function ExpenseFormModal({
         initialData={initialData}
         fields={fields}
         onSubmit={handleSubmit}
-        isSubmitting={isSubmitting || uploadingImages}
+        isSubmitting={isLoading || uploadingImages}
         size="md"
         additionalContent={
           <>

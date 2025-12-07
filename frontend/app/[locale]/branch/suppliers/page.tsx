@@ -12,6 +12,7 @@ import { useParams, useRouter } from "next/navigation";
 import { DataTable, StatCard, ConfirmationDialog, FeaturedDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { useModal, useConfirmation } from "@/hooks/useModal";
+import { useApiOperation } from "@/hooks/useApiOperation";
 import { DataTableColumn, DataTableAction, DisplayField } from "@/types/data-table.types";
 import { SupplierDto } from "@/types/api.types";
 import supplierService from "@/services/supplier.service";
@@ -70,6 +71,7 @@ export default function SuppliersPage() {
 
   const viewModal = useModal<SupplierDto>();
   const confirmation = useConfirmation();
+  const { execute } = useApiOperation();
 
   /**
    * Count active filters (based on applied filters, not input values)
@@ -456,14 +458,15 @@ export default function SuppliersPage() {
       "Delete Supplier",
       message,
       async () => {
-        try {
-          await supplierService.deleteSupplier(supplier.id);
-          await loadSuppliers();
-          await loadAllSuppliers(); // Update stats
-        } catch (err: any) {
-          setError(err.message || "Failed to delete supplier");
-          console.error("Error deleting supplier:", err);
-        }
+        await execute({
+          operation: () => supplierService.deleteSupplier(supplier.id),
+          successMessage: "Supplier deleted",
+          successDetail: `${supplier.nameEn} has been removed successfully`,
+          onSuccess: async () => {
+            await loadSuppliers();
+            await loadAllSuppliers(); // Update stats
+          },
+        });
       },
       "danger"
     );
@@ -506,12 +509,24 @@ export default function SuppliersPage() {
       }
     >
       <div>
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            Supplier Management
-          </h1>
-          <p className="text-gray-600">Manage your suppliers and track purchase history</p>
+        <div className="flex justify-between items-center mb-6">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+              Supplier Management
+            </h1>
+            <p className="text-gray-600">Manage your suppliers and track purchase history</p>
+          </div>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => {
+              setSelectedSupplier(undefined);
+              setIsModalOpen(true);
+            }}
+          >
+            + Add Supplier
+          </Button>
         </div>
 
         {/* Error Alert */}

@@ -11,6 +11,7 @@ import styles from "./Pos2.module.css";
 import { ProductDto } from "@/types/api.types";
 import { buildProductImageUrl } from "@/lib/image-utils";
 import { TransactionDialog } from "./TransactionDialog";
+import { useToast } from "@/hooks/useToast";
 
 interface OrderItem extends ProductDto {
   quantity: number;
@@ -31,6 +32,7 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
   onUpdateQuantity,
   onClose,
 }) => {
+  const toast = useToast();
   const [showTransactionDialog, setShowTransactionDialog] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -123,7 +125,7 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
 
   const handleOpenTransactionDialog = () => {
     if (cart.length === 0) {
-      alert("Cart is empty");
+      toast.warning("Cart is empty", "Please add products before processing a transaction");
       return;
     }
     setShowTransactionDialog(true);

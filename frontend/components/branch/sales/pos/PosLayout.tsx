@@ -10,6 +10,8 @@ import { ToastProvider } from "../../../../hooks/useToast";
 import inventoryService from "@/services/inventory.service";
 import { CategoryDto, ProductDto } from "@/types/api.types";
 import { playErrorBeep, playSuccessBeep } from "@/lib/utils";
+import { useApiError } from "@/hooks/useApiError";
+import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
 
 interface CartItem extends ProductDto {
   quantity: number;
@@ -21,7 +23,7 @@ export default function PosLayout() {
   const [categories, setCategories] = useState<CategoryDto[]>([]);
   const [products, setProducts] = useState<ProductDto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { error, isError, executeWithErrorHandling } = useApiError();
   const [isCartVisible, setIsCartVisible] = useState(true); // Default true for desktop
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
@@ -43,29 +45,29 @@ export default function PosLayout() {
 
   // Fetch categories and products on mount
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Fetch categories and products in parallel
-        const [categoriesData, productsResponse] = await Promise.all([
-          inventoryService.getCategories(),
-          inventoryService.getProducts({ isActive: true, pageSize: 1000 }),
-        ]);
-
-        setCategories(categoriesData);
-        setProducts(productsResponse.data);
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Failed to load data. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+
+    const result = await executeWithErrorHandling(async () => {
+      // Fetch categories and products in parallel
+      const [categoriesData, productsResponse] = await Promise.all([
+        inventoryService.getCategories(),
+        inventoryService.getProducts({ isActive: true, pageSize: 1000 }),
+      ]);
+
+      return { categoriesData, productsResponse };
+    });
+
+    if (result) {
+      setCategories(result.categoriesData);
+      setProducts(result.productsResponse.data);
+    }
+
+    setLoading(false);
+  };
 
   // Get branch code from localStorage
   const getBranchCode = () => {
@@ -154,7 +156,7 @@ export default function PosLayout() {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className={styles.container}>
         <div
@@ -163,9 +165,10 @@ export default function PosLayout() {
             justifyContent: "center",
             alignItems: "center",
             height: "100vh",
+            padding: "2rem",
           }}
         >
-          <div style={{ color: "red" }}>{error}</div>
+          <ApiErrorAlert error={error} onRetry={fetchData} />
         </div>
       </div>
     );

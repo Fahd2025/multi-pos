@@ -23,6 +23,7 @@ import { ApiErrorAlert, InlineApiError } from "@/components/shared/ApiErrorAlert
 import { StatCard } from "@/components/shared";
 import { RoleGuard, usePermission } from "@/components/auth/RoleGuard";
 import { UserRole } from "@/types/enums";
+import { useApiOperation } from "@/hooks/useApiOperation";
 
 export default function PurchasesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
@@ -37,6 +38,7 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
   // Modal states
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
   const [selectedPurchase, setSelectedPurchase] = useState<PurchaseDto | undefined>(undefined);
+  const [purchaseMode, setPurchaseMode] = useState<'create' | 'edit' | 'view'>('create');
 
   // Filter states (input values)
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,6 +66,7 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
 
   // Hooks
   const confirmation = useConfirmation();
+  const { execute } = useApiOperation();
 
   /**
    * Get payment status variant and label
@@ -374,13 +377,15 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
       "Receive Purchase Order",
       `Mark purchase ${purchaseOrderNumber} as received? This will update inventory stock levels.`,
       async () => {
-        try {
-          await inventoryService.receivePurchase(id);
-          fetchPurchases(); // Reload list
-          fetchAllPurchases(); // Update stats
-        } catch (err: any) {
-          setError(`Failed to receive purchase: ${err.message}`);
-        }
+        await execute({
+          operation: () => inventoryService.receivePurchase(id),
+          successMessage: "Purchase received",
+          successDetail: `Purchase ${purchaseOrderNumber} has been marked as received and inventory updated`,
+          onSuccess: async () => {
+            await fetchPurchases(); // Reload list
+            await fetchAllPurchases(); // Update stats
+          },
+        });
       },
       "success"
     );
@@ -469,6 +474,37 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
     },
   ];
 
+  /**
+   * Handle edit purchase
+   */
+  const handleEditPurchase = (purchase: PurchaseDto) => {
+    setSelectedPurchase(purchase);
+    setPurchaseMode('edit');
+    setIsPurchaseModalOpen(true);
+  };
+
+  /**
+   * Handle delete purchase
+   */
+  const handleDeletePurchase = async (id: string, purchaseOrderNumber: string) => {
+    confirmation.ask(
+      "Delete Purchase Order",
+      `Are you sure you want to delete purchase order ${purchaseOrderNumber}? This action cannot be undone.`,
+      async () => {
+        await execute({
+          operation: () => inventoryService.deletePurchase(id),
+          successMessage: "Purchase deleted",
+          successDetail: `Purchase order ${purchaseOrderNumber} has been deleted`,
+          onSuccess: async () => {
+            await fetchPurchases(); // Reload list
+            await fetchAllPurchases(); // Update stats
+          },
+        });
+      },
+      "danger"
+    );
+  };
+
   // Define row actions
   const actions: DataTableAction<PurchaseDto>[] = [
     {
@@ -478,9 +514,22 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
       condition: (row) => !row.receivedDate, // Only show if not received
     },
     {
+      label: "✏️ Edit",
+      onClick: (row) => handleEditPurchase(row),
+      variant: "primary",
+      condition: (row) => !row.receivedDate, // Only show if not received
+    },
+    {
+      label: "🗑️ Delete",
+      onClick: (row) => handleDeletePurchase(row.id, row.purchaseOrderNumber),
+      variant: "danger",
+      condition: (row) => !row.receivedDate, // Only show if not received
+    },
+    {
       label: "👁️ View",
       onClick: (row) => {
         setSelectedPurchase(row);
+        setPurchaseMode('view');
         setIsPurchaseModalOpen(true);
       },
       variant: "secondary",
@@ -520,6 +569,7 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
             size="md"
             onClick={() => {
               setSelectedPurchase(undefined);
+              setPurchaseMode('create');
               setIsPurchaseModalOpen(true);
             }}
           >
@@ -795,12 +845,14 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
           onClose={() => {
             setIsPurchaseModalOpen(false);
             setSelectedPurchase(undefined);
+            setPurchaseMode('create');
           }}
           onSuccess={() => {
             fetchPurchases();
             fetchAllPurchases();
           }}
           purchase={selectedPurchase}
+          mode={purchaseMode}
         />
 
         {/* Confirmation Dialog */}

@@ -12,8 +12,7 @@ import imageService from "@/services/image.service";
 import { FeaturedDialog } from "@/components/shared";
 import { ImageUpload } from "@/components/shared/ImageUpload";
 import { FormField } from "@/types/data-table.types";
-import { useApiError } from "@/hooks/useApiError";
-import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
+import { useApiOperation } from "@/hooks/useApiOperation";
 
 interface SupplierFormModalProps {
   isOpen: boolean;
@@ -30,11 +29,10 @@ export default function SupplierFormModal({
   supplier,
   branchName,
 }: SupplierFormModalProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { execute, isLoading } = useApiOperation();
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [currentLogoPath, setCurrentLogoPath] = useState<string | null>(null); // Track current logo path separately
-  const { error, isError, executeWithErrorHandling, clearError } = useApiError();
 
   // Initialize currentLogoPath when supplier changes
   useEffect(() => {
@@ -116,9 +114,8 @@ export default function SupplierFormModal({
   ];
 
   const handleSubmit = async (data: any) => {
-    setIsSubmitting(true);
-
-    const result = await executeWithErrorHandling(async () => {
+    await execute({
+      operation: async () => {
       const supplierData = {
         code: data.code,
         nameEn: data.nameEn,
@@ -181,21 +178,19 @@ export default function SupplierFormModal({
         }
       }
 
-      return savedSupplier;
+        return savedSupplier;
+      },
+      successMessage: supplier ? "Supplier updated successfully" : "Supplier created successfully",
+      successDetail: `${data.nameEn} has been ${supplier ? "updated" : "added"}`,
+      onSuccess: () => {
+        onSuccess();
+        onClose();
+        setSelectedImages([]);
+      },
     });
-
-    setIsSubmitting(false);
-
-    if (result) {
-      onSuccess();
-      onClose();
-      clearError();
-      setSelectedImages([]);
-    }
   };
 
   const handleClose = () => {
-    clearError();
     setSelectedImages([]);
     setCurrentLogoPath(supplier?.logoPath || null);
     onClose();
@@ -214,13 +209,6 @@ export default function SupplierFormModal({
 
   return (
     <>
-      {/* Error Display */}
-      {isOpen && isError && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[60] max-w-2xl w-full px-4">
-          <ApiErrorAlert error={error} onDismiss={clearError} />
-        </div>
-      )}
-
       {/* Main Form Modal */}
       <FeaturedDialog
         isOpen={isOpen}
@@ -230,7 +218,7 @@ export default function SupplierFormModal({
         initialData={supplier}
         fields={fields}
         onSubmit={handleSubmit}
-        isSubmitting={isSubmitting || uploadingImages}
+        isSubmitting={isLoading || uploadingImages}
         size="lg"
         additionalContent={
           <>

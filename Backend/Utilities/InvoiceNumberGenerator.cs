@@ -41,4 +41,32 @@ public class InvoiceNumberGenerator
         var number = random.Next(1, 999999);
         return $"TXN-{date}-{number:D6}";
     }
+
+    public static async Task<string> GeneratePurchaseOrderNumberAsync(
+        BranchDbContext context,
+        string branchCode
+    )
+    {
+        // Get the last purchase order number for this branch
+        var lastPurchase = await context
+            .Purchases.Where(p => !string.IsNullOrEmpty(p.PurchaseOrderNumber))
+            .OrderByDescending(p => p.CreatedAt)
+            .Select(p => p.PurchaseOrderNumber)
+            .FirstOrDefaultAsync();
+
+        int nextNumber = 1;
+
+        if (!string.IsNullOrEmpty(lastPurchase))
+        {
+            // Extract the number from the last PO (format: B001-PO-000123)
+            var parts = lastPurchase.Split('-');
+            if (parts.Length == 3 && int.TryParse(parts[2], out int lastNumber))
+            {
+                nextNumber = lastNumber + 1;
+            }
+        }
+
+        // Format: BRANCH-PO-NNNNNN (e.g., B001-PO-000001)
+        return $"{branchCode}-PO-{nextNumber:D6}";
+    }
 }

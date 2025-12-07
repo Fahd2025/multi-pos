@@ -12,8 +12,7 @@ import imageService from "@/services/image.service";
 import { FeaturedDialog } from "@/components/shared";
 import { ImageUpload } from "@/components/shared/ImageUpload";
 import { FormField } from "@/types/data-table.types";
-import { useApiError } from "@/hooks/useApiError";
-import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
+import { useApiOperation } from "@/hooks/useApiOperation";
 
 interface CategoryFormModalProps {
   isOpen: boolean;
@@ -32,10 +31,9 @@ export default function CategoryFormModal({
   categories,
   branchName,
 }: CategoryFormModalProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { execute, isLoading } = useApiOperation();
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
-  const { error, isError, executeWithErrorHandling, clearError } = useApiError();
 
   // Get available parent categories (exclude self and children in edit mode)
   const getAvailableParentCategories = () => {
@@ -104,9 +102,8 @@ export default function CategoryFormModal({
   ];
 
   const handleSubmit = async (data: any) => {
-    setIsSubmitting(true);
-
-    const result = await executeWithErrorHandling(async () => {
+    await execute({
+      operation: async () => {
       const categoryData = {
         code: data.code,
         nameEn: data.nameEn,
@@ -141,21 +138,19 @@ export default function CategoryFormModal({
         }
       }
 
-      return savedCategory;
+        return savedCategory;
+      },
+      successMessage: category ? "Category updated successfully" : "Category created successfully",
+      successDetail: `${data.nameEn} has been ${category ? "updated" : "added"}`,
+      onSuccess: () => {
+        onSuccess();
+        onClose();
+        setSelectedImages([]);
+      },
     });
-
-    setIsSubmitting(false);
-
-    if (result) {
-      onSuccess();
-      onClose();
-      clearError();
-      setSelectedImages([]);
-    }
   };
 
   const handleClose = () => {
-    clearError();
     setSelectedImages([]);
     onClose();
   };
@@ -177,13 +172,6 @@ export default function CategoryFormModal({
 
   return (
     <>
-      {/* Error Display */}
-      {isOpen && isError && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[60] max-w-2xl w-full px-4">
-          <ApiErrorAlert error={error} onDismiss={clearError} />
-        </div>
-      )}
-
       {/* Main Form Modal */}
       <FeaturedDialog
         isOpen={isOpen}
@@ -193,7 +181,7 @@ export default function CategoryFormModal({
         initialData={category}
         fields={fields}
         onSubmit={handleSubmit}
-        isSubmitting={isSubmitting || uploadingImages}
+        isSubmitting={isLoading || uploadingImages}
         size="md"
         additionalContent={
           <>

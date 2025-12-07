@@ -18,6 +18,7 @@ public class ExpenseService : IExpenseService
     }
 
     public async Task<(List<ExpenseDto> Expenses, int TotalCount)> GetExpensesAsync(
+        string? search = null,
         Guid? categoryId = null,
         DateTime? startDate = null,
         DateTime? endDate = null,
@@ -28,7 +29,21 @@ public class ExpenseService : IExpenseService
     {
         var query = _context.Expenses.Include(e => e.Category).AsQueryable();
 
-        // Apply filters
+        // Apply search filter if provided
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchLower = search.ToLower();
+            query = query.Where(e =>
+                e.DescriptionEn.ToLower().Contains(searchLower) ||
+                e.DescriptionAr.ToLower().Contains(searchLower) ||
+                e.Category.NameEn.ToLower().Contains(searchLower) ||
+                e.Category.NameAr.ToLower().Contains(searchLower) ||
+                e.PaymentReference.ToLower().Contains(searchLower) ||
+                e.Amount.ToString().Contains(searchLower)
+            );
+        }
+
+        // Apply other filters
         if (categoryId.HasValue)
         {
             query = query.Where(e => e.ExpenseCategoryId == categoryId.Value);

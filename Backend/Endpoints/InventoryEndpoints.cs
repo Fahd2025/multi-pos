@@ -476,7 +476,20 @@ public static class InventoryEndpoints
                             return Results.Unauthorized();
                         }
 
-                        var purchase = await inventoryService.CreatePurchaseAsync(dto, userId.Value);
+                        // Get branch from context
+                        var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                        if (branch == null)
+                        {
+                            return Results.BadRequest(
+                                new
+                                {
+                                    success = false,
+                                    error = new { code = "BRANCH_REQUIRED", message = "Branch context is required" }
+                                }
+                            );
+                        }
+
+                        var purchase = await inventoryService.CreatePurchaseAsync(dto, userId.Value, branch.Code);
 
                         return Results.Created(
                             $"/api/v1/purchases/{purchase.Id}",
@@ -502,6 +515,96 @@ public static class InventoryEndpoints
             )
             .RequireAuthorization()
             .WithName("CreatePurchase")
+            .WithOpenApi();
+
+        // PUT /api/v1/purchases/:id - Update an existing purchase
+        purchaseGroup
+            .MapPut(
+                "/{id:guid}",
+                async (
+                    Guid id,
+                    [FromBody] UpdatePurchaseDto dto,
+                    HttpContext httpContext,
+                    IInventoryService inventoryService
+                ) =>
+                {
+                    try
+                    {
+                        var userId = httpContext.Items["UserId"] as Guid?;
+                        if (!userId.HasValue)
+                        {
+                            return Results.Unauthorized();
+                        }
+
+                        var purchase = await inventoryService.UpdatePurchaseAsync(id, dto, userId.Value);
+
+                        return Results.Ok(
+                            new
+                            {
+                                success = true,
+                                data = purchase,
+                                message = "Purchase updated successfully",
+                            }
+                        );
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        return Results.BadRequest(
+                            new
+                            {
+                                success = false,
+                                error = new { code = "INVALID_OPERATION", message = ex.Message },
+                            }
+                        );
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("UpdatePurchase")
+            .WithOpenApi();
+
+        // DELETE /api/v1/purchases/:id - Delete a purchase
+        purchaseGroup
+            .MapDelete(
+                "/{id:guid}",
+                async (
+                    Guid id,
+                    HttpContext httpContext,
+                    IInventoryService inventoryService
+                ) =>
+                {
+                    try
+                    {
+                        var userId = httpContext.Items["UserId"] as Guid?;
+                        if (!userId.HasValue)
+                        {
+                            return Results.Unauthorized();
+                        }
+
+                        await inventoryService.DeletePurchaseAsync(id, userId.Value);
+
+                        return Results.Ok(
+                            new
+                            {
+                                success = true,
+                                message = "Purchase deleted successfully",
+                            }
+                        );
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        return Results.BadRequest(
+                            new
+                            {
+                                success = false,
+                                error = new { code = "INVALID_OPERATION", message = ex.Message },
+                            }
+                        );
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("DeletePurchase")
             .WithOpenApi();
 
         // POST /api/v1/purchases/:id/receive - Mark purchase as received and update stock

@@ -10,8 +10,7 @@ import { ProductDto, CategoryDto, CreateProductDto, UpdateProductDto } from "@/t
 import inventoryService from "@/services/inventory.service";
 import { FeaturedDialog } from "@/components/shared";
 import { FormField } from "@/types/data-table.types";
-import { useApiError } from "@/hooks/useApiError";
-import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
+import { useApiOperation } from "@/hooks/useApiOperation";
 
 interface ProductFormModalProps {
   isOpen: boolean;
@@ -28,8 +27,7 @@ export default function ProductFormModal({
   product,
   categories,
 }: ProductFormModalProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { error, isError, executeWithErrorHandling, clearError } = useApiError();
+  const { execute, isLoading } = useApiOperation();
 
   const fields: FormField<any>[] = [
     {
@@ -120,54 +118,43 @@ export default function ProductFormModal({
   ];
 
   const handleSubmit = async (data: any) => {
-    setIsSubmitting(true);
+    const productData = {
+      sku: data.sku,
+      nameEn: data.nameEn,
+      nameAr: data.nameAr || "",
+      descriptionEn: data.descriptionEn,
+      descriptionAr: data.descriptionAr,
+      sellingPrice: Number(data.sellingPrice),
+      costPrice: Number(data.costPrice) || 0,
+      stockLevel: Number(data.stockLevel) || 0,
+      minStockThreshold: Number(data.minStockThreshold) || 0,
+      barcode: data.barcode,
+      categoryId: data.categoryId || "",
+    };
 
-    const result = await executeWithErrorHandling(async () => {
-      const productData = {
-        sku: data.sku,
-        nameEn: data.nameEn,
-        nameAr: data.nameAr || "",
-        descriptionEn: data.descriptionEn,
-        descriptionAr: data.descriptionAr,
-        sellingPrice: Number(data.sellingPrice),
-        costPrice: Number(data.costPrice) || 0,
-        stockLevel: Number(data.stockLevel) || 0,
-        minStockThreshold: Number(data.minStockThreshold) || 0,
-        barcode: data.barcode,
-        categoryId: data.categoryId || "",
-      };
-
-      if (product) {
-        return await inventoryService.updateProduct(product.id, productData as UpdateProductDto);
-      } else {
-        return await inventoryService.createProduct(productData as CreateProductDto);
-      }
+    await execute({
+      operation: async () => {
+        if (product) {
+          return await inventoryService.updateProduct(product.id, productData as UpdateProductDto);
+        } else {
+          return await inventoryService.createProduct(productData as CreateProductDto);
+        }
+      },
+      successMessage: product ? "Product updated successfully" : "Product created successfully",
+      successDetail: `${data.nameEn} has been ${product ? "updated" : "added"}`,
+      onSuccess: () => {
+        onSuccess();
+        onClose();
+      },
     });
-
-    setIsSubmitting(false);
-
-    if (result) {
-      // Success! Close modal and notify parent
-      onSuccess();
-      onClose();
-      clearError();
-    }
   };
 
   const handleClose = () => {
-    clearError(); // Clear any errors when closing
     onClose();
   };
 
   return (
     <>
-      {/* Error Display - Shows above the modal */}
-      {isOpen && isError && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[60] max-w-2xl w-full px-4">
-          <ApiErrorAlert error={error} onDismiss={clearError} />
-        </div>
-      )}
-
       <FeaturedDialog
         isOpen={isOpen}
         onClose={handleClose}
@@ -176,7 +163,7 @@ export default function ProductFormModal({
         initialData={product}
         fields={fields}
         onSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
+        isSubmitting={isLoading}
         size="lg"
       />
     </>

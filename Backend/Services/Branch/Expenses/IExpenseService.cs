@@ -10,6 +10,7 @@ public interface IExpenseService
     /// <summary>
     /// Get expenses with optional filtering and pagination
     /// </summary>
+    /// <param name="search">Search text to filter expenses</param>
     /// <param name="categoryId">Filter by category</param>
     /// <param name="startDate">Filter by start date</param>
     /// <param name="endDate">Filter by end date</param>
@@ -18,6 +19,7 @@ public interface IExpenseService
     /// <param name="pageSize">Number of items per page</param>
     /// <returns>List of expenses and total count</returns>
     Task<(List<ExpenseDto> Expenses, int TotalCount)> GetExpensesAsync(
+        string? search = null,
         Guid? categoryId = null,
         DateTime? startDate = null,
         DateTime? endDate = null,

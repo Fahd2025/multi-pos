@@ -17,6 +17,7 @@ import { useDataTable } from "@/hooks/useDataTable";
 import { DataTableColumn } from "@/types/data-table.types";
 import { RoleGuard, usePermission } from "@/components/auth/RoleGuard";
 import { UserRole } from "@/types/enums";
+import { useApiOperation } from "@/hooks/useApiOperation";
 
 export default function ExpenseCategoriesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
@@ -40,6 +41,7 @@ export default function ExpenseCategoriesPage({ params }: { params: Promise<{ lo
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [formLoading, setFormLoading] = useState(false);
+  const { execute } = useApiOperation();
 
   // DataTable hook
   const {
@@ -119,23 +121,25 @@ export default function ExpenseCategoriesPage({ params }: { params: Promise<{ lo
 
     setFormLoading(true);
 
-    try {
-      await expenseService.createExpenseCategory({
-        code: formData.code,
-        nameEn: formData.nameEn,
-        nameAr: formData.nameAr,
-        budgetAllocation: formData.budgetAllocation ? Number(formData.budgetAllocation) : undefined,
-      });
+    await execute({
+      operation: () =>
+        expenseService.createExpenseCategory({
+          code: formData.code,
+          nameEn: formData.nameEn,
+          nameAr: formData.nameAr,
+          budgetAllocation: formData.budgetAllocation ? Number(formData.budgetAllocation) : undefined,
+        }),
+      successMessage: "Category created",
+      successDetail: `${formData.nameEn} has been added successfully`,
+      onSuccess: () => {
+        // Reset form and reload categories
+        setFormData({ code: "", nameEn: "", nameAr: "", budgetAllocation: "" });
+        setIsFormOpen(false);
+        loadCategories();
+      },
+    });
 
-      // Reset form and reload categories
-      setFormData({ code: "", nameEn: "", nameAr: "", budgetAllocation: "" });
-      setIsFormOpen(false);
-      loadCategories();
-    } catch (err: any) {
-      setError(err.message || "Failed to create expense category");
-    } finally {
-      setFormLoading(false);
-    }
+    setFormLoading(false);
   };
 
   const getBudgetStatus = (category: ExpenseCategoryDto) => {

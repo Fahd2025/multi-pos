@@ -15,6 +15,7 @@ import { useDataTable } from "@/hooks/useDataTable";
 import { useModal } from "@/hooks/useModal";
 import { useConfirmation } from "@/hooks/useConfirmation";
 import { useApiError } from "@/hooks/useApiError";
+import { useApiOperation } from "@/hooks/useApiOperation";
 import {
   DataTableColumn,
   DataTableAction,
@@ -61,6 +62,7 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
 
   // Error handling
   const { error, errorMessage, isError, setError, clearError } = useApiError();
+  const { execute } = useApiOperation();
 
   // Modals
   const createModal = useModal<BranchUserDto>();
@@ -284,18 +286,20 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
   const handleDelete = async () => {
     if (!deleteConfirmation.data) return;
 
-    try {
-      setIsSaving(true);
-      clearError();
+    setIsSaving(true);
+    clearError();
 
-      await deleteBranchUser(deleteConfirmation.data.id);
-      await loadUsers();
-      deleteConfirmation.close();
-    } catch (err: any) {
-      setError(err);
-    } finally {
-      setIsSaving(false);
-    }
+    await execute({
+      operation: () => deleteBranchUser(deleteConfirmation.data!.id),
+      successMessage: "User deleted",
+      successDetail: `${deleteConfirmation.data!.username} has been removed successfully`,
+      onSuccess: async () => {
+        await loadUsers();
+        deleteConfirmation.close();
+      },
+    });
+
+    setIsSaving(false);
   };
 
   const handleSortChange = (config: {

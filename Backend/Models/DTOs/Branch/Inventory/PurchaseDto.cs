@@ -60,3 +60,15 @@ public class CreatePurchaseLineItemDto
     public int Quantity { get; set; }
     public decimal UnitCost { get; set; }
 }
+
+/// <summary>
+/// DTO for updating an existing purchase
+/// </summary>
+public class UpdatePurchaseDto
+{
+    public string PurchaseOrderNumber { get; set; } = string.Empty;
+    public Guid SupplierId { get; set; }
+    public DateTime PurchaseDate { get; set; }
+    public string? Notes { get; set; }
+    public List<CreatePurchaseLineItemDto> LineItems { get; set; } = new();
+}

@@ -26,6 +26,7 @@ import { ImageCarousel } from "@/components/shared/image-carousel";
 import { Dialog, DialogContent, DialogTitle } from "@/components/shared/RadixDialog";
 import { RoleGuard, usePermission } from "@/components/auth/RoleGuard";
 import { UserRole } from "@/types/enums";
+import { useApiOperation } from "@/hooks/useApiOperation";
 
 export default function CategoriesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
@@ -44,6 +45,7 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
 
   // Hooks
   const confirmation = useConfirmation();
+  const { execute } = useApiOperation();
 
   // DataTable hook
   const {
@@ -89,12 +91,12 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
       "Delete Category",
       `Are you sure you want to delete category "${name}"? This action cannot be undone.`,
       async () => {
-        try {
-          await inventoryService.deleteCategory(id);
-          loadCategories();
-        } catch (err: any) {
-          setError(`Failed to delete category: ${err.message}`);
-        }
+        await execute({
+          operation: () => inventoryService.deleteCategory(id),
+          successMessage: "Category deleted",
+          successDetail: `${name} has been removed successfully`,
+          onSuccess: () => loadCategories(),
+        });
       },
       "danger"
     );

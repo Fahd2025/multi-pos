@@ -12,8 +12,7 @@ import imageService from "@/services/image.service";
 import { FeaturedDialog } from "@/components/shared";
 import { ImageUpload } from "@/components/shared/ImageUpload";
 import { FormField } from "@/types/data-table.types";
-import { useApiError } from "@/hooks/useApiError";
-import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
+import { useApiOperation } from "@/hooks/useApiOperation";
 
 interface CustomerFormModalProps {
   isOpen: boolean;
@@ -30,11 +29,10 @@ export default function CustomerFormModal({
   customer,
   branchName,
 }: CustomerFormModalProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { execute, isLoading } = useApiOperation();
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [currentLogoPath, setCurrentLogoPath] = useState<string | null>(null); // Track current logo path separately
-  const { error, isError, executeWithErrorHandling, clearError } = useApiError();
 
   // Initialize currentLogoPath when customer changes
   useEffect(() => {
@@ -114,9 +112,8 @@ export default function CustomerFormModal({
   ];
 
   const handleSubmit = async (data: CustomerDto) => {
-    setIsSubmitting(true);
-
-    const result = await executeWithErrorHandling(async () => {
+    await execute({
+      operation: async () => {
       let savedCustomer;
 
       if (customer) {
@@ -193,21 +190,19 @@ export default function CustomerFormModal({
         }
       }
 
-      return savedCustomer;
+        return savedCustomer;
+      },
+      successMessage: customer ? "Customer updated successfully" : "Customer created successfully",
+      successDetail: `${data.nameEn} has been ${customer ? "updated" : "added"}`,
+      onSuccess: () => {
+        onSuccess();
+        onClose();
+        setSelectedImages([]);
+      },
     });
-
-    setIsSubmitting(false);
-
-    if (result) {
-      onSuccess();
-      onClose();
-      clearError();
-      setSelectedImages([]);
-    }
   };
 
   const handleClose = () => {
-    clearError();
     setSelectedImages([]);
     setCurrentLogoPath(customer?.logoPath || null);
     onClose();
@@ -226,13 +221,6 @@ export default function CustomerFormModal({
 
   return (
     <>
-      {/* Error Display */}
-      {isOpen && isError && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[60] max-w-2xl w-full px-4">
-          <ApiErrorAlert error={error} onDismiss={clearError} />
-        </div>
-      )}
-
       {/* Main Form Modal */}
       <FeaturedDialog
         isOpen={isOpen}
@@ -242,7 +230,7 @@ export default function CustomerFormModal({
         initialData={customer}
         fields={fields}
         onSubmit={handleSubmit}
-        isSubmitting={isSubmitting || uploadingImages}
+        isSubmitting={isLoading || uploadingImages}
         size="md"
         additionalContent={
           <>

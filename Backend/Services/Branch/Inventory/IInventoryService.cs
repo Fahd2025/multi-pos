@@ -48,7 +48,9 @@ public interface IInventoryService
         int pageSize = 50);
 
     Task<PurchaseDto?> GetPurchaseByIdAsync(Guid purchaseId);
-    Task<PurchaseDto> CreatePurchaseAsync(CreatePurchaseDto dto, Guid userId);
+    Task<PurchaseDto> CreatePurchaseAsync(CreatePurchaseDto dto, Guid userId, string branchCode);
+    Task<PurchaseDto> UpdatePurchaseAsync(Guid purchaseId, UpdatePurchaseDto dto, Guid userId);
+    Task DeletePurchaseAsync(Guid purchaseId, Guid userId);
     Task<PurchaseDto> ReceivePurchaseAsync(Guid purchaseId, Guid userId);
     Task<int> CheckLowStockAsync(int threshold);
 }

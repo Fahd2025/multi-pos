@@ -17,8 +17,7 @@ import imageService from "@/services/image.service";
 import { FeaturedDialog } from "@/components/shared";
 import { MultiImageUpload } from "@/components/shared/multi-image-upload";
 import { FormField } from "@/types/data-table.types";
-import { useApiError } from "@/hooks/useApiError";
-import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
+import { useApiOperation } from "@/hooks/useApiOperation";
 
 interface ProductFormModalWithImagesProps {
   isOpen: boolean;
@@ -37,11 +36,10 @@ export default function ProductFormModalWithImages({
   categories,
   branchName,
 }: ProductFormModalWithImagesProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { execute, isLoading } = useApiOperation();
   const [uploadingImages, setUploadingImages] = useState(false);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]); // Base64 strings for MultiImageUpload
   const [imagesToUpload, setImagesToUpload] = useState<File[]>([]); // Actual files to upload
-  const { error, isError, executeWithErrorHandling, clearError } = useApiError();
 
   // Initialize image preview URLs when product changes
   useEffect(() => {
@@ -152,9 +150,8 @@ export default function ProductFormModalWithImages({
       throw new Error("Branch information is missing. Please refresh the page and try again.");
     }
 
-    setIsSubmitting(true);
-
-    const result = await executeWithErrorHandling(async () => {
+    await execute({
+      operation: async () => {
       const productData = {
         sku: data.sku,
         nameEn: data.nameEn,
@@ -224,23 +221,20 @@ export default function ProductFormModalWithImages({
         }
       }
 
-      return savedProduct;
+        return savedProduct;
+      },
+      successMessage: product ? "Product updated successfully" : "Product created successfully",
+      successDetail: `${data.nameEn} has been ${product ? "updated" : "added"}`,
+      onSuccess: () => {
+        onSuccess();
+        onClose();
+        setImagesToUpload([]);
+        setImagePreviewUrls([]);
+      },
     });
-
-    setIsSubmitting(false);
-
-    if (result) {
-      // Success! Close modal and notify parent
-      onSuccess();
-      onClose();
-      clearError();
-      setImagesToUpload([]); // Reset selected images
-      setImagePreviewUrls([]);
-    }
   };
 
   const handleClose = () => {
-    clearError();
     setImagesToUpload([]);
     setImagePreviewUrls(product?.images?.map((img) => img.imagePath) || []);
     onClose();
@@ -273,13 +267,6 @@ export default function ProductFormModalWithImages({
 
   return (
     <>
-      {/* Error Display - Shows above the modal */}
-      {isOpen && isError && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[60] max-w-2xl w-full px-4">
-          <ApiErrorAlert error={error} onDismiss={clearError} />
-        </div>
-      )}
-
       {/* Main Form Modal */}
       <FeaturedDialog
         isOpen={isOpen}
@@ -289,7 +276,7 @@ export default function ProductFormModalWithImages({
         initialData={product}
         fields={fields}
         onSubmit={handleSubmit}
-        isSubmitting={isSubmitting || uploadingImages}
+        isSubmitting={isLoading || uploadingImages}
         size="lg"
         additionalContent={
           <>

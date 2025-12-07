@@ -23,6 +23,7 @@ public static class ExpenseEndpoints
                 "",
                 async (
                     IExpenseService expenseService,
+                    [FromQuery] string? search = null,
                     Guid? categoryId = null,
                     DateTime? startDate = null,
                     DateTime? endDate = null,
@@ -34,6 +35,7 @@ public static class ExpenseEndpoints
                     try
                     {
                         var (expenses, totalCount) = await expenseService.GetExpensesAsync(
+                            search,
                             categoryId,
                             startDate,
                             endDate,

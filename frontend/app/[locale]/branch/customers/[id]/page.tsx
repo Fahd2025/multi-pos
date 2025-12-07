@@ -23,6 +23,7 @@ import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { ErrorAlert } from "@/components/shared/ErrorAlert";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
+import { useApiOperation } from "@/hooks/useApiOperation";
 
 export default function CustomerDetailsPage({
   params,
@@ -44,6 +45,7 @@ export default function CustomerDetailsPage({
 
   // Hooks
   const confirmation = useConfirmation();
+  const { execute } = useApiOperation();
 
   // DataTable hook for purchase history
   const {
@@ -113,12 +115,14 @@ export default function CustomerDetailsPage({
       "Delete Customer",
       `Are you sure you want to delete "${customer.nameEn}"? This action cannot be undone.`,
       async () => {
-        try {
-          await customerService.deleteCustomer(id);
-          router.push(`/${locale}/branch/customers`);
-        } catch (err: any) {
-          setError(`Failed to delete customer: ${err.message}`);
-        }
+        await execute({
+          operation: () => customerService.deleteCustomer(id),
+          successMessage: "Customer deleted",
+          successDetail: `${customer.nameEn} has been removed successfully`,
+          onSuccess: () => {
+            router.push(`/${locale}/branch/customers`);
+          },
+        });
       },
       "danger"
     );

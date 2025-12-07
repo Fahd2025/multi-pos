@@ -226,6 +226,22 @@ class InventoryService {
   }
 
   /**
+   * Update an existing purchase
+   */
+  async updatePurchase(id: string, purchase: CreatePurchaseDto): Promise<ApiResponse<PurchaseDto>> {
+    const response = await api.put(`/api/v1/purchases/${id}`, purchase);
+    return response.data;
+  }
+
+  /**
+   * Delete a purchase
+   */
+  async deletePurchase(id: string): Promise<ApiResponse<void>> {
+    const response = await api.delete(`/api/v1/purchases/${id}`);
+    return response.data;
+  }
+
+  /**
    * Mark purchase as received
    */
   async receivePurchase(id: string): Promise<ApiResponse<PurchaseDto>> {

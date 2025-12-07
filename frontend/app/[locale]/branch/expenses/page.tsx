@@ -23,6 +23,7 @@ import { DataTable } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
 import { useAuth } from "@/hooks/useAuth";
+import { useApiOperation } from "@/hooks/useApiOperation";
 import { API_BASE_URL } from "@/lib/constants";
 import { ImageCarousel } from "@/components/shared/image-carousel";
 import { Dialog, DialogContent, DialogTitle } from "@/components/shared/RadixDialog";
@@ -42,6 +43,7 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
   const [error, setError] = useState<string | null>(null);
 
   // Filter states (input values)
+  const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<number | undefined>(undefined);
   const [startDate, setStartDate] = useState("");
@@ -49,6 +51,7 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
 
   // Applied filters (what's actually being used in the API call)
   const [appliedFilters, setAppliedFilters] = useState({
+    search: "",
     category: "",
     status: undefined as number | undefined,
     startDate: "",
@@ -69,6 +72,7 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
 
   // Hooks
   const confirmation = useConfirmation();
+  const { execute } = useApiOperation();
 
   // DataTable hook (disabled client-side pagination since we use server-side)
   const {
@@ -86,6 +90,7 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
    */
   const getActiveFilterCount = () => {
     let count = 0;
+    if (appliedFilters.search) count++;
     if (appliedFilters.category) count++;
     if (appliedFilters.status !== undefined) count++;
     if (appliedFilters.startDate) count++;
@@ -98,7 +103,7 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
   /**
    * Check if any filters are active (based on applied filters, not input values)
    */
-  const hasActiveFilters = activeFilterCount > 0;
+  const hasActiveFilters = activeFilterCount > 0 || !!appliedFilters.search;
 
   /**
    * Get active filter labels for display (based on applied filters)
@@ -106,6 +111,9 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
   const getActiveFilters = () => {
     const filters: { type: string; label: string; value: string }[] = [];
 
+    if (appliedFilters.search) {
+      filters.push({ type: "search", label: "Search", value: appliedFilters.search });
+    }
     if (appliedFilters.category) {
       const category = categories.find((c) => c.id === appliedFilters.category);
       filters.push({
@@ -147,7 +155,7 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
   useEffect(() => {
     loadExpenses();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage]);
+  }, [currentPage, appliedFilters]);
 
   /**
    * Load categories on mount
@@ -182,6 +190,7 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
       const response = await expenseService.getExpenses({
         page: currentPage,
         pageSize,
+        search: appliedFilters.search || undefined,
         categoryId: appliedFilters.category || undefined,
         approvalStatus: appliedFilters.status,
         startDate: appliedFilters.startDate || undefined,
@@ -204,7 +213,15 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
    */
   const loadAllExpenses = async () => {
     try {
-      const response = await expenseService.getExpenses({ page: 1, pageSize: 10000 });
+      const response = await expenseService.getExpenses({
+        page: 1,
+        pageSize: 10000,
+        search: undefined,
+        categoryId: undefined,
+        approvalStatus: undefined,
+        startDate: undefined,
+        endDate: undefined
+      });
       setAllExpenses(response.data || []);
     } catch (err: any) {
       console.error("Failed to load all expenses for stats:", err);
@@ -217,55 +234,47 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
   const handleApplyFilters = () => {
     // Save the current filter values as applied filters
     setAppliedFilters({
+      search: searchQuery,
       category: categoryFilter,
       status: statusFilter,
       startDate: startDate,
       endDate: endDate,
     });
     setCurrentPage(1);
-    // Will trigger loadExpenses via useEffect
-    setTimeout(() => loadExpenses(), 0);
+    // loadExpenses will be triggered automatically by useEffect when appliedFilters changes
   };
 
   /**
    * Reset all filters
    */
-  const handleResetFilters = async () => {
+  const handleResetFilters = () => {
     // Reset all filter states
+    setSearchQuery("");
     setCategoryFilter("");
     setStatusFilter(undefined);
     setStartDate("");
     setEndDate("");
     setAppliedFilters({
+      search: "",
       category: "",
       status: undefined,
       startDate: "",
       endDate: "",
     });
     setCurrentPage(1);
-
-    // Fetch with empty filters
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await expenseService.getExpenses({ page: 1, pageSize });
-      setExpenses(response.data);
-      setTotalPages(response.pagination.totalPages);
-      setTotalItems(response.pagination.totalItems);
-    } catch (err: any) {
-      setError(err.message || "Failed to load expenses");
-      console.error("Error loading expenses:", err);
-    } finally {
-      setLoading(false);
-    }
+    // useEffect will trigger loadExpenses when appliedFilters changes
   };
 
   /**
    * Remove individual filter
    */
-  const handleRemoveFilter = async (filterType: string) => {
+  const handleRemoveFilter = (filterType: string) => {
     // Reset the specific filter in both input and applied states
     switch (filterType) {
+      case "search":
+        setSearchQuery("");
+        setAppliedFilters((prev) => ({ ...prev, search: "" }));
+        break;
       case "category":
         setCategoryFilter("");
         setAppliedFilters((prev) => ({ ...prev, category: "" }));
@@ -284,34 +293,8 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
         break;
     }
 
-    // Reset to first page and trigger refetch
+    // Reset to first page - useEffect will trigger loadExpenses when appliedFilters changes
     setCurrentPage(1);
-
-    // Build updated filters for immediate fetch
-    const updatedFilters = {
-      page: 1,
-      pageSize,
-      categoryId:
-        filterType === "category" ? undefined : categoryFilter || undefined,
-      approvalStatus: filterType === "status" ? undefined : statusFilter,
-      startDate: filterType === "startDate" ? undefined : startDate || undefined,
-      endDate: filterType === "endDate" ? undefined : endDate || undefined,
-    };
-
-    // Fetch with updated filters immediately
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await expenseService.getExpenses(updatedFilters);
-      setExpenses(response.data);
-      setTotalPages(response.pagination.totalPages);
-      setTotalItems(response.pagination.totalItems);
-    } catch (err: any) {
-      setError(err.message || "Failed to load expenses");
-      console.error("Error loading expenses:", err);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleEdit = (expense: ExpenseDto) => {
@@ -339,13 +322,14 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
       "Delete Expense",
       "Are you sure you want to delete this expense? This action cannot be undone.",
       async () => {
-        try {
-          await expenseService.deleteExpense(expenseId);
-          loadExpenses();
-          loadAllExpenses(); // Update stats
-        } catch (err: any) {
-          setError(err.message || "Failed to delete expense");
-        }
+        await execute({
+          operation: () => expenseService.deleteExpense(expenseId),
+          successMessage: "Expense deleted successfully",
+          onSuccess: () => {
+            loadExpenses();
+            loadAllExpenses(); // Update stats
+          },
+        });
       },
       "danger"
     );
@@ -356,13 +340,14 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
       approved ? "Approve Expense" : "Reject Expense",
       `Are you sure you want to ${approved ? "approve" : "reject"} this expense?`,
       async () => {
-        try {
-          await expenseService.approveExpense(expenseId, approved);
-          loadExpenses();
-          loadAllExpenses(); // Update stats
-        } catch (err: any) {
-          setError(err.message || `Failed to ${approved ? "approve" : "reject"} expense`);
-        }
+        await execute({
+          operation: () => expenseService.approveExpense(expenseId, approved),
+          successMessage: `Expense ${approved ? "approved" : "rejected"} successfully`,
+          onSuccess: () => {
+            loadExpenses();
+            loadAllExpenses(); // Update stats
+          },
+        });
       },
       approved ? "success" : "warning"
     );
@@ -663,6 +648,48 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
           activeFilterCount={activeFilterCount}
           showResetButton={hasActiveFilters}
           onResetFilters={handleResetFilters}
+          searchBar={
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search expenses..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleApplyFilters()}
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
+                />
+              </div>
+              <button
+                onClick={handleApplyFilters}
+                className="px-4 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors whitespace-nowrap"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </button>
+            </div>
+          }
           filterSection={
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

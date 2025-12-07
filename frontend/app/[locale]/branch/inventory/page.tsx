@@ -27,6 +27,7 @@ import {
 import { useApiError } from "@/hooks/useApiError";
 import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
 import ProductFormModalWithImages from "@/components/branch/inventory/ProductFormModalWithImages";
+import { useApiOperation } from "@/hooks/useApiOperation";
 import { useAuth } from "@/hooks/useAuth";
 import { ImageCarousel } from "@/components/shared/image-carousel";
 import { Dialog, DialogContent, DialogTitle } from "@/components/shared/RadixDialog";
@@ -97,6 +98,7 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
 
   // Hooks
   const confirmation = useConfirmation();
+  const { execute } = useApiOperation();
 
   /**
    * Load products and categories
@@ -263,13 +265,14 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
       "Delete Product",
       `Are you sure you want to delete "${product.nameEn}"? This action cannot be undone.`,
       async () => {
-        const result = await executeWithErrorHandling(async () => {
-          return await inventoryService.deleteProduct(product.id);
+        await execute({
+          operation: () => inventoryService.deleteProduct(product.id),
+          successMessage: "Product deleted successfully",
+          successDetail: `${product.nameEn} has been removed from inventory`,
+          onSuccess: () => {
+            fetchProducts();
+          },
         });
-
-        if (result) {
-          fetchProducts();
-        }
       },
       "danger"
     );

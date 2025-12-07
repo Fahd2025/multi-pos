@@ -9,12 +9,14 @@ import { useState, useEffect } from "react";
 import inventoryService from "@/services/inventory.service";
 import supplierService from "@/services/supplier.service";
 import { PurchaseDto, SupplierDto, ProductDto, CreatePurchaseLineItemDto } from "@/types/api.types";
+import { useApiOperation } from "@/hooks/useApiOperation";
 
 interface PurchaseFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
   purchase?: PurchaseDto;
+  mode?: 'create' | 'edit' | 'view';
 }
 
 interface LineItemForm extends CreatePurchaseLineItemDto {
@@ -27,11 +29,14 @@ export default function PurchaseFormModal({
   onClose,
   onSuccess,
   purchase,
+  mode = 'create',
 }: PurchaseFormModalProps) {
-  const isViewMode = !!purchase;
+  const isViewMode = mode === 'view';
+  const isEditMode = mode === 'edit';
 
   // Form state
   const [formData, setFormData] = useState({
+    purchaseOrderNumber: "",
     supplierId: "",
     purchaseDate: new Date().toISOString().split("T")[0],
     notes: "",
@@ -41,8 +46,7 @@ export default function PurchaseFormModal({
   const [suppliers, setSuppliers] = useState<SupplierDto[]>([]);
   const [products, setProducts] = useState<ProductDto[]>([]);
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { execute, isLoading } = useApiOperation();
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   /**
@@ -52,9 +56,10 @@ export default function PurchaseFormModal({
     if (isOpen) {
       loadDropdownData();
 
-      if (purchase) {
-        // View mode - load existing purchase
+      if (purchase && (mode === 'edit' || mode === 'view')) {
+        // Edit/View mode - load existing purchase
         setFormData({
+          purchaseOrderNumber: purchase.purchaseOrderNumber || "",
           supplierId: purchase.supplierId,
           purchaseDate: purchase.purchaseDate.split("T")[0],
           notes: purchase.notes || "",
@@ -62,7 +67,7 @@ export default function PurchaseFormModal({
         setLineItems(
           purchase.lineItems.map((item) => ({
             productId: item.productId,
-            productName: item.productName,
+            productName: item.productNameEn,
             quantity: item.quantity,
             unitCost: item.unitCost,
             lineTotal: item.lineTotal,
@@ -71,6 +76,7 @@ export default function PurchaseFormModal({
       } else {
         // Create mode - reset form
         setFormData({
+          purchaseOrderNumber: "",
           supplierId: "",
           purchaseDate: new Date().toISOString().split("T")[0],
           notes: "",
@@ -78,7 +84,6 @@ export default function PurchaseFormModal({
         setLineItems([]);
       }
 
-      setError(null);
       setValidationErrors({});
     }
   }, [isOpen, purchase]);
@@ -92,7 +97,7 @@ export default function PurchaseFormModal({
       setSuppliers(suppliersResponse.data);
       setProducts(productsData.data);
     } catch (err: any) {
-      setError(err.message || "Failed to load dropdown data");
+      console.error("Failed to load dropdown data:", err);
     }
   };
 
@@ -195,29 +200,40 @@ export default function PurchaseFormModal({
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    const purchaseData = {
+      supplierId: formData.supplierId,
+      purchaseDate: formData.purchaseDate,
+      purchaseOrderNumber: formData.purchaseOrderNumber.trim() || undefined, // Auto-generate if empty
+      lineItems: lineItems.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        unitCost: item.unitCost,
+      })),
+      notes: formData.notes.trim() || undefined,
+    };
 
-    try {
-      const purchaseData = {
-        supplierId: formData.supplierId,
-        purchaseDate: formData.purchaseDate,
-        lineItems: lineItems.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          unitCost: item.unitCost,
-        })),
-        notes: formData.notes.trim() || undefined,
-      };
-
-      await inventoryService.createPurchase(purchaseData);
-      onSuccess();
-      onClose();
-    } catch (err: any) {
-      setError(err.response?.data?.message || err.message || "Failed to create purchase");
-      console.error("Failed to create purchase:", err);
-    } finally {
-      setLoading(false);
+    if (isEditMode && purchase) {
+      // Update existing purchase
+      await execute({
+        operation: () => inventoryService.updatePurchase(purchase.id, purchaseData),
+        successMessage: "Purchase order updated successfully",
+        successDetail: `Total cost: $${calculateTotalCost().toFixed(2)}`,
+        onSuccess: () => {
+          onSuccess();
+          onClose();
+        },
+      });
+    } else {
+      // Create new purchase
+      await execute({
+        operation: () => inventoryService.createPurchase(purchaseData),
+        successMessage: "Purchase order created successfully",
+        successDetail: `Total cost: $${calculateTotalCost().toFixed(2)}`,
+        onSuccess: () => {
+          onSuccess();
+          onClose();
+        },
+      });
     }
   };
 
@@ -229,7 +245,7 @@ export default function PurchaseFormModal({
         {/* Header */}
         <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            {isViewMode ? "Purchase Order Details" : "Create Purchase Order"}
+            {isViewMode ? "Purchase Order Details" : isEditMode ? "Edit Purchase Order" : "Create Purchase Order"}
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             ✕
@@ -241,12 +257,6 @@ export default function PurchaseFormModal({
           onSubmit={handleSubmit}
           className="px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto"
         >
-          {error && (
-            <div className="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md">
-              {error}
-            </div>
-          )}
-
           <div className="space-y-6">
             {/* Purchase Information */}
             <div>
@@ -254,6 +264,26 @@ export default function PurchaseFormModal({
                 Purchase Information
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Purchase Order Number */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Purchase Order Number
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.purchaseOrderNumber}
+                    onChange={(e) => setFormData({ ...formData, purchaseOrderNumber: e.target.value })}
+                    disabled={isViewMode}
+                    placeholder="Auto-generated if left empty"
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      isViewMode ? "bg-gray-100" : ""
+                    }`}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Leave empty to auto-generate (e.g., B001-PO-000001)
+                  </p>
+                </div>
+
                 {/* Supplier */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -475,10 +505,10 @@ export default function PurchaseFormModal({
             <button
               type="submit"
               onClick={handleSubmit}
-              disabled={loading}
+              disabled={isLoading}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Creating..." : "Create Purchase Order"}
+              {isLoading ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Purchase Order" : "Create Purchase Order")}
             </button>
           )}
         </div>

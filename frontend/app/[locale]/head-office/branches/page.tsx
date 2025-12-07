@@ -15,6 +15,7 @@ import { useDataTable } from "@/hooks/useDataTable";
 import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
 import { useConfirmation } from "@/hooks/useModal";
 import { ConfirmationDialog } from "@/components/shared";
+import { useApiOperation } from "@/hooks/useApiOperation";
 import { ImageCarousel } from "@/components/shared/image-carousel";
 import { Dialog, DialogContent, DialogTitle } from "@/components/shared/RadixDialog";
 import { API_BASE_URL } from "@/lib/constants";
@@ -43,6 +44,7 @@ export default function BranchesManagementPage({
 
   // Hooks
   const confirmation = useConfirmation();
+  const { execute } = useApiOperation();
 
   // DataTable hook
   const {
@@ -99,12 +101,12 @@ export default function BranchesManagementPage({
       "Delete Branch",
       `Are you sure you want to delete branch "${branch.nameEn}"? This action cannot be undone.`,
       async () => {
-        try {
-          await branchService.deleteBranch(branch.id);
-          loadBranches(); // Reload the list
-        } catch (err: any) {
-          setError(`Failed to delete branch: ${err.message}`);
-        }
+        await execute({
+          operation: () => branchService.deleteBranch(branch.id),
+          successMessage: "Branch deleted",
+          successDetail: `${branch.nameEn} has been removed successfully`,
+          onSuccess: () => loadBranches(), // Reload the list
+        });
       },
       "danger"
     );

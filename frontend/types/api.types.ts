@@ -481,6 +481,7 @@ export interface PurchaseLineItemDto {
 export interface CreatePurchaseDto {
   supplierId: string;
   purchaseDate: string;
+  purchaseOrderNumber?: string;
   lineItems: CreatePurchaseLineItemDto[];
   notes?: string;
 }

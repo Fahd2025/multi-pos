@@ -713,7 +713,7 @@ public class InventoryService : IInventoryService
         };
     }
 
-    public async Task<PurchaseDto> CreatePurchaseAsync(CreatePurchaseDto dto, Guid userId)
+    public async Task<PurchaseDto> CreatePurchaseAsync(CreatePurchaseDto dto, Guid userId, string branchCode)
     {
         // Validate supplier exists
         var supplierExists = await _context.Suppliers
@@ -721,11 +721,16 @@ public class InventoryService : IInventoryService
         if (!supplierExists)
             throw new InvalidOperationException("Supplier not found");
 
+        // Auto-generate purchase order number if not provided
+        var purchaseOrderNumber = string.IsNullOrWhiteSpace(dto.PurchaseOrderNumber)
+            ? await Utilities.InvoiceNumberGenerator.GeneratePurchaseOrderNumberAsync(_context, branchCode)
+            : dto.PurchaseOrderNumber;
+
         // Validate purchase order number is unique
         var poExists = await _context.Purchases
-            .AnyAsync(p => p.PurchaseOrderNumber == dto.PurchaseOrderNumber);
+            .AnyAsync(p => p.PurchaseOrderNumber == purchaseOrderNumber);
         if (poExists)
-            throw new InvalidOperationException($"Purchase order '{dto.PurchaseOrderNumber}' already exists");
+            throw new InvalidOperationException($"Purchase order '{purchaseOrderNumber}' already exists");
 
         // Validate all products exist
         var productIds = dto.LineItems.Select(li => li.ProductId).ToList();
@@ -741,7 +746,7 @@ public class InventoryService : IInventoryService
         var purchase = new Purchase
         {
             Id = Guid.NewGuid(),
-            PurchaseOrderNumber = dto.PurchaseOrderNumber,
+            PurchaseOrderNumber = purchaseOrderNumber,
             SupplierId = dto.SupplierId,
             PurchaseDate = dto.PurchaseDate,
             ReceivedDate = null,
@@ -779,6 +784,106 @@ public class InventoryService : IInventoryService
         await _context.SaveChangesAsync();
 
         return (await GetPurchaseByIdAsync(purchase.Id))!;
+    }
+
+    public async Task<PurchaseDto> UpdatePurchaseAsync(Guid purchaseId, UpdatePurchaseDto dto, Guid userId)
+    {
+        var purchase = await _context.Purchases
+            .Include(p => p.LineItems)
+            .FirstOrDefaultAsync(p => p.Id == purchaseId);
+
+        if (purchase == null)
+            throw new InvalidOperationException("Purchase not found");
+
+        // Cannot edit received purchases
+        if (purchase.ReceivedDate.HasValue)
+            throw new InvalidOperationException("Cannot edit a purchase that has been received");
+
+        // Validate supplier exists
+        var supplierExists = await _context.Suppliers
+            .AnyAsync(s => s.Id == dto.SupplierId);
+        if (!supplierExists)
+            throw new InvalidOperationException("Supplier not found");
+
+        // Validate purchase order number is unique (excluding current purchase)
+        if (!string.IsNullOrWhiteSpace(dto.PurchaseOrderNumber))
+        {
+            var poExists = await _context.Purchases
+                .AnyAsync(p => p.PurchaseOrderNumber == dto.PurchaseOrderNumber && p.Id != purchaseId);
+            if (poExists)
+                throw new InvalidOperationException($"Purchase order '{dto.PurchaseOrderNumber}' already exists");
+        }
+
+        // Validate all products exist
+        var productIds = dto.LineItems.Select(li => li.ProductId).ToList();
+        var existingProductIds = await _context.Products
+            .Where(p => productIds.Contains(p.Id))
+            .Select(p => p.Id)
+            .ToListAsync();
+
+        var missingProductIds = productIds.Except(existingProductIds).ToList();
+        if (missingProductIds.Any())
+            throw new InvalidOperationException($"Products not found: {string.Join(", ", missingProductIds)}");
+
+        // Update purchase header
+        purchase.PurchaseOrderNumber = dto.PurchaseOrderNumber;
+        purchase.SupplierId = dto.SupplierId;
+        purchase.PurchaseDate = dto.PurchaseDate;
+        purchase.Notes = dto.Notes;
+
+        // Remove existing line items
+        _context.PurchaseLineItems.RemoveRange(purchase.LineItems);
+
+        // Add new line items
+        decimal totalCost = 0;
+        var newLineItems = new List<PurchaseLineItem>();
+
+        foreach (var lineItemDto in dto.LineItems)
+        {
+            var lineTotal = lineItemDto.Quantity * lineItemDto.UnitCost;
+            totalCost += lineTotal;
+
+            var lineItem = new PurchaseLineItem
+            {
+                Id = Guid.NewGuid(),
+                PurchaseId = purchase.Id,
+                ProductId = lineItemDto.ProductId,
+                Quantity = lineItemDto.Quantity,
+                UnitCost = lineItemDto.UnitCost,
+                LineTotal = lineTotal
+            };
+
+            newLineItems.Add(lineItem);
+        }
+
+        purchase.LineItems = newLineItems;
+        purchase.TotalCost = totalCost;
+
+        await _context.SaveChangesAsync();
+
+        return (await GetPurchaseByIdAsync(purchase.Id))!;
+    }
+
+    public async Task DeletePurchaseAsync(Guid purchaseId, Guid userId)
+    {
+        var purchase = await _context.Purchases
+            .Include(p => p.LineItems)
+            .FirstOrDefaultAsync(p => p.Id == purchaseId);
+
+        if (purchase == null)
+            throw new InvalidOperationException("Purchase not found");
+
+        // Cannot delete received purchases
+        if (purchase.ReceivedDate.HasValue)
+            throw new InvalidOperationException("Cannot delete a purchase that has been received");
+
+        // Remove line items first
+        _context.PurchaseLineItems.RemoveRange(purchase.LineItems);
+
+        // Remove purchase
+        _context.Purchases.Remove(purchase);
+
+        await _context.SaveChangesAsync();
     }
 
     public async Task<PurchaseDto> ReceivePurchaseAsync(Guid purchaseId, Guid userId)

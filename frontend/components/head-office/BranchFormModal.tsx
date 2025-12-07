@@ -18,6 +18,7 @@ import branchService, {
   BranchDto,
 } from "@/services/branch.service";
 import imageService from "@/services/image.service";
+import { useApiOperation } from "@/hooks/useApiOperation";
 
 interface BranchFormModalProps {
   isOpen: boolean;
@@ -39,6 +40,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [currentLogoPath, setCurrentLogoPath] = useState<string | null>(null); // Track current logo path separately
+  const { execute } = useApiOperation();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -190,14 +192,15 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
     setLoading(true);
     setError(null);
 
-    try {
-      let savedBranch;
+    // For SQLite, set default values (backend ignores these and only uses branch code)
+    const isSQLite = formData.databaseProvider === 0;
+    const finalDbServer = isSQLite ? "SQLite" : formData.dbServer;
+    const finalDbName = isSQLite ? "SQLite" : formData.dbName;
 
-      // For SQLite, set default values (backend ignores these and only uses branch code)
-      const isSQLite = formData.databaseProvider === 0;
-      const finalDbServer = isSQLite ? "SQLite" : formData.dbServer;
-      const finalDbName = isSQLite ? "SQLite" : formData.dbName;
+    let savedBranch: BranchDto | null = null;
 
+    // Create/Update operation
+    const createOrUpdateBranch = async (): Promise<BranchDto> => {
       if (isEditMode && branch) {
         // Update branch
         const updateDto: UpdateBranchDto = {
@@ -217,7 +220,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
           currency: formData.currency,
           taxRate: formData.taxRate,
         };
-        savedBranch = await branchService.updateBranch(branch.id, updateDto);
+        return await branchService.updateBranch(branch.id, updateDto);
       } else {
         // Create branch
         const createDto: CreateBranchDto = {
@@ -238,72 +241,79 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
           currency: formData.currency,
           taxRate: formData.taxRate,
         };
-        savedBranch = await branchService.createBranch(createDto);
+        return await branchService.createBranch(createDto);
       }
+    };
 
-      // Handle logo operations
-      const logoWasRemoved = currentLogoPath === null && branch?.logoPath;
-      const newLogoSelected = selectedImages.length > 0;
+    await execute({
+      operation: createOrUpdateBranch,
+      successMessage: isEditMode ? "Branch updated" : "Branch created",
+      successDetail: `${formData.nameEn} has been ${isEditMode ? "updated" : "created"} successfully`,
+      onSuccess: async (result) => {
+        savedBranch = result;
 
-      if (isEditMode && branch && branch.logoPath) {
-        // Delete existing logo if user removed it OR is replacing it with a new one
-        if (logoWasRemoved || newLogoSelected) {
-          try {
-            // Use branch.id for deletion, not logoPath
-            // This works regardless of logoPath format (URL path or legacy ID)
-            const success = await imageService.deleteImages(branch.code, "Branches", branch.id);
-            if (success) {
-              console.log("Successfully deleted old branch logo from server");
-            } else {
-              console.error("Failed to delete old branch logo from server");
+        // Handle logo operations
+        const logoWasRemoved = currentLogoPath === null && branch?.logoPath;
+        const newLogoSelected = selectedImages.length > 0;
+
+        if (isEditMode && branch && branch.logoPath) {
+          // Delete existing logo if user removed it OR is replacing it with a new one
+          if (logoWasRemoved || newLogoSelected) {
+            try {
+              // Use branch.id for deletion, not logoPath
+              // This works regardless of logoPath format (URL path or legacy ID)
+              const success = await imageService.deleteImages(branch.code, "Branches", branch.id);
+              if (success) {
+                console.log("Successfully deleted old branch logo from server");
+              } else {
+                console.error("Failed to delete old branch logo from server");
+              }
+            } catch (error) {
+              console.error("Error deleting old logo from server:", error);
+              // Don't fail the whole operation
             }
-          } catch (error) {
-            console.error("Error deleting old logo from server:", error);
-            // Don't fail the whole operation
           }
         }
-      }
 
-      if (selectedImages.length > 0) {
-        // Upload new logo if selected
-        setUploadingImages(true);
-        try {
-          // First, upload the image to storage
-          await imageService.uploadImage(
-            savedBranch.code, // Use branch code for path construction
-            "Branches",
-            savedBranch.id,
-            selectedImages[0] // Single logo
-          );
-          console.log("Successfully uploaded new branch logo to storage");
+        if (selectedImages.length > 0 && savedBranch) {
+          // Upload new logo if selected
+          setUploadingImages(true);
+          try {
+            // First, upload the image to storage
+            await imageService.uploadImage(
+              savedBranch.code, // Use branch code for path construction
+              "Branches",
+              savedBranch.id,
+              selectedImages[0] // Single logo
+            );
+            console.log("Successfully uploaded new branch logo to storage");
 
-          // Then, update the branch record with the new logo path
-          // The logo path follows the pattern: /api/v1/images/{branchCode}/branches/{id}/thumb
-          const newLogoPath = `/api/v1/images/${savedBranch.code}/branches/${savedBranch.id}/thumb`;
+            // Then, update the branch record with the new logo path
+            // The logo path follows the pattern: /api/v1/images/{branchCode}/branches/{id}/thumb
+            const newLogoPath = `/api/v1/images/${savedBranch.code}/branches/${savedBranch.id}/thumb`;
 
-          // Update ONLY the logo path field
-          const logoUpdateDto: UpdateBranchDto = {
-            logoPath: newLogoPath,
-          };
+            // Update ONLY the logo path field
+            const logoUpdateDto: UpdateBranchDto = {
+              logoPath: newLogoPath,
+            };
 
-          await branchService.updateBranch(savedBranch.id, logoUpdateDto);
-          console.log("Successfully updated branch with new logo path:", newLogoPath);
-        } catch (error) {
-          console.error("Error uploading logo:", error);
-          // Don't fail the whole operation
-        } finally {
-          setUploadingImages(false);
+            await branchService.updateBranch(savedBranch.id, logoUpdateDto);
+            console.log("Successfully updated branch with new logo path:", newLogoPath);
+          } catch (error) {
+            console.error("Error uploading logo:", error);
+            // Don't fail the whole operation
+          } finally {
+            setUploadingImages(false);
+          }
         }
-      }
 
-      onSuccess();
-      onClose();
-      setSelectedImages([]);
-    } catch (err: any) {
-      setError(err.message || `Failed to ${isEditMode ? "update" : "create"} branch`);
-    } finally {
-      setLoading(false);
-    }
+        onSuccess();
+        onClose();
+        setSelectedImages([]);
+      },
+    });
+
+    setLoading(false);
   };
 
   return (

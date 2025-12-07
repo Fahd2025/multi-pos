@@ -23,6 +23,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { useApiError } from "@/hooks/useApiError";
 import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
 import { StatCard } from "@/components/shared";
+import { useApiOperation } from "@/hooks/useApiOperation";
 import { useAuth } from "@/hooks/useAuth";
 import { API_BASE_URL } from "@/lib/constants";
 import { ImageCarousel } from "@/components/shared/image-carousel";
@@ -62,6 +63,7 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
   // Modal hooks
   const viewModal = useModal<CustomerDto>();
   const confirmation = useConfirmation();
+  const { execute } = useApiOperation();
 
   // DataTable hook (disabled client-side pagination since we use server-side)
   const {
@@ -257,14 +259,15 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
       "Delete Customer",
       `Are you sure you want to delete "${customer.nameEn}"? This action cannot be undone.`,
       async () => {
-        const result = await executeWithErrorHandling(async () => {
-          return await customerService.deleteCustomer(customer.id);
+        await execute({
+          operation: () => customerService.deleteCustomer(customer.id),
+          successMessage: "Customer deleted successfully",
+          successDetail: `${customer.nameEn} has been removed`,
+          onSuccess: () => {
+            loadCustomers();
+            loadAllCustomers(); // Update stats
+          },
         });
-
-        if (result) {
-          loadCustomers();
-          loadAllCustomers(); // Update stats
-        }
       },
       "danger"
     );

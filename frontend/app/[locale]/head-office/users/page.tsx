@@ -30,6 +30,7 @@ import {
   CreateUserDto,
   UpdateUserDto,
 } from "@/services/user.service";
+import { useApiOperation } from "@/hooks/useApiOperation";
 
 export default function UsersManagementPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
@@ -55,6 +56,7 @@ export default function UsersManagementPage({ params }: { params: Promise<{ loca
   const createEditModal = useModal<UserDto>();
   const viewModal = useModal<UserDto>();
   const confirmation = useConfirmation();
+  const { execute, isLoading: isOperationLoading } = useApiOperation();
 
   // Load users on mount
   useEffect(() => {
@@ -362,7 +364,7 @@ export default function UsersManagementPage({ params }: { params: Promise<{ loca
   const handleSubmit = async (data: CreateUserDto | UpdateUserDto) => {
     setIsSubmitting(true);
 
-    try {
+    const operation = async () => {
       if (createEditModal.mode === "create") {
         // Create new user
         await createUser(data as CreateUserDto);
@@ -373,15 +375,19 @@ export default function UsersManagementPage({ params }: { params: Promise<{ loca
           await updateUser(userId, data as UpdateUserDto);
         }
       }
+    };
 
-      // Reload users and close modal
-      await loadUsers();
-      createEditModal.close();
-    } catch (err: any) {
-      alert(`Failed to ${createEditModal.mode} user: ${err.message}`);
-    } finally {
-      setIsSubmitting(false);
-    }
+    await execute({
+      operation,
+      successMessage: `User ${createEditModal.mode === "create" ? "created" : "updated"} successfully`,
+      successDetail: `${(data as any).fullNameEn || (data as any).username} has been ${createEditModal.mode === "create" ? "added" : "updated"}`,
+      onSuccess: async () => {
+        await loadUsers();
+        createEditModal.close();
+      },
+    });
+
+    setIsSubmitting(false);
   };
 
   const handleDeleteClick = (user: UserDto) => {
@@ -389,12 +395,12 @@ export default function UsersManagementPage({ params }: { params: Promise<{ loca
       "Delete User",
       `Are you sure you want to delete user "${user.username}" (${user.fullNameEn})? This action cannot be undone.`,
       async () => {
-        try {
-          await deleteUser(user.id);
-          await loadUsers();
-        } catch (err: any) {
-          alert(`Failed to delete user: ${err.message}`);
-        }
+        await execute({
+          operation: () => deleteUser(user.id),
+          successMessage: "User deleted successfully",
+          successDetail: `${user.fullNameEn} (${user.username}) has been removed from the system`,
+          onSuccess: () => loadUsers(),
+        });
       },
       "danger"
     );
