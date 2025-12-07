@@ -123,6 +123,18 @@ export interface DataTableProps<T> {
   showRowNumbers?: boolean;
   /** Optional image column configuration */
   imageColumn?: ImageColumnConfig<T>;
+  /** Optional search bar component */
+  searchBar?: React.ReactNode;
+  /** Optional filter section component */
+  filterSection?: React.ReactNode;
+  /** Show filter toggle button */
+  showFilterButton?: boolean;
+  /** Number of active filters (for badge display) */
+  activeFilterCount?: number;
+  /** Callback to reset all filters */
+  onResetFilters?: () => void;
+  /** Show reset button next to filter button */
+  showResetButton?: boolean;
 }
 
 // Modal types
