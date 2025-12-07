@@ -20,6 +20,18 @@ export { LoadingSpinner } from "./LoadingSpinner";
 export { ErrorAlert, SuccessAlert } from "./ErrorAlert";
 export { StatusBadge, getStockStatusVariant } from "./StatusBadge";
 
+// Skeleton Loading Components
+export {
+  Skeleton,
+  TableSkeleton,
+  CardSkeleton,
+  ListSkeleton,
+  FormSkeleton,
+  StatsCardSkeleton,
+  ProductGridSkeleton,
+  PageHeaderSkeleton,
+} from "./skeletons";
+
 // Custom Generic Components
 export { StatCard } from "./StatCard";
 export type { StatCardProps } from "./StatCard";

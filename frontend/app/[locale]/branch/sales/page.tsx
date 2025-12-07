@@ -4,11 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import SalesStatistics from "@/components/branch/sales/SalesStatistics";
 import SalesTable from "@/components/branch/sales/SalesTable";
-import NewInvoiceModal from "@/components/branch/sales/NewInvoiceModal"; // Keeping for backward compatibility if needed, or removing usage
+import NewInvoiceModal from "@/components/branch/sales/NewInvoiceModal";
 import CreateSalesInvoiceForm from "@/components/branch/sales/CreateSalesInvoiceForm";
 import ProductGridModal from "@/components/branch/sales/ProductGridModal";
 import { ProductDto, SaleDto } from "@/types/api.types";
 import { PageHeader, ActionCard, InfoBanner, Button } from "@/components/shared";
+import { UI_STRINGS } from "@/lib/constants";
 
 export default function SalesPage({ params }: { params: Promise<{ locale: string }> }) {
   const router = useRouter();
@@ -61,8 +62,8 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
     <div className="animate-in fade-in duration-300">
       <div>
         <PageHeader
-          title="Sales Management"
-          description="Track sales performance and manage transactions"
+          title={UI_STRINGS.SALES.PAGE_TITLE}
+          description={UI_STRINGS.SALES.PAGE_DESCRIPTION}
           actions={
             <>
               <Button
@@ -81,7 +82,7 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
                 className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
               >
                 <span className="mr-2 text-xl">📄</span>
-                New Invoice
+                {UI_STRINGS.SALES.NEW_SALE}
               </Button>
             </>
           }
@@ -94,7 +95,7 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  From Date
+                  {UI_STRINGS.SALES.FROM_DATE}
                 </label>
                 <input
                   type="date"
@@ -105,7 +106,7 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  To Date
+                  {UI_STRINGS.SALES.TO_DATE}
                 </label>
                 <input
                   type="date"
@@ -119,7 +120,7 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
               onClick={handleDateFilterChange}
               className="px-6 py-2.5 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors w-full sm:w-auto"
             >
-              Apply
+              {UI_STRINGS.COMMON.APPLY}
             </button>
           </div>
         </div>
@@ -136,8 +137,8 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
         {/* Quick Actions Cards (Mobile Friendly) */}
         <div className="mb-6 md:mb-8 grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           <ActionCard
-            title="Full POS"
-            description="Complete interface"
+            title={UI_STRINGS.SALES.POS.FULL_POS}
+            description={UI_STRINGS.SALES.POS.FULL_POS_DESC}
             icon="🏪"
             layout="vertical"
             hoverBorderColor="border-blue-500"
@@ -145,8 +146,8 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
           />
 
           <ActionCard
-            title="Quick Invoice"
-            description="Detailed entry"
+            title={UI_STRINGS.SALES.POS.QUICK_INVOICE}
+            description={UI_STRINGS.SALES.POS.QUICK_INVOICE_DESC}
             icon="⚡"
             layout="vertical"
             hoverBorderColor="border-green-500"

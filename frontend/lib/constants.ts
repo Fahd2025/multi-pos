@@ -217,3 +217,179 @@ export const ERROR_MESSAGES = {
   INVALID_CREDENTIALS: "Invalid username or password.",
   UNKNOWN_ERROR: "An unexpected error occurred.",
 };
+
+/**
+ * Centralized UI Strings
+ * All user-facing strings for easy maintenance and future i18n support
+ */
+export const UI_STRINGS = {
+  // Common
+  COMMON: {
+    LOADING: "Loading...",
+    ERROR: "Error",
+    SUCCESS: "Success",
+    CANCEL: "Cancel",
+    CONFIRM: "Confirm",
+    SAVE: "Save",
+    DELETE: "Delete",
+    EDIT: "Edit",
+    ADD: "Add",
+    SEARCH: "Search",
+    FILTER: "Filter",
+    APPLY: "Apply",
+    RESET: "Reset",
+    CLEAR: "Clear",
+    CLOSE: "Close",
+    BACK: "Back",
+    NEXT: "Next",
+    PREVIOUS: "Previous",
+    SUBMIT: "Submit",
+    ACTIONS: "Actions",
+    DETAILS: "Details",
+    VIEW: "View",
+    DOWNLOAD: "Download",
+    PRINT: "Print",
+    EXPORT: "Export",
+    IMPORT: "Import",
+    REFRESH: "Refresh",
+    SELECT: "Select",
+    NO_DATA: "No data available",
+    NO_RESULTS: "No results found",
+  },
+
+  // Status Messages
+  STATUS: {
+    ONLINE: "🟢 Online",
+    OFFLINE: "🔴 Offline",
+    SYNCING: "Syncing...",
+    SYNCED: "Synced",
+    PENDING: "Pending",
+    COMPLETED: "Completed",
+    FAILED: "Failed",
+    ACTIVE: "Active",
+    INACTIVE: "Inactive",
+  },
+
+  // Sales Module
+  SALES: {
+    PAGE_TITLE: "Sales Management",
+    PAGE_DESCRIPTION: "Track sales performance and manage transactions",
+    NEW_SALE: "New Sale",
+    FROM_DATE: "From Date",
+    TO_DATE: "To Date",
+    TRANSACTION_ID: "Transaction ID",
+    INVOICE_NUMBER: "Invoice Number",
+
+    // POS specific
+    POS: {
+      TITLE: "Point of Sale",
+      FULL_POS: "Full POS",
+      FULL_POS_DESC: "Complete interface",
+      QUICK_INVOICE: "Quick Invoice",
+      QUICK_INVOICE_DESC: "Detailed entry",
+      CART_EMPTY: "Cart is empty",
+      CLEAR_CART_CONFIRM: "Are you sure you want to clear the cart?",
+      CHECKOUT: "Checkout",
+      SEARCH_PRODUCTS: "Search products...",
+      CATEGORIES: "Categories",
+      SHOW_CART: "Show cart",
+      HIDE_CART: "Hide cart",
+      SHOW_CATEGORIES: "Show categories",
+      HIDE_CATEGORIES: "Hide categories",
+      SHOW_SETTINGS: "Show settings",
+      HIDE_SETTINGS: "Hide settings",
+      SIDEBAR_POSITION: "Category Sidebar Position",
+      LEFT_SIDEBAR: "Left Sidebar",
+      TOP_BAR: "Top Bar",
+      SALE_COMPLETED: "Sale completed! Transaction ID:",
+      SALE_QUEUED: "Sale queued for sync when online",
+    },
+  },
+
+  // Inventory Module
+  INVENTORY: {
+    PAGE_TITLE: "Inventory Management",
+    PRODUCTS: "Products",
+    CATEGORIES: "Categories",
+    SUPPLIERS: "Suppliers",
+    PURCHASES: "Purchases",
+    NEW_PRODUCT: "New Product",
+    NEW_CATEGORY: "New Category",
+    STOCK_QUANTITY: "Stock Quantity",
+    LOW_STOCK: "Low Stock",
+    OUT_OF_STOCK: "Out of Stock",
+  },
+
+  // Customers Module
+  CUSTOMERS: {
+    PAGE_TITLE: "Customer Management",
+    PAGE_DESCRIPTION: "Manage customer information and relationships",
+    NEW_CUSTOMER: "New Customer",
+  },
+
+  // Suppliers Module
+  SUPPLIERS: {
+    PAGE_TITLE: "Supplier Management",
+    NEW_SUPPLIER: "New Supplier",
+  },
+
+  // Expenses Module
+  EXPENSES: {
+    PAGE_TITLE: "Expense Management",
+    PAGE_DESCRIPTION: "Track and manage business expenses",
+    NEW_EXPENSE: "New Expense",
+  },
+
+  // Users Module
+  USERS: {
+    PAGE_TITLE: "User Management",
+    PAGE_DESCRIPTION: "Manage user accounts and permissions",
+    NEW_USER: "New User",
+  },
+
+  // Branches Module (Head Office)
+  BRANCHES: {
+    PAGE_TITLE: "Branch Management",
+    PAGE_DESCRIPTION: "Manage branch locations and settings",
+    NEW_BRANCH: "New Branch",
+  },
+
+  // Dashboard
+  DASHBOARD: {
+    PAGE_TITLE: "Dashboard",
+    TOTAL_SALES: "Total Sales",
+    TOTAL_REVENUE: "Total Revenue",
+    RECENT_SALES: "Recent Sales",
+    TOP_PRODUCTS: "Top Products",
+    LOW_STOCK_ALERT: "Low Stock Alert",
+  },
+
+  // Authentication
+  AUTH: {
+    LOGIN: "Login",
+    LOGOUT: "Logout",
+    WELCOME_BACK: "Welcome Back",
+    FORGOT_PASSWORD: "Forgot Password?",
+    SESSION_EXPIRED: "Session expired. Please login again.",
+    UNAUTHORIZED: "You are not authorized to access this resource",
+  },
+
+  // Table/DataTable
+  TABLE: {
+    SHOWING: "Showing",
+    OF: "of",
+    ENTRIES: "entries",
+    ROWS_PER_PAGE: "Rows per page",
+    NO_DATA: "No data to display",
+    LOADING: "Loading data...",
+  },
+
+  // Payment Methods
+  PAYMENT_METHODS: {
+    CASH: "Cash",
+    CARD: "Card",
+    DIGITAL_WALLET: "Digital Wallet",
+    BANK_TRANSFER: "Bank Transfer",
+    CHECK: "Check",
+  },
+} as const;

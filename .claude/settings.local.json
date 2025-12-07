@@ -65,7 +65,10 @@
       "Bash(grep:*)",
       "Bash(tail:*)",
       "Bash(bash test-auth.sh:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(tree:*)",
+      "Bash(wc:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []
