@@ -38,6 +38,7 @@ public static class ApiRoutes
 ```
 
 **Features covered:**
+
 - Health check routes
 - Authentication routes
 - Sales routes
@@ -60,6 +61,7 @@ public static class ApiRoutes
 The existing constants file has been **updated** with additional API routes:
 
 **Added routes:**
+
 - `API_ROUTES.BRANCHES.LOOKUP` - For branch lookup dropdown
 - `API_ROUTES.IMAGES.UPLOAD_MULTIPLE` - For multi-image upload
 - `API_ROUTES.IMAGES.UPDATE_PRODUCT` - For updating product images
@@ -67,6 +69,7 @@ The existing constants file has been **updated** with additional API routes:
 - `API_ROUTES.USERS.REMOVE_BRANCH_ASSIGNMENT` - For removing branch assignments
 
 **Structure:**
+
 ```typescript
 export const API_ROUTES = {
   AUTH: {
@@ -88,11 +91,12 @@ export const API_ROUTES = {
 
 ### 3. Frontend Page Routes Constants
 
-**File:** `frontend/lib/routes.ts` *(NEW)*
+**File:** `frontend/lib/routes.ts` _(NEW)_
 
 A comprehensive new file containing all frontend page routes with helper functions:
 
 **Main route groups:**
+
 ```typescript
 // Authentication routes
 export const AUTH_ROUTES = {
@@ -104,9 +108,11 @@ export const AUTH_ROUTES = {
 export const HEAD_OFFICE_ROUTES = {
   DASHBOARD: (locale: string) => `/${locale}/head-office`,
   BRANCHES: (locale: string) => `/${locale}/head-office/branches`,
-  BRANCH_DETAIL: (locale: string, id: string) => `/${locale}/head-office/branches/${id}`,
+  BRANCH_DETAIL: (locale: string, id: string) =>
+    `/${locale}/head-office/branches/${id}`,
   USERS: (locale: string) => `/${locale}/head-office/users`,
-  USER_DETAIL: (locale: string, id: string) => `/${locale}/head-office/users/${id}`,
+  USER_DETAIL: (locale: string, id: string) =>
+    `/${locale}/head-office/users/${id}`,
   ANALYTICS: (locale: string) => `/${locale}/head-office/analytics`,
   AUDIT_LOGS: (locale: string) => `/${locale}/head-office/audit-logs`,
 };
@@ -117,16 +123,19 @@ export const BRANCH_ROUTES = {
   SALES: (locale: string) => `/${locale}/branch/sales`,
   SALE_DETAIL: (locale: string, id: string) => `/${locale}/branch/sales/${id}`,
   POS: (locale: string) => `/${locale}/branch/sales/pos`,
-  POS2: (locale: string) => `/${locale}/branch/sales/pos2`,
+  POS2: (locale: string) => `/${locale}/branch/sales/pos`,
   INVENTORY: (locale: string) => `/${locale}/branch/inventory`,
   CATEGORIES: (locale: string) => `/${locale}/branch/inventory/categories`,
   CUSTOMERS: (locale: string) => `/${locale}/branch/customers`,
-  CUSTOMER_DETAIL: (locale: string, id: string) => `/${locale}/branch/customers/${id}`,
+  CUSTOMER_DETAIL: (locale: string, id: string) =>
+    `/${locale}/branch/customers/${id}`,
   SUPPLIERS: (locale: string) => `/${locale}/branch/suppliers`,
-  SUPPLIER_DETAIL: (locale: string, id: string) => `/${locale}/branch/suppliers/${id}`,
+  SUPPLIER_DETAIL: (locale: string, id: string) =>
+    `/${locale}/branch/suppliers/${id}`,
   PURCHASES: (locale: string) => `/${locale}/branch/purchases`,
   EXPENSES: (locale: string) => `/${locale}/branch/expenses`,
-  EXPENSE_CATEGORIES: (locale: string) => `/${locale}/branch/expense-categories`,
+  EXPENSE_CATEGORIES: (locale: string) =>
+    `/${locale}/branch/expense-categories`,
   REPORTS: (locale: string) => `/${locale}/branch/reports`,
   SETTINGS: (locale: string) => `/${locale}/branch/settings`,
   SETTINGS_USERS: (locale: string) => `/${locale}/branch/settings/users`,
@@ -134,30 +143,31 @@ export const BRANCH_ROUTES = {
 ```
 
 **Helper functions:**
+
 ```typescript
 // Generate localized route
 export const localizeRoute = (locale: string, path: string): string => {
-  const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+  const cleanPath = path.startsWith("/") ? path.substring(1) : path;
   return `/${locale}/${cleanPath}`;
 };
 
 // Get base path for a route type
-export const getBasePath = (locale: string, type: 'head-office' | 'branch') => {
-  return type === 'head-office'
+export const getBasePath = (locale: string, type: "head-office" | "branch") => {
+  return type === "head-office"
     ? HEAD_OFFICE_ROUTES.DASHBOARD(locale)
     : BRANCH_ROUTES.DASHBOARD(locale);
 };
 
 // Get navigation items with proper routes
 export const getBranchNavigation = (locale: string) => [
-  { name: 'Dashboard', href: BRANCH_ROUTES.DASHBOARD(locale), icon: '📊' },
-  { name: 'POS', href: BRANCH_ROUTES.POS(locale), icon: '🛒' },
+  { name: "Dashboard", href: BRANCH_ROUTES.DASHBOARD(locale), icon: "📊" },
+  { name: "POS", href: BRANCH_ROUTES.POS(locale), icon: "🛒" },
   // ... more items
 ];
 
 export const getHeadOfficeNavigation = (locale: string) => [
-  { name: 'Dashboard', href: HEAD_OFFICE_ROUTES.DASHBOARD(locale), icon: '📊' },
-  { name: 'Branches', href: HEAD_OFFICE_ROUTES.BRANCHES(locale), icon: '🏢' },
+  { name: "Dashboard", href: HEAD_OFFICE_ROUTES.DASHBOARD(locale), icon: "📊" },
+  { name: "Branches", href: HEAD_OFFICE_ROUTES.BRANCHES(locale), icon: "🏢" },
   // ... more items
 ];
 ```
@@ -167,6 +177,7 @@ export const getHeadOfficeNavigation = (locale: string) => [
 ### Backend Endpoint Refactoring
 
 **Before:**
+
 ```csharp
 namespace Backend.Endpoints;
 
@@ -184,6 +195,7 @@ public static class HealthEndpoints
 ```
 
 **After:**
+
 ```csharp
 using Backend.Constants;
 
@@ -205,6 +217,7 @@ public static class HealthEndpoints
 **For grouped endpoints (Auth, Sales, etc.):**
 
 **Before:**
+
 ```csharp
 public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder app)
 {
@@ -218,6 +231,7 @@ public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder 
 ```
 
 **After:**
+
 ```csharp
 using Backend.Constants;
 
@@ -235,9 +249,10 @@ public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder 
 ### Frontend Service Refactoring
 
 **Sales Service - Before:**
+
 ```typescript
 class SalesService {
-  private basePath = '/api/v1/sales';
+  private basePath = "/api/v1/sales";
 
   async createSale(saleData: CreateSaleDto): Promise<SaleDto> {
     const response = await api.post<ApiResponse<SaleDto>>(
@@ -265,8 +280,9 @@ class SalesService {
 ```
 
 **Sales Service - After:**
+
 ```typescript
-import { API_ROUTES } from '@/lib/constants';
+import { API_ROUTES } from "@/lib/constants";
 
 class SalesService {
   async createSale(saleData: CreateSaleDto): Promise<SaleDto> {
@@ -297,8 +313,9 @@ class SalesService {
 ### Frontend Page/Component Refactoring
 
 **Before:**
+
 ```tsx
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
 function MyComponent({ locale }: { locale: string }) {
   const router = useRouter();
@@ -318,9 +335,10 @@ function MyComponent({ locale }: { locale: string }) {
 ```
 
 **After:**
+
 ```tsx
-import { useRouter } from 'next/navigation';
-import { BRANCH_ROUTES } from '@/lib/routes';
+import { useRouter } from "next/navigation";
+import { BRANCH_ROUTES } from "@/lib/routes";
 
 function MyComponent({ locale }: { locale: string }) {
   const router = useRouter();
@@ -340,23 +358,25 @@ function MyComponent({ locale }: { locale: string }) {
 ```
 
 **Layout Navigation - Before:**
+
 ```tsx
 export default function BranchLayout({ children, params }: Props) {
   const { locale } = use(params);
 
   const navigation = [
-    { name: 'Dashboard', href: `/${locale}/branch`, icon: '📊' },
-    { name: 'POS', href: `/${locale}/branch/sales/pos`, icon: '🛒' },
-    { name: 'Sales', href: `/${locale}/branch/sales`, icon: '💰' },
-    { name: 'Inventory', href: `/${locale}/branch/inventory`, icon: '📦' },
+    { name: "Dashboard", href: `/${locale}/branch`, icon: "📊" },
+    { name: "POS", href: `/${locale}/branch/sales/pos`, icon: "🛒" },
+    { name: "Sales", href: `/${locale}/branch/sales`, icon: "💰" },
+    { name: "Inventory", href: `/${locale}/branch/inventory`, icon: "📦" },
     // ... more items
   ];
 }
 ```
 
 **Layout Navigation - After:**
+
 ```tsx
-import { getBranchNavigation } from '@/lib/routes';
+import { getBranchNavigation } from "@/lib/routes";
 
 export default function BranchLayout({ children, params }: Props) {
   const { locale } = use(params);
@@ -371,6 +391,7 @@ export default function BranchLayout({ children, params }: Props) {
 ### Backend Files (13 endpoint files)
 
 All files in `Backend/Endpoints/`:
+
 - ✅ `HealthEndpoints.cs` - **DONE** (Example)
 - ✅ `AuthEndpoints.cs` - **DONE** (Example)
 - `SalesEndpoints.cs` - Needs refactoring
@@ -388,6 +409,7 @@ All files in `Backend/Endpoints/`:
 ### Frontend Service Files (11 service files)
 
 All files in `frontend/services/`:
+
 - ✅ `auth.service.ts` - **Already using constants**
 - `sales.service.ts` - Needs refactoring (uses `basePath`)
 - `inventory.service.ts` - Needs refactoring (hard-coded `/api/v1/products`, `/api/v1/categories`, etc.)
@@ -402,6 +424,7 @@ All files in `frontend/services/`:
 ### Frontend Page/Component Files (50+ files)
 
 Files with hard-coded page routes found in:
+
 - `frontend/app/[locale]/branch/layout.tsx` - Navigation needs to use `getBranchNavigation()`
 - `frontend/app/[locale]/head-office/layout.tsx` - Navigation needs to use `getHeadOfficeNavigation()`
 - `frontend/hooks/useAuth.ts` - Router pushes need route constants
@@ -410,6 +433,7 @@ Files with hard-coded page routes found in:
 - Component files with Link or router navigation in `frontend/components/`
 
 **High-priority component files:**
+
 - `frontend/components/branch/sales/SalesTable.tsx`
 - `frontend/components/branch/customers/CustomerAnalyticsWidget.tsx`
 - `frontend/components/branch/expenses/ExpenseAnalyticsWidget.tsx`
@@ -447,8 +471,8 @@ Files with hard-coded page routes found in:
 
 1. Import route constants: `import { BRANCH_ROUTES, HEAD_OFFICE_ROUTES } from '@/lib/routes';`
 2. Replace hard-coded route strings with constants:
-   - `\`/${locale}/branch/sales\`` → `BRANCH_ROUTES.SALES(locale)`
-   - `\`/${locale}/head-office/users/${id}\`` → `HEAD_OFFICE_ROUTES.USER_DETAIL(locale, id)`
+   - `\`/${locale}/branch/sales\``→`BRANCH_ROUTES.SALES(locale)`
+   - `\`/${locale}/head-office/users/${id}\``→`HEAD_OFFICE_ROUTES.USER_DETAIL(locale, id)`
 3. For navigation arrays, use helper functions: `getBranchNavigation(locale)` or `getHeadOfficeNavigation(locale)`
 4. Test routing and navigation
 
@@ -457,12 +481,14 @@ Files with hard-coded page routes found in:
 After refactoring, verify:
 
 ### Backend
+
 - [ ] All endpoints are accessible at their original URLs
 - [ ] Swagger documentation updates correctly
 - [ ] No build errors
 - [ ] Run `dotnet build` successfully
 
 ### Frontend
+
 - [ ] All API calls work correctly
 - [ ] All page navigations work
 - [ ] All links work correctly

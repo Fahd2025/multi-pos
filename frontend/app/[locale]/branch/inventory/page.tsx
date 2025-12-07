@@ -32,10 +32,15 @@ import { ImageCarousel } from "@/components/shared/image-carousel";
 import { Dialog, DialogContent, DialogTitle } from "@/components/shared/RadixDialog";
 import { API_BASE_URL } from "@/lib/constants";
 import { Barcode } from "lucide-react";
+import { RoleGuard, usePermission } from "@/components/auth/RoleGuard";
+import { UserRole } from "@/types/enums";
+import { useRouter } from "next/navigation";
 
 export default function InventoryPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
   const { branch } = useAuth();
+  const router = useRouter();
+  const { canManage } = usePermission();
 
   const [products, setProducts] = useState<ProductDto[]>([]);
   const [categories, setCategories] = useState<CategoryDto[]>([]);
@@ -96,8 +101,10 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
    * Load products and categories
    */
   useEffect(() => {
-    loadData();
-  }, [selectedCategory, showLowStock, showOutOfStock]);
+    if (canManage()) {
+      loadData();
+    }
+  }, [selectedCategory, showLowStock, showOutOfStock, canManage]);
 
   const loadData = async () => {
     setLoading(true);
@@ -297,10 +304,24 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
   };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Inventory Management"
-        description="Manage products, categories, and stock levels"
+    <RoleGuard
+      requireRole={UserRole.Manager}
+      fallback={
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <div className="text-6xl">🔒</div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Access Denied</h2>
+          <p className="text-gray-600 dark:text-gray-400">You don't have permission to access this page.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-500">Only Managers can access Inventory Management.</p>
+          <Button onClick={() => router.push(`/${locale}/branch`)}>
+            Go to Dashboard
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-6">
+        <PageHeader
+          title="Inventory Management"
+          description="Manage products, categories, and stock levels"
         actions={
           <>
             <Link href={`/${locale}/branch/inventory/categories`}>
@@ -514,6 +535,7 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
           />
         </Suspense>
       )}
-    </div>
+      </div>
+    </RoleGuard>
   );
 }

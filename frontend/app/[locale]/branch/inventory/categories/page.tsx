@@ -8,6 +8,7 @@
 import { useState, useEffect } from "react";
 import { use } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import inventoryService from "@/services/inventory.service";
 import { CategoryDto } from "@/types/api.types";
 import CategoryFormModal from "@/components/branch/inventory/CategoryFormModal";
@@ -23,10 +24,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { API_BASE_URL } from "@/lib/constants";
 import { ImageCarousel } from "@/components/shared/image-carousel";
 import { Dialog, DialogContent, DialogTitle } from "@/components/shared/RadixDialog";
+import { RoleGuard, usePermission } from "@/components/auth/RoleGuard";
+import { UserRole } from "@/types/enums";
 
 export default function CategoriesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
+  const router = useRouter();
   const { branch } = useAuth();
+  const { canManage } = usePermission();
   const [categories, setCategories] = useState<CategoryDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,8 +63,10 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
    * Load categories
    */
   useEffect(() => {
-    loadCategories();
-  }, []);
+    if (canManage()) {
+      loadCategories();
+    }
+  }, [canManage]);
 
   const loadCategories = async () => {
     try {
@@ -213,8 +220,22 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
   };
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
+    <RoleGuard
+      requireRole={UserRole.Manager}
+      fallback={
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <div className="text-6xl">🔒</div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Access Denied</h2>
+          <p className="text-gray-600 dark:text-gray-400">You don't have permission to access this page.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-500">Only Managers can access Category Management.</p>
+          <Button onClick={() => router.push(`/${locale}/branch`)}>
+            Go to Dashboard
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-6">
+        {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
@@ -370,6 +391,7 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
           />
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </RoleGuard>
   );
 }

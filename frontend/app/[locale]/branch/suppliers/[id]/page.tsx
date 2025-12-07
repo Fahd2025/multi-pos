@@ -19,6 +19,8 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { ErrorAlert } from "@/components/shared/ErrorAlert";
 import { useAuth } from "@/hooks/useAuth";
+import { RoleGuard, usePermission } from "@/components/auth/RoleGuard";
+import { UserRole } from "@/types/enums";
 
 export default function SupplierDetailsPage({
   params,
@@ -28,6 +30,7 @@ export default function SupplierDetailsPage({
   const { locale, id } = use(params);
   const router = useRouter();
   const { branch } = useAuth();
+  const { canManage } = usePermission();
 
   const [supplier, setSupplier] = useState<SupplierDto | null>(null);
   const [purchases, setPurchases] = useState<PurchaseDto[]>([]);
@@ -53,15 +56,19 @@ export default function SupplierDetailsPage({
    * Load supplier details
    */
   useEffect(() => {
-    loadSupplier();
-  }, [id]);
+    if (canManage()) {
+      loadSupplier();
+    }
+  }, [id, canManage]);
 
   /**
    * Load purchase history
    */
   useEffect(() => {
-    loadPurchaseHistory();
-  }, [id]);
+    if (canManage()) {
+      loadPurchaseHistory();
+    }
+  }, [id, canManage]);
 
   const loadSupplier = async () => {
     try {
@@ -182,8 +189,22 @@ export default function SupplierDetailsPage({
   }
 
   return (
-    <div className="container mx-auto">
-      {/* Header */}
+    <RoleGuard
+      requireRole={UserRole.Manager}
+      fallback={
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <div className="text-6xl">🔒</div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Access Denied</h2>
+          <p className="text-gray-600 dark:text-gray-400">You don't have permission to access this page.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-500">Only Managers can access Supplier Details.</p>
+          <Button onClick={() => router.push(`/${locale}/branch`)}>
+            Go to Dashboard
+          </Button>
+        </div>
+      }
+    >
+      <div className="container mx-auto">
+        {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
@@ -346,6 +367,7 @@ export default function SupplierDetailsPage({
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </RoleGuard>
   );
 }

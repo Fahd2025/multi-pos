@@ -61,6 +61,18 @@ public class BranchContextMiddleware
             context.Items["UserId"] = userId;
         }
 
+        // Store user role
+        var roleClaim = context.User.FindFirst(ClaimTypes.Role);
+        if (roleClaim != null && !string.IsNullOrEmpty(roleClaim.Value))
+        {
+            context.Items["Role"] = roleClaim.Value;
+            Console.WriteLine($"[BranchContext] User role: {roleClaim.Value}");
+        }
+        else
+        {
+            Console.WriteLine("[BranchContext] No role claim found in JWT token");
+        }
+
         await _next(context);
     }
 }

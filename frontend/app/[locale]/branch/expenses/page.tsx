@@ -8,6 +8,7 @@
 import { useState, useEffect } from "react";
 import { use } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import expenseService from "@/services/expense.service";
 import { ExpenseDto, ExpenseCategoryDto } from "@/types/api.types";
 import ExpenseFormModal from "@/components/branch/expenses/ExpenseFormModal";
@@ -24,10 +25,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { API_BASE_URL } from "@/lib/constants";
 import { ImageCarousel } from "@/components/shared/image-carousel";
 import { Dialog, DialogContent, DialogTitle } from "@/components/shared/RadixDialog";
+import { RoleGuard, usePermission } from "@/components/auth/RoleGuard";
+import { UserRole } from "@/types/enums";
 
 export default function ExpensesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
+  const router = useRouter();
   const { branch } = useAuth();
+  const { canManage } = usePermission();
 
   const [expenses, setExpenses] = useState<ExpenseDto[]>([]);
   const [categories, setCategories] = useState<ExpenseCategoryDto[]>([]);
@@ -67,8 +72,10 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
    * Load expenses and categories
    */
   useEffect(() => {
-    loadData();
-  }, [categoryFilter, statusFilter, startDate, endDate]);
+    if (canManage()) {
+      loadData();
+    }
+  }, [categoryFilter, statusFilter, startDate, endDate, canManage]);
 
   const loadData = async () => {
     try {
@@ -294,8 +301,22 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
   };
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
+    <RoleGuard
+      requireRole={UserRole.Manager}
+      fallback={
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <div className="text-6xl">🔒</div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Access Denied</h2>
+          <p className="text-gray-600 dark:text-gray-400">You don't have permission to access this page.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-500">Only Managers can access Expense Management.</p>
+          <Button onClick={() => router.push(`/${locale}/branch`)}>
+            Go to Dashboard
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-6">
+        {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
@@ -466,6 +487,7 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
           />
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </RoleGuard>
   );
 }

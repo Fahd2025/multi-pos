@@ -1,4 +1,5 @@
 using Backend.Data.HeadOffice;
+using Backend.Data.Shared;
 using Backend.Models.DTOs.HeadOffice.Auth;
 using Backend.Models.Entities.HeadOffice;
 using Backend.Utilities;
@@ -11,16 +12,19 @@ public class AuthService : IAuthService
     private readonly HeadOfficeDbContext _context;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IConfiguration _configuration;
+    private readonly DbContextFactory _dbContextFactory;
 
     public AuthService(
         HeadOfficeDbContext context,
         IJwtTokenService jwtTokenService,
-        IConfiguration configuration
+        IConfiguration configuration,
+        DbContextFactory dbContextFactory
     )
     {
         _context = context;
         _jwtTokenService = jwtTokenService;
         _configuration = configuration;
+        _dbContextFactory = dbContextFactory;
     }
 
     public async Task<LoginResponse?> LoginAsync(
@@ -29,45 +33,107 @@ public class AuthService : IAuthService
         string? userAgent
     )
     {
-        // Find user
+        // Try to find user in head office database first
         var user = await _context.Users.FirstOrDefaultAsync(u =>
             u.Username == request.Username && u.IsActive
         );
 
-        if (user == null)
+        // If user found in head office database, use head office authentication
+        if (user != null)
         {
-            return null;
-        }
-
-        // Check if account is locked
-        if (user.LockedUntil.HasValue && user.LockedUntil.Value > DateTime.UtcNow)
-        {
-            return null;
-        }
-
-        // Verify password
-        if (!PasswordHasher.VerifyPassword(request.Password, user.PasswordHash))
-        {
-            // Increment failed login attempts
-            user.FailedLoginAttempts++;
-
-            // Lock account after 5 failed attempts
-            if (user.FailedLoginAttempts >= 5)
+            // Check if account is locked
+            if (user.LockedUntil.HasValue && user.LockedUntil.Value > DateTime.UtcNow)
             {
-                user.LockedUntil = DateTime.UtcNow.AddMinutes(30);
+                return null;
             }
 
-            await _context.SaveChangesAsync();
+            // Verify password
+            if (!PasswordHasher.VerifyPassword(request.Password, user.PasswordHash))
+            {
+                // Increment failed login attempts
+                user.FailedLoginAttempts++;
+
+                // Lock account after 5 failed attempts
+                if (user.FailedLoginAttempts >= 5)
+                {
+                    user.LockedUntil = DateTime.UtcNow.AddMinutes(30);
+                }
+
+                await _context.SaveChangesAsync();
+                return null;
+            }
+
+            // Reset failed login attempts on successful login
+            user.FailedLoginAttempts = 0;
+            user.LockedUntil = null;
+            user.LastLoginAt = DateTime.UtcNow;
+            user.LastActivityAt = DateTime.UtcNow;
+
+            // Check if a branch was selected (both head office admins and regular users can select a branch)
+            if (!string.IsNullOrEmpty(request.BranchCode))
+            {
+                // Find branch
+                var branch = await _context.Branches.FirstOrDefaultAsync(b =>
+                    b.Code == request.BranchCode && b.IsActive
+                );
+
+                if (branch == null)
+                {
+                    return null;
+                }
+
+                // For head office admins, create a temporary branch assignment
+                if (user.IsHeadOfficeAdmin)
+                {
+                    // Head office admin accessing a specific branch
+                    return await GenerateLoginResponseAsync(
+                        user,
+                        branch.Id,
+                        UserRole.Manager.ToString(), // Grant manager role by default
+                        ipAddress,
+                        userAgent
+                    );
+                }
+
+                // For regular users, check if they have access to this branch
+                var branchUser = await _context.BranchUserAssignments.FirstOrDefaultAsync(bu =>
+                    bu.UserId == user.Id && bu.BranchId == branch.Id && bu.IsActive
+                );
+
+                if (branchUser == null)
+                {
+                    return null;
+                }
+
+                // Generate tokens with branch context
+                return await GenerateLoginResponseAsync(
+                    user,
+                    branch.Id,
+                    branchUser.Role.ToString(),
+                    ipAddress,
+                    userAgent
+                );
+            }
+
+            // Head office admin without branch selection (head office mode)
+            if (user.IsHeadOfficeAdmin)
+            {
+                // Allow head office admin to log in without branch selection
+                return await GenerateLoginResponseAsync(
+                    user,
+                    null, // No branch context
+                    "Admin", // Head office admin role
+                    ipAddress,
+                    userAgent
+                );
+            }
+
+            // Regular user without branch selection
             return null;
         }
 
-        // Reset failed login attempts on successful login
-        user.FailedLoginAttempts = 0;
-        user.LockedUntil = null;
-        user.LastLoginAt = DateTime.UtcNow;
-        user.LastActivityAt = DateTime.UtcNow;
-
-        // Check if a branch was selected (both head office admins and regular users can select a branch)
+        // User not found in head office database
+        // If branch code is provided, try to authenticate as a branch user
         if (!string.IsNullOrEmpty(request.BranchCode))
         {
             // Find branch
@@ -80,53 +146,66 @@ public class AuthService : IAuthService
                 return null;
             }
 
-            // For head office admins, create a temporary branch assignment
-            if (user.IsHeadOfficeAdmin)
+            // Try to authenticate as a branch user
+            try
             {
-                // Head office admin accessing a specific branch
+                var branchContext = _dbContextFactory.CreateBranchContext(branch);
+                var branchUser = await branchContext.Users.FirstOrDefaultAsync(bu =>
+                    bu.Username == request.Username && bu.IsActive
+                );
+
+                if (branchUser == null)
+                {
+                    return null;
+                }
+
+                // Verify password
+                if (!PasswordHasher.VerifyPassword(request.Password, branchUser.PasswordHash))
+                {
+                    return null;
+                }
+
+                // Update last login time
+                branchUser.LastLoginAt = DateTime.UtcNow;
+                branchUser.LastActivityAt = DateTime.UtcNow;
+                await branchContext.SaveChangesAsync();
+
+                // Create a temporary User object for token generation
+                var tempUser = new User
+                {
+                    Id = branchUser.Id,
+                    Username = branchUser.Username,
+                    Email = branchUser.Email,
+                    FullNameEn = branchUser.FullNameEn,
+                    FullNameAr = branchUser.FullNameAr,
+                    Phone = branchUser.Phone,
+                    PreferredLanguage = branchUser.PreferredLanguage,
+                    IsActive = branchUser.IsActive,
+                    IsHeadOfficeAdmin = false, // Branch users are never head office admins
+                    LastLoginAt = branchUser.LastLoginAt,
+                    LastActivityAt = branchUser.LastActivityAt,
+                    CreatedAt = branchUser.CreatedAt,
+                    UpdatedAt = branchUser.UpdatedAt,
+                };
+
+                // Generate tokens with branch context
                 return await GenerateLoginResponseAsync(
-                    user,
+                    tempUser,
                     branch.Id,
-                    UserRole.Manager.ToString(), // Grant manager role by default
+                    branchUser.Role,
                     ipAddress,
-                    userAgent
+                    userAgent,
+                    true // Mark as branch user
                 );
             }
-
-            // For regular users, check if they have access to this branch
-            var branchUser = await _context.BranchUserAssignments.FirstOrDefaultAsync(bu =>
-                bu.UserId == user.Id && bu.BranchId == branch.Id && bu.IsActive
-            );
-
-            if (branchUser == null)
+            catch (Exception)
             {
+                // Failed to connect to branch database or authenticate
                 return null;
             }
-
-            // Generate tokens with branch context
-            return await GenerateLoginResponseAsync(
-                user,
-                branch.Id,
-                branchUser.Role.ToString(),
-                ipAddress,
-                userAgent
-            );
         }
 
-        // Head office admin without branch selection (head office mode)
-        if (user.IsHeadOfficeAdmin)
-        {
-            // Allow head office admin to log in without branch selection
-            return await GenerateLoginResponseAsync(
-                user,
-                null, // No branch context
-                "Admin", // Head office admin role
-                ipAddress,
-                userAgent
-            );
-        }
-
-        // Regular user without branch selection
+        // No authentication method succeeded
         return null;
     }
 
@@ -247,30 +326,36 @@ public class AuthService : IAuthService
         Guid? branchId,
         string? role,
         string? ipAddress,
-        string? userAgent
+        string? userAgent,
+        bool isBranchUser = false
     )
     {
         // Generate tokens
         var accessToken = _jwtTokenService.GenerateAccessToken(user, branchId, role);
         var refreshToken = _jwtTokenService.GenerateRefreshToken();
 
-        // Store refresh token
-        var refreshTokenEntity = new RefreshToken
-        {
-            Id = Guid.NewGuid(),
-            UserId = user.Id,
-            Token = refreshToken,
-            ExpiresAt = DateTime.UtcNow.AddDays(
-                int.Parse(_configuration["Jwt:RefreshTokenExpiryDays"] ?? "7")
-            ),
-            CreatedAt = DateTime.UtcNow,
-            LastActivityAt = DateTime.UtcNow,
-            IpAddress = ipAddress,
-            UserAgent = userAgent,
-        };
+        // Store refresh token (only for head office users)
+        DateTime expiresAt = DateTime.UtcNow.AddDays(
+            int.Parse(_configuration["Jwt:RefreshTokenExpiryDays"] ?? "7")
+        );
 
-        _context.RefreshTokens.Add(refreshTokenEntity);
-        await _context.SaveChangesAsync();
+        if (!isBranchUser)
+        {
+            var refreshTokenEntity = new RefreshToken
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                Token = refreshToken,
+                ExpiresAt = expiresAt,
+                CreatedAt = DateTime.UtcNow,
+                LastActivityAt = DateTime.UtcNow,
+                IpAddress = ipAddress,
+                UserAgent = userAgent,
+            };
+
+            _context.RefreshTokens.Add(refreshTokenEntity);
+            await _context.SaveChangesAsync();
+        }
 
         // Get branch info if applicable
         BranchInfo? branchInfo = null;
@@ -291,19 +376,38 @@ public class AuthService : IAuthService
             }
         }
 
-        // Get user's branch assignments
-        var userBranches = await _context.BranchUserAssignments
-            .Include(bu => bu.Branch)
-            .Where(bu => bu.UserId == user.Id && bu.IsActive && bu.Branch.IsActive)
-            .Select(bu => new UserBranchInfo
+        // Get user's branch assignments (only for head office users)
+        var userBranches = new List<UserBranchInfo>();
+        if (!isBranchUser)
+        {
+            userBranches = await _context.BranchUserAssignments
+                .Include(bu => bu.Branch)
+                .Where(bu => bu.UserId == user.Id && bu.IsActive && bu.Branch.IsActive)
+                .Select(bu => new UserBranchInfo
+                {
+                    BranchId = bu.BranchId,
+                    BranchCode = bu.Branch.Code,
+                    BranchNameEn = bu.Branch.NameEn,
+                    BranchNameAr = bu.Branch.NameAr,
+                    Role = bu.Role.ToString()
+                })
+                .ToListAsync();
+        }
+        else if (branchInfo != null)
+        {
+            // For branch users, add their current branch to the list
+            userBranches = new List<UserBranchInfo>
             {
-                BranchId = bu.BranchId,
-                BranchCode = bu.Branch.Code,
-                BranchNameEn = bu.Branch.NameEn,
-                BranchNameAr = bu.Branch.NameAr,
-                Role = bu.Role.ToString()
-            })
-            .ToListAsync();
+                new UserBranchInfo
+                {
+                    BranchId = branchInfo.Id,
+                    BranchCode = branchInfo.Code,
+                    BranchNameEn = branchInfo.NameEn,
+                    BranchNameAr = branchInfo.NameAr,
+                    Role = role ?? "Cashier"
+                }
+            };
+        }
 
         return new LoginResponse
         {
@@ -322,7 +426,7 @@ public class AuthService : IAuthService
                 Branches = userBranches
             },
             Branch = branchInfo,
-            ExpiresAt = refreshTokenEntity.ExpiresAt,
+            ExpiresAt = expiresAt,
         };
     }
 }

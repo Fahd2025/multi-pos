@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import ReportViewer from "@/components/branch/reports/ReportViewer";
 import reportService, {
   SalesReport,
@@ -8,10 +9,17 @@ import reportService, {
   FinancialReport,
   ExportReportRequest,
 } from "@/services/report.service";
+import { RoleGuard, usePermission } from "@/components/auth/RoleGuard";
+import { UserRole } from "@/types/enums";
+import { Button } from "@/components/shared/Button";
 
 type ReportType = "sales" | "inventory" | "financial";
 
 export default function ReportsPage() {
+  const params = useParams();
+  const locale = params.locale as string;
+  const router = useRouter();
+  const { canManage } = usePermission();
   const [reportType, setReportType] = useState<ReportType>("sales");
   const [reportData, setReportData] = useState<
     SalesReport | InventoryReport | FinancialReport | null
@@ -29,6 +37,8 @@ export default function ReportsPage() {
   const [includeMovements, setIncludeMovements] = useState(false);
 
   const handleGenerateReport = async () => {
+    if (!canManage()) return;
+
     setLoading(true);
     setError(null);
 
@@ -77,6 +87,8 @@ export default function ReportsPage() {
   };
 
   const handleExport = async (format: "pdf" | "excel" | "csv") => {
+    if (!canManage()) return;
+
     try {
       setLoading(true);
       const exportRequest: ExportReportRequest = {
@@ -111,7 +123,22 @@ export default function ReportsPage() {
   };
 
   return (
-    <div>
+    <RoleGuard
+      requireRole={UserRole.Manager}
+      fallback={
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <div className="text-6xl">🔒</div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Access Denied</h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            You don't have permission to access this page.
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-500">
+            Only Managers can access Reports & Analytics.
+          </p>
+          <Button onClick={() => router.push(`/${locale}/branch`)}>Go to Dashboard</Button>
+        </div>
+      }
+    >
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
           Reports & Analytics
@@ -318,6 +345,6 @@ export default function ReportsPage() {
         loading={loading}
         onExport={handleExport}
       />
-    </div>
+    </RoleGuard>
   );
 }

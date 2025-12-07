@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from "react";
 import { use } from "react";
+import { useRouter } from "next/navigation";
 import inventoryService from "@/services/inventory.service";
 import { PurchaseDto } from "@/types/api.types";
 import PurchaseFormModal from "@/components/branch/inventory/PurchaseFormModal";
@@ -20,9 +21,13 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { ApiErrorAlert, InlineApiError } from "@/components/shared/ApiErrorAlert";
 import { StatCard } from "@/components/shared";
+import { RoleGuard, usePermission } from "@/components/auth/RoleGuard";
+import { UserRole } from "@/types/enums";
 
 export default function PurchasesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
+  const router = useRouter();
+  const { canManage } = usePermission();
 
   const [purchases, setPurchases] = useState<PurchaseDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,8 +58,10 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
    * Load purchases
    */
   useEffect(() => {
-    loadData();
-  }, []);
+    if (canManage()) {
+      loadData();
+    }
+  }, [canManage]);
 
   const loadData = async () => {
     try {
@@ -226,8 +233,22 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
   };
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
+    <RoleGuard
+      requireRole={UserRole.Manager}
+      fallback={
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <div className="text-6xl">🔒</div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Access Denied</h2>
+          <p className="text-gray-600 dark:text-gray-400">You don't have permission to access this page.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-500">Only Managers can access Purchase Management.</p>
+          <Button onClick={() => router.push(`/${locale}/branch`)}>
+            Go to Dashboard
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-6">
+        {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
@@ -328,6 +349,7 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
         cancelLabel="Cancel"
         isProcessing={confirmation.isProcessing}
       />
-    </div>
+      </div>
+    </RoleGuard>
   );
 }

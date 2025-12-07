@@ -38,12 +38,39 @@ export interface BranchAssignment {
   role: number; // 0=Cashier, 1=Manager, 2=Admin
 }
 
+// Helper function to convert role string to number
+function roleStringToNumber(roleString: string): number {
+  switch (roleString.toLowerCase()) {
+    case "cashier":
+      return 0;
+    case "manager":
+      return 1;
+    case "admin":
+      return 2;
+    default:
+      return 0; // Default to Cashier
+  }
+}
+
 export interface RefreshTokenResponse {
   accessToken: string;
   accessTokenExpiresIn: number;
 }
 
 class AuthService {
+  /**
+   * Normalize user data from backend (convert role strings to numbers)
+   */
+  private normalizeUserData(user: any): UserResponse {
+    return {
+      ...user,
+      branches: user.branches.map((branch: any) => ({
+        ...branch,
+        role: typeof branch.role === "string" ? roleStringToNumber(branch.role) : branch.role,
+      })),
+    };
+  }
+
   /**
    * Login user with branch selection, username, and password
    */
@@ -61,7 +88,10 @@ class AuthService {
         loginPayload
       );
 
-      const { accessToken, user } = response.data.data;
+      const { accessToken, user: rawUser } = response.data.data;
+
+      // Normalize user data (convert role strings to numbers)
+      const user = this.normalizeUserData(rawUser);
 
       // Store access token and user data
       if (typeof window !== "undefined") {
@@ -86,7 +116,7 @@ class AuthService {
         }
       }
 
-      return response.data.data;
+      return { ...response.data.data, user };
     } catch (error) {
       console.error("Login failed:", error);
       throw error;
@@ -145,7 +175,10 @@ class AuthService {
         API_ROUTES.AUTH.ME
       );
 
-      const user = response.data.data;
+      const rawUser = response.data.data;
+
+      // Normalize user data (convert role strings to numbers)
+      const user = this.normalizeUserData(rawUser);
 
       // Update stored user data
       if (typeof window !== "undefined") {

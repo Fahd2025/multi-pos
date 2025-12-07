@@ -9,6 +9,7 @@
 
 import React, { useState, useEffect } from "react";
 import { use } from "react";
+import { useRouter } from "next/navigation";
 import { DataTable, FeaturedDialog, ConfirmationDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { useModal } from "@/hooks/useModal";
@@ -31,9 +32,14 @@ import {
   checkUsernameAvailability,
 } from "@/services/branch-user.service";
 import Link from "next/link";
+import { RoleGuard, usePermission } from "@/components/auth/RoleGuard";
+import { UserRole } from "@/types/enums";
+import { Button } from "@/components/shared/Button";
 
 export default function BranchUsersPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
+  const router = useRouter();
+  const { canManage } = usePermission();
 
   // State management
   const [users, setUsers] = useState<BranchUserDto[]>([]);
@@ -73,7 +79,8 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
   // Load users on mount
   useEffect(() => {
     loadUsers();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount - RoleGuard already handles permission check
 
   // Apply filters whenever users, filters, or search changes
   useEffect(() => {
@@ -541,32 +548,49 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-2">
+    <RoleGuard
+      requireRole={UserRole.Manager}
+      fallback={
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <div className="text-6xl">🔒</div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Access Denied</h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            You don't have permission to access this page.
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-500">
+            Only Managers can access User Management.
+          </p>
+          <Button onClick={() => router.push(`/${locale}/branch`)}>Go to Dashboard</Button>
+        </div>
+      }
+    >
+      <div className="min-h-screen">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            {/* <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-2">
             <Link href={`/${locale}/branch`} className="hover:text-blue-600">
               Branch
             </Link>
             <span>/</span>
             <span className="text-gray-900 dark:text-gray-100">Users</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                User Management
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                Manage branch users, roles, and permissions
-              </p>
+          </div> */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                  User Management
+                </h1>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Manage branch users, roles, and permissions
+                </p>
+              </div>
+              <button
+                onClick={() => createModal.open(undefined, "create")}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+              >
+                + Add User
+              </button>
             </div>
-            <button
-              onClick={() => createModal.open(undefined, "create")}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
-            >
-              + Add User
-            </button>
           </div>
         </div>
 
@@ -788,6 +812,7 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
         isOpen={deleteConfirmation.isOpen}
         onClose={deleteConfirmation.close}
         onConfirm={handleDelete}
+        variant="danger"
         title="Delete User"
         message={
           deleteConfirmation.data
@@ -797,6 +822,6 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
         confirmLabel="Delete"
         isProcessing={isSaving}
       />
-    </div>
+    </RoleGuard>
   );
 }

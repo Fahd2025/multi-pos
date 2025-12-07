@@ -8,7 +8,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { DataTable, StatCard, ConfirmationDialog, FeaturedDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { useModal, useConfirmation } from "@/hooks/useModal";
@@ -21,11 +21,16 @@ import { API_BASE_URL } from "@/lib/constants";
 import { ImageCarousel } from "@/components/shared/image-carousel";
 import { Dialog, DialogContent, DialogTitle } from "@/components/shared/RadixDialog";
 import Link from "next/link";
+import { RoleGuard, usePermission } from "@/components/auth/RoleGuard";
+import { UserRole } from "@/types/enums";
+import { Button } from "@/components/shared/Button";
 
 export default function SuppliersPage() {
   const params = useParams();
   const locale = params.locale as string;
+  const router = useRouter();
   const { branch } = useAuth();
+  const { canManage } = usePermission();
 
   const [suppliers, setSuppliers] = useState<SupplierDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,10 +57,12 @@ export default function SuppliersPage() {
   const viewModal = useModal<SupplierDto>();
   const confirmation = useConfirmation();
 
-  // Load suppliers on mount
+  // Load suppliers on mount (only if user has permission)
   useEffect(() => {
-    loadSuppliers();
-  }, []);
+    if (canManage()) {
+      loadSuppliers();
+    }
+  }, [canManage]);
 
   const loadSuppliers = async () => {
     try {
@@ -314,7 +321,22 @@ export default function SuppliersPage() {
   }
 
   return (
-    <div>
+    <RoleGuard
+      requireRole={UserRole.Manager}
+      fallback={
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <div className="text-6xl">🔒</div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Access Denied</h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            You don't have permission to access this page.
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-500">
+            Only Managers can access Supplier Management.
+          </p>
+          <Button onClick={() => router.push(`/${locale}/branch`)}>Go to Dashboard</Button>
+        </div>
+      }
+    >
       <div>
         {/* Header */}
         <div className="mb-8">
@@ -539,6 +561,6 @@ export default function SuppliersPage() {
           />
         </DialogContent>
       </Dialog>
-    </div>
+    </RoleGuard>
   );
 }

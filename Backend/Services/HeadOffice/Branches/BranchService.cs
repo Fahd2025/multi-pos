@@ -61,47 +61,72 @@ public class BranchService : IBranchService
 
         var totalCount = await query.CountAsync();
 
-        var branches = await query
+        var branchList = await query
             .OrderBy(b => b.Code)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Include(b => b.BranchUserAssignments)
-            .Select(b => new BranchDto
-            {
-                Id = b.Id,
-                Code = b.Code,
-                NameEn = b.NameEn,
-                NameAr = b.NameAr,
-                AddressEn = b.AddressEn,
-                AddressAr = b.AddressAr,
-                Email = b.Email,
-                Phone = b.Phone,
-                Website = b.Website,
-                CRN = b.CRN,
-                TaxNumber = b.TaxNumber,
-                NationalAddress = b.NationalAddress,
-                LogoPath = b.LogoPath,
-                DatabaseProvider = b.DatabaseProvider.ToString(),
-                DbServer = b.DbServer,
-                DbName = b.DbName,
-                DbPort = b.DbPort,
-                DbUsername = b.DbUsername,
-                DbAdditionalParams = b.DbAdditionalParams,
-                TrustServerCertificate = b.TrustServerCertificate,
-                SslMode = b.SslMode.ToString(),
-                Language = b.Language,
-                Currency = b.Currency,
-                TimeZone = b.TimeZone,
-                DateFormat = b.DateFormat,
-                NumberFormat = b.NumberFormat,
-                TaxRate = b.TaxRate,
-                IsActive = b.IsActive,
-                CreatedAt = b.CreatedAt,
-                UpdatedAt = b.UpdatedAt,
-                CreatedBy = b.CreatedBy,
-                UserCount = b.BranchUserAssignments.Count(bu => bu.IsActive),
-            })
             .ToListAsync();
+
+        var branches = new List<BranchDto>();
+        foreach (var branch in branchList)
+        {
+            // Calculate total user count: head office users + branch database users
+            int userCount = 0;
+
+            // Count head office users assigned to this branch
+            int headOfficeUserCount = branch.BranchUserAssignments.Count(bu => bu.IsActive);
+
+            // Count branch database users
+            int branchUserCount = 0;
+            try
+            {
+                var branchContext = _dbContextFactory.CreateBranchContext(branch);
+                branchUserCount = await branchContext.Users.CountAsync(bu => bu.IsActive);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to get branch user count for branch {BranchId}", branch.Id);
+            }
+
+            userCount = headOfficeUserCount + branchUserCount;
+
+            branches.Add(new BranchDto
+            {
+                Id = branch.Id,
+                Code = branch.Code,
+                NameEn = branch.NameEn,
+                NameAr = branch.NameAr,
+                AddressEn = branch.AddressEn,
+                AddressAr = branch.AddressAr,
+                Email = branch.Email,
+                Phone = branch.Phone,
+                Website = branch.Website,
+                CRN = branch.CRN,
+                TaxNumber = branch.TaxNumber,
+                NationalAddress = branch.NationalAddress,
+                LogoPath = branch.LogoPath,
+                DatabaseProvider = branch.DatabaseProvider.ToString(),
+                DbServer = branch.DbServer,
+                DbName = branch.DbName,
+                DbPort = branch.DbPort,
+                DbUsername = branch.DbUsername,
+                DbAdditionalParams = branch.DbAdditionalParams,
+                TrustServerCertificate = branch.TrustServerCertificate,
+                SslMode = branch.SslMode.ToString(),
+                Language = branch.Language,
+                Currency = branch.Currency,
+                TimeZone = branch.TimeZone,
+                DateFormat = branch.DateFormat,
+                NumberFormat = branch.NumberFormat,
+                TaxRate = branch.TaxRate,
+                IsActive = branch.IsActive,
+                CreatedAt = branch.CreatedAt,
+                UpdatedAt = branch.UpdatedAt,
+                CreatedBy = branch.CreatedBy,
+                UserCount = userCount,
+            });
+        }
 
         return (branches, totalCount);
     }
@@ -131,6 +156,26 @@ public class BranchService : IBranchService
         {
             return null;
         }
+
+        // Calculate total user count: head office users + branch database users
+        int userCount = 0;
+
+        // Count head office users assigned to this branch
+        int headOfficeUserCount = branch.BranchUserAssignments.Count(bu => bu.IsActive);
+
+        // Count branch database users
+        int branchUserCount = 0;
+        try
+        {
+            var branchContext = _dbContextFactory.CreateBranchContext(branch);
+            branchUserCount = await branchContext.Users.CountAsync(bu => bu.IsActive);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to get branch user count for branch {BranchId}", id);
+        }
+
+        userCount = headOfficeUserCount + branchUserCount;
 
         return new BranchDto
         {
@@ -165,7 +210,7 @@ public class BranchService : IBranchService
             CreatedAt = branch.CreatedAt,
             UpdatedAt = branch.UpdatedAt,
             CreatedBy = branch.CreatedBy,
-            UserCount = branch.BranchUserAssignments.Count(bu => bu.IsActive),
+            UserCount = userCount,
         };
     }
 

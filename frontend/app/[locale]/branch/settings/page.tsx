@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect, useRef } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   BranchSettings,
@@ -20,8 +21,16 @@ import {
 import { getBranchSettings, updateBranchSettings, uploadBranchLogo } from "@/lib/branch-settings";
 import { authService } from "@/services/auth.service";
 import { API_BASE_URL } from "@/lib/constants";
+import { RoleGuard, usePermission } from "@/components/auth/RoleGuard";
+import { UserRole } from "@/types/enums";
+import { Button } from "@/components/shared/Button";
 
 export default function BranchSettingsPage() {
+  const params = useParams();
+  const locale = params.locale as string;
+  const router = useRouter();
+  const { canManage } = usePermission();
+
   // State
   const [settings, setSettings] = useState<UpdateBranchSettings>({
     nameEn: "",
@@ -55,8 +64,10 @@ export default function BranchSettingsPage() {
 
   // Load settings on mount
   useEffect(() => {
-    loadSettings();
-  }, []);
+    if (canManage()) {
+      loadSettings();
+    }
+  }, [canManage]);
 
   const loadSettings = async () => {
     try {
@@ -250,9 +261,23 @@ export default function BranchSettingsPage() {
   }
 
   return (
-    <div>
+    <RoleGuard
+      requireRole={UserRole.Manager}
+      fallback={
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <div className="text-6xl">🔒</div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Access Denied</h2>
+          <p className="text-gray-600 dark:text-gray-400">You don't have permission to access this page.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-500">Only Managers can access Branch Settings.</p>
+          <Button onClick={() => router.push(`/${locale}/branch`)}>
+            Go to Dashboard
+          </Button>
+        </div>
+      }
+    >
       <div>
-        {/* Header */}
+        <div>
+          {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Branch Settings
@@ -1104,7 +1129,8 @@ export default function BranchSettingsPage() {
             )}
           </button>
         </div>
+        </div>
       </div>
-    </div>
+    </RoleGuard>
   );
 }

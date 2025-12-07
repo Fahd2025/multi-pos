@@ -146,29 +146,41 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
     // },
     {
       key: "nameEn",
-      label: "Name",
+      label: "Customer Name",
       sortable: true,
+
       render: (value, row) => (
         <Link
           href={`/${locale}/branch/customers/${row.id}`}
           className="text-blue-600 hover:underline font-medium"
         >
-          {value}
+          <div className="font-medium text-gray-900 dark:text-gray-100">{value}</div>
+          {row.nameAr && <div className="text-sm text-gray-500">{row.nameAr}</div>}
         </Link>
       ),
     },
     {
-      key: "email",
-      label: "Email",
-      sortable: true,
-      render: (value) => value || "-",
-    },
-    {
       key: "phone",
-      label: "Phone",
-      sortable: true,
-      render: (value) => value || "-",
+      label: "Contact",
+      render: (value, row) => (
+        <div className="text-sm">
+          {value && <div className="text-gray-900">{value}</div>}
+          {row.email && <div className="text-gray-500">{row.email}</div>}
+        </div>
+      ),
     },
+    // {
+    //   key: "email",
+    //   label: "Email",
+    //   sortable: true,
+    //   render: (value) => value || "-",
+    // },
+    // {
+    //   key: "phone",
+    //   label: "Phone",
+    //   sortable: true,
+    //   render: (value) => value || "-",
+    // },
     {
       key: "totalPurchases",
       label: "Total Purchases",

@@ -11,7 +11,7 @@
  */
 export const localizeRoute = (locale: string, path: string): string => {
   // Remove leading slash from path if present to avoid double slashes
-  const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+  const cleanPath = path.startsWith("/") ? path.substring(1) : path;
   return `/${locale}/${cleanPath}`;
 };
 
@@ -62,7 +62,7 @@ export const BRANCH_ROUTES = {
   SALES: (locale: string) => `/${locale}/branch/sales`,
   SALE_DETAIL: (locale: string, id: string) => `/${locale}/branch/sales/${id}`,
   POS: (locale: string) => `/${locale}/branch/sales/pos`,
-  POS2: (locale: string) => `/${locale}/branch/sales/pos2`,
+  POS2: (locale: string) => `/${locale}/branch/sales/pos`,
 
   // Inventory
   INVENTORY: (locale: string) => `/${locale}/branch/inventory`,
@@ -104,8 +104,8 @@ export const PUBLIC_ROUTES = {
 /**
  * Helper function to get the base path for a route type
  */
-export const getBasePath = (locale: string, type: 'head-office' | 'branch') => {
-  return type === 'head-office'
+export const getBasePath = (locale: string, type: "head-office" | "branch") => {
+  return type === "head-office"
     ? HEAD_OFFICE_ROUTES.DASHBOARD(locale)
     : BRANCH_ROUTES.DASHBOARD(locale);
 };
@@ -114,28 +114,28 @@ export const getBasePath = (locale: string, type: 'head-office' | 'branch') => {
  * Navigation items for Branch Dashboard
  */
 export const getBranchNavigation = (locale: string) => [
-  { name: 'Dashboard', href: BRANCH_ROUTES.DASHBOARD(locale), icon: '📊' },
-  { name: 'POS', href: BRANCH_ROUTES.POS(locale), icon: '🛒' },
-  { name: 'Sales', href: BRANCH_ROUTES.SALES(locale), icon: '💰' },
-  { name: 'Inventory', href: BRANCH_ROUTES.INVENTORY(locale), icon: '📦' },
-  { name: 'Customers', href: BRANCH_ROUTES.CUSTOMERS(locale), icon: '👥' },
-  { name: 'Suppliers', href: BRANCH_ROUTES.SUPPLIERS(locale), icon: '🚚' },
-  { name: 'Purchases', href: BRANCH_ROUTES.PURCHASES(locale), icon: '📥' },
-  { name: 'Expenses', href: BRANCH_ROUTES.EXPENSES(locale), icon: '💸' },
-  { name: 'Reports', href: BRANCH_ROUTES.REPORTS(locale), icon: '📈' },
-  { name: 'Users', href: BRANCH_ROUTES.USERS(locale), icon: '👥' },
-  { name: 'Settings', href: BRANCH_ROUTES.SETTINGS(locale), icon: '⚙️' },
+  { name: "Dashboard", href: BRANCH_ROUTES.DASHBOARD(locale), icon: "📊" },
+  { name: "POS", href: BRANCH_ROUTES.POS(locale), icon: "🛒" },
+  { name: "Sales", href: BRANCH_ROUTES.SALES(locale), icon: "💰" },
+  { name: "Inventory", href: BRANCH_ROUTES.INVENTORY(locale), icon: "📦" },
+  { name: "Customers", href: BRANCH_ROUTES.CUSTOMERS(locale), icon: "👥" },
+  { name: "Suppliers", href: BRANCH_ROUTES.SUPPLIERS(locale), icon: "🚚" },
+  { name: "Purchases", href: BRANCH_ROUTES.PURCHASES(locale), icon: "📥" },
+  { name: "Expenses", href: BRANCH_ROUTES.EXPENSES(locale), icon: "💸" },
+  { name: "Reports", href: BRANCH_ROUTES.REPORTS(locale), icon: "📈" },
+  { name: "Users", href: BRANCH_ROUTES.USERS(locale), icon: "👥" },
+  { name: "Settings", href: BRANCH_ROUTES.SETTINGS(locale), icon: "⚙️" },
 ];
 
 /**
  * Navigation items for Head Office Dashboard
  */
 export const getHeadOfficeNavigation = (locale: string) => [
-  { name: 'Dashboard', href: HEAD_OFFICE_ROUTES.DASHBOARD(locale), icon: '📊' },
-  { name: 'Branches', href: HEAD_OFFICE_ROUTES.BRANCHES(locale), icon: '🏢' },
-  { name: 'Users', href: HEAD_OFFICE_ROUTES.USERS(locale), icon: '👥' },
-  { name: 'Migrations', href: HEAD_OFFICE_ROUTES.MIGRATIONS(locale), icon: '🔄' },
-  { name: 'Audit Logs', href: HEAD_OFFICE_ROUTES.AUDIT_LOGS(locale), icon: '📋' },
-  { name: 'Analytics', href: HEAD_OFFICE_ROUTES.ANALYTICS(locale), icon: '📈' },
-  { name: 'Settings', href: HEAD_OFFICE_ROUTES.SETTINGS(locale), icon: '⚙️' },
+  { name: "Dashboard", href: HEAD_OFFICE_ROUTES.DASHBOARD(locale), icon: "📊" },
+  { name: "Branches", href: HEAD_OFFICE_ROUTES.BRANCHES(locale), icon: "🏢" },
+  { name: "Users", href: HEAD_OFFICE_ROUTES.USERS(locale), icon: "👥" },
+  { name: "Migrations", href: HEAD_OFFICE_ROUTES.MIGRATIONS(locale), icon: "🔄" },
+  { name: "Audit Logs", href: HEAD_OFFICE_ROUTES.AUDIT_LOGS(locale), icon: "📋" },
+  { name: "Analytics", href: HEAD_OFFICE_ROUTES.ANALYTICS(locale), icon: "📈" },
+  { name: "Settings", href: HEAD_OFFICE_ROUTES.SETTINGS(locale), icon: "⚙️" },
 ];

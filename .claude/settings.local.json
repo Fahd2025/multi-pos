@@ -60,7 +60,12 @@
       "Bash(dotnet ef:*)",
       "Bash(if [ -f \"Data/Shared/BranchDatabaseMigrator.cs\" ])",
       "Bash(then rm \"Data/Shared/BranchDatabaseMigrator.cs\")",
-      "Bash(else echo \"File not found\")"
+      "Bash(else echo \"File not found\")",
+      "Bash(npx tsc:*)",
+      "Bash(grep:*)",
+      "Bash(tail:*)",
+      "Bash(bash test-auth.sh:*)",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []

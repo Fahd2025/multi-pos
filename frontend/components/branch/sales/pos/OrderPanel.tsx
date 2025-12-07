@@ -1,6 +1,6 @@
 /**
  * Enhanced Order Panel Component
- * Combines the beautiful UI from ShoppingCart with pos2 functionality
+ * Combines the beautiful UI from ShoppingCart with pos functionality
  */
 
 "use client";
@@ -272,7 +272,9 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                     borderTop: isUpdating ? "2px solid var(--primary)" : "2px solid transparent",
                     borderRight: isUpdating ? "2px solid var(--primary)" : "2px solid transparent",
                     borderLeft: isUpdating ? "2px solid var(--primary)" : "2px solid transparent",
-                    borderBottom: isUpdating ? "2px solid var(--primary)" : "1px solid var(--border)",
+                    borderBottom: isUpdating
+                      ? "2px solid var(--primary)"
+                      : "1px solid var(--border)",
                     transition: "all 0.3s ease",
                     opacity: isDeleting ? 0 : isUpdating ? 0.3 : 1,
                     transform: isDeleting ? "translateX(100%)" : "translateX(0)",
