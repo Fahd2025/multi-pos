@@ -11,10 +11,12 @@ namespace Backend.Services.Branch.Inventory;
 public class InventoryService : IInventoryService
 {
     private readonly BranchDbContext _context;
+    private readonly ILogger<InventoryService> _logger;
 
-    public InventoryService(BranchDbContext context)
+    public InventoryService(BranchDbContext context, ILogger<InventoryService> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     #region Product Operations
@@ -789,11 +791,8 @@ public class InventoryService : IInventoryService
     public async Task<PurchaseDto> UpdatePurchaseAsync(Guid purchaseId, UpdatePurchaseDto dto, Guid userId)
     {
         var purchase = await _context.Purchases
-            .Include(p => p.LineItems)
-            .FirstOrDefaultAsync(p => p.Id == purchaseId);
-
-        if (purchase == null)
-            throw new InvalidOperationException("Purchase not found");
+            //.Include(p => p.LineItems) // to avoid collection modification issues
+            .FirstOrDefaultAsync(p => p.Id == purchaseId) ?? throw new InvalidOperationException("Purchase not found");
 
         // Cannot edit received purchases
         if (purchase.ReceivedDate.HasValue)
@@ -822,7 +821,7 @@ public class InventoryService : IInventoryService
             .ToListAsync();
 
         var missingProductIds = productIds.Except(existingProductIds).ToList();
-        if (missingProductIds.Any())
+        if (missingProductIds.Count != 0)
             throw new InvalidOperationException($"Products not found: {string.Join(", ", missingProductIds)}");
 
         // Update purchase header
@@ -831,13 +830,15 @@ public class InventoryService : IInventoryService
         purchase.PurchaseDate = dto.PurchaseDate;
         purchase.Notes = dto.Notes;
 
-        // Remove existing line items
-        _context.PurchaseLineItems.RemoveRange(purchase.LineItems);
+        // Get existing line items 
+        var existingLineItems = await _context.PurchaseLineItems.Where(p => p.PurchaseId == purchaseId).ToListAsync();
+
+        // Remove existing line items from context
+        _context.PurchaseLineItems.RemoveRange(existingLineItems);
 
         // Add new line items
         decimal totalCost = 0;
-        var newLineItems = new List<PurchaseLineItem>();
-
+        var lineItems = new List<PurchaseLineItem>();
         foreach (var lineItemDto in dto.LineItems)
         {
             var lineTotal = lineItemDto.Quantity * lineItemDto.UnitCost;
@@ -853,12 +854,11 @@ public class InventoryService : IInventoryService
                 LineTotal = lineTotal
             };
 
-            newLineItems.Add(lineItem);
+            lineItems.Add(lineItem);
         }
+        _context.PurchaseLineItems.AddRange(lineItems);
 
-        purchase.LineItems = newLineItems;
         purchase.TotalCost = totalCost;
-
         await _context.SaveChangesAsync();
 
         return (await GetPurchaseByIdAsync(purchase.Id))!;

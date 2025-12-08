@@ -16,7 +16,7 @@ interface PurchaseFormModalProps {
   onClose: () => void;
   onSuccess: () => void;
   purchase?: PurchaseDto;
-  mode?: 'create' | 'edit' | 'view';
+  mode?: "create" | "edit" | "view";
 }
 
 interface LineItemForm extends CreatePurchaseLineItemDto {
@@ -29,10 +29,10 @@ export default function PurchaseFormModal({
   onClose,
   onSuccess,
   purchase,
-  mode = 'create',
+  mode = "create",
 }: PurchaseFormModalProps) {
-  const isViewMode = mode === 'view';
-  const isEditMode = mode === 'edit';
+  const isViewMode = mode === "view";
+  const isEditMode = mode === "edit";
 
   // Form state
   const [formData, setFormData] = useState({
@@ -56,7 +56,7 @@ export default function PurchaseFormModal({
     if (isOpen) {
       loadDropdownData();
 
-      if (purchase && (mode === 'edit' || mode === 'view')) {
+      if (purchase && (mode === "edit" || mode === "view")) {
         // Edit/View mode - load existing purchase
         setFormData({
           purchaseOrderNumber: purchase.purchaseOrderNumber || "",
@@ -245,7 +245,11 @@ export default function PurchaseFormModal({
         {/* Header */}
         <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            {isViewMode ? "Purchase Order Details" : isEditMode ? "Edit Purchase Order" : "Create Purchase Order"}
+            {isViewMode
+              ? "Purchase Order Details"
+              : isEditMode
+              ? "Edit Purchase Order"
+              : "Create Purchase Order"}
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             ✕
@@ -272,7 +276,9 @@ export default function PurchaseFormModal({
                   <input
                     type="text"
                     value={formData.purchaseOrderNumber}
-                    onChange={(e) => setFormData({ ...formData, purchaseOrderNumber: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, purchaseOrderNumber: e.target.value })
+                    }
                     disabled={isViewMode}
                     placeholder="Auto-generated if left empty"
                     className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
@@ -508,7 +514,13 @@ export default function PurchaseFormModal({
               disabled={isLoading}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Purchase Order" : "Create Purchase Order")}
+              {isLoading
+                ? isEditMode
+                  ? "Updating..."
+                  : "Creating..."
+                : isEditMode
+                ? "Update Purchase Order"
+                : "Create Purchase Order"}
             </button>
           )}
         </div>

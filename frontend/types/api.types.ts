@@ -50,7 +50,7 @@ export interface PaginationParams {
   page?: number;
   pageSize?: number;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
 
 // ============================================================================
@@ -472,7 +472,10 @@ export interface PurchaseDto {
 export interface PurchaseLineItemDto {
   id: string;
   productId: string;
-  productName: string;
+  purchaseId: string;
+  productNameEn: string;
+  productNameAr?: string;
+  productSku?: string;
   quantity: number;
   unitCost: number;
   lineTotal: number;
@@ -545,7 +548,7 @@ export interface ExpenseCategoryDto {
 
 export interface SyncTransactionDto {
   id: string;
-  type: 'sale' | 'purchase' | 'expense' | 'inventory_adjust';
+  type: "sale" | "purchase" | "expense" | "inventory_adjust";
   timestamp: string;
   branchId: string;
   userId: string;
