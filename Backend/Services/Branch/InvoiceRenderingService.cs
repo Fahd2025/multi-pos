@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Backend.Models.Entities.Branch;
 
 namespace Backend.Services.Branch;
@@ -101,11 +102,18 @@ public class InvoiceRenderingService : IInvoiceRenderingService
     {
         try
         {
-            var invoiceSchema = JsonSerializer.Deserialize<InvoiceSchema>(schema);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+            var invoiceSchema = JsonSerializer.Deserialize<InvoiceSchema>(schema, options);
             return invoiceSchema != null && invoiceSchema.Sections != null;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"[ValidateSchema] Schema validation failed: {ex.Message}");
+            Console.WriteLine($"[ValidateSchema] Schema content: {schema?.Substring(0, Math.Min(200, schema?.Length ?? 0))}...");
             return false;
         }
     }
@@ -406,6 +414,12 @@ public class InvoiceSchemaSection
     public int Order { get; set; }
     public bool Visible { get; set; } = true;
     public Dictionary<string, object>? Config { get; set; }
+
+    /// <summary>
+    /// Captures any additional properties not explicitly defined (like alignment, fields, etc.)
+    /// </summary>
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? ExtensionData { get; set; }
 }
 
 public class InvoiceStyling
