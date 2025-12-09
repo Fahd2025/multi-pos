@@ -22,6 +22,8 @@ public class Sale
     [Required]
     public Guid CashierId { get; set; }
 
+    public Guid? UserId { get; set; }
+
     [Required]
     public DateTime SaleDate { get; set; } = DateTime.UtcNow;
 

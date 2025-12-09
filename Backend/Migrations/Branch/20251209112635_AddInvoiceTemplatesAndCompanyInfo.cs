@@ -11,11 +11,6 @@ namespace Backend.Migrations.Branch
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<Guid>(
-                name: "UserId",
-                table: "Sales",
-                type: "TEXT",
-                nullable: true);
 
             migrationBuilder.CreateTable(
                 name: "CompanyInfo",
@@ -62,36 +57,6 @@ namespace Backend.Migrations.Branch
                     table.PrimaryKey("PK_InvoiceTemplates", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "Users",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Username = table.Column<string>(type: "TEXT", nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", nullable: false),
-                    Email = table.Column<string>(type: "TEXT", nullable: false),
-                    FullNameEn = table.Column<string>(type: "TEXT", nullable: false),
-                    FullNameAr = table.Column<string>(type: "TEXT", nullable: true),
-                    Phone = table.Column<string>(type: "TEXT", nullable: true),
-                    PreferredLanguage = table.Column<string>(type: "TEXT", nullable: false),
-                    Role = table.Column<string>(type: "TEXT", nullable: false),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
-                    LastLoginAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LastActivityAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    CreatedBy = table.Column<Guid>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Users", x => x.Id);
-                });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Sales_UserId",
-                table: "Sales",
-                column: "UserId");
-
             migrationBuilder.CreateIndex(
                 name: "IX_CompanyInfo_CommercialRegNumber",
                 table: "CompanyInfo",
@@ -116,64 +81,16 @@ namespace Backend.Migrations.Branch
                 name: "IX_InvoiceTemplates_Name",
                 table: "InvoiceTemplates",
                 column: "Name");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_Email",
-                table: "Users",
-                column: "Email");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_IsActive",
-                table: "Users",
-                column: "IsActive");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_LastLoginAt",
-                table: "Users",
-                column: "LastLoginAt");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_Role",
-                table: "Users",
-                column: "Role");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_Username",
-                table: "Users",
-                column: "Username",
-                unique: true);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Sales_Users_UserId",
-                table: "Sales",
-                column: "UserId",
-                principalTable: "Users",
-                principalColumn: "Id");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Sales_Users_UserId",
-                table: "Sales");
-
             migrationBuilder.DropTable(
                 name: "CompanyInfo");
 
             migrationBuilder.DropTable(
                 name: "InvoiceTemplates");
-
-            migrationBuilder.DropTable(
-                name: "Users");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Sales_UserId",
-                table: "Sales");
-
-            migrationBuilder.DropColumn(
-                name: "UserId",
-                table: "Sales");
         }
     }
 }
