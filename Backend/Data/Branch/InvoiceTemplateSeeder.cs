@@ -42,7 +42,9 @@ public static class InvoiceTemplateSeeder
   ""paperSize"": ""58mm"",
   ""sections"": [
     {
+      ""id"": ""header-58"",
       ""type"": ""header"",
+      ""visible"": true,
       ""alignment"": ""center"",
       ""fields"": [
         { ""field"": ""companyLogo"", ""show"": true, ""maxHeight"": 50 },
@@ -53,7 +55,9 @@ public static class InvoiceTemplateSeeder
       ]
     },
     {
+      ""id"": ""invoice-info-58"",
       ""type"": ""invoice-info"",
+      ""visible"": true,
       ""alignment"": ""left"",
       ""fields"": [
         { ""field"": ""invoiceType"", ""show"": true, ""fontSize"": 12, ""bold"": true },
@@ -63,15 +67,18 @@ public static class InvoiceTemplateSeeder
       ]
     },
     {
+      ""id"": ""customer-info-58"",
       ""type"": ""customer-info"",
-      ""show"": false,
+      ""visible"": false,
       ""alignment"": ""left"",
       ""fields"": [
         { ""field"": ""customerName"", ""show"": true, ""prefix"": ""Customer: "" }
       ]
     },
     {
+      ""id"": ""line-items-58"",
       ""type"": ""line-items"",
+      ""visible"": true,
       ""showBorders"": false,
       ""columns"": [
         { ""field"": ""name"", ""label"": ""Item"", ""width"": 60 },
@@ -80,7 +87,9 @@ public static class InvoiceTemplateSeeder
       ]
     },
     {
+      ""id"": ""totals-58"",
       ""type"": ""totals"",
+      ""visible"": true,
       ""alignment"": ""right"",
       ""fields"": [
         { ""field"": ""subtotal"", ""show"": true, ""label"": ""Subtotal"" },
@@ -90,7 +99,9 @@ public static class InvoiceTemplateSeeder
       ]
     },
     {
+      ""id"": ""footer-58"",
       ""type"": ""footer"",
+      ""visible"": true,
       ""alignment"": ""center"",
       ""fields"": [
         { ""field"": ""zatcaQrCode"", ""show"": true, ""size"": 100 },
@@ -124,7 +135,9 @@ public static class InvoiceTemplateSeeder
   ""paperSize"": ""80mm"",
   ""sections"": [
     {
+      ""id"": ""header-80"",
       ""type"": ""header"",
+      ""visible"": true,
       ""alignment"": ""center"",
       ""fields"": [
         { ""field"": ""companyLogo"", ""show"": true, ""maxHeight"": 80 },
@@ -137,11 +150,15 @@ public static class InvoiceTemplateSeeder
       ]
     },
     {
+      ""id"": ""separator-1-80"",
       ""type"": ""separator"",
+      ""visible"": true,
       ""style"": ""dashed""
     },
     {
+      ""id"": ""invoice-info-80"",
       ""type"": ""invoice-info"",
+      ""visible"": true,
       ""alignment"": ""left"",
       ""fields"": [
         { ""field"": ""invoiceType"", ""show"": true, ""fontSize"": 14, ""bold"": true, ""alignment"": ""center"" },
@@ -151,8 +168,9 @@ public static class InvoiceTemplateSeeder
       ]
     },
     {
+      ""id"": ""customer-info-80"",
       ""type"": ""customer-info"",
-      ""show"": true,
+      ""visible"": true,
       ""alignment"": ""left"",
       ""fields"": [
         { ""field"": ""customerName"", ""show"": true, ""prefix"": ""Customer: "", ""bold"": true },
@@ -161,11 +179,15 @@ public static class InvoiceTemplateSeeder
       ]
     },
     {
+      ""id"": ""separator-2-80"",
       ""type"": ""separator"",
+      ""visible"": true,
       ""style"": ""solid""
     },
     {
+      ""id"": ""line-items-80"",
       ""type"": ""line-items"",
+      ""visible"": true,
       ""showBorders"": true,
       ""fontSize"": 10,
       ""columns"": [
@@ -176,11 +198,15 @@ public static class InvoiceTemplateSeeder
       ]
     },
     {
+      ""id"": ""separator-3-80"",
       ""type"": ""separator"",
+      ""visible"": true,
       ""style"": ""solid""
     },
     {
+      ""id"": ""totals-80"",
       ""type"": ""totals"",
+      ""visible"": true,
       ""alignment"": ""right"",
       ""fields"": [
         { ""field"": ""subtotal"", ""show"": true, ""label"": ""Subtotal:"", ""fontSize"": 11 },
@@ -190,11 +216,15 @@ public static class InvoiceTemplateSeeder
       ]
     },
     {
+      ""id"": ""separator-4-80"",
       ""type"": ""separator"",
+      ""visible"": true,
       ""style"": ""dashed""
     },
     {
+      ""id"": ""footer-80"",
       ""type"": ""footer"",
+      ""visible"": true,
       ""alignment"": ""center"",
       ""fields"": [
         { ""field"": ""zatcaQrCode"", ""show"": true, ""size"": 120 },
@@ -229,7 +259,9 @@ public static class InvoiceTemplateSeeder
   ""paperSize"": ""A4"",
   ""sections"": [
     {
+      ""id"": ""header-a4"",
       ""type"": ""header"",
+      ""visible"": true,
       ""layout"": ""split"",
       ""left"": {
         ""fields"": [
@@ -251,7 +283,9 @@ public static class InvoiceTemplateSeeder
       }
     },
     {
+      ""id"": ""invoice-info-a4"",
       ""type"": ""invoice-info"",
+      ""visible"": true,
       ""layout"": ""split"",
       ""left"": {
         ""title"": ""Bill To:"",
@@ -272,7 +306,9 @@ public static class InvoiceTemplateSeeder
       }
     },
     {
+      ""id"": ""line-items-a4"",
       ""type"": ""line-items"",
+      ""visible"": true,
       ""showBorders"": true,
       ""fontSize"": 11,
       ""headerBackground"": ""#f0f0f0"",
@@ -287,7 +323,9 @@ public static class InvoiceTemplateSeeder
       ]
     },
     {
+      ""id"": ""totals-a4"",
       ""type"": ""totals"",
+      ""visible"": true,
       ""alignment"": ""right"",
       ""width"": 40,
       ""fields"": [
@@ -298,7 +336,9 @@ public static class InvoiceTemplateSeeder
       ]
     },
     {
+      ""id"": ""footer-a4"",
       ""type"": ""footer"",
+      ""visible"": true,
       ""layout"": ""split"",
       ""left"": {
         ""fields"": [
