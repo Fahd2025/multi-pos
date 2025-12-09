@@ -336,38 +336,22 @@ public static class InvoiceTemplateEndpoints
                 "/preview",
                 async (
                     [FromBody] CreateInvoiceTemplateDto dto,
-                    IInvoiceRenderingService renderingService,
-                    ICompanyInfoService companyInfoService
+                    HttpContext httpContext,
+                    IInvoiceRenderingService renderingService
                 ) =>
                 {
                     try
                     {
-                        var companyInfo = await companyInfoService.GetCompanyInfoAsync();
-
-                        if (companyInfo == null)
+                        // Get branch from context
+                        var branch = httpContext.Items["Branch"] as Models.Entities.HeadOffice.Branch;
+                        if (branch == null)
                         {
                             return Results.BadRequest(
-                                new { success = false, error = new { code = "NO_COMPANY_INFO", message = "Company information not configured. Please set up company info first." } }
+                                new { success = false, error = new { code = "BRANCH_NOT_FOUND", message = "Branch information not found in request context." } }
                             );
                         }
 
-                        var companyInfoEntity = new Models.Entities.Branch.CompanyInfo
-                        {
-                            Id = companyInfo.Id,
-                            CompanyName = companyInfo.CompanyName,
-                            CompanyNameAr = companyInfo.CompanyNameAr,
-                            LogoUrl = companyInfo.LogoUrl,
-                            VatNumber = companyInfo.VatNumber,
-                            CommercialRegNumber = companyInfo.CommercialRegNumber,
-                            Address = companyInfo.Address,
-                            City = companyInfo.City,
-                            PostalCode = companyInfo.PostalCode,
-                            Phone = companyInfo.Phone,
-                            Email = companyInfo.Email,
-                            Website = companyInfo.Website
-                        };
-
-                        var html = renderingService.RenderPreview(dto.Schema, dto.PaperSize, companyInfoEntity);
+                        var html = renderingService.RenderPreview(dto.Schema, dto.PaperSize, branch);
 
                         return Results.Ok(
                             new

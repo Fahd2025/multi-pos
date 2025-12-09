@@ -8,9 +8,9 @@ public interface IZatcaService
     /// Generates a ZATCA-compliant QR code for a sale invoice
     /// </summary>
     /// <param name="sale">The sale entity</param>
-    /// <param name="companyInfo">Company information</param>
+    /// <param name="branch">Branch information</param>
     /// <returns>Base64-encoded TLV data for QR code</returns>
-    string GenerateQRCode(Sale sale, CompanyInfo companyInfo);
+    string GenerateQRCode(Sale sale, Backend.Models.Entities.HeadOffice.Branch branch);
 
     /// <summary>
     /// Encodes data using TLV (Tag-Length-Value) format

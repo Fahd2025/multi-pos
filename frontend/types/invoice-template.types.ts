@@ -109,43 +109,6 @@ export interface DuplicateInvoiceTemplateDto {
 }
 
 /**
- * Company information DTO
- */
-export interface CompanyInfo {
-  id: string;
-  companyName: string;
-  companyNameAr?: string;
-  logoUrl?: string;
-  vatNumber?: string;
-  commercialRegNumber?: string;
-  address?: string;
-  city?: string;
-  postalCode?: string;
-  phone?: string;
-  email?: string;
-  website?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/**
- * Update company info DTO
- */
-export interface UpdateCompanyInfoDto {
-  companyName: string;
-  companyNameAr?: string;
-  logoUrl?: string;
-  vatNumber?: string;
-  commercialRegNumber?: string;
-  address?: string;
-  city?: string;
-  postalCode?: string;
-  phone?: string;
-  email?: string;
-  website?: string;
-}
-
-/**
  * Invoice schema section type
  */
 export type SectionType =

@@ -92,6 +92,10 @@ export const BRANCH_ROUTES = {
   // Settings
   SETTINGS: (locale: string) => `/${locale}/branch/settings`,
   SETTINGS_USERS: (locale: string) => `/${locale}/branch/settings/users`,
+  SETTINGS_INVOICE_TEMPLATES: (locale: string) => `/${locale}/branch/settings/invoice-templates`,
+  SETTINGS_INVOICE_BUILDER: (locale: string) => `/${locale}/branch/settings/invoice-builder`,
+  SETTINGS_INVOICE_BUILDER_EDIT: (locale: string, id: string) =>
+    `/${locale}/branch/settings/invoice-builder/${id}`,
 };
 
 /**

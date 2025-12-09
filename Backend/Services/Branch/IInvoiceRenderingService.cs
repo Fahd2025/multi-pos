@@ -9,19 +9,19 @@ public interface IInvoiceRenderingService
     /// </summary>
     /// <param name="template">The invoice template</param>
     /// <param name="sale">The sale data</param>
-    /// <param name="companyInfo">Company information</param>
+    /// <param name="branch">Branch information</param>
     /// <param name="zatcaQRCode">ZATCA QR code base64 string</param>
     /// <returns>HTML string of the rendered invoice</returns>
-    string RenderInvoice(InvoiceTemplate template, Sale sale, CompanyInfo companyInfo, string zatcaQRCode);
+    string RenderInvoice(InvoiceTemplate template, Sale sale, Backend.Models.Entities.HeadOffice.Branch branch, string zatcaQRCode);
 
     /// <summary>
     /// Renders a preview of an invoice template with sample data
     /// </summary>
     /// <param name="schema">JSON schema string</param>
     /// <param name="paperSize">Paper size for the template</param>
-    /// <param name="companyInfo">Company information</param>
+    /// <param name="branch">Branch information</param>
     /// <returns>HTML string of the preview</returns>
-    string RenderPreview(string schema, PaperSize paperSize, CompanyInfo companyInfo);
+    string RenderPreview(string schema, PaperSize paperSize, Backend.Models.Entities.HeadOffice.Branch branch);
 
     /// <summary>
     /// Validates a JSON schema

@@ -150,10 +150,6 @@ builder.Services.AddScoped<
     Backend.Services.Branch.IInvoiceTemplateService,
     Backend.Services.Branch.InvoiceTemplateService
 >();
-builder.Services.AddScoped<
-    Backend.Services.Branch.ICompanyInfoService,
-    Backend.Services.Branch.CompanyInfoService
->();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<BranchDbContext>(provider =>
@@ -358,8 +354,8 @@ app.MapMigrationEndpoints();
 // Invoice Templates
 app.MapInvoiceTemplateEndpoints();
 
-// Company Info
-app.MapCompanyInfoEndpoints();
+// Branch Info
+app.MapBranchInfoEndpoints();
 
 app.Run();
 

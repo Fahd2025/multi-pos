@@ -248,6 +248,9 @@ public static class HeadOfficeDbSeeder
 
                 // Seed sample data for the branch
                 await BranchDbSeeder.SeedAsync(branchContext, adminUser.Id, branch.Code);
+
+                // Always ensure invoice templates exist (runs even for existing branches)
+                await Branch.InvoiceTemplateSeeder.SeedAsync(branchContext, adminUser.Id);
             }
             catch (Exception ex)
             {

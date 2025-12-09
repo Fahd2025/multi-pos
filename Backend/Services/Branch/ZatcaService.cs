@@ -18,12 +18,12 @@ public class ZatcaService : IZatcaService
     /// Tag 5: VAT amount
     /// Tag 6: Invoice hash (SHA-256)
     /// </summary>
-    public string GenerateQRCode(Sale sale, CompanyInfo companyInfo)
+    public string GenerateQRCode(Sale sale, Backend.Models.Entities.HeadOffice.Branch branch)
     {
         var tlvData = EncodeTLV(new Dictionary<int, string>
         {
-            { 1, companyInfo.CompanyName }, // Seller name
-            { 2, companyInfo.VatNumber ?? "N/A" }, // VAT registration number
+            { 1, branch.NameEn }, // Seller name
+            { 2, branch.TaxNumber ?? "N/A" }, // VAT registration number
             { 3, sale.SaleDate.ToString("yyyy-MM-ddTHH:mm:ssZ") }, // Timestamp
             { 4, sale.Total.ToString("0.00") }, // Invoice total (including VAT)
             { 5, sale.TaxAmount.ToString("0.00") }, // VAT amount

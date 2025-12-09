@@ -1496,6 +1496,10 @@ public static class BranchDbSeeder
         await context.SaveChangesAsync();
         Console.WriteLine($"    ✓ Created {customers.Count} customers");
 
+        // Seed Invoice Templates (58mm, 80mm, A4)
+        await InvoiceTemplateSeeder.SeedAsync(context, adminUserId);
+        Console.WriteLine($"    ✓ Created default invoice templates (58mm, 80mm, A4)");
+
         Console.WriteLine($"  ✓ Branch {branchCode} seed data complete");
     }
 }

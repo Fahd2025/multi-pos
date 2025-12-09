@@ -6,7 +6,7 @@ namespace Backend.Services.Branch;
 
 public class InvoiceRenderingService : IInvoiceRenderingService
 {
-    public string RenderInvoice(InvoiceTemplate template, Sale sale, CompanyInfo companyInfo, string zatcaQRCode)
+    public string RenderInvoice(InvoiceTemplate template, Sale sale, Backend.Models.Entities.HeadOffice.Branch branch, string zatcaQRCode)
     {
         try
         {
@@ -35,7 +35,7 @@ public class InvoiceRenderingService : IInvoiceRenderingService
                 {
                     if (!section.Visible) continue;
 
-                    html.AppendLine(RenderSection(section, sale, companyInfo, zatcaQRCode));
+                    html.AppendLine(RenderSection(section, sale, branch, zatcaQRCode));
                 }
             }
 
@@ -51,7 +51,7 @@ public class InvoiceRenderingService : IInvoiceRenderingService
         }
     }
 
-    public string RenderPreview(string schema, PaperSize paperSize, CompanyInfo companyInfo)
+    public string RenderPreview(string schema, PaperSize paperSize, Backend.Models.Entities.HeadOffice.Branch branch)
     {
         // Generate sample data for preview
         var sampleSale = GenerateSampleSale();
@@ -81,7 +81,7 @@ public class InvoiceRenderingService : IInvoiceRenderingService
                 foreach (var section in invoiceSchema.Sections.OrderBy(s => s.Order))
                 {
                     if (!section.Visible) continue;
-                    html.AppendLine(RenderSection(section, sampleSale, companyInfo, sampleQRCode));
+                    html.AppendLine(RenderSection(section, sampleSale, branch, sampleQRCode));
                 }
             }
 
@@ -154,11 +154,11 @@ public class InvoiceRenderingService : IInvoiceRenderingService
         return styles.ToString();
     }
 
-    private string RenderSection(InvoiceSchemaSection section, Sale sale, CompanyInfo companyInfo, string zatcaQRCode)
+    private string RenderSection(InvoiceSchemaSection section, Sale sale, Backend.Models.Entities.HeadOffice.Branch branch, string zatcaQRCode)
     {
         return section.Type.ToLower() switch
         {
-            "header" => RenderHeader(section, companyInfo),
+            "header" => RenderHeader(section, branch),
             "title" => RenderTitle(section, sale),
             "customer" => RenderCustomer(section, sale),
             "metadata" => RenderMetadata(section, sale),
@@ -169,39 +169,39 @@ public class InvoiceRenderingService : IInvoiceRenderingService
         };
     }
 
-    private string RenderHeader(InvoiceSchemaSection section, CompanyInfo companyInfo)
+    private string RenderHeader(InvoiceSchemaSection section, Backend.Models.Entities.HeadOffice.Branch branch)
     {
         var html = new StringBuilder();
         html.AppendLine("<div class='header'>");
 
-        if (section.Config?.ContainsKey("showLogo") == true && (bool)(section.Config["showLogo"] ?? false) && !string.IsNullOrEmpty(companyInfo.LogoUrl))
+        if (section.Config?.ContainsKey("showLogo") == true && (bool)(section.Config["showLogo"] ?? false) && !string.IsNullOrEmpty(branch.LogoPath))
         {
-            html.AppendLine($"<img src='{companyInfo.LogoUrl}' alt='Logo' />");
+            html.AppendLine($"<img src='{branch.LogoPath}' alt='Logo' />");
         }
 
         if (section.Config?.ContainsKey("showCompanyName") == true && (bool)(section.Config["showCompanyName"] ?? false))
         {
-            html.AppendLine($"<h1>{companyInfo.CompanyName}</h1>");
+            html.AppendLine($"<h1>{branch.NameEn}</h1>");
         }
 
-        if (section.Config?.ContainsKey("showAddress") == true && (bool)(section.Config["showAddress"] ?? false) && !string.IsNullOrEmpty(companyInfo.Address))
+        if (section.Config?.ContainsKey("showAddress") == true && (bool)(section.Config["showAddress"] ?? false) && !string.IsNullOrEmpty(branch.AddressEn))
         {
-            html.AppendLine($"<p>{companyInfo.Address}</p>");
+            html.AppendLine($"<p>{branch.AddressEn}</p>");
         }
 
-        if (section.Config?.ContainsKey("showPhone") == true && (bool)(section.Config["showPhone"] ?? false) && !string.IsNullOrEmpty(companyInfo.Phone))
+        if (section.Config?.ContainsKey("showPhone") == true && (bool)(section.Config["showPhone"] ?? false) && !string.IsNullOrEmpty(branch.Phone))
         {
-            html.AppendLine($"<p>Tel: {companyInfo.Phone}</p>");
+            html.AppendLine($"<p>Tel: {branch.Phone}</p>");
         }
 
-        if (section.Config?.ContainsKey("showVatNumber") == true && (bool)(section.Config["showVatNumber"] ?? false) && !string.IsNullOrEmpty(companyInfo.VatNumber))
+        if (section.Config?.ContainsKey("showVatNumber") == true && (bool)(section.Config["showVatNumber"] ?? false) && !string.IsNullOrEmpty(branch.TaxNumber))
         {
-            html.AppendLine($"<p>VAT: {companyInfo.VatNumber}</p>");
+            html.AppendLine($"<p>VAT: {branch.TaxNumber}</p>");
         }
 
-        if (section.Config?.ContainsKey("showCRN") == true && (bool)(section.Config["showCRN"] ?? false) && !string.IsNullOrEmpty(companyInfo.CommercialRegNumber))
+        if (section.Config?.ContainsKey("showCRN") == true && (bool)(section.Config["showCRN"] ?? false) && !string.IsNullOrEmpty(branch.CRN))
         {
-            html.AppendLine($"<p>CR: {companyInfo.CommercialRegNumber}</p>");
+            html.AppendLine($"<p>CR: {branch.CRN}</p>");
         }
 
         html.AppendLine("</div>");

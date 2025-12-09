@@ -24,6 +24,7 @@ import { API_BASE_URL } from "@/lib/constants";
 import { RoleGuard, usePermission } from "@/components/auth/RoleGuard";
 import { UserRole } from "@/types/enums";
 import { Button } from "@/components/shared/Button";
+import { BRANCH_ROUTES } from "@/lib/routes";
 
 export default function BranchSettingsPage() {
   const params = useParams();
@@ -284,6 +285,27 @@ export default function BranchSettingsPage() {
           <p className="text-gray-600 dark:text-gray-400">
             Manage your branch information, regional preferences, and tax configuration
           </p>
+        </div>
+
+        {/* Quick Links to Other Settings */}
+        <div className="mb-8">
+          <button
+            onClick={() => router.push(BRANCH_ROUTES.SETTINGS_INVOICE_TEMPLATES(locale))}
+            className="flex items-center justify-between p-4 w-full md:w-1/2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-md transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="text-2xl">📄</div>
+              <div className="text-left">
+                <h3 className="font-semibold text-gray-900 dark:text-white">
+                  Invoice Templates
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Manage invoice designs (uses branch information)
+                </p>
+              </div>
+            </div>
+            <div className="text-gray-400">→</div>
+          </button>
         </div>
 
         {/* Error/Success Messages */}
