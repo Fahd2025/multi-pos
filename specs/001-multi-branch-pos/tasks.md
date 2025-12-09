@@ -817,3 +817,231 @@ With multiple developers (3-4 team members):
 - Refer to research.md for technology decisions and architecture patterns
 - Refer to data-model.md for complete entity schema definitions
 - Refer to contracts/ for API endpoint specifications
+
+---
+
+## Phase 14: Focused Implementation - Complete POS Deployment (Priority: ASAP)
+
+**Purpose**: Production-ready deployment with complete POS features based on business requirements
+**Timeline**: 7 weeks with 2 mid-level developers
+**Focus**: Testing, Cash Management, Returns, Split Payments, Hardware Integration
+
+### Week 1-2: Production Readiness (Developer A - Backend Focus)
+
+- [ ] T501 [P] Set up xUnit test project in Backend.UnitTests/
+- [ ] T502 [P] Set up integration test project in Backend.IntegrationTests/
+- [ ] T503 Write unit tests for SalesService (CreateSale, VoidSale, GetSales - 8 tests minimum)
+- [ ] T504 Write unit tests for InventoryService (AdjustStock, CheckLowStock - 6 tests minimum)
+- [ ] T505 Write unit tests for AuthService (Login, RefreshToken, Logout - 5 tests minimum)
+- [ ] T506 Write integration tests for Sales API endpoints
+- [ ] T507 Write integration tests for Inventory API endpoints
+- [ ] T508 Implement rate limiting middleware (60 req/min public, 300 req/min authenticated)
+- [ ] T509 Add SQL injection protection audit (verify parameterized queries)
+- [ ] T510 Configure HTTPS redirect and HSTS in Backend/Program.cs
+- [ ] T511 Implement data encryption for sensitive fields (DbPassword in Branch entity)
+- [ ] T512 Add security headers (Content-Security-Policy, X-Frame-Options, X-Content-Type-Options)
+- [ ] T513 Run OWASP ZAP security scan and fix critical issues
+- [ ] T525 Configure structured logging with Serilog
+- [ ] T526 Implement health check monitoring enhancements at /health
+- [ ] T527 Add audit logging for security events
+- [ ] T528 Create deployment documentation in docs/DEPLOYMENT.md
+- [ ] T529 Create operations runbook in docs/OPERATIONS.md
+- [ ] T530 Run end-to-end smoke test (login → create sale → sync offline)
+- [ ] T531 Achieve 80%+ code coverage on business logic services
+- [ ] T532 Review and fix any TODO/FIXME comments in Backend
+
+### Week 1-2: Production Readiness (Developer B - Frontend Focus)
+
+- [ ] T514 [P] Set up Jest + React Testing Library + MSW in frontend/
+- [ ] T515 Write component tests for ProductSearch component
+- [ ] T516 Write component tests for SaleLineItemsList component
+- [ ] T517 Write component tests for PaymentSection component
+- [ ] T518 Write offline sync tests in frontend/__tests__/lib/offline-sync.test.ts
+- [ ] T519 Set up CI/CD pipeline (GitHub Actions)
+- [ ] T520 Configure automated test runs on git push
+- [ ] T521 Add global error boundary to root layout (app/layout.tsx)
+- [ ] T522 Implement toast notification system (verify existing or create)
+- [ ] T523 Add loading states with skeleton screens to all async operations
+- [ ] T524 Optimize bundle size with code splitting and lazy loading
+- [ ] T533 Populate English translations in frontend/public/locales/en/common.json
+- [ ] T534 Populate Arabic translations in frontend/public/locales/ar/common.json
+- [ ] T535 Create useI18n hook in frontend/hooks/useI18n.ts
+- [ ] T536 Add LanguageSwitcher component to header navigation
+- [ ] T537 Configure RTL layout for Arabic in Tailwind CSS
+- [ ] T538 Test language switching thoroughly (en ↔ ar)
+- [ ] T539 Test RTL layout with long text and edge cases
+- [ ] T540 Add language preference to user profile
+- [ ] T541 Run accessibility audit (WCAG 2.1 AA compliance)
+- [ ] T542 Run Lighthouse performance audit (target score >90)
+
+### Week 3: Cash Management (Developer A - Backend)
+
+- [ ] T543 Create CashDrawer entity in Backend/Models/Entities/Branch/CashDrawer.cs
+- [ ] T544 Create CashTransaction entity in Backend/Models/Entities/Branch/CashTransaction.cs
+- [ ] T545 Create CashDrawerDto, OpenDrawerDto, CloseDrawerDto in Backend/Models/DTOs/Branch/
+- [ ] T546 Implement ICashDrawerService interface in Backend/Services/Branch/CashDrawer/
+- [ ] T547 Implement CashDrawerService with OpenDrawer, CloseDrawer, GetCurrent, AddTransaction methods
+- [ ] T548 Create POST /api/v1/cash-drawer/open endpoint
+- [ ] T549 Create POST /api/v1/cash-drawer/close endpoint
+- [ ] T550 Create GET /api/v1/cash-drawer/current endpoint
+- [ ] T551 Create POST /api/v1/cash-drawer/transaction endpoint (petty cash)
+- [ ] T552 Create GET /api/v1/cash-drawer/reconciliation endpoint
+- [ ] T553 Add validation: only one open drawer per branch at a time
+- [ ] T554 Integrate with sales: update ExpectedCash on cash sales
+- [ ] T555 Write unit tests for CashDrawerService
+- [ ] T556 Write integration tests for cash drawer endpoints
+
+### Week 3: Cash Management (Developer B - Frontend)
+
+- [ ] T557 Create CashDrawerService in frontend/services/cash-drawer.service.ts
+- [ ] T558 Create cash drawer page in frontend/app/[locale]/branch/cash-drawer/page.tsx
+- [ ] T559 Create OpenDrawerModal component with opening balance input
+- [ ] T560 Create CloseDrawerModal component with denomination breakdown
+- [ ] T561 Create CashReconciliationReport component showing over/short
+- [ ] T562 Create PettyCashModal component for cash transactions
+- [ ] T563 Add cash drawer status indicator to header (open/closed, current balance)
+- [ ] T564 Integrate with sales workflow: prevent sales if drawer closed
+- [ ] T565 Add cash drawer history page with date filters
+- [ ] T566 Write component tests for cash drawer modals
+- [ ] T567 Test full workflow: open → sales → petty cash → close → reconciliation
+
+### Week 4: Returns & Refunds (Developer A - Backend)
+
+- [ ] T568 Create ReturnPolicy entity in Backend/Models/Entities/Branch/ReturnPolicy.cs
+- [ ] T569 Create Return entity in Backend/Models/Entities/Branch/Return.cs
+- [ ] T570 Create ReturnLineItem entity in Backend/Models/Entities/Branch/ReturnLineItem.cs
+- [ ] T571 Create ReturnPolicyDto, CreateReturnDto, ReturnDto in Backend/Models/DTOs/Branch/
+- [ ] T572 Implement IReturnService interface in Backend/Services/Branch/Returns/
+- [ ] T573 Implement ReturnService with CreateReturn, ValidatePolicy, Approve, Process methods
+- [ ] T574 Create POST /api/v1/returns endpoint (create return request)
+- [ ] T575 Create POST /api/v1/returns/:id/approve endpoint (manager only)
+- [ ] T576 Create POST /api/v1/returns/:id/process endpoint (complete return & refund)
+- [ ] T577 Create GET /api/v1/returns endpoint (list with filters)
+- [ ] T578 Create GET /api/v1/returns/:id endpoint
+- [ ] T579 Create GET /api/v1/return-policies endpoint
+- [ ] T580 Create PUT /api/v1/return-policies/:id endpoint (branch manager only)
+- [ ] T581 On return processing: update inventory, customer stats, generate credit note
+- [ ] T582 Write unit tests for ReturnService (policy validation, calculations)
+- [ ] T583 Write integration tests for return endpoints
+
+### Week 4: Returns & Refunds (Developer B - Frontend)
+
+- [ ] T584 Create ReturnService in frontend/services/return.service.ts
+- [ ] T585 Create returns page in frontend/app/[locale]/branch/returns/page.tsx
+- [ ] T586 Create ReturnPolicyModal component in branch settings (customizable policy)
+- [ ] T587 Create CreateReturnModal component (search sale, select items, choose reason)
+- [ ] T588 Create ReturnApprovalModal component for manager approval workflow
+- [ ] T589 Create ProcessReturnModal component (select refund method, complete)
+- [ ] T590 Create ExchangeModal component (return + new sale)
+- [ ] T591 Create CreditNote component (printable/PDF)
+- [ ] T592 Add return policy settings page in branch settings
+- [ ] T593 Add returns widget to dashboard (pending approvals count)
+- [ ] T594 Write component tests for return modals
+- [ ] T595 Test full return workflow: create → approve → process → verify inventory
+- [ ] T596 Test exchange workflow: return + new sale in one transaction
+
+### Week 5: Split Payments (Developer A - Backend)
+
+- [ ] T597 Create SalePayment entity in Backend/Models/Entities/Branch/SalePayment.cs
+- [ ] T598 Update Sale entity to support multiple payments (List<SalePayment>)
+- [ ] T599 Update CreateSaleDto to accept List<SalePaymentDto> Payments
+- [ ] T600 Update SalesService.CreateSaleAsync to handle split payment validation
+- [ ] T601 Update invoice generation to show payment breakdown
+- [ ] T602 Update sale void logic to handle multiple payments
+- [ ] T603 Create database migration for SalePayment table
+- [ ] T604 Write unit tests for split payment validation
+- [ ] T605 Write integration tests for split payment sales
+
+### Week 5: Split Payments (Developer B - Frontend)
+
+- [ ] T606 Update SalePaymentDto type in frontend/types/entities.types.ts
+- [ ] T607 Create SplitPaymentModal component with payment entry form
+- [ ] T608 Update PaymentSection component to show payment breakdown
+- [ ] T609 Update InvoiceDisplay component to show payment breakdown table
+- [ ] T610 Update sales service to handle payment array
+- [ ] T611 Test split payment scenarios: $50 cash + $30 card = $80 total
+- [ ] T612 Write component tests for SplitPaymentModal
+
+### Week 6: Hardware Integration - Receipt Printing (Developer A - Backend)
+
+- [ ] T613 [P] Research ESC/POS protocol for thermal printers
+- [ ] T614 [P] Install ESC/POS NuGet package (ESCPOS_NET or similar)
+- [ ] T615 Create IPrintService interface in Backend/Services/Shared/Printing/
+- [ ] T616 Implement EscPosPrintService with ESC/POS command generation
+- [ ] T617 Create ReceiptTemplate class (customizable per branch)
+- [ ] T618 Create PrinterConfiguration entity in branch settings
+- [ ] T619 Create POST /api/v1/printing/receipt endpoint
+- [ ] T620 Create POST /api/v1/printing/test endpoint (test print)
+- [ ] T621 Create GET /api/v1/printing/config endpoint
+- [ ] T622 Create PUT /api/v1/printing/config endpoint
+- [ ] T623 Write unit tests for receipt formatting
+- [ ] T624 Test with Epson TM-T88 or equivalent thermal printer
+
+### Week 6: Hardware Integration - Receipt & Barcode (Developer B - Frontend)
+
+- [ ] T625 Create PrintService in frontend/services/print.service.ts
+- [ ] T626 Create printer settings page in branch settings
+- [ ] T627 Add "Print Receipt" button to sales confirmation page
+- [ ] T628 Add "Print Credit Note" button to return completion
+- [ ] T629 Implement client-side USB printing (Web USB API or Electron)
+- [ ] T630 Add auto-print option (automatic after sale completion)
+- [ ] T631 Test receipt printing workflow end-to-end
+
+### Week 6: Hardware Integration - Barcode Scanning (Developer A - Backend)
+
+- [ ] T632 Update Product entity: ensure Barcode field is indexed
+- [ ] T633 Create GET /api/v1/products/barcode/:barcode endpoint
+- [ ] T634 Add barcode validation (EAN-13, UPC, Code-128 formats)
+- [ ] T635 Write tests for barcode lookup endpoint
+
+### Week 6: Hardware Integration - Barcode Scanning (Developer B - Frontend)
+
+- [ ] T636 Create BarcodeScannerModal component with camera access (HTML5 getUserMedia)
+- [ ] T637 Add "Scan Barcode" button to POS page
+- [ ] T638 Add USB scanner support (keyboard wedge input detection)
+- [ ] T639 Test camera scanning on tablet/mobile devices
+- [ ] T640 Test USB scanner on POS terminal
+- [ ] T641 Add barcode field to product creation form
+- [ ] T642 Add barcode display on product list
+
+### Week 7: Final Polish & Deployment (Both Developers)
+
+- [ ] T643 [P] Create user documentation in docs/USER_GUIDE.md
+- [ ] T644 [P] Create admin documentation in docs/ADMIN_GUIDE.md
+- [ ] T645 Run full regression testing (all user stories + new features)
+- [ ] T646 Fix any bugs found during regression testing
+- [ ] T647 Performance optimization review (database queries, bundle size, images)
+- [ ] T648 Security final review (HTTPS, rate limiting, authentication, CORS)
+- [ ] T649 Prepare production environment (database, SSL, backups, monitoring)
+- [ ] T650 Create deployment checklist in docs/DEPLOYMENT_CHECKLIST.md
+- [ ] T651 Deploy to staging environment for UAT
+- [ ] T652 Conduct user acceptance testing (UAT) with stakeholders
+- [ ] T653 Train staff on new features (cash management, returns, hardware)
+- [ ] T654 Deploy to production environment
+- [ ] T655 Monitor system for 48 hours post-deployment
+- [ ] T656 Collect user feedback and create bug fix backlog
+
+---
+
+## Phase 14 Summary
+
+**Total New Tasks**: 156 tasks (T501-T656)
+**Duration**: 7 weeks (with 2 mid-level developers working in parallel)
+**Team Allocation**:
+- Developer A (Backend): 78 tasks (~11 tasks/week)
+- Developer B (Frontend): 78 tasks (~11 tasks/week)
+
+**Phases**:
+1. **Week 1-2**: Production Readiness (Testing, Security, i18n) - 42 tasks
+2. **Week 3**: Cash Management - 23 tasks
+3. **Week 4**: Returns & Refunds - 30 tasks
+4. **Week 5**: Split Payments - 15 tasks
+5. **Week 6**: Hardware Integration (Receipt Printer, Barcode Scanner) - 32 tasks
+6. **Week 7**: Final Polish & Deployment - 14 tasks
+
+**Architecture Ready for Future**:
+- Payment gateway integration (Stripe, Square) - interface ready
+- Gift cards & store credit - data model ready
+- Both can be added without changing core logic
+
+**Checkpoint**: After Week 7, system is production-ready with complete POS features including cash management, returns processing with customizable policies, split payments, receipt printing, and barcode scanning.
