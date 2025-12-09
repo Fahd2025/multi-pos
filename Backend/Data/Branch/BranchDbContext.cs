@@ -23,6 +23,8 @@ public class BranchDbContext : DbContext
     public DbSet<ExpenseCategory> ExpenseCategories { get; set; }
     public DbSet<Setting> Settings { get; set; }
     public DbSet<SyncQueue> SyncQueue { get; set; }
+    public DbSet<InvoiceTemplate> InvoiceTemplates { get; set; }
+    public DbSet<CompanyInfo> CompanyInfo { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -233,6 +235,21 @@ public class BranchDbContext : DbContext
             entity.HasIndex(e => e.SyncId).IsUnique();
             entity.HasIndex(e => e.SyncStatus);
             entity.HasIndex(e => e.Timestamp);
+        });
+
+        // InvoiceTemplate configuration
+        modelBuilder.Entity<InvoiceTemplate>(entity =>
+        {
+            entity.HasIndex(e => e.Name);
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => e.CreatedAt);
+        });
+
+        // CompanyInfo configuration
+        modelBuilder.Entity<CompanyInfo>(entity =>
+        {
+            entity.HasIndex(e => e.VatNumber);
+            entity.HasIndex(e => e.CommercialRegNumber);
         });
     }
 }

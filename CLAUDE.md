@@ -195,6 +195,84 @@ After completing any implementation tasks, you MUST follow these procedures:
 3. Document all implementation details
 ```
 
+### Implementation Summary Documentation
+
+**CRITICAL**: After completing any significant implementation work (completing a feature, fixing major bugs, or finishing a development session), you MUST create an implementation summary document in the `docs/` folder.
+
+**When to Create:**
+- ✅ After completing a feature or major functionality
+- ✅ After completing a significant bug fix or refactoring
+- ✅ Before ending a development session where substantial work was done
+- ✅ After building and verifying the project successfully
+
+**Mandatory Steps:**
+1. **Run the build** first to ensure no errors:
+   ```bash
+   cd Backend && dotnet build
+   # or
+   cd frontend && npm run build
+   ```
+
+2. **Create summary document** in `docs/` directory:
+   - **File naming:** `YYYY-MM-DD-{feature-name}-implementation.md`
+   - **Example:** `docs/2025-12-09-invoice-builder-backend-implementation.md`
+
+3. **Required Content:**
+   - **Overview** - What was implemented
+   - **Status** - Completion status and build results
+   - **Tasks Completed** - List of all completed tasks (with checkmarks)
+   - **Files Created** - Complete list with directory structure
+   - **Database Changes** - Migrations, schema changes
+   - **API Endpoints** - New endpoints with authorization
+   - **Key Features** - Highlights and important functionality
+   - **Testing & Validation** - Build status, tests run
+   - **Next Steps** - What comes next
+   - **Code Statistics** - File counts, LOC estimates
+
+4. **Update CLAUDE.md** if needed:
+   - Update "Current Implementation Status" section
+   - Add new features to "Key Features Implemented"
+   - Update any relevant sections with new information
+
+**Example Summary Structure:**
+```markdown
+# [Feature Name] - Implementation Summary
+
+**Date:** YYYY-MM-DD
+**Phase:** [Phase Name]
+**Status:** ✅ Completed / ⚠️ In Progress
+**Build Status:** ✅ Success (X errors, Y warnings)
+
+## Overview
+[Brief description]
+
+## Completed Tasks (X/Y)
+- ✅ Task 1
+- ✅ Task 2
+
+## Files Created (N files)
+[Directory tree with all created files]
+
+## Database Schema
+[SQL schema or migration details]
+
+## API Endpoints
+[Table of endpoints with methods and authorization]
+
+## Testing & Validation
+[Build output, test results]
+
+## Next Steps
+[What's coming next]
+```
+
+**This is NOT optional** - Implementation summaries are critical for:
+- 📝 Tracking project progress
+- 🔍 Code review and auditing
+- 📚 Onboarding new developers
+- 🐛 Debugging and troubleshooting
+- 📊 Project management and reporting
+
 ## Important Notes
 
 ### Current Implementation Status

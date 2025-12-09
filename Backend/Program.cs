@@ -138,6 +138,22 @@ builder.Services.AddScoped<
     Backend.Services.Branch.Users.IBranchUserService,
     Backend.Services.Branch.Users.BranchUserService
 >();
+builder.Services.AddScoped<
+    Backend.Services.Branch.IZatcaService,
+    Backend.Services.Branch.ZatcaService
+>();
+builder.Services.AddScoped<
+    Backend.Services.Branch.IInvoiceRenderingService,
+    Backend.Services.Branch.InvoiceRenderingService
+>();
+builder.Services.AddScoped<
+    Backend.Services.Branch.IInvoiceTemplateService,
+    Backend.Services.Branch.InvoiceTemplateService
+>();
+builder.Services.AddScoped<
+    Backend.Services.Branch.ICompanyInfoService,
+    Backend.Services.Branch.CompanyInfoService
+>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<BranchDbContext>(provider =>
@@ -338,6 +354,12 @@ app.MapReportEndpoints();
 
 // Migrations (HeadOfficeAdmin only)
 app.MapMigrationEndpoints();
+
+// Invoice Templates
+app.MapInvoiceTemplateEndpoints();
+
+// Company Info
+app.MapCompanyInfoEndpoints();
 
 app.Run();
 
