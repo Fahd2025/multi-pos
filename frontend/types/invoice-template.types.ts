@@ -342,7 +342,7 @@ export const SECTION_PALETTE: SectionPaletteItem[] = [
     type: "header",
     label: "Header",
     icon: "📄",
-    description: "Company logo, name, and contact information",
+    description: "Branch logo, name, and contact information",
   },
   {
     type: "title",

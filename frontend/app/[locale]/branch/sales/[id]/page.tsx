@@ -71,9 +71,9 @@ export default function SaleDetailsPage() {
 
       // Transform sale data to invoice data format
       const transformedData = {
-        // Company Info
-        companyName: branchInfo?.nameEn || "",
-        companyNameAr: branchInfo?.nameAr || "",
+        // Branch Info
+        branchName: branchInfo?.nameEn || "",
+        branchNameAr: branchInfo?.nameAr || "",
         logoUrl: branchInfo?.logoPath || undefined,
         vatNumber: branchInfo?.taxNumber || "",
         commercialRegNumber: branchInfo?.crn || "",

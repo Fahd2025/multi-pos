@@ -175,7 +175,7 @@ export function ProductFormWithImages({ ... }) {
 **Entity Type**: `Customers`
 **Multiple Images**: No
 **Max Files**: 1
-**Use Case**: Customer company logo
+**Use Case**: Customer branch logo
 
 ```tsx
 <ImageUpload
@@ -194,7 +194,7 @@ export function ProductFormWithImages({ ... }) {
 **Entity Type**: `Suppliers`
 **Multiple Images**: No
 **Max Files**: 1
-**Use Case**: Supplier company logo
+**Use Case**: Supplier branch logo
 
 **Note**: Supplier form may need to be created first.
 

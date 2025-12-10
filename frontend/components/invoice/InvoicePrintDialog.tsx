@@ -12,8 +12,8 @@ import InvoicePreview from "./InvoicePreview";
 import { InvoiceSchema } from "@/types/invoice-template.types";
 
 interface InvoiceData {
-  companyName?: string;
-  companyNameAr?: string;
+  branchName?: string;
+  branchNameAr?: string;
   logoUrl?: string;
   vatNumber?: string;
   commercialRegNumber?: string;
@@ -71,9 +71,7 @@ const InvoicePrintDialog: React.FC<InvoicePrintDialogProps> = ({
       <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Invoice Preview
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Invoice Preview</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"

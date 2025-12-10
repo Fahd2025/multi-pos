@@ -16,19 +16,22 @@ Successfully implemented the form-based Invoice Builder pages for creating and e
 ## ✅ Completed Tasks (6/6)
 
 ### 1. Create Invoice Builder Page
+
 - ✅ Form-based template creation interface
 - ✅ Uses DEFAULT_INVOICE_SCHEMA as starting point
 - ✅ Section configuration with expand/collapse
 - ✅ Field visibility toggles and label customization
 
 ### 2. Create Invoice Builder Edit Page
+
 - ✅ Loads existing template data
 - ✅ Pre-fills all form fields
 - ✅ Identical configuration interface
 - ✅ Active template indicator
 
 ### 3. Section Configuration
-- ✅ **Header** - Logo, company name, address, VAT, CRN toggles
+
+- ✅ **Header** - Logo, branch name, address, VAT, CRN toggles
 - ✅ **Title** - Standard/simplified title customization
 - ✅ **Customer/Metadata** - Field visibility and label editing
 - ✅ **Items** - Column visibility and label editing
@@ -36,6 +39,7 @@ Successfully implemented the form-based Invoice Builder pages for creating and e
 - ✅ **Footer** - QR code, notes, custom messages
 
 ### 4. Template Metadata
+
 - ✅ Template name (required)
 - ✅ Description (optional)
 - ✅ Paper size selector (58mm, 80mm, A4, Custom)
@@ -43,12 +47,14 @@ Successfully implemented the form-based Invoice Builder pages for creating and e
 - ✅ Set as active checkbox (create only)
 
 ### 5. Service Integration
+
 - ✅ Create template via `createTemplate()`
 - ✅ Update template via `updateTemplate()`
 - ✅ Load template data via `getTemplateById()`
 - ✅ JSON schema serialization/deserialization
 
 ### 6. Build Verification
+
 - ✅ Frontend build succeeded with no TypeScript errors
 - ✅ Two new routes registered successfully
 - ✅ All components compile correctly
@@ -58,6 +64,7 @@ Successfully implemented the form-based Invoice Builder pages for creating and e
 ## 📁 Files Created (2 files)
 
 ### New Pages
+
 ```
 frontend/app/[locale]/branch/settings/
 └── invoice-builder/
@@ -77,6 +84,7 @@ frontend/app/[locale]/branch/settings/
 ### Template Information Section
 
 **Fields:**
+
 - **Template Name** (required) - Text input
 - **Description** (optional) - Textarea
 - **Paper Size** (required) - Select dropdown
@@ -90,12 +98,14 @@ frontend/app/[locale]/branch/settings/
 - **Set as Active** (create only) - Checkbox
 
 **Active Template Indicator (Edit Only):**
+
 - Green badge showing "This is the active template"
 - Only displayed when editing the active template
 
 ### Invoice Sections Configuration
 
 Each section has:
+
 - **Visibility Checkbox** - Show/hide entire section
 - **Expand/Collapse Button** - Toggle section configuration
 - **Section-Specific Fields** - Customization based on type
@@ -103,33 +113,39 @@ Each section has:
 **Section Types:**
 
 1. **Header Section**
+
    - Show Logo (checkbox)
-   - Show Company Name (checkbox)
+   - Show Branch Name (checkbox)
    - Show Address (checkbox)
    - Show Phone (checkbox)
    - Show VAT Number (checkbox)
    - Show Commercial Reg. Number (checkbox)
 
 2. **Title Section**
+
    - Standard Tax Invoice Title (text input)
    - Simplified Tax Invoice Title (text input)
 
 3. **Customer Section**
+
    - Field list with visibility toggles
    - Editable labels for each field
    - Fields: Customer Name, VAT Number, Phone
 
 4. **Metadata Section (Invoice Details)**
+
    - Field list with visibility toggles
    - Editable labels
    - Fields: Invoice Number, Date, Cashier
 
 5. **Items Table Section**
+
    - Column list with visibility toggles
    - Editable column labels
    - Columns: Item, Quantity, Price, Total
 
 6. **Summary Section**
+
    - Field list with visibility toggles
    - Editable labels
    - Fields: Subtotal, Discount, VAT, Total
@@ -142,14 +158,17 @@ Each section has:
 ### Action Buttons
 
 **Create Page:**
+
 - Cancel - Return to templates list
 - Create Template - Save new template
 
 **Edit Page:**
+
 - Cancel - Return to templates list
 - Save Changes - Update existing template
 
 **Features:**
+
 - Disabled during save operation
 - Loading spinner while saving
 - Auto-redirect after successful save
@@ -159,11 +178,13 @@ Each section has:
 ## 🔐 Security and Access Control
 
 **Role Requirements:**
+
 - Both pages require `UserRole.Manager` or higher
 - Uses `RoleGuard` component for enforcement
 - Fallback UI with access denied message
 
 **Data Validation:**
+
 - Template name required (client-side)
 - Paper size required
 - Custom dimensions validated (ranges)
@@ -176,6 +197,7 @@ Each section has:
 **Endpoints Used:**
 
 **Create Template:**
+
 ```typescript
 POST /api/v1/invoice-templates
 {
@@ -190,6 +212,7 @@ POST /api/v1/invoice-templates
 ```
 
 **Update Template:**
+
 ```typescript
 PUT /api/v1/invoice-templates/{id}
 {
@@ -203,12 +226,14 @@ PUT /api/v1/invoice-templates/{id}
 ```
 
 **Get Template by ID:**
+
 ```typescript
 GET /api/v1/invoice-templates/{id}
 Returns: InvoiceTemplate with schema
 ```
 
 **Service Methods:**
+
 ```typescript
 await invoiceTemplateService.createTemplate(dto);
 await invoiceTemplateService.updateTemplate(id, dto);
@@ -220,6 +245,7 @@ await invoiceTemplateService.getTemplateById(id);
 ## 🧪 Build Verification
 
 ### Frontend Build Results
+
 ```
 ▲ Next.js 16.0.3 (Turbopack)
 ✓ Compiled successfully in 3.7s
@@ -233,6 +259,7 @@ New Routes Added:
 ```
 
 ### Type Safety
+
 - ✅ All state properly typed with TypeScript
 - ✅ InvoiceSchema, InvoiceSchemaSection interfaces used
 - ✅ PaperSize enum for type-safe paper selection
@@ -243,12 +270,13 @@ New Routes Added:
 
 ## 📊 Implementation Statistics
 
-| Category | Files | Lines of Code |
-|----------|-------|---------------|
-| New Pages | 2 | 1,411 |
-| **Total** | **2** | **~1,411** |
+| Category  | Files | Lines of Code |
+| --------- | ----- | ------------- |
+| New Pages | 2     | 1,411         |
+| **Total** | **2** | **~1,411**    |
 
 **Build Status:**
+
 - Build Time: 3.7s
 - TypeScript: ✅ Passed
 - Errors: 0
@@ -295,6 +323,7 @@ New Routes Added:
 ## 🔍 Code Quality and Patterns
 
 ### Followed Existing Patterns:
+
 1. **"use client" directive** - Client-side interactivity
 2. **RoleGuard pattern** - Manager-only access
 3. **State management** - useState for form fields and schema
@@ -305,6 +334,7 @@ New Routes Added:
 8. **Form validation** - Required fields checked before save
 
 ### TypeScript Best Practices:
+
 - Proper interface usage (`InvoiceSchema`, `InvoiceSchemaSection`)
 - Type-safe state management
 - Event handler typing
@@ -313,6 +343,7 @@ New Routes Added:
 - JSON parsing with type assertions
 
 ### React Best Practices:
+
 - Controlled components for all inputs
 - Immutable state updates (spread operators)
 - Conditional rendering for dynamic UI
@@ -321,6 +352,7 @@ New Routes Added:
 - Proper cleanup and error handling
 
 ### Accessibility:
+
 - ARIA roles for alerts
 - ARIA labels for loading spinner
 - Semantic HTML structure
@@ -333,6 +365,7 @@ New Routes Added:
 ## 💡 Design Decisions
 
 ### Why Form-Based Instead of Drag-and-Drop?
+
 - **Faster Implementation**: 4-6 hours vs 10-16 hours
 - **Simpler Maintenance**: Easier to debug and extend
 - **Sufficient Functionality**: Covers all template customization needs
@@ -340,24 +373,28 @@ New Routes Added:
 - **User-Friendly**: Familiar form interface
 
 ### Why DEFAULT_INVOICE_SCHEMA as Starting Point?
+
 - **Sensible Defaults**: Pre-configured with all sections
 - **Faster Creation**: User doesn't start from scratch
 - **ZATCA Compliant**: Includes required fields out of the box
 - **Flexible**: User can hide/customize any section
 
 ### Why Expand/Collapse for Sections?
+
 - **Reduced Clutter**: Only show what user is working on
 - **Better Focus**: Easier to concentrate on one section
 - **Scalability**: Works well even with many sections
 - **Performance**: Less DOM elements rendered
 
 ### Why Inline Label Editing?
+
 - **Immediate Feedback**: See changes as you type
 - **Context**: Labels stay with their checkboxes
 - **Simplicity**: No separate edit mode or dialog
 - **Efficiency**: Quick modifications
 
 ### Why Auto-Redirect After Save?
+
 - **Clear Completion**: User knows save succeeded
 - **Natural Flow**: Back to templates list
 - **Prevents Confusion**: Doesn't leave user on builder
@@ -370,6 +407,7 @@ New Routes Added:
 ### How Schema is Structured:
 
 **InvoiceSchema:**
+
 ```typescript
 {
   version: "1.0",
@@ -383,7 +421,7 @@ New Routes Added:
       visible: true,
       config: {
         showLogo: true,
-        showCompanyName: true,
+        showBranchName: true,
         showAddress: true,
         showPhone: true,
         showVatNumber: true,
@@ -400,15 +438,17 @@ New Routes Added:
 ### Section Configuration Patterns:
 
 **Boolean Toggles (Header, Footer):**
+
 ```typescript
 config: {
   showLogo: boolean,
-  showCompanyName: boolean,
+  showBranchName: boolean,
   // ...
 }
 ```
 
 **Text Customization (Title):**
+
 ```typescript
 config: {
   standardTitle: string,
@@ -417,24 +457,26 @@ config: {
 ```
 
 **Field Arrays (Customer, Metadata, Summary):**
+
 ```typescript
 config: {
   fields: [
     { key: "name", label: "Customer Name", visible: true },
     { key: "vatNumber", label: "VAT Number", visible: true },
     // ...
-  ]
+  ];
 }
 ```
 
 **Column Arrays (Items):**
+
 ```typescript
 config: {
   columns: [
     { key: "name", label: "Item", visible: true, width: "40%" },
     { key: "quantity", label: "Qty", visible: true, width: "15%" },
     // ...
-  ]
+  ];
 }
 ```
 
@@ -443,6 +485,7 @@ config: {
 ## 🔄 State Management
 
 ### Create Page State:
+
 ```typescript
 const [templateName, setTemplateName] = useState("");
 const [description, setDescription] = useState("");
@@ -450,17 +493,21 @@ const [paperSize, setPaperSize] = useState<PaperSize>(PaperSize.Thermal80mm);
 const [customWidth, setCustomWidth] = useState<number>(80);
 const [customHeight, setCustomHeight] = useState<number>(297);
 const [setAsActive, setSetAsActive] = useState(false);
-const [schema, setSchema] = useState<InvoiceSchema>({ ...DEFAULT_INVOICE_SCHEMA });
+const [schema, setSchema] = useState<InvoiceSchema>({
+  ...DEFAULT_INVOICE_SCHEMA,
+});
 const [expandedSection, setExpandedSection] = useState<string | null>(null);
 ```
 
 ### Edit Page Additional State:
+
 ```typescript
 const [isLoading, setIsLoading] = useState(true);
 const [template, setTemplate] = useState<InvoiceTemplate | null>(null);
 ```
 
 ### State Update Functions:
+
 ```typescript
 // Toggle section visibility
 const updateSectionVisibility = (sectionId: string, visible: boolean) => {
@@ -473,7 +520,10 @@ const updateSectionVisibility = (sectionId: string, visible: boolean) => {
 };
 
 // Update section config
-const updateSectionConfig = (sectionId: string, config: Record<string, any>) => {
+const updateSectionConfig = (
+  sectionId: string,
+  config: Record<string, any>
+) => {
   setSchema((prev) => ({
     ...prev,
     sections: prev.sections.map((section) =>
@@ -490,26 +540,31 @@ const updateSectionConfig = (sectionId: string, config: Record<string, any>) => 
 ## ⚠️ Known Limitations
 
 ### 1. No Live Preview
+
 - User cannot see invoice rendering in real-time
 - Future enhancement: Split-screen preview pane
 - Workaround: Use preview endpoint after save
 
 ### 2. No Section Reordering
+
 - Sections appear in fixed order
 - Future: Drag-and-drop reordering
 - Current: Order defined by DEFAULT_INVOICE_SCHEMA
 
 ### 3. No Custom Sections
+
 - Cannot add entirely new section types
 - Limited to predefined section types
 - Future: Custom section builder
 
 ### 4. No Styling Configuration
+
 - Cannot customize fonts, colors, spacing
 - Schema has `styling` field but UI not implemented
 - Future: Style customization panel
 
 ### 5. No Template Preview Before Save
+
 - Must save to see how template looks
 - Future: Preview button with modal
 - Workaround: Use duplicate and test
@@ -519,6 +574,7 @@ const updateSectionConfig = (sectionId: string, config: Record<string, any>) => 
 ## 🧩 Integration Points
 
 ### Current Integration:
+
 - `invoiceTemplateService` - All CRUD operations
 - `DEFAULT_INVOICE_SCHEMA` - Template starting point
 - `PaperSize` enum - Type-safe paper selection
@@ -528,6 +584,7 @@ const updateSectionConfig = (sectionId: string, config: Record<string, any>) => 
 - Tailwind CSS - Styling
 
 ### Future Integration:
+
 - Invoice Preview component - Live preview pane
 - Backend rendering - Template HTML generation
 - Print functionality - Direct print from builder
@@ -539,6 +596,7 @@ const updateSectionConfig = (sectionId: string, config: Record<string, any>) => 
 ## 📚 Technical Details
 
 ### Component Structure (Create Page):
+
 ```
 InvoiceBuilderPage
 ├── Header (title + description)
@@ -559,6 +617,7 @@ InvoiceBuilderPage
 ```
 
 ### Component Structure (Edit Page):
+
 ```
 InvoiceBuilderEditPage
 ├── Loading spinner (conditional)
@@ -568,6 +627,7 @@ InvoiceBuilderEditPage
 ```
 
 ### Key Functions:
+
 - `loadTemplate()` - Fetch and populate edit form (edit only)
 - `toggleSection(id)` - Expand/collapse section
 - `updateSectionVisibility(id, visible)` - Show/hide section
@@ -600,7 +660,9 @@ InvoiceBuilderEditPage
 ## 📖 Next Steps
 
 ### Immediate (Phase 2D):
+
 1. **Invoice Preview Component**
+
    - Render HTML from schema
    - Show realistic sample data
    - Responsive to schema changes
@@ -613,7 +675,9 @@ InvoiceBuilderEditPage
    - Integration with sales page
 
 ### Short Term (Phase 2E):
+
 3. **Sales Page Integration**
+
    - Add "Print Invoice" button
    - Fetch active template
    - Generate and display invoice
@@ -625,6 +689,7 @@ InvoiceBuilderEditPage
    - Base64 image generation
 
 ### Medium Term (Enhancements):
+
 5. **Live Preview Pane** - Split-screen builder + preview
 6. **Section Reordering** - Drag-and-drop section order
 7. **Style Customization** - Fonts, colors, spacing
@@ -637,15 +702,17 @@ InvoiceBuilderEditPage
 ## ⏱️ Time Estimates
 
 **Phase 2C Completed:** ~4 hours
+
 - Create page: 2 hours
 - Edit page: 1.5 hours
 - Testing and refinement: 0.5 hours
 
 **Remaining for Phase 2:**
+
 - Invoice Preview Component: 2-3 hours
 - Print Functionality: 1-2 hours
 - Sales Integration: 1-2 hours
-**Total Remaining:** 4-7 hours
+  **Total Remaining:** 4-7 hours
 
 ---
 
@@ -660,7 +727,7 @@ InvoiceBuilderEditPage
 5. Check "Set as active"
 6. Expand "Header" section:
    - Uncheck "Show Address" (save space)
-   - Keep logo and company name
+   - Keep logo and branch name
 7. Expand "Customer" section:
    - Uncheck "VAT Number" field
    - Keep customer name and phone
@@ -679,6 +746,7 @@ InvoiceBuilderEditPage
 ## 📝 Configuration Examples
 
 ### Minimal Template (58mm):
+
 ```
 Header: Logo + Name only
 Title: Simplified Tax Invoice
@@ -690,6 +758,7 @@ Footer: QR + Short note
 ```
 
 ### Detailed Template (A4):
+
 ```
 Header: All fields
 Title: Both titles
@@ -701,6 +770,7 @@ Footer: QR + Detailed notes
 ```
 
 ### Custom Template:
+
 ```
 Header: Selective fields
 Title: Custom text
@@ -720,4 +790,4 @@ Footer: Custom message
 
 ---
 
-*This implementation follows the project conventions outlined in CLAUDE.md and maintains consistency with existing codebase patterns.*
+_This implementation follows the project conventions outlined in CLAUDE.md and maintains consistency with existing codebase patterns._

@@ -12,7 +12,7 @@ namespace Backend.Migrations.Branch
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "CompanyInfo");
+                name: "BranchInfo");
 
             migrationBuilder.CreateTable(
                 name: "InvoiceTemplates",
@@ -58,15 +58,15 @@ namespace Backend.Migrations.Branch
                 name: "InvoiceTemplates");
 
             migrationBuilder.CreateTable(
-                name: "CompanyInfo",
+                name: "BranchInfo",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     Address = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
                     City = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
                     CommercialRegNumber = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    CompanyName = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    CompanyNameAr = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
+                    BranchName = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    BranchNameAr = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Email = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
                     LogoUrl = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
@@ -78,17 +78,17 @@ namespace Backend.Migrations.Branch
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CompanyInfo", x => x.Id);
+                    table.PrimaryKey("PK_BranchInfo", x => x.Id);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_CompanyInfo_CommercialRegNumber",
-                table: "CompanyInfo",
+                name: "IX_BranchInfo_CommercialRegNumber",
+                table: "BranchInfo",
                 column: "CommercialRegNumber");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CompanyInfo_VatNumber",
-                table: "CompanyInfo",
+                name: "IX_BranchInfo_VatNumber",
+                table: "BranchInfo",
                 column: "VatNumber");
         }
     }

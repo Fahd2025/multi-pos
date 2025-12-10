@@ -14,9 +14,9 @@ The system supports the following roles:
 
 ```typescript
 enum UserRole {
-  Cashier = 0,    // Basic sales operations
-  Manager = 1,    // Branch management
-  Admin = 2,      // Branch admin (same as Manager in most contexts)
+  Cashier = 0, // Basic sales operations
+  Manager = 1, // Branch management
+  Admin = 2, // Branch admin (same as Manager in most contexts)
 }
 ```
 
@@ -54,13 +54,14 @@ import { UserRole } from '@/types/enums';
 
 // Custom permission check
 <RoleGuard
-  requirePermission={(user, branch) => user.email.endsWith('@company.com')}
+  requirePermission={(user, branch) => user.email.endsWith('@branch.com')}
 >
   <InternalFeature />
 </RoleGuard>
 ```
 
 **Props:**
+
 - `requireHeadOfficeAdmin?: boolean` - Require head office admin role
 - `requireRole?: UserRole` - Require specific role level (or higher)
 - `requirePermission?: (user, branch) => boolean` - Custom check function
@@ -74,7 +75,7 @@ Location: `frontend/components/auth/RoleGuard.tsx`
 An imperative hook for permission checks in component logic:
 
 ```tsx
-import { usePermission } from '@/components/auth/RoleGuard';
+import { usePermission } from "@/components/auth/RoleGuard";
 
 function MyComponent() {
   const {
@@ -84,26 +85,23 @@ function MyComponent() {
     canApproveExpenses,
     canManageInventory,
     canViewReports,
-    canViewAuditLogs
+    canViewAuditLogs,
   } = usePermission();
 
   const handleDelete = () => {
     if (!canManage()) {
-      alert('Manager access required');
+      alert("Manager access required");
       return;
     }
     // Proceed with deletion
   };
 
-  return (
-    <div>
-      {canViewReports() && <ReportsButton />}
-    </div>
-  );
+  return <div>{canViewReports() && <ReportsButton />}</div>;
 }
 ```
 
 **Available Permission Checks:**
+
 - `isHeadOfficeAdmin()` - Check if user is head office admin
 - `hasRole(role: UserRole)` - Check if user has specific role or higher
 - `canAccessHeadOffice()` - Can access head office features
@@ -120,6 +118,7 @@ function MyComponent() {
 Location: `frontend/hooks/useAuth.ts`
 
 The existing useAuth hook was already complete with:
+
 - `isHeadOfficeAdmin()` - Returns true if user is head office admin
 - `hasRole(role: number)` - Returns true if user has role or higher
 
@@ -136,12 +135,12 @@ File: `frontend/app/[locale]/head-office/layout.tsx`
 
 ```tsx
 const navigation = [
-  { name: 'Dashboard', href: `/${locale}/head-office`, icon: '📊' },
-  { name: 'Branches', href: `/${locale}/head-office/branches`, icon: '🏢' },
-  { name: 'Users', href: `/${locale}/head-office/users`, icon: '👥' },
-  { name: 'Audit Logs', href: `/${locale}/head-office/audit-logs`, icon: '📋' },
-  { name: 'Analytics', href: `/${locale}/head-office/analytics`, icon: '📈' },
-  { name: 'Settings', href: `/${locale}/head-office/settings`, icon: '⚙️' },
+  { name: "Dashboard", href: `/${locale}/head-office`, icon: "📊" },
+  { name: "Branches", href: `/${locale}/head-office/branches`, icon: "🏢" },
+  { name: "Users", href: `/${locale}/head-office/users`, icon: "👥" },
+  { name: "Audit Logs", href: `/${locale}/head-office/audit-logs`, icon: "📋" },
+  { name: "Analytics", href: `/${locale}/head-office/analytics`, icon: "📈" },
+  { name: "Settings", href: `/${locale}/head-office/settings`, icon: "⚙️" },
 ];
 
 // Access check
@@ -160,18 +159,58 @@ File: `frontend/app/[locale]/branch/layout.tsx`
 
 ```tsx
 const allNavigationItems = [
-  { name: 'Dashboard', href: `/${locale}/branch`, icon: '📊', requiresRole: false },
-  { name: 'Sales', href: `/${locale}/branch/sales`, icon: '💳', requiresRole: false },
-  { name: 'Inventory', href: `/${locale}/branch/inventory`, icon: '📦', requiresManager: true },
-  { name: 'Purchases', href: `/${locale}/branch/purchases`, icon: '🛒', requiresManager: true },
-  { name: 'Expenses', href: `/${locale}/branch/expenses`, icon: '💰', requiresManager: true },
-  { name: 'Customers', href: `/${locale}/branch/customers`, icon: '👥', requiresRole: false },
-  { name: 'Reports', href: `/${locale}/branch/reports`, icon: '📈', requiresManager: true },
-  { name: 'Settings', href: `/${locale}/branch/settings`, icon: '⚙️', requiresManager: true },
+  {
+    name: "Dashboard",
+    href: `/${locale}/branch`,
+    icon: "📊",
+    requiresRole: false,
+  },
+  {
+    name: "Sales",
+    href: `/${locale}/branch/sales`,
+    icon: "💳",
+    requiresRole: false,
+  },
+  {
+    name: "Inventory",
+    href: `/${locale}/branch/inventory`,
+    icon: "📦",
+    requiresManager: true,
+  },
+  {
+    name: "Purchases",
+    href: `/${locale}/branch/purchases`,
+    icon: "🛒",
+    requiresManager: true,
+  },
+  {
+    name: "Expenses",
+    href: `/${locale}/branch/expenses`,
+    icon: "💰",
+    requiresManager: true,
+  },
+  {
+    name: "Customers",
+    href: `/${locale}/branch/customers`,
+    icon: "👥",
+    requiresRole: false,
+  },
+  {
+    name: "Reports",
+    href: `/${locale}/branch/reports`,
+    icon: "📈",
+    requiresManager: true,
+  },
+  {
+    name: "Settings",
+    href: `/${locale}/branch/settings`,
+    icon: "⚙️",
+    requiresManager: true,
+  },
 ];
 
 // Filter based on role
-const navigation = allNavigationItems.filter(item => {
+const navigation = allNavigationItems.filter((item) => {
   if (item.requiresManager) {
     return canManage();
   }
@@ -184,8 +223,8 @@ const navigation = allNavigationItems.filter(item => {
 ### Example 1: Hiding Action Buttons
 
 ```tsx
-import { RoleGuard } from '@/components/auth/RoleGuard';
-import { UserRole } from '@/types/enums';
+import { RoleGuard } from "@/components/auth/RoleGuard";
+import { UserRole } from "@/types/enums";
 
 function ProductList() {
   return (
@@ -207,7 +246,7 @@ function ProductList() {
 ### Example 2: Conditional Features in Sales
 
 ```tsx
-import { usePermission } from '@/components/auth/RoleGuard';
+import { usePermission } from "@/components/auth/RoleGuard";
 
 function SalesPage() {
   const { canVoidSales } = usePermission();
@@ -217,11 +256,7 @@ function SalesPage() {
       <SalesList />
 
       {/* Only managers can void sales */}
-      {canVoidSales() && (
-        <button onClick={handleVoidSale}>
-          Void Sale
-        </button>
-      )}
+      {canVoidSales() && <button onClick={handleVoidSale}>Void Sale</button>}
     </div>
   );
 }
@@ -230,7 +265,7 @@ function SalesPage() {
 ### Example 3: Imperative Permission Check
 
 ```tsx
-import { usePermission } from '@/components/auth/RoleGuard';
+import { usePermission } from "@/components/auth/RoleGuard";
 
 function ExpenseForm() {
   const { canApproveExpenses } = usePermission();
@@ -252,14 +287,13 @@ function ExpenseForm() {
 ### Example 4: Higher-Order Component
 
 ```tsx
-import { withRoleGuard } from '@/components/auth/RoleGuard';
-import { UserRole } from '@/types/enums';
+import { withRoleGuard } from "@/components/auth/RoleGuard";
+import { UserRole } from "@/types/enums";
 
 // Wrap entire component
-const ManagerOnlySettings = withRoleGuard(
-  SettingsPage,
-  { requireRole: UserRole.Manager }
-);
+const ManagerOnlySettings = withRoleGuard(SettingsPage, {
+  requireRole: UserRole.Manager,
+});
 
 // Use in routing or parent component
 function App() {
@@ -272,12 +306,14 @@ function App() {
 ### Test Scenarios
 
 1. **Cashier User** (role = 0):
+
    - ✅ Can access: Dashboard, Sales, Customers
    - ❌ Cannot access: Inventory, Purchases, Expenses, Reports, Settings
    - ❌ Cannot void sales
    - ❌ Cannot manage products
 
 2. **Manager User** (role >= 1):
+
    - ✅ Can access: All branch features
    - ✅ Can void sales
    - ✅ Can approve expenses
@@ -292,21 +328,25 @@ function App() {
 ### Manual Testing Steps
 
 1. Login as Cashier:
+
    ```
    Branch: branch01
    Username: cashier1
    Password: [password]
    ```
+
    - Verify limited navigation menu
    - Verify no "Delete" or "Void" buttons on sales
    - Verify cannot access /branch/inventory directly
 
 2. Login as Manager:
+
    ```
    Branch: branch01
    Username: manager1
    Password: [password]
    ```
+
    - Verify full branch navigation menu
    - Verify "Void Sale" button appears
    - Verify can access all branch pages
@@ -333,6 +373,7 @@ function App() {
 ⚠️ **Important**: UI hiding is NOT a security measure. It only improves UX by hiding features users can't access. All sensitive operations MUST be protected at the API level with proper authorization checks.
 
 The backend already implements role-based authorization:
+
 - JWT tokens include user role and branch context
 - Endpoints validate permissions before executing
 - Audit logs track all access attempts
@@ -340,9 +381,11 @@ The backend already implements role-based authorization:
 ## Files Modified
 
 1. **Created:**
+
    - `frontend/components/auth/RoleGuard.tsx` - Main role guard component and hook
 
 2. **Updated:**
+
    - `frontend/app/[locale]/head-office/layout.tsx` - Added Audit Logs to navigation
    - `frontend/app/[locale]/branch/layout.tsx` - Added role-based navigation filtering
 

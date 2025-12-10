@@ -12,7 +12,8 @@
 Successfully integrated the Sales Invoice Builder with the Sales Details page, completing the end-to-end invoice printing workflow. Users can now print invoices with custom templates directly from completed sales transactions using the browser's print dialog.
 
 This completes **Phase 2: Frontend UI** of the Sales Invoice Builder feature, bringing together all components from Phases 2A-2E:
-- 2A: Company Information Page
+
+- 2A: Branch Information Page
 - 2B: Template Management Page
 - 2C: Invoice Builder Pages
 - 2D: Invoice Preview & Print Components
@@ -23,23 +24,27 @@ This completes **Phase 2: Frontend UI** of the Sales Invoice Builder feature, br
 ## ✅ Completed Tasks (7/7)
 
 ### 1. Located Sales Page Component
+
 - ✅ Found sales details page at `/app/[locale]/branch/sales/[id]/page.tsx`
 - ✅ Identified existing Print Invoice button and handler
 
 ### 2. Updated Imports and State
+
 - ✅ Added invoice template service import
-- ✅ Added company info service import
+- ✅ Added branch info service import
 - ✅ Added InvoicePrintDialog component import
 - ✅ Added InvoiceSchema type import
 - ✅ Added state for print dialog, schema, and data
 
 ### 3. Implemented Print Handler
+
 - ✅ Replaced old `handlePrintInvoice` implementation
 - ✅ Added active template loading
-- ✅ Added company info loading
+- ✅ Added branch info loading
 - ✅ Added error handling for missing templates
 
 ### 4. Transformed Sale Data
+
 - ✅ Mapped SaleDto to InvoiceData format
 - ✅ Formatted dates using locale formatting
 - ✅ Mapped line items to invoice items
@@ -47,15 +52,18 @@ This completes **Phase 2: Frontend UI** of the Sales Invoice Builder feature, br
 - ✅ Determined invoice type (simplified vs standard)
 
 ### 5. Integrated InvoicePrintDialog
+
 - ✅ Added dialog component to JSX
 - ✅ Passed schema and data as props
 - ✅ Configured dialog open/close handlers
 
 ### 6. Fixed TypeScript Errors
+
 - ✅ Corrected InvoiceType enum value (Touch vs SimplifiedTaxInvoice)
 - ✅ All types properly defined
 
 ### 7. Build Verification
+
 - ✅ Frontend build succeeded with no TypeScript errors
 - ✅ All routes registered correctly
 - ✅ Sales details page compiles successfully
@@ -65,6 +73,7 @@ This completes **Phase 2: Frontend UI** of the Sales Invoice Builder feature, br
 ## 📁 Files Modified (1 file)
 
 ### Pages (1 file)
+
 ```
 frontend/app/[locale]/branch/sales/[id]/
 └── page.tsx  (~80 lines modified)
@@ -85,7 +94,7 @@ frontend/app/[locale]/branch/sales/[id]/
 
 ```typescript
 import invoiceTemplateService from "@/services/invoice-template.service";
-import companyInfoService from "@/services/company-info.service";
+import branchInfoService from "@/services/branch-info.service";
 import InvoicePrintDialog from "@/components/invoice/InvoicePrintDialog";
 import { InvoiceSchema } from "@/types/invoice-template.types";
 import { InvoiceType } from "@/types/enums";
@@ -103,6 +112,7 @@ const [invoiceData, setInvoiceData] = useState<any>(null);
 ### Updated Print Handler
 
 **Before:**
+
 ```typescript
 const handlePrintInvoice = async () => {
   try {
@@ -114,6 +124,7 @@ const handlePrintInvoice = async () => {
 ```
 
 **After:**
+
 ```typescript
 const handlePrintInvoice = async () => {
   if (!sale) return;
@@ -122,7 +133,9 @@ const handlePrintInvoice = async () => {
     // Load active template
     const template = await invoiceTemplateService.getActiveTemplate();
     if (!template) {
-      alert("No active invoice template found. Please activate a template in Settings.");
+      alert(
+        "No active invoice template found. Please activate a template in Settings."
+      );
       return;
     }
 
@@ -130,20 +143,20 @@ const handlePrintInvoice = async () => {
     const parsedSchema = JSON.parse(template.schema) as InvoiceSchema;
     setInvoiceSchema(parsedSchema);
 
-    // Load company info
-    const companyInfo = await companyInfoService.getCompanyInfo();
+    // Load branch info
+    const branchInfo = await branchInfoService.getBranchInfo();
 
     // Transform sale data to invoice data format
     const transformedData = {
-      // Company Info
-      companyName: companyInfo?.companyName || "",
-      companyNameAr: companyInfo?.companyNameAr || "",
-      logoUrl: companyInfo?.logoUrl || undefined,
-      vatNumber: companyInfo?.vatNumber || "",
-      commercialRegNumber: companyInfo?.commercialRegNumber || "",
-      address: companyInfo?.address || "",
-      phone: companyInfo?.phone || "",
-      email: companyInfo?.email || "",
+      // Branch Info
+      branchName: branchInfo?.branchName || "",
+      branchNameAr: branchInfo?.branchNameAr || "",
+      logoUrl: branchInfo?.logoUrl || undefined,
+      vatNumber: branchInfo?.vatNumber || "",
+      commercialRegNumber: branchInfo?.commercialRegNumber || "",
+      address: branchInfo?.address || "",
+      phone: branchInfo?.phone || "",
+      email: branchInfo?.email || "",
 
       // Invoice Info
       invoiceNumber: sale.invoiceNumber || sale.transactionId,
@@ -192,15 +205,19 @@ const handlePrintInvoice = async () => {
 ### Dialog Component Integration
 
 ```typescript
-{/* Invoice Print Dialog */}
-{isPrintDialogOpen && invoiceSchema && invoiceData && (
-  <InvoicePrintDialog
-    isOpen={isPrintDialogOpen}
-    onClose={() => setIsPrintDialogOpen(false)}
-    schema={invoiceSchema}
-    data={invoiceData}
-  />
-)}
+{
+  /* Invoice Print Dialog */
+}
+{
+  isPrintDialogOpen && invoiceSchema && invoiceData && (
+    <InvoicePrintDialog
+      isOpen={isPrintDialogOpen}
+      onClose={() => setIsPrintDialogOpen(false)}
+      schema={invoiceSchema}
+      data={invoiceData}
+    />
+  );
+}
 ```
 
 ---
@@ -209,25 +226,25 @@ const handlePrintInvoice = async () => {
 
 ### SaleDto → InvoiceData Mapping
 
-| SaleDto Field | InvoiceData Field | Transformation |
-|---------------|-------------------|----------------|
-| `sale.invoiceNumber` | `invoiceNumber` | Use invoiceNumber or fallback to transactionId |
-| `sale.saleDate` | `invoiceDate` | Format as "Dec 9, 2025" |
-| `sale.cashierName` | `cashierName` | Direct mapping |
-| `sale.customerName` | `customerName` | Use customer name or "Walk-in Customer" |
-| `sale.invoiceType` | `isSimplified` | `InvoiceType.Touch` → true |
-| `sale.lineItems[]` | `items[]` | Map each line item |
-| `sale.lineItems[].productName` | `items[].name` | Direct mapping |
-| `sale.lineItems[].quantity` | `items[].quantity` | Direct mapping |
-| `sale.lineItems[].unitPrice` | `items[].unitPrice` | Direct mapping |
-| `sale.lineItems[].lineTotal` | `items[].lineTotal` | Direct mapping |
-| `sale.subtotal` | `subtotal` | Direct mapping |
-| `sale.totalDiscount` | `discount` | Direct mapping |
-| `sale.taxAmount` | `vatAmount` | Direct mapping |
-| `sale.total` | `total` | Direct mapping |
-| `companyInfo.companyName` | `companyName` | From company service |
-| `companyInfo.vatNumber` | `vatNumber` | From company service |
-| `companyInfo.address` | `address` | From company service |
+| SaleDto Field                  | InvoiceData Field   | Transformation                                 |
+| ------------------------------ | ------------------- | ---------------------------------------------- |
+| `sale.invoiceNumber`           | `invoiceNumber`     | Use invoiceNumber or fallback to transactionId |
+| `sale.saleDate`                | `invoiceDate`       | Format as "Dec 9, 2025"                        |
+| `sale.cashierName`             | `cashierName`       | Direct mapping                                 |
+| `sale.customerName`            | `customerName`      | Use customer name or "Walk-in Customer"        |
+| `sale.invoiceType`             | `isSimplified`      | `InvoiceType.Touch` → true                     |
+| `sale.lineItems[]`             | `items[]`           | Map each line item                             |
+| `sale.lineItems[].productName` | `items[].name`      | Direct mapping                                 |
+| `sale.lineItems[].quantity`    | `items[].quantity`  | Direct mapping                                 |
+| `sale.lineItems[].unitPrice`   | `items[].unitPrice` | Direct mapping                                 |
+| `sale.lineItems[].lineTotal`   | `items[].lineTotal` | Direct mapping                                 |
+| `sale.subtotal`                | `subtotal`          | Direct mapping                                 |
+| `sale.totalDiscount`           | `discount`          | Direct mapping                                 |
+| `sale.taxAmount`               | `vatAmount`         | Direct mapping                                 |
+| `sale.total`                   | `total`             | Direct mapping                                 |
+| `branchInfo.branchName`        | `branchName`        | From branch service                            |
+| `branchInfo.vatNumber`         | `vatNumber`         | From branch service                            |
+| `branchInfo.address`           | `address`           | From branch service                            |
 
 ---
 
@@ -236,8 +253,9 @@ const handlePrintInvoice = async () => {
 ### Complete Invoice Printing Workflow:
 
 1. **Manager Sets Up Template** (Phase 2A-2C)
-   - Navigate to Settings → Company Information
-   - Fill in company details (name, VAT, address, etc.)
+
+   - Navigate to Settings → Branch Information
+   - Fill in branch details (name, VAT, address, etc.)
    - Navigate to Settings → Invoice Templates
    - Click "Create New Template"
    - Configure template sections and fields
@@ -245,6 +263,7 @@ const handlePrintInvoice = async () => {
    - Save template
 
 2. **Cashier Creates Sale** (Existing Functionality)
+
    - Navigate to Sales → POS
    - Add products to cart
    - Complete payment
@@ -255,7 +274,7 @@ const handlePrintInvoice = async () => {
    - Click on a sale to view details
    - Click "🖨️ Print Invoice" button
    - System loads active template
-   - System loads company info
+   - System loads branch info
    - System transforms sale data
    - Print dialog opens with preview
    - Click "Print Invoice" in dialog
@@ -267,6 +286,7 @@ const handlePrintInvoice = async () => {
 ## 🧪 Build Verification
 
 ### Frontend Build Results
+
 ```
 ▲ Next.js 16.0.3 (Turbopack)
 ✓ Compiled successfully in 4.3s
@@ -279,12 +299,14 @@ Route Added:
 ```
 
 ### Type Safety
+
 - ✅ All imports properly typed
 - ✅ State variables with correct types
 - ✅ InvoiceData transformation fully typed
 - ✅ No TypeScript errors or warnings
 
 ### Error Handling
+
 - ✅ Missing template detection
 - ✅ User-friendly error messages
 - ✅ Console logging for debugging
@@ -294,12 +316,13 @@ Route Added:
 
 ## 📊 Implementation Statistics
 
-| Category | Files | Lines of Code |
-|----------|-------|---------------|
-| Modified Pages | 1 | ~80 |
-| **Total** | **1** | **~80** |
+| Category       | Files | Lines of Code |
+| -------------- | ----- | ------------- |
+| Modified Pages | 1     | ~80           |
+| **Total**      | **1** | **~80**       |
 
 **Build Status:**
+
 - Build Time: 4.3s
 - TypeScript: ✅ Passed
 - Errors: 0
@@ -310,17 +333,20 @@ Route Added:
 ## 🎨 Features Implemented
 
 ### Invoice Data Loading
+
 - **Active Template:** Automatically loads currently active template
-- **Company Info:** Fetches branch company information
+- **Branch Info:** Fetches branch branch information
 - **Error Handling:** Clear messages if template is missing
 
 ### Data Transformation
+
 - **Type Conversion:** SaleDto → InvoiceData mapping
 - **Date Formatting:** Locale-aware date formatting
 - **Customer Handling:** Fallback to "Walk-in Customer" for anonymous sales
 - **Invoice Type:** Determines simplified vs standard invoice
 
 ### Print Dialog Integration
+
 - **Conditional Rendering:** Only renders when all data is ready
 - **State Management:** Manages dialog open/close state
 - **Data Props:** Passes schema and data to print component
@@ -331,30 +357,35 @@ Route Added:
 ## ⚠️ Known Limitations
 
 ### 1. ZATCA QR Code Not Generated
+
 - **Current:** `zatcaQrCode` is undefined
 - **Reason:** Backend ZATCA service not yet implemented
 - **Impact:** QR code section won't appear on invoice
 - **Future:** Implement backend ZATCA QR generation service
 
 ### 2. Customer VAT Number Not Available
+
 - **Current:** `customerVatNumber` is undefined
 - **Reason:** Not stored in current sale data
 - **Impact:** Customer VAT field won't appear if enabled in template
 - **Future:** Add customer VAT field to sale creation
 
 ### 3. Customer Phone Not Available
+
 - **Current:** `customerPhone` is undefined
 - **Reason:** Not stored in current sale data
 - **Impact:** Customer phone field won't appear if enabled in template
 - **Future:** Add customer phone to customer management
 
 ### 4. No PDF Export
+
 - **Current:** Only browser print available
 - **Reason:** PDF generation not implemented
 - **Impact:** Users must use browser "Save as PDF" option
 - **Future:** Implement server-side PDF generation
 
 ### 5. Download PDF Button Still Uses Old Service
+
 - **Current:** "Download PDF" button uses old `salesService.downloadInvoicePdf()`
 - **Reason:** Only replaced print functionality
 - **Impact:** Download button may not work with new templates
@@ -367,13 +398,15 @@ Route Added:
 ### Error Scenarios Handled
 
 1. **No Active Template:**
+
    - Shows alert: "No active invoice template found. Please activate a template in Settings."
    - User must go to settings and activate a template
    - Graceful failure, no crash
 
-2. **Missing Company Info:**
+2. **Missing Branch Info:**
+
    - Falls back to empty strings
-   - Invoice still renders, but without company details
+   - Invoice still renders, but without branch details
    - No error thrown
 
 3. **Sale Not Loaded:**
@@ -384,19 +417,21 @@ Route Added:
 ### InvoiceType Enum Fix
 
 **Issue:** Used incorrect enum value
+
 ```typescript
 // Incorrect:
-isSimplified: sale.invoiceType === InvoiceType.SimplifiedTaxInvoice
+isSimplified: sale.invoiceType === InvoiceType.SimplifiedTaxInvoice;
 
 // Correct:
-isSimplified: sale.invoiceType === InvoiceType.Touch
+isSimplified: sale.invoiceType === InvoiceType.Touch;
 ```
 
 **Enum Definition:**
+
 ```typescript
 export enum InvoiceType {
-  Touch = 0,      // Simplified invoice (anonymous)
-  Standard = 1,   // Detailed formal invoice (with customer)
+  Touch = 0, // Simplified invoice (anonymous)
+  Standard = 1, // Detailed formal invoice (with customer)
 }
 ```
 
@@ -405,16 +440,19 @@ export enum InvoiceType {
 ## 🚀 Integration Points
 
 ### Services Used:
+
 - `salesService` - Load sale details
 - `invoiceTemplateService` - Load active template
-- `companyInfoService` - Load company info
+- `branchInfoService` - Load branch info
 
 ### Components Used:
+
 - `InvoicePrintDialog` - Modal with print preview
 - `InvoicePreview` - Renders invoice (inside dialog)
 - `QRCodeDisplay` - QR code rendering (inside preview)
 
 ### Types Used:
+
 - `SaleDto` - Sale transaction data
 - `InvoiceSchema` - Template configuration
 - `InvoiceData` - Invoice rendering data
@@ -426,18 +464,21 @@ export enum InvoiceType {
 
 ### All Phases Completed:
 
-**Phase 2A: Company Information Page** ✅
-- Company info management UI
-- Save/update company details
+**Phase 2A: Branch Information Page** ✅
+
+- Branch info management UI
+- Save/update branch details
 - Logo upload (future)
 
 **Phase 2B: Template Management Page** ✅
+
 - List all templates
 - CRUD operations
 - Set active template
 - Duplicate templates
 
 **Phase 2C: Invoice Builder Pages** ✅
+
 - Create new templates
 - Edit existing templates
 - Configure all 7 section types
@@ -445,12 +486,14 @@ export enum InvoiceType {
 - Field visibility and labels
 
 **Phase 2D: Invoice Preview & Print** ✅
+
 - Invoice preview component
 - QR code generation
 - Print dialog
 - Preview test page
 
 **Phase 2E: Sales Page Integration** ✅ (Current)
+
 - Print from sales details
 - Load active template
 - Transform sale data
@@ -462,14 +505,14 @@ export enum InvoiceType {
 
 ### Total Implementation (Phase 2A-2E):
 
-| Phase | Files Created | Files Modified | Lines of Code |
-|-------|---------------|----------------|---------------|
-| 2A - Company Info | 1 | 2 | ~670 |
-| 2B - Template Management | 1 | 0 | ~398 |
-| 2C - Invoice Builder | 2 | 0 | ~1,411 |
-| 2D - Preview & Print | 4 | 1 | ~725 |
-| 2E - Sales Integration | 0 | 1 | ~80 |
-| **Total** | **8** | **4** | **~3,284** |
+| Phase                    | Files Created | Files Modified | Lines of Code |
+| ------------------------ | ------------- | -------------- | ------------- |
+| 2A - Branch Info         | 1             | 2              | ~670          |
+| 2B - Template Management | 1             | 0              | ~398          |
+| 2C - Invoice Builder     | 2             | 0              | ~1,411        |
+| 2D - Preview & Print     | 4             | 1              | ~725          |
+| 2E - Sales Integration   | 0             | 1              | ~80           |
+| **Total**                | **8**         | **4**          | **~3,284**    |
 
 **Total Files Affected:** 12 files
 **Total New Code:** ~3,284 lines
@@ -480,7 +523,7 @@ export enum InvoiceType {
 
 - ✅ Sales page integrated with invoice printing
 - ✅ Active template automatically loaded
-- ✅ Company info automatically loaded
+- ✅ Branch info automatically loaded
 - ✅ Sale data transformed to invoice format
 - ✅ Print dialog opens with preview
 - ✅ User can print or close dialog
@@ -497,7 +540,8 @@ export enum InvoiceType {
 **Sales Invoice Builder - Phase 2 (Frontend UI)** is now **100% complete**!
 
 ### What Works:
-✅ Company information management
+
+✅ Branch information management
 ✅ Invoice template creation and management
 ✅ Template configuration with 7 section types
 ✅ Invoice preview with sample data
@@ -512,21 +556,25 @@ export enum InvoiceType {
 ### What's Next (Future Enhancements):
 
 1. **Backend ZATCA Integration:**
+
    - Generate QR codes on backend
    - Add QR code to sale response
    - Display QR code on invoices
 
 2. **PDF Generation:**
+
    - Server-side PDF rendering
    - Update "Download PDF" button
    - Email invoice as attachment
 
 3. **Enhanced Customer Data:**
+
    - Add customer VAT number field
    - Add customer phone field
    - Store in sale transaction
 
 4. **Template Enhancements:**
+
    - Live preview in builder
    - Section drag-and-drop reordering
    - Style customization UI
@@ -547,4 +595,4 @@ export enum InvoiceType {
 
 ---
 
-*This implementation follows the project conventions outlined in CLAUDE.md and maintains consistency with existing codebase patterns.*
+_This implementation follows the project conventions outlined in CLAUDE.md and maintains consistency with existing codebase patterns._

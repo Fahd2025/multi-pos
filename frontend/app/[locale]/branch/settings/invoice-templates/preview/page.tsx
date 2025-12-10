@@ -50,20 +50,20 @@ export default function InvoicePreviewPage() {
       const parsedSchema = JSON.parse(template.schema) as InvoiceSchema;
       setSchema(parsedSchema);
 
-      // Load company info
+      // Load branch info
       const branchInfo = await branchInfoService.getBranchInfo();
 
       // Generate sample data
       const sampleData = {
-        // Company Info
-        companyName: branchInfo?.nameEn || "Sample Company",
-        companyNameAr: branchInfo?.nameAr || "شركة عينة",
+        // Branch Info
+        branchName: branchInfo?.nameEn || "Sample Branch",
+        branchNameAr: branchInfo?.nameAr || "شركة عينة",
         logoUrl: branchInfo?.logoPath || undefined,
         vatNumber: branchInfo?.taxNumber || "123456789012345",
         commercialRegNumber: branchInfo?.crn || "1234567890",
         address: branchInfo?.addressEn || "123 Main Street, Riyadh 12345",
         phone: branchInfo?.phone || "+966 50 123 4567",
-        email: branchInfo?.email || "info@company.com",
+        email: branchInfo?.email || "info@branch.com",
 
         // Invoice Info
         invoiceNumber: "INV-2025-001",
@@ -237,8 +237,8 @@ export default function InvoicePreviewPage() {
             <div className="bg-white p-6 border border-gray-200 rounded-lg">
               {/* This is a simplified inline preview */}
               <div className="text-center mb-4 pb-4 border-b border-gray-300">
-                {invoiceData.companyName && (
-                  <h1 className="text-xl font-bold mb-1">{invoiceData.companyName}</h1>
+                {invoiceData.branchName && (
+                  <h1 className="text-xl font-bold mb-1">{invoiceData.branchName}</h1>
                 )}
                 {invoiceData.address && (
                   <p className="text-sm text-gray-700">{invoiceData.address}</p>

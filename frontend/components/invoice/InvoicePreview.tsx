@@ -11,11 +11,12 @@ import React, { forwardRef } from "react";
 import { InvoiceSchema, InvoiceSchemaSection } from "@/types/invoice-template.types";
 import QRCodeDisplay from "./QRCodeDisplay";
 import BarcodeDisplay from "./BarcodeDisplay";
+import { API_BASE_URL } from "@/lib/constants";
 
 interface InvoiceData {
-  // Company Info
-  companyName?: string;
-  companyNameAr?: string;
+  // Branch Info
+  branchName?: string;
+  branchNameAr?: string;
   logoUrl?: string;
   vatNumber?: string;
   commercialRegNumber?: string;
@@ -78,328 +79,341 @@ interface InvoicePreviewProps {
   data: InvoiceData;
 }
 
-const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(
-  ({ schema, data }, ref) => {
-    // RTL Detection: Check if Arabic content is present
-    const hasArabicContent = (text?: string): boolean => {
-      if (!text) return false;
-      const arabicRegex = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
-      return arabicRegex.test(text);
-    };
+const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema, data }, ref) => {
+  // RTL Detection: Check if Arabic content is present
+  const hasArabicContent = (text?: string): boolean => {
+    if (!text) return false;
+    const arabicRegex = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
+    return arabicRegex.test(text);
+  };
 
-    // Detect if invoice should use RTL layout
-    // Use explicit schema.rtl if set, otherwise auto-detect from Arabic content
-    const isRTL = schema.rtl !== undefined
+  // Detect if invoice should use RTL layout
+  // Use explicit schema.rtl if set, otherwise auto-detect from Arabic content
+  const isRTL =
+    schema.rtl !== undefined
       ? schema.rtl
-      : (hasArabicContent(data.companyNameAr) || hasArabicContent(data.customerName));
+      : hasArabicContent(data.branchNameAr) || hasArabicContent(data.customerName);
 
-    const renderHeader = (section: InvoiceSchemaSection) => {
-      if (!section.visible) return null;
-      const config = section.config || {};
+  const renderHeader = (section: InvoiceSchemaSection) => {
+    if (!section.visible) return null;
+    const config = section.config || {};
 
-      return (
-        <div className="invoice-header text-center mb-4 pb-4 border-b border-gray-300">
-          {config.showLogo && data.logoUrl && (
-            <div className="mb-3">
-              <img
-                src={data.logoUrl}
-                alt="Company Logo"
-                className="mx-auto max-h-16 object-contain"
-              />
-            </div>
-          )}
-          {(config.showBranchName || config.showCompanyName) && data.companyName && (
-            <h1 className="text-xl font-bold mb-1">{data.companyName}</h1>
-          )}
-          {(config.showBranchName || config.showCompanyName) && data.companyNameAr && (
-            <h2 className="text-lg mb-2" dir="rtl">
-              {data.companyNameAr}
-            </h2>
-          )}
-          {config.showAddress && data.address && (
-            <p className="text-sm text-gray-700">
-              {config.addressLabel || "Address"}: {data.address}
-            </p>
-          )}
-          {config.showPhone && data.phone && (
-            <p className="text-sm text-gray-700">
-              {config.phoneLabel || "Phone"}: {data.phone}
-            </p>
-          )}
-          {config.showVatNumber && data.vatNumber && (
-            <p className="text-sm text-gray-700">
-              {config.vatNumberLabel || "VAT Number"}: {data.vatNumber}
-            </p>
-          )}
-          {config.showCRN && data.commercialRegNumber && (
-            <p className="text-sm text-gray-700">
-              {config.crnLabel || "CR Number"}: {data.commercialRegNumber}
-            </p>
-          )}
-        </div>
-      );
-    };
-
-    const renderTitle = (section: InvoiceSchemaSection) => {
-      if (!section.visible) return null;
-      const config = section.config || {};
-
-      const title = data.isSimplified
-        ? config.simplifiedTitle || "Simplified Tax Invoice"
-        : config.standardTitle || "Standard Tax Invoice";
-
-      return (
-        <div className="invoice-title text-center mb-4">
-          <h2 className="text-lg font-bold uppercase">{title}</h2>
-        </div>
-      );
-    };
-
-    const renderCustomer = (section: InvoiceSchemaSection) => {
-      if (!section.visible) return null;
-      const fields = section.config?.fields || [];
-
-      const fieldMap: Record<string, any> = {
-        name: data.customerName,
-        vatNumber: data.customerVatNumber,
-        phone: data.customerPhone,
-        buildingNumber: data.customerBuildingNumber,
-        streetName: data.customerStreetName,
-        district: data.customerDistrict,
-        city: data.customerCity,
-        postalCode: data.customerPostalCode,
-        additionalNumber: data.customerAdditionalNumber,
-        unitNumber: data.customerUnitNumber,
-      };
-
-      const visibleFields = fields.filter((f: any) => f.visible && fieldMap[f.key]);
-
-      if (visibleFields.length === 0) return null;
-
-      return (
-        <div className="invoice-customer mb-4 pb-3 border-b border-gray-200">
-          <h3 className="text-sm font-semibold mb-2">Customer Information</h3>
-          {visibleFields.map((field: any, index: number) => (
-            <div key={index} className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600">{field.label}:</span>
-              <span className="font-medium">{fieldMap[field.key]}</span>
-            </div>
-          ))}
-        </div>
-      );
-    };
-
-    const renderMetadata = (section: InvoiceSchemaSection) => {
-      if (!section.visible) return null;
-      const fields = section.config?.fields || [];
-
-      const fieldMap: Record<string, any> = {
-        invoiceNumber: data.invoiceNumber,
-        orderNumber: data.orderNumber,
-        date: data.invoiceDate,
-        cashier: data.cashierName,
-        priceVATLabel: schema.priceIncludesVat ? "Price includes VAT (15%)" : "Price excludes VAT",
-      };
-
-      const visibleFields = fields.filter((f: any) => f.visible && fieldMap[f.key]);
-
-      if (visibleFields.length === 0) return null;
-
-      return (
-        <div className="invoice-metadata mb-4 pb-3 border-b border-gray-200">
-          {visibleFields.map((field: any, index: number) => (
-            <div key={index} className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600">{field.label}:</span>
-              <span className="font-medium">{fieldMap[field.key]}</span>
-            </div>
-          ))}
-        </div>
-      );
-    };
-
-    const renderItems = (section: InvoiceSchemaSection) => {
-      if (!section.visible) return null;
-      const columns = section.config?.columns || [];
-
-      const columnMap: Record<string, (item: any) => string> = {
-        name: (item) => item.name,
-        barcode: (item) => item.barcode || "-",
-        unit: (item) => item.unit || "-",
-        quantity: (item) => item.quantity.toString(),
-        price: (item) => item.unitPrice.toFixed(2),
-        discount: (item) => item.discount ? item.discount.toFixed(2) : "0.00",
-        vat: (item) => item.vat ? item.vat.toFixed(2) : "0.00",
-        total: (item) => item.lineTotal.toFixed(2),
-        notes: (item) => item.notes || "-",
-      };
-
-      const visibleColumns = columns.filter((c: any) => c.visible);
-
-      if (visibleColumns.length === 0) return null;
-
-      return (
-        <div className="invoice-items mb-4">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-300">
-                {visibleColumns.map((column: any, index: number) => (
-                  <th
-                    key={index}
-                    className={`${isRTL ? "text-right" : "text-left"} py-2 px-1 font-semibold`}
-                    style={{ width: column.width }}
-                  >
-                    {column.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data.items.map((item, itemIndex) => (
-                <tr key={itemIndex} className="border-b border-gray-200">
-                  {visibleColumns.map((column: any, colIndex: number) => (
-                    <td key={colIndex} className={`${isRTL ? "text-right" : "text-left"} py-2 px-1`}>
-                      {columnMap[column.key]?.(item) || "-"}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      );
-    };
-
-    const renderSummary = (section: InvoiceSchemaSection) => {
-      if (!section.visible) return null;
-      const fields = section.config?.fields || [];
-
-      const fieldMap: Record<string, any> = {
-        subtotal: data.subtotal.toFixed(2),
-        discount: data.discount.toFixed(2),
-        vatAmount: data.vatAmount.toFixed(2),
-        total: data.total.toFixed(2),
-        paid: data.amountPaid ? data.amountPaid.toFixed(2) : undefined,
-        change: data.changeReturned ? data.changeReturned.toFixed(2) : undefined,
-      };
-
-      const visibleFields = fields.filter((f: any) => f.visible);
-
-      if (visibleFields.length === 0) return null;
-
-      return (
-        <div className="invoice-summary mb-4 pt-3 border-t-2 border-gray-300">
-          {visibleFields.map((field: any, index: number) => (
-            <div
-              key={index}
-              className={`flex justify-between text-sm mb-1 ${
-                field.highlight ? "font-bold text-lg border-t border-gray-300 pt-2 mt-2" : ""
-              }`}
-            >
-              <span>{field.label}:</span>
-              <span>{fieldMap[field.key]}</span>
-            </div>
-          ))}
-        </div>
-      );
-    };
-
-    const renderFooter = (section: InvoiceSchemaSection) => {
-      if (!section.visible) return null;
-      const config = section.config || {};
-
-      return (
-        <div className="invoice-footer mt-4 pt-4 border-t border-gray-300 text-center">
-          {config.showOrderType && data.orderType && (
-            <div className="mb-2 text-sm">
-              <span className="font-semibold text-gray-700">{config.orderTypeLabel || "Order Type"}:</span>{" "}
-              <span className="text-gray-600">{data.orderType}</span>
-            </div>
-          )}
-          {config.showPaymentMethod && data.paymentMethod && (
-            <div className="mb-2 text-sm">
-              <span className="font-semibold text-gray-700">{config.paymentMethodLabel || "Payment Method"}:</span>{" "}
-              <span className="text-gray-600">{data.paymentMethod}</span>
-            </div>
-          )}
-          {config.showBarcode && data.invoiceNumber && (
-            <div className="mb-3">
-              {config.barcodeLabel && (
-                <p className="text-xs text-gray-600 mb-1">{config.barcodeLabel}</p>
-              )}
-              <BarcodeDisplay
-                value={data.invoiceNumber}
-                format={(config.barcodeFormat as any) || "CODE128"}
-                width={config.barcodeWidth || 2}
-                height={config.barcodeHeight || 50}
-                displayValue={config.showBarcodeValue ?? true}
-              />
-            </div>
-          )}
-          {config.showZatcaQR && data.zatcaQrCode && (
-            <div className="mb-3">
-              {config.zatcaQRLabel && (
-                <p className="text-xs text-gray-600 mb-1">{config.zatcaQRLabel}</p>
-              )}
-              <QRCodeDisplay value={data.zatcaQrCode} size={128} />
-            </div>
-          )}
-          {config.showNotes && config.notesText && (
-            <div className="mb-2">
-              {config.notesLabel && (
-                <p className="text-xs font-semibold text-gray-700 mb-1">{config.notesLabel}</p>
-              )}
-              <p className="text-sm text-gray-600">{config.notesText}</p>
-            </div>
-          )}
-        </div>
-      );
-    };
-
-    const renderSection = (section: InvoiceSchemaSection) => {
-      switch (section.type) {
-        case "header":
-          return renderHeader(section);
-        case "title":
-          return renderTitle(section);
-        case "customer":
-          return renderCustomer(section);
-        case "metadata":
-          return renderMetadata(section);
-        case "items":
-          return renderItems(section);
-        case "summary":
-          return renderSummary(section);
-        case "footer":
-          return renderFooter(section);
-        default:
-          return null;
+    // Ensure the logo URL is absolute if it's a relative path
+    const getAbsoluteLogoUrl = (logoUrl: string) => {
+      if (!logoUrl) return logoUrl;
+      if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) {
+        return logoUrl;
       }
+      if (logoUrl.startsWith('/')) {
+        return `${API_BASE_URL}${logoUrl}`;
+      }
+      return logoUrl;
     };
 
-    // Sort sections by order
-    const sortedSections = [...schema.sections].sort((a, b) => a.order - b.order);
+    const absoluteLogoUrl = data.logoUrl ? getAbsoluteLogoUrl(data.logoUrl) : undefined;
 
     return (
-      <div
-        ref={ref}
-        className="invoice-preview bg-white p-6 max-w-3xl mx-auto"
-        dir={isRTL ? "rtl" : "ltr"}
-      >
-        <style jsx>{`
-          @media print {
-            .invoice-preview {
-              padding: 0;
-              max-width: 100%;
-            }
-          }
-        `}</style>
-        {sortedSections.map((section) => (
-          <React.Fragment key={section.id}>{renderSection(section)}</React.Fragment>
+      <div className="invoice-header text-center mb-4 pb-4 border-b border-gray-300">
+        {config.showLogo && absoluteLogoUrl && (
+          <div className="mb-3">
+            <img src={absoluteLogoUrl} alt="Branch Logo" className="mx-auto max-h-16 object-contain" />
+          </div>
+        )}
+        {(config.showBranchName || config.showBranchName) && data.branchName && (
+          <h1 className="text-xl font-bold mb-1">{data.branchName}</h1>
+        )}
+        {(config.showBranchName || config.showBranchName) && data.branchNameAr && (
+          <h2 className="text-lg mb-2" dir="rtl">
+            {data.branchNameAr}
+          </h2>
+        )}
+        {config.showAddress && data.address && (
+          <p className="text-sm text-gray-700">
+            {config.addressLabel || "Address"}: {data.address}
+          </p>
+        )}
+        {config.showPhone && data.phone && (
+          <p className="text-sm text-gray-700">
+            {config.phoneLabel || "Phone"}: {data.phone}
+          </p>
+        )}
+        {config.showVatNumber && data.vatNumber && (
+          <p className="text-sm text-gray-700">
+            {config.vatNumberLabel || "VAT Number"}: {data.vatNumber}
+          </p>
+        )}
+        {config.showCRN && data.commercialRegNumber && (
+          <p className="text-sm text-gray-700">
+            {config.crnLabel || "CR Number"}: {data.commercialRegNumber}
+          </p>
+        )}
+      </div>
+    );
+  };
+
+  const renderTitle = (section: InvoiceSchemaSection) => {
+    if (!section.visible) return null;
+    const config = section.config || {};
+
+    const title = data.isSimplified
+      ? config.simplifiedTitle || "Simplified Tax Invoice"
+      : config.standardTitle || "Standard Tax Invoice";
+
+    return (
+      <div className="invoice-title text-center mb-4">
+        <h2 className="text-lg font-bold uppercase">{title}</h2>
+      </div>
+    );
+  };
+
+  const renderCustomer = (section: InvoiceSchemaSection) => {
+    if (!section.visible) return null;
+    const fields = section.config?.fields || [];
+
+    const fieldMap: Record<string, any> = {
+      name: data.customerName,
+      vatNumber: data.customerVatNumber,
+      phone: data.customerPhone,
+      buildingNumber: data.customerBuildingNumber,
+      streetName: data.customerStreetName,
+      district: data.customerDistrict,
+      city: data.customerCity,
+      postalCode: data.customerPostalCode,
+      additionalNumber: data.customerAdditionalNumber,
+      unitNumber: data.customerUnitNumber,
+    };
+
+    const visibleFields = fields.filter((f: any) => f.visible && fieldMap[f.key]);
+
+    if (visibleFields.length === 0) return null;
+
+    return (
+      <div className="invoice-customer mb-4 pb-3 border-b border-gray-200">
+        <h3 className="text-sm font-semibold mb-2">Customer Information</h3>
+        {visibleFields.map((field: any, index: number) => (
+          <div key={index} className="flex justify-between text-sm mb-1">
+            <span className="text-gray-600">{field.label}:</span>
+            <span className="font-medium">{fieldMap[field.key]}</span>
+          </div>
         ))}
       </div>
     );
-  }
-);
+  };
+
+  const renderMetadata = (section: InvoiceSchemaSection) => {
+    if (!section.visible) return null;
+    const fields = section.config?.fields || [];
+
+    const fieldMap: Record<string, any> = {
+      invoiceNumber: data.invoiceNumber,
+      orderNumber: data.orderNumber,
+      date: data.invoiceDate,
+      cashier: data.cashierName,
+      priceVATLabel: schema.priceIncludesVat ? "Price includes VAT (15%)" : "Price excludes VAT",
+    };
+
+    const visibleFields = fields.filter((f: any) => f.visible && fieldMap[f.key]);
+
+    if (visibleFields.length === 0) return null;
+
+    return (
+      <div className="invoice-metadata mb-4 pb-3 border-b border-gray-200">
+        {visibleFields.map((field: any, index: number) => (
+          <div key={index} className="flex justify-between text-sm mb-1">
+            <span className="text-gray-600">{field.label}:</span>
+            <span className="font-medium">{fieldMap[field.key]}</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderItems = (section: InvoiceSchemaSection) => {
+    if (!section.visible) return null;
+    const columns = section.config?.columns || [];
+
+    const columnMap: Record<string, (item: any) => string> = {
+      name: (item) => item.name,
+      barcode: (item) => item.barcode || "-",
+      unit: (item) => item.unit || "-",
+      quantity: (item) => item.quantity.toString(),
+      price: (item) => item.unitPrice.toFixed(2),
+      discount: (item) => (item.discount ? item.discount.toFixed(2) : "0.00"),
+      vat: (item) => (item.vat ? item.vat.toFixed(2) : "0.00"),
+      total: (item) => item.lineTotal.toFixed(2),
+      notes: (item) => item.notes || "-",
+    };
+
+    const visibleColumns = columns.filter((c: any) => c.visible);
+
+    if (visibleColumns.length === 0) return null;
+
+    return (
+      <div className="invoice-items mb-4">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-300">
+              {visibleColumns.map((column: any, index: number) => (
+                <th
+                  key={index}
+                  className={`${isRTL ? "text-right" : "text-left"} py-2 px-1 font-semibold`}
+                  style={{ width: column.width }}
+                >
+                  {column.label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {data.items.map((item, itemIndex) => (
+              <tr key={itemIndex} className="border-b border-gray-200">
+                {visibleColumns.map((column: any, colIndex: number) => (
+                  <td key={colIndex} className={`${isRTL ? "text-right" : "text-left"} py-2 px-1`}>
+                    {columnMap[column.key]?.(item) || "-"}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  const renderSummary = (section: InvoiceSchemaSection) => {
+    if (!section.visible) return null;
+    const fields = section.config?.fields || [];
+
+    const fieldMap: Record<string, any> = {
+      subtotal: data.subtotal.toFixed(2),
+      discount: data.discount.toFixed(2),
+      vatAmount: data.vatAmount.toFixed(2),
+      total: data.total.toFixed(2),
+      paid: data.amountPaid ? data.amountPaid.toFixed(2) : undefined,
+      change: data.changeReturned ? data.changeReturned.toFixed(2) : undefined,
+    };
+
+    const visibleFields = fields.filter((f: any) => f.visible);
+
+    if (visibleFields.length === 0) return null;
+
+    return (
+      <div className="invoice-summary mb-4 pt-3 border-t-2 border-gray-300">
+        {visibleFields.map((field: any, index: number) => (
+          <div
+            key={index}
+            className={`flex justify-between text-sm mb-1 ${
+              field.highlight ? "font-bold text-lg border-t border-gray-300 pt-2 mt-2" : ""
+            }`}
+          >
+            <span>{field.label}:</span>
+            <span>{fieldMap[field.key]}</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderFooter = (section: InvoiceSchemaSection) => {
+    if (!section.visible) return null;
+    const config = section.config || {};
+
+    return (
+      <div className="invoice-footer mt-4 pt-4 border-t border-gray-300 text-center">
+        {config.showOrderType && data.orderType && (
+          <div className="mb-2 text-sm">
+            <span className="font-semibold text-gray-700">
+              {config.orderTypeLabel || "Order Type"}:
+            </span>{" "}
+            <span className="text-gray-600">{data.orderType}</span>
+          </div>
+        )}
+        {config.showPaymentMethod && data.paymentMethod && (
+          <div className="mb-2 text-sm">
+            <span className="font-semibold text-gray-700">
+              {config.paymentMethodLabel || "Payment Method"}:
+            </span>{" "}
+            <span className="text-gray-600">{data.paymentMethod}</span>
+          </div>
+        )}
+        {config.showBarcode && data.invoiceNumber && (
+          <div className="mb-3">
+            {config.barcodeLabel && (
+              <p className="text-xs text-gray-600 mb-1">{config.barcodeLabel}</p>
+            )}
+            <BarcodeDisplay
+              value={data.invoiceNumber}
+              format={(config.barcodeFormat as any) || "CODE128"}
+              width={config.barcodeWidth || 2}
+              height={config.barcodeHeight || 50}
+              displayValue={config.showBarcodeValue ?? true}
+            />
+          </div>
+        )}
+        {config.showZatcaQR && data.zatcaQrCode && (
+          <div className="mb-3">
+            {config.zatcaQRLabel && (
+              <p className="text-xs text-gray-600 mb-1">{config.zatcaQRLabel}</p>
+            )}
+            <QRCodeDisplay value={data.zatcaQrCode} size={128} />
+          </div>
+        )}
+        {config.showNotes && config.notesText && (
+          <div className="mb-2">
+            {config.notesLabel && (
+              <p className="text-xs font-semibold text-gray-700 mb-1">{config.notesLabel}</p>
+            )}
+            <p className="text-sm text-gray-600">{config.notesText}</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderSection = (section: InvoiceSchemaSection) => {
+    switch (section.type) {
+      case "header":
+        return renderHeader(section);
+      case "title":
+        return renderTitle(section);
+      case "customer":
+        return renderCustomer(section);
+      case "metadata":
+        return renderMetadata(section);
+      case "items":
+        return renderItems(section);
+      case "summary":
+        return renderSummary(section);
+      case "footer":
+        return renderFooter(section);
+      default:
+        return null;
+    }
+  };
+
+  // Sort sections by order
+  const sortedSections = [...schema.sections].sort((a, b) => a.order - b.order);
+
+  return (
+    <div
+      ref={ref}
+      className="invoice-preview bg-white p-6 max-w-3xl mx-auto"
+      dir={isRTL ? "rtl" : "ltr"}
+    >
+      <style jsx>{`
+        @media print {
+          .invoice-preview {
+            padding: 0;
+            max-width: 100%;
+          }
+        }
+      `}</style>
+      {sortedSections.map((section) => (
+        <React.Fragment key={section.id}>{renderSection(section)}</React.Fragment>
+      ))}
+    </div>
+  );
+});
 
 InvoicePreview.displayName = "InvoicePreview";
 

@@ -45,11 +45,13 @@ const hasArabicContent = (text?: string): boolean => {
 ```
 
 **Unicode Ranges Covered:**
+
 - `\u0600-\u06FF` - Arabic
 - `\u0750-\u077F` - Arabic Supplement
 - `\u08A0-\u08FF` - Arabic Extended-A
 
 This comprehensive coverage ensures detection of all Arabic script variants including:
+
 - Standard Arabic characters
 - Arabic diacritical marks
 - Extended Arabic characters (Persian, Urdu additions)
@@ -60,18 +62,22 @@ This comprehensive coverage ensures detection of all Arabic script variants incl
 ```typescript
 // Detect if invoice should use RTL layout
 // Use explicit schema.rtl if set, otherwise auto-detect from Arabic content
-const isRTL = schema.rtl !== undefined
-  ? schema.rtl
-  : (hasArabicContent(data.companyNameAr) || hasArabicContent(data.customerName));
+const isRTL =
+  schema.rtl !== undefined
+    ? schema.rtl
+    : hasArabicContent(data.branchNameAr) ||
+      hasArabicContent(data.customerName);
 ```
 
 **Detection Priority:**
+
 1. **Explicit Control:** If `schema.rtl` is set (true or false), use that value
 2. **Auto-Detection:** Otherwise, check for Arabic in:
-   - Company Name (Arabic) - `data.companyNameAr`
+   - Branch Name (Arabic) - `data.branchNameAr`
    - Customer Name - `data.customerName`
 
 **Features:**
+
 - ✅ Automatic Arabic detection
 - ✅ Manual override capability
 - ✅ Checks multiple data fields
@@ -99,6 +105,7 @@ export interface InvoiceSchema {
 ```
 
 **Field Characteristics:**
+
 - **Type:** `boolean | undefined`
 - **Optional:** Yes (backward compatible)
 - **Default:** `undefined` (triggers auto-detection)
@@ -108,6 +115,7 @@ export interface InvoiceSchema {
   - `undefined` - Auto-detect from content
 
 **Use Cases:**
+
 - **Auto-detect (undefined):** Best for mixed invoices or when content determines direction
 - **Force RTL (true):** For Arabic-only businesses or when Arabic is preferred
 - **Force LTR (false):** For international businesses that want LTR even with Arabic customers
@@ -137,17 +145,20 @@ Applied `dir` attribute to main container:
 When `dir="rtl"` is applied, the browser automatically:
 
 1. **Text Direction:**
+
    - Text flows right-to-left
    - Line wrapping happens from right
    - Text cursor starts at right
 
 2. **Layout Mirroring:**
+
    - Flexbox direction reverses
    - Grid columns reverse order
    - Float left becomes float right
    - Margin-left becomes margin-right
 
 3. **Alignment:**
+
    - Text-align reverses (start becomes right)
    - Justify-content reverses
    - Align-items behavior adjusts
@@ -159,6 +170,7 @@ When `dir="rtl"` is applied, the browser automatically:
    - Background position mirrors
 
 **Benefits of dir Attribute:**
+
 - ✅ Single attribute handles most layout changes
 - ✅ Browser-native implementation (optimized)
 - ✅ Proper bidirectional text (Bidi) handling
@@ -176,13 +188,16 @@ When `dir="rtl"` is applied, the browser automatically:
 Updated table headers and cells with conditional alignment:
 
 **Table Headers:**
+
 ```typescript
 <thead>
   <tr className="border-b border-gray-300">
     {visibleColumns.map((column: any, index: number) => (
       <th
         key={index}
-        className={`${isRTL ? "text-right" : "text-left"} py-2 px-1 font-semibold`}
+        className={`${
+          isRTL ? "text-right" : "text-left"
+        } py-2 px-1 font-semibold`}
         style={{ width: column.width }}
       >
         {column.label}
@@ -193,12 +208,16 @@ Updated table headers and cells with conditional alignment:
 ```
 
 **Table Cells:**
+
 ```typescript
 <tbody>
   {data.items.map((item, itemIndex) => (
     <tr key={itemIndex} className="border-b border-gray-200">
       {visibleColumns.map((column: any, colIndex: number) => (
-        <td key={colIndex} className={`${isRTL ? "text-right" : "text-left"} py-2 px-1`}>
+        <td
+          key={colIndex}
+          className={`${isRTL ? "text-right" : "text-left"} py-2 px-1`}
+        >
           {columnMap[column.key]?.(item) || "-"}
         </td>
       ))}
@@ -212,11 +231,13 @@ Updated table headers and cells with conditional alignment:
 While `dir="rtl"` handles most layout mirroring, table text alignment needs explicit control because:
 
 1. **Table Content Types:**
+
    - Text (product names) - should align with reading direction
    - Numbers (prices, quantities) - conventionally right-aligned in both directions
    - Mixed content needs consistent alignment
 
 2. **Visual Consistency:**
+
    - Headers and cells must align the same way
    - All columns should follow the same alignment pattern
    - Prevents "ragged" appearance in tables
@@ -228,10 +249,10 @@ While `dir="rtl"` handles most layout mirroring, table text alignment needs expl
 
 **Alignment Results:**
 
-| Mode | Direction | Header Align | Cell Align | Column Order |
-|------|-----------|--------------|------------|--------------|
-| LTR | Left-to-Right | text-left | text-left | Name → Qty → Price → Total |
-| RTL | Right-to-Left | text-right | text-right | Total → Price → Qty → Name |
+| Mode | Direction     | Header Align | Cell Align | Column Order               |
+| ---- | ------------- | ------------ | ---------- | -------------------------- |
+| LTR  | Left-to-Right | text-left    | text-left  | Name → Qty → Price → Total |
+| RTL  | Right-to-Left | text-right   | text-right | Total → Price → Qty → Name |
 
 ---
 
@@ -242,8 +263,11 @@ While `dir="rtl"` handles most layout mirroring, table text alignment needs expl
 **File:** `frontend/app/[locale]/branch/settings/invoice-builder/page.tsx`
 
 **RTL Toggle Implementation:**
+
 ```typescript
-{/* RTL Layout Toggle */}
+{
+  /* RTL Layout Toggle */
+}
 <div className="flex items-center">
   <input
     type="checkbox"
@@ -258,12 +282,13 @@ While `dir="rtl"` handles most layout mirroring, table text alignment needs expl
   >
     Enable RTL Layout (Right-to-Left for Arabic)
   </label>
-</div>
+</div>;
 ```
 
 **Placement:** Between Paper Size selection and Custom Size fields
 
 **Behavior:**
+
 - ✅ Checkbox control for enabling/disabling RTL
 - ✅ Updates schema state immediately
 - ✅ Preview updates in real-time
@@ -274,34 +299,45 @@ While `dir="rtl"` handles most layout mirroring, table text alignment needs expl
 **File:** `frontend/app/[locale]/branch/settings/invoice-builder/[id]/page.tsx`
 
 **RTL Toggle Implementation:**
+
 ```typescript
-{/* RTL Layout Toggle */}
-{schema && (
-  <div className="flex items-center">
-    <input
-      type="checkbox"
-      id="rtl-toggle"
-      checked={schema.rtl ?? false}
-      onChange={(e) => setSchema((prev) => prev ? { ...prev, rtl: e.target.checked } : prev)}
-      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-    />
-    <label
-      htmlFor="rtl-toggle"
-      className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300"
-    >
-      Enable RTL Layout (Right-to-Left for Arabic)
-    </label>
-  </div>
-)}
+{
+  /* RTL Layout Toggle */
+}
+{
+  schema && (
+    <div className="flex items-center">
+      <input
+        type="checkbox"
+        id="rtl-toggle"
+        checked={schema.rtl ?? false}
+        onChange={(e) =>
+          setSchema((prev) =>
+            prev ? { ...prev, rtl: e.target.checked } : prev
+          )
+        }
+        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+      />
+      <label
+        htmlFor="rtl-toggle"
+        className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300"
+      >
+        Enable RTL Layout (Right-to-Left for Arabic)
+      </label>
+    </div>
+  );
+}
 ```
 
 **Differences from Create Page:**
+
 - ✅ Conditional rendering (only when schema is loaded)
 - ✅ Null-safe schema update
 - ✅ Preserves existing schema properties
 - ✅ Same UI appearance and behavior
 
 **Features (Both Pages):**
+
 - ✅ Clear descriptive label
 - ✅ Checkbox with accessible ID
 - ✅ Dark mode support
@@ -314,6 +350,7 @@ While `dir="rtl"` handles most layout mirroring, table text alignment needs expl
 ## Files Modified
 
 ### Frontend (4 files)
+
 1. ✅ `frontend/components/invoice/InvoicePreview.tsx` - RTL detection, dir attribute, table alignment
 2. ✅ `frontend/types/invoice-template.types.ts` - InvoiceSchema.rtl field
 3. ✅ `frontend/app/[locale]/branch/settings/invoice-builder/page.tsx` - RTL toggle (create)
@@ -328,6 +365,7 @@ While `dir="rtl"` handles most layout mirroring, table text alignment needs expl
 ### Automatic Mirroring (via dir="rtl")
 
 **What Gets Mirrored:**
+
 - ✅ Text direction (right-to-left flow)
 - ✅ Text alignment (start becomes right)
 - ✅ Flexbox direction
@@ -338,6 +376,7 @@ While `dir="rtl"` handles most layout mirroring, table text alignment needs expl
 - ✅ Shadows and gradients
 
 **What Stays The Same:**
+
 - ✅ Vertical spacing
 - ✅ Font sizes
 - ✅ Colors
@@ -349,6 +388,7 @@ While `dir="rtl"` handles most layout mirroring, table text alignment needs expl
 **Column Order (Visual):**
 
 **LTR Mode:**
+
 ```
 | Item Name | Barcode | Qty | Price | Total |
 | --------- | ------- | --- | ----- | ----- |
@@ -356,6 +396,7 @@ While `dir="rtl"` handles most layout mirroring, table text alignment needs expl
 ```
 
 **RTL Mode (Same Data, Mirrored Display):**
+
 ```
 | Total | Price | Qty | Barcode | Item Name |
 | ----- | ----- | --- | ------- | --------- |
@@ -367,13 +408,15 @@ While `dir="rtl"` handles most layout mirroring, table text alignment needs expl
 ### Text Alignment
 
 **LTR Examples:**
+
 ```
-Company Name                 [Left-aligned]
+Branch Name                 [Left-aligned]
     Address                  [Left-aligned]
     Phone                    [Left-aligned]
 ```
 
 **RTL Examples:**
+
 ```
                  اسم الشركة [Right-aligned]
                     العنوان [Right-aligned]
@@ -389,6 +432,7 @@ Company Name                 [Left-aligned]
 **Scenario:** Template with no explicit RTL setting
 
 **Schema:**
+
 ```json
 {
   "version": "1.0",
@@ -400,7 +444,8 @@ Company Name                 [Left-aligned]
 ```
 
 **Behavior:**
-- If `companyNameAr` contains Arabic → RTL mode
+
+- If `branchNameAr` contains Arabic → RTL mode
 - If `customerName` contains Arabic → RTL mode
 - Otherwise → LTR mode
 
@@ -411,6 +456,7 @@ Company Name                 [Left-aligned]
 **Scenario:** Arabic-only business that wants RTL always
 
 **Schema:**
+
 ```json
 {
   "version": "1.0",
@@ -422,6 +468,7 @@ Company Name                 [Left-aligned]
 ```
 
 **Behavior:**
+
 - Always displays in RTL mode
 - Even if no Arabic content is present
 - Useful for Arabic-language businesses
@@ -433,6 +480,7 @@ Company Name                 [Left-aligned]
 **Scenario:** International business that prefers English layout even for Arabic customers
 
 **Schema:**
+
 ```json
 {
   "version": "1.0",
@@ -444,6 +492,7 @@ Company Name                 [Left-aligned]
 ```
 
 **Behavior:**
+
 - Always displays in LTR mode
 - Arabic text still renders correctly (right-to-left within LTR container)
 - Overall layout remains left-to-right
@@ -453,12 +502,14 @@ Company Name                 [Left-aligned]
 ### Example 4: Toggle in Builder UI
 
 **User Action:**
+
 1. Open invoice builder (create or edit)
 2. Check "Enable RTL Layout" checkbox
 3. Preview updates immediately to show RTL layout
 4. Save template
 
 **Result:**
+
 - Template saved with `"rtl": true` in schema JSON
 - All future invoices using this template display in RTL mode
 - Can be toggled off anytime by unchecking the box
@@ -470,20 +521,25 @@ Company Name                 [Left-aligned]
 ### Build Verification
 
 **Frontend Build:**
+
 ```bash
 cd frontend && npm run build
 ```
+
 **Result:** ✅ Success (0 errors, 0 TypeScript errors)
 
 **Backend Build:**
+
 ```bash
 cd Backend && dotnet build
 ```
+
 **Result:** ✅ Success (0 errors, 4 warnings - unrelated)
 
 ### TypeScript Type Safety
 
 ✅ **All TypeScript checks passed:**
+
 - InvoiceSchema.rtl properly typed as `boolean | undefined`
 - InvoicePreview component types correct
 - Builder UI state types correct
@@ -492,33 +548,38 @@ cd Backend && dotnet build
 
 ### Visual Testing Scenarios
 
-**Test Scenario 1: English Company, English Customer**
+**Test Scenario 1: English Branch, English Customer**
+
 - Expected: LTR mode (auto-detected)
 - Layout: Left-to-right
 - Text alignment: Left
 
-**Test Scenario 2: Arabic Company Name**
-- Company: "شركة الرياض" (Arabic)
+**Test Scenario 2: Arabic Branch Name**
+
+- Branch: "شركة الرياض" (Arabic)
 - Customer: "John Smith" (English)
-- Expected: RTL mode (auto-detected from companyNameAr)
+- Expected: RTL mode (auto-detected from branchNameAr)
 - Layout: Right-to-left
 - Text alignment: Right
 
 **Test Scenario 3: Arabic Customer Name**
-- Company: "ABC Company" (English)
+
+- Branch: "ABC Branch" (English)
 - Customer: "محمد أحمد" (Arabic)
 - Expected: RTL mode (auto-detected from customerName)
 - Layout: Right-to-left
 - Text alignment: Right
 
 **Test Scenario 4: Explicit RTL Override**
+
 - Schema: `rtl: true`
-- Company: "ABC Company" (English)
+- Branch: "ABC Branch" (English)
 - Customer: "John Smith" (English)
 - Expected: RTL mode (forced by schema.rtl)
 - Layout: Right-to-left despite no Arabic content
 
 **Test Scenario 5: Mixed Content**
+
 - Items: Mix of English and Arabic product names
 - Expected: Proper bidirectional text handling
 - Each line renders in its own direction
@@ -529,46 +590,54 @@ cd Backend && dotnet build
 ## Key Features
 
 ✅ **Automatic Detection**
+
 - Unicode-based Arabic detection
 - Checks multiple fields for Arabic content
 - Graceful fallback to LTR
 
 ✅ **Manual Control**
+
 - Explicit RTL toggle in builder UI
 - Overrides auto-detection when set
 - Clear user interface
 
 ✅ **Layout Mirroring**
+
 - Native browser dir attribute
 - Automatic flexbox/grid reversal
 - Proper text alignment
 - Visual element mirroring
 
 ✅ **Table Support**
+
 - Conditional column alignment
 - Header and cell consistency
 - Automatic column order reversal
 - Numeric value alignment
 
 ✅ **Bidirectional Text**
+
 - Proper Bidi algorithm application
 - Mixed LTR/RTL content support
 - Per-line direction handling
 - Unicode character support
 
 ✅ **Type Safety**
+
 - Full TypeScript support
 - Optional schema field
 - IntelliSense enabled
 - Compile-time checking
 
 ✅ **Backward Compatibility**
+
 - Optional rtl field (undefined by default)
 - Existing templates work unchanged
 - Auto-detection as fallback
 - No breaking changes
 
 ✅ **Accessibility**
+
 - dir attribute supports screen readers
 - Keyboard navigation preserved
 - Focus indicators work correctly
@@ -581,6 +650,7 @@ cd Backend && dotnet build
 ### dir Attribute Support
 
 ✅ **Fully Supported:**
+
 - Chrome/Edge (all versions)
 - Firefox (all versions)
 - Safari (all versions)
@@ -588,6 +658,7 @@ cd Backend && dotnet build
 - Mobile browsers (iOS Safari, Chrome Mobile)
 
 ✅ **Standards Compliance:**
+
 - HTML5 standard attribute
 - W3C Bidi specification
 - CSS Writing Modes Level 3
@@ -596,6 +667,7 @@ cd Backend && dotnet build
 ### Print Support
 
 ✅ **Print Behavior:**
+
 - dir attribute respected in print
 - Layout mirrors correctly on paper
 - Text alignment preserved
@@ -608,23 +680,28 @@ cd Backend && dotnet build
 Phase 5 is now complete. The system is ready for the Testing Phase:
 
 ### Testing Phase (16 tests)
+
 1. **Unit Tests:**
+
    - RTL detection function tests
    - Arabic Unicode range validation
    - Schema type validation
 
 2. **Integration Tests:**
+
    - Template CRUD with RTL field
    - Preview rendering tests
    - Builder UI interaction tests
 
 3. **Visual Tests:**
+
    - Arabic text rendering
    - Mixed LTR/RTL content
    - Table alignment verification
    - Print preview tests
 
 4. **Browser Tests:**
+
    - Cross-browser RTL rendering
    - Mobile device testing
    - Print compatibility
@@ -640,6 +717,7 @@ Phase 5 is now complete. The system is ready for the Testing Phase:
 ## Code Statistics
 
 **Frontend Changes:**
+
 - 4 files modified
 - ~80 lines added
 - 2 new functions (hasArabicContent, isRTL detection)
@@ -647,12 +725,14 @@ Phase 5 is now complete. The system is ready for the Testing Phase:
 - 2 UI controls added (create & edit pages)
 
 **No Backend Changes Required:**
+
 - RTL is purely a presentation concern
 - Schema JSON already supports arbitrary fields
 - No database migration needed
 - No API changes required
 
 **Total Implementation:**
+
 - 4 files modified
 - ~80 lines of code added
 - 0 errors, 0 warnings (new code)
@@ -664,9 +744,11 @@ Phase 5 is now complete. The system is ready for the Testing Phase:
 ## Documentation
 
 This implementation summary has been created at:
+
 - `docs/invoice builder/2025-12-10-phase-5-full-rtl-layout-implementation.md`
 
 Progress tracking updated at:
+
 - `docs/invoice builder/2025-12-10-implementation-progress.md`
 
 ---

@@ -165,7 +165,7 @@ export default function InvoiceDisplay({ sale, onClose, onPrint }: InvoiceDispla
           {/* Standard Invoice Format - Detailed */}
           {!isTouchInvoice && (
             <div className="space-y-6">
-              {/* Company Header */}
+              {/* Branch Header */}
               <div className="text-center border-b-2 border-gray-300 pb-6">
                 <h1 className="text-3xl font-bold">Multi-POS System</h1>
                 <p className="text-gray-600 mt-2">Branch: Main Office</p>

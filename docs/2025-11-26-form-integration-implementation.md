@@ -112,7 +112,7 @@ import ProductFormModalWithImages from "@/components/inventory/ProductFormModalW
 - **File**: `CustomerFormModal.tsx` (needs enhancement)
 - **Entity Type**: `Customers`
 - **Multiple**: No (max 1)
-- **Pattern**: Single image for company logo
+- **Pattern**: Single image for branch logo
 
 ### T277: Supplier Form (Logo) ⚠️ FORM MISSING
 

@@ -16,6 +16,7 @@ Successfully implemented the Invoice Preview component and print functionality, 
 ## ✅ Completed Tasks (6/6)
 
 ### 1. Invoice Preview Component
+
 - ✅ Renders invoices based on schema and data
 - ✅ Supports all 7 section types
 - ✅ Dynamic field visibility and labels
@@ -23,18 +24,21 @@ Successfully implemented the Invoice Preview component and print functionality, 
 - ✅ forwardRef for print integration
 
 ### 2. QR Code Generation Component
+
 - ✅ Uses qrcode library for generation
 - ✅ ZATCA QR code support
 - ✅ Configurable size
 - ✅ Canvas-based rendering
 
 ### 3. Print Dialog Component
+
 - ✅ Modal dialog with preview
 - ✅ Print button integration
 - ✅ react-to-print configuration
 - ✅ Close and print actions
 
 ### 4. Preview Test Page
+
 - ✅ Loads active template
 - ✅ Generates sample invoice data
 - ✅ Shows inline preview
@@ -42,11 +46,13 @@ Successfully implemented the Invoice Preview component and print functionality, 
 - ✅ Manager-only access
 
 ### 5. Navigation Integration
+
 - ✅ Added "Preview Active Template" button
 - ✅ Integrated with template management page
 - ✅ Route configuration
 
 ### 6. Build Verification
+
 - ✅ Frontend build succeeded with no TypeScript errors
 - ✅ New route `/invoice-templates/preview` registered
 - ✅ All components compile correctly
@@ -56,6 +62,7 @@ Successfully implemented the Invoice Preview component and print functionality, 
 ## 📁 Files Created (4 files)
 
 ### Components (3 files)
+
 ```
 frontend/components/invoice/
 ├── InvoicePreview.tsx  (289 lines)
@@ -67,6 +74,7 @@ frontend/components/invoice/
 ```
 
 ### Pages (1 file)
+
 ```
 frontend/app/[locale]/branch/settings/invoice-templates/
 └── preview/
@@ -75,6 +83,7 @@ frontend/app/[locale]/branch/settings/invoice-templates/
 ```
 
 ### Modified Files (1 file)
+
 ```
 frontend/app/[locale]/branch/settings/invoice-templates/
 └── page.tsx  (+8 lines)
@@ -92,6 +101,7 @@ frontend/app/[locale]/branch/settings/invoice-templates/
 **Purpose:** Renders an invoice based on schema and data
 
 **Key Features:**
+
 - **Section Rendering** - Dynamically renders all section types
 - **Field Visibility** - Respects visibility toggles from schema
 - **Label Customization** - Uses custom labels from configuration
@@ -99,7 +109,8 @@ frontend/app/[locale]/branch/settings/invoice-templates/
 - **forwardRef** - Allows react-to-print to access the component
 
 **Section Renderers:**
-1. **renderHeader()** - Company logo, name, address, VAT, CRN
+
+1. **renderHeader()** - Branch logo, name, address, VAT, CRN
 2. **renderTitle()** - Standard or simplified tax invoice title
 3. **renderCustomer()** - Customer information fields
 4. **renderMetadata()** - Invoice number, date, cashier
@@ -108,19 +119,21 @@ frontend/app/[locale]/branch/settings/invoice-templates/
 7. **renderFooter()** - ZATCA QR code and notes
 
 **Props:**
+
 ```typescript
 interface InvoicePreviewProps {
-  schema: InvoiceSchema;  // Template configuration
-  data: InvoiceData;      // Invoice data to display
+  schema: InvoiceSchema; // Template configuration
+  data: InvoiceData; // Invoice data to display
 }
 ```
 
 **Data Structure:**
+
 ```typescript
 interface InvoiceData {
-  // Company
-  companyName?: string;
-  companyNameAr?: string;
+  // Branch
+  branchName?: string;
+  branchNameAr?: string;
   logoUrl?: string;
   vatNumber?: string;
   commercialRegNumber?: string;
@@ -165,12 +178,14 @@ interface InvoiceData {
 **Purpose:** Generate and display QR codes
 
 **Key Features:**
+
 - Canvas-based rendering
 - Configurable size
 - Error correction level M
 - Minimal margin for compact display
 
 **Usage:**
+
 ```typescript
 <QRCodeDisplay
   value="BASE64_ENCODED_QR_DATA"
@@ -180,6 +195,7 @@ interface InvoiceData {
 ```
 
 **Implementation:**
+
 ```typescript
 useEffect(() => {
   if (canvasRef.current && value) {
@@ -197,6 +213,7 @@ useEffect(() => {
 **Purpose:** Modal dialog with print preview and button
 
 **Key Features:**
+
 - Full-screen modal overlay
 - Scrollable preview area
 - Print button with icon
@@ -204,6 +221,7 @@ useEffect(() => {
 - react-to-print integration
 
 **Usage:**
+
 ```typescript
 <InvoicePrintDialog
   isOpen={showDialog}
@@ -214,6 +232,7 @@ useEffect(() => {
 ```
 
 **Print Integration:**
+
 ```typescript
 const handlePrint = useReactToPrint({
   contentRef: invoiceRef,
@@ -229,6 +248,7 @@ const handlePrint = useReactToPrint({
 **Purpose:** Test templates with sample data
 
 **Key Features:**
+
 - Loads active template automatically
 - Generates realistic sample data
 - Shows both inline and print previews
@@ -236,9 +256,10 @@ const handlePrint = useReactToPrint({
 - Manager-only access
 
 **Sample Data Generation:**
+
 ```typescript
 const sampleData = {
-  companyName: companyInfo?.companyName || "Sample Company",
+  branchName: branchInfo?.branchName || "Sample Branch",
   invoiceNumber: "INV-2025-001",
   invoiceDate: new Date().toLocaleDateString(),
   items: [
@@ -259,11 +280,13 @@ const sampleData = {
 ## 🔐 Security and Access Control
 
 **Role Requirements:**
+
 - Preview page requires `UserRole.Manager` or higher
 - Uses `RoleGuard` component for enforcement
 - Fallback UI with access denied message
 
 **Data Handling:**
+
 - Sample data only on preview page
 - Real data from sales page (future integration)
 - QR codes generated by backend (ZATCA service)
@@ -273,6 +296,7 @@ const sampleData = {
 ## 🧪 Build Verification
 
 ### Frontend Build Results
+
 ```
 ▲ Next.js 16.0.3 (Turbopack)
 ✓ Compiled successfully in 4.2s
@@ -285,6 +309,7 @@ New Route Added:
 ```
 
 ### Type Safety
+
 - ✅ All props properly typed with TypeScript
 - ✅ InvoiceData interface for type-safe data passing
 - ✅ forwardRef with proper typing
@@ -294,14 +319,15 @@ New Route Added:
 
 ## 📊 Implementation Statistics
 
-| Category | Files | Lines of Code |
-|----------|-------|---------------|
-| New Components | 3 | 454 |
-| New Pages | 1 | 263 |
-| Modified Files | 1 | +8 |
-| **Total** | **5** | **~725** |
+| Category       | Files | Lines of Code |
+| -------------- | ----- | ------------- |
+| New Components | 3     | 454           |
+| New Pages      | 1     | 263           |
+| Modified Files | 1     | +8            |
+| **Total**      | **5** | **~725**      |
 
 **Build Status:**
+
 - Build Time: 4.2s
 - TypeScript: ✅ Passed
 - Errors: 0
@@ -347,6 +373,7 @@ New Route Added:
 ## 🔍 Code Quality and Patterns
 
 ### Followed Existing Patterns:
+
 1. **"use client" directive** - Client-side components
 2. **forwardRef pattern** - For printable components
 3. **useEffect hooks** - For side effects (QR generation)
@@ -356,6 +383,7 @@ New Route Added:
 7. **Error handling** - Graceful failure modes
 
 ### React Best Practices:
+
 - forwardRef for print integration
 - useRef for DOM access
 - Proper component composition
@@ -364,6 +392,7 @@ New Route Added:
 - Effect cleanup (implicit)
 
 ### Print Optimization:
+
 ```css
 @media print {
   .invoice-preview {
@@ -374,6 +403,7 @@ New Route Added:
 ```
 
 ### Accessibility:
+
 - Semantic HTML structure
 - ARIA labels where needed
 - Keyboard navigation support
@@ -384,18 +414,21 @@ New Route Added:
 ## 💡 Design Decisions
 
 ### Why Canvas for QR Codes?
+
 - **Library Support**: qrcode library uses canvas
 - **Print Quality**: Better quality than SVG for QR codes
 - **Simple API**: Easy to implement and maintain
 - **Browser Compatibility**: Widely supported
 
 ### Why Modal Dialog for Print Preview?
+
 - **Better UX**: User stays on same page
 - **Context**: Keep template list visible in background
 - **Flexibility**: Can preview multiple times
 - **Standard Pattern**: Common in web applications
 
 ### Why react-to-print?
+
 - **Mature Library**: Well-tested and maintained
 - **Simple API**: Easy to implement
 - **Customizable**: Supports print styles
@@ -403,12 +436,14 @@ New Route Added:
 - **React Integration**: Built for React components
 
 ### Why Sample Data on Preview Page?
+
 - **Testing**: Allows testing without real sales
 - **Demo**: Shows what invoice will look like
 - **Safety**: No risk of exposing real customer data
 - **Flexibility**: Can customize sample data easily
 
 ### Why Inline + Print Dialog Preview?
+
 - **Quick View**: Inline preview for fast checking
 - **Full Preview**: Print dialog for detailed view
 - **Print Options**: Print dialog provides print button
@@ -419,15 +454,17 @@ New Route Added:
 ## 🚀 Integration Points
 
 ### Current Integration:
+
 - `InvoicePreview` - Main preview component
 - `QRCodeDisplay` - QR code rendering
 - `InvoicePrintDialog` - Print dialog
 - `invoiceTemplateService` - Load templates
-- `companyInfoService` - Load company data
+- `branchInfoService` - Load branch data
 - `react-to-print` - Print functionality
 - `qrcode` - QR generation
 
 ### Future Integration:
+
 - **Sales Page** - Print actual invoices
 - **Email** - Email invoice preview
 - **PDF Export** - Generate PDF files
@@ -439,6 +476,7 @@ New Route Added:
 ## 📚 Technical Details
 
 ### Print Workflow:
+
 ```
 1. User clicks "Print Invoice"
 2. handlePrint() called
@@ -451,6 +489,7 @@ New Route Added:
 ```
 
 ### QR Code Generation:
+
 ```
 1. QRCodeDisplay receives value prop
 2. useEffect creates QR code
@@ -460,22 +499,25 @@ New Route Added:
 ```
 
 ### Section Rendering Logic:
+
 ```typescript
 // Sort sections by order
 const sortedSections = [...schema.sections].sort((a, b) => a.order - b.order);
 
 // Render each section
-{sortedSections.map((section) => (
-  <React.Fragment key={section.id}>
-    {renderSection(section)}
-  </React.Fragment>
-))}
+{
+  sortedSections.map((section) => (
+    <React.Fragment key={section.id}>{renderSection(section)}</React.Fragment>
+  ));
+}
 
 // renderSection switches on type
 const renderSection = (section: InvoiceSchemaSection) => {
   switch (section.type) {
-    case "header": return renderHeader(section);
-    case "title": return renderTitle(section);
+    case "header":
+      return renderHeader(section);
+    case "title":
+      return renderTitle(section);
     // ... more cases
   }
 };
@@ -486,26 +528,31 @@ const renderSection = (section: InvoiceSchemaSection) => {
 ## ⚠️ Known Limitations
 
 ### 1. No Real-Time Preview in Builder
+
 - Builder doesn't show live preview
 - Must save and navigate to preview page
 - Future: Split-screen builder with preview
 
 ### 2. Sample Data Only on Preview Page
+
 - Cannot preview with real sale data yet
 - Future: Preview button on sales page
 - Future: Select sale for preview
 
 ### 3. Print Styles Limited
+
 - Basic print styling only
 - No advanced page breaks
 - Future: Enhanced print CSS
 
 ### 4. No PDF Export
+
 - Can only print or save as PDF via browser
 - No direct PDF generation
 - Future: Server-side PDF generation
 
 ### 5. No Preview in Builder
+
 - Must navigate away to see changes
 - Future: Inline preview pane in builder
 
@@ -514,6 +561,7 @@ const renderSection = (section: InvoiceSchemaSection) => {
 ## 🧩 Usage Examples
 
 ### Using InvoicePreview Component:
+
 ```typescript
 import InvoicePreview from "@/components/invoice/InvoicePreview";
 
@@ -531,6 +579,7 @@ const MyComponent = () => {
 ```
 
 ### Using InvoicePrintDialog:
+
 ```typescript
 import InvoicePrintDialog from "@/components/invoice/InvoicePrintDialog";
 
@@ -552,14 +601,12 @@ const MyComponent = () => {
 ```
 
 ### Using QRCodeDisplay:
+
 ```typescript
 import QRCodeDisplay from "@/components/invoice/QRCodeDisplay";
 
 const MyComponent = () => (
-  <QRCodeDisplay
-    value="BASE64_ENCODED_DATA"
-    size={128}
-  />
+  <QRCodeDisplay value="BASE64_ENCODED_DATA" size={128} />
 );
 ```
 
@@ -585,6 +632,7 @@ const MyComponent = () => (
 ## 📖 Next Steps
 
 ### Immediate (Phase 2E):
+
 1. **Sales Page Integration**
    - Add "Print Invoice" button to sales page
    - Fetch active template on print
@@ -593,7 +641,9 @@ const MyComponent = () => (
    - Display print dialog
 
 ### Short Term (Enhancements):
+
 2. **Builder Integration**
+
    - Add live preview pane in builder
    - Show changes in real-time
    - Split-screen layout
@@ -604,6 +654,7 @@ const MyComponent = () => (
    - Preview different templates
 
 ### Medium Term (Advanced Features):
+
 4. **PDF Generation** - Server-side PDF export
 5. **Email Invoices** - Send invoice via email
 6. **Mobile Printing** - Mobile app integration
@@ -615,20 +666,23 @@ const MyComponent = () => (
 ## ⏱️ Time Estimates
 
 **Phase 2D Completed:** ~3 hours
+
 - Invoice Preview component: 1.5 hours
 - Print dialog and QR component: 0.5 hours
 - Preview page: 0.5 hours
 - Testing and integration: 0.5 hours
 
 **Remaining for Phase 2:**
+
 - Sales Page Integration: 2-3 hours
-**Total Remaining:** 2-3 hours
+  **Total Remaining:** 2-3 hours
 
 ---
 
 ## 🔄 Complete Feature Flow
 
 ### Manager Tests Template:
+
 1. Manager creates template in builder
 2. Sets template as active
 3. Navigates to Templates → Preview
@@ -640,6 +694,7 @@ const MyComponent = () => (
 9. Repeats until satisfied
 
 ### Cashier Prints Invoice:
+
 1. Cashier completes sale (future)
 2. Clicks "Print Invoice" (future)
 3. System loads active template
@@ -655,12 +710,13 @@ const MyComponent = () => (
 ## 📝 Configuration Examples
 
 ### Header Section Rendering:
+
 ```typescript
 if (config.showLogo && data.logoUrl) {
   // Show logo
 }
-if (config.showCompanyName && data.companyName) {
-  // Show company name
+if (config.showBranchName && data.branchName) {
+  // Show branch name
 }
 if (config.showVatNumber && data.vatNumber) {
   // Show VAT number
@@ -668,25 +724,26 @@ if (config.showVatNumber && data.vatNumber) {
 ```
 
 ### Items Table Rendering:
+
 ```typescript
-const visibleColumns = columns.filter(c => c.visible);
+const visibleColumns = columns.filter((c) => c.visible);
 
 <table>
   <thead>
-    {visibleColumns.map(column => (
+    {visibleColumns.map((column) => (
       <th>{column.label}</th>
     ))}
   </thead>
   <tbody>
-    {data.items.map(item => (
+    {data.items.map((item) => (
       <tr>
-        {visibleColumns.map(column => (
+        {visibleColumns.map((column) => (
           <td>{getColumnValue(item, column.key)}</td>
         ))}
       </tr>
     ))}
   </tbody>
-</table>
+</table>;
 ```
 
 ---
@@ -698,4 +755,4 @@ const visibleColumns = columns.filter(c => c.visible);
 
 ---
 
-*This implementation follows the project conventions outlined in CLAUDE.md and maintains consistency with existing codebase patterns.*
+_This implementation follows the project conventions outlined in CLAUDE.md and maintains consistency with existing codebase patterns._

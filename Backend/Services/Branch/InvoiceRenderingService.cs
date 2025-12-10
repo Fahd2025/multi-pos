@@ -187,7 +187,7 @@ public class InvoiceRenderingService : IInvoiceRenderingService
             html.AppendLine($"<img src='{branch.LogoPath}' alt='Logo' />");
         }
 
-        if (section.Config?.ContainsKey("showCompanyName") == true && (bool)(section.Config["showCompanyName"] ?? false))
+        if (section.Config?.ContainsKey("showBranchName") == true && (bool)(section.Config["showBranchName"] ?? false))
         {
             html.AppendLine($"<h1>{branch.NameEn}</h1>");
         }

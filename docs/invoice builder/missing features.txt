@@ -343,7 +343,7 @@
 
   Original Requirement: "Logo" in header section
 
-  Current State: Frontend UI exists (in removed Company Info page), backend not implemented
+  Current State: Frontend UI exists (in removed Branch Info page), backend not implemented
 
   What's Missing:
   - Backend file upload endpoint

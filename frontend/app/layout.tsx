@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description:
     "Professional multi-branch point of sale system with head office and branch management",
   keywords: ["POS", "Point of Sale", "Multi-Branch", "Retail", "Sales Management"],
-  authors: [{ name: "Your Company Name" }],
+  authors: [{ name: "Your Branch Name" }],
 };
 
 export const viewport: Viewport = {

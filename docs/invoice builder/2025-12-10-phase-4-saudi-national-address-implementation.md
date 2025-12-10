@@ -65,11 +65,13 @@ public string? UnitNumber { get; set; }
 #### 2. DTO Updates
 
 **Files Modified:**
+
 - `Backend/Models/DTOs/Branch/Customers/CustomerDto.cs`
 - `Backend/Models/DTOs/Branch/Customers/CreateCustomerDto.cs`
 - `Backend/Models/DTOs/Branch/Customers/UpdateCustomerDto.cs`
 
 **CustomerDto Changes:**
+
 ```csharp
 /// <summary>
 /// Saudi National Address: Building Number
@@ -108,6 +110,7 @@ public string? UnitNumber { get; set; }
 ```
 
 **CreateCustomerDto & UpdateCustomerDto Validation:**
+
 ```csharp
 [StringLength(10, ErrorMessage = "Building number cannot exceed 10 characters")]
 public string? BuildingNumber { get; set; }
@@ -134,6 +137,7 @@ public string? UnitNumber { get; set; }
 ```
 
 **Validation Features:**
+
 - ✅ Proper field length restrictions
 - ✅ Regex validation for PostalCode (must be exactly 5 digits)
 - ✅ Regex validation for AdditionalNumber (must be exactly 4 digits)
@@ -155,6 +159,7 @@ public string? UnitNumber { get; set; }
 7. **UpdateCustomerStatsAsync()** - Return DTO mapping
 
 **Example Mapping (Entity Creation):**
+
 ```csharp
 var customer = new Customer
 {
@@ -171,6 +176,7 @@ var customer = new Customer
 ```
 
 **Example Mapping (DTO Response):**
+
 ```csharp
 return new CustomerDto
 {
@@ -187,6 +193,7 @@ return new CustomerDto
 ```
 
 **Manual Mapping Pattern:**
+
 - ✅ No AutoMapper dependency
 - ✅ Explicit field-by-field mapping
 - ✅ Consistent mapping across all methods
@@ -197,6 +204,7 @@ return new CustomerDto
 **Migration Name:** `AddSaudiNationalAddressToCustomers`
 
 **Command:**
+
 ```bash
 dotnet ef migrations add AddSaudiNationalAddressToCustomers --context BranchDbContext
 ```
@@ -204,6 +212,7 @@ dotnet ef migrations add AddSaudiNationalAddressToCustomers --context BranchDbCo
 **Result:** ✅ Migration created successfully
 
 **Schema Changes:**
+
 - Adds 7 new nullable columns to `Customers` table:
   - `BuildingNumber` (nvarchar(10))
   - `StreetName` (nvarchar(200))
@@ -214,6 +223,7 @@ dotnet ef migrations add AddSaudiNationalAddressToCustomers --context BranchDbCo
   - `UnitNumber` (nvarchar(50))
 
 **Migration Safety:**
+
 - ✅ All new fields are nullable (no data loss)
 - ✅ No breaking changes to existing data
 - ✅ Backward compatible with existing records
@@ -223,11 +233,13 @@ dotnet ef migrations add AddSaudiNationalAddressToCustomers --context BranchDbCo
 **File:** `Backend/Data/Branch/InvoiceTemplateSeeder.cs`
 
 **Templates Updated:**
+
 - ✅ 58mm Thermal Receipt Template
 - ✅ 80mm Thermal Receipt Template (default)
 - ✅ A4 Paper Template
 
 **Customer Info Section Schema:**
+
 ```json
 {
   "id": "customer-info",
@@ -244,7 +256,11 @@ dotnet ef migrations add AddSaudiNationalAddressToCustomers --context BranchDbCo
       { "key": "district", "label": "District", "visible": false },
       { "key": "city", "label": "City", "visible": false },
       { "key": "postalCode", "label": "Postal Code", "visible": false },
-      { "key": "additionalNumber", "label": "Additional Number", "visible": false },
+      {
+        "key": "additionalNumber",
+        "label": "Additional Number",
+        "visible": false
+      },
       { "key": "unitNumber", "label": "Unit Number", "visible": false }
     ]
   }
@@ -252,6 +268,7 @@ dotnet ef migrations add AddSaudiNationalAddressToCustomers --context BranchDbCo
 ```
 
 **Default Visibility:**
+
 - ✅ All national address fields default to `visible: false`
 - ✅ Opt-in approach - users must enable fields they want
 - ✅ Maintains backward compatibility with existing templates
@@ -265,6 +282,7 @@ dotnet ef migrations add AddSaudiNationalAddressToCustomers --context BranchDbCo
 **File:** `frontend/types/invoice-template.types.ts`
 
 **DEFAULT_INVOICE_SCHEMA - Customer Section:**
+
 ```typescript
 {
   id: "customer-info",
@@ -289,6 +307,7 @@ dotnet ef migrations add AddSaudiNationalAddressToCustomers --context BranchDbCo
 ```
 
 **Schema Design:**
+
 - ✅ All 7 national address fields added to customer config
 - ✅ Default visibility: false (opt-in)
 - ✅ Customizable labels for localization
@@ -299,6 +318,7 @@ dotnet ef migrations add AddSaudiNationalAddressToCustomers --context BranchDbCo
 **File:** `frontend/components/invoice/InvoicePreview.tsx`
 
 **InvoiceData Interface Extension:**
+
 ```typescript
 interface InvoiceData {
   // ... existing fields
@@ -307,19 +327,20 @@ interface InvoiceData {
   customerName?: string;
   customerVatNumber?: string;
   customerPhone?: string;
-  customerBuildingNumber?: string;     // NEW
-  customerStreetName?: string;         // NEW
-  customerDistrict?: string;           // NEW
-  customerCity?: string;               // NEW
-  customerPostalCode?: string;         // NEW
-  customerAdditionalNumber?: string;   // NEW
-  customerUnitNumber?: string;         // NEW
+  customerBuildingNumber?: string; // NEW
+  customerStreetName?: string; // NEW
+  customerDistrict?: string; // NEW
+  customerCity?: string; // NEW
+  customerPostalCode?: string; // NEW
+  customerAdditionalNumber?: string; // NEW
+  customerUnitNumber?: string; // NEW
 
   // ... remaining fields
 }
 ```
 
 **renderCustomer() Function Update:**
+
 ```typescript
 const renderCustomer = (section: InvoiceSchemaSection) => {
   if (!section.visible) return null;
@@ -329,13 +350,13 @@ const renderCustomer = (section: InvoiceSchemaSection) => {
     name: data.customerName,
     vatNumber: data.customerVatNumber,
     phone: data.customerPhone,
-    buildingNumber: data.customerBuildingNumber,       // NEW
-    streetName: data.customerStreetName,               // NEW
-    district: data.customerDistrict,                   // NEW
-    city: data.customerCity,                           // NEW
-    postalCode: data.customerPostalCode,               // NEW
-    additionalNumber: data.customerAdditionalNumber,   // NEW
-    unitNumber: data.customerUnitNumber,               // NEW
+    buildingNumber: data.customerBuildingNumber, // NEW
+    streetName: data.customerStreetName, // NEW
+    district: data.customerDistrict, // NEW
+    city: data.customerCity, // NEW
+    postalCode: data.customerPostalCode, // NEW
+    additionalNumber: data.customerAdditionalNumber, // NEW
+    unitNumber: data.customerUnitNumber, // NEW
   };
 
   const visibleFields = fields.filter((f: any) => f.visible && fieldMap[f.key]);
@@ -357,6 +378,7 @@ const renderCustomer = (section: InvoiceSchemaSection) => {
 ```
 
 **Rendering Features:**
+
 - ✅ Automatic rendering based on schema visibility
 - ✅ Key-value pair display format
 - ✅ Customizable field labels from schema
@@ -368,6 +390,7 @@ const renderCustomer = (section: InvoiceSchemaSection) => {
 ## Files Modified
 
 ### Backend (6 files)
+
 1. ✅ `Backend/Models/Entities/Branch/Customer.cs`
 2. ✅ `Backend/Models/DTOs/Branch/Customers/CustomerDto.cs`
 3. ✅ `Backend/Models/DTOs/Branch/Customers/CreateCustomerDto.cs`
@@ -376,10 +399,12 @@ const renderCustomer = (section: InvoiceSchemaSection) => {
 6. ✅ `Backend/Data/Branch/InvoiceTemplateSeeder.cs`
 
 ### Frontend (2 files)
+
 1. ✅ `frontend/types/invoice-template.types.ts`
 2. ✅ `frontend/components/invoice/InvoicePreview.tsx`
 
 ### Database Migrations (1 file)
+
 1. ✅ `Backend/Migrations/Branch/[timestamp]_AddSaudiNationalAddressToCustomers.cs`
 
 **Total Files Modified:** 9 files
@@ -390,17 +415,18 @@ const renderCustomer = (section: InvoiceSchemaSection) => {
 
 ### Customers Table - New Columns
 
-| Column Name | Data Type | Max Length | Nullable | Validation |
-|------------|-----------|------------|----------|------------|
-| BuildingNumber | nvarchar | 10 | Yes | None |
-| StreetName | nvarchar | 200 | Yes | None |
-| District | nvarchar | 200 | Yes | None |
-| City | nvarchar | 100 | Yes | None |
-| PostalCode | nvarchar | 10 | Yes | Regex: `^\d{5}$` |
-| AdditionalNumber | nvarchar | 10 | Yes | Regex: `^\d{4}$` |
-| UnitNumber | nvarchar | 50 | Yes | None |
+| Column Name      | Data Type | Max Length | Nullable | Validation       |
+| ---------------- | --------- | ---------- | -------- | ---------------- |
+| BuildingNumber   | nvarchar  | 10         | Yes      | None             |
+| StreetName       | nvarchar  | 200        | Yes      | None             |
+| District         | nvarchar  | 200        | Yes      | None             |
+| City             | nvarchar  | 100        | Yes      | None             |
+| PostalCode       | nvarchar  | 10         | Yes      | Regex: `^\d{5}$` |
+| AdditionalNumber | nvarchar  | 10         | Yes      | Regex: `^\d{4}$` |
+| UnitNumber       | nvarchar  | 50         | Yes      | None             |
 
 **Migration Safety:**
+
 - ✅ All new columns are nullable
 - ✅ No default values required
 - ✅ Existing records remain unchanged
@@ -413,6 +439,7 @@ const renderCustomer = (section: InvoiceSchemaSection) => {
 ### Standard Format
 
 **Full Address Display:**
+
 ```
 Building Number: 7700
 Street Name: King Fahd Road
@@ -425,24 +452,26 @@ Unit Number: Unit 301
 
 ### Field Requirements (Saudi Standards)
 
-| Field | Required | Format | Example |
-|-------|----------|--------|---------|
-| Building Number | Optional | Alphanumeric (max 10) | "7700" |
-| Street Name | Optional | Text (max 200) | "King Fahd Road" |
-| District | Optional | Text (max 200) | "Al Olaya" |
-| City | Optional | Text (max 100) | "Riyadh" |
-| **Postal Code** | Optional | **Exactly 5 digits** | "12345" |
-| **Additional Number** | Optional | **Exactly 4 digits** | "6789" |
-| Unit Number | Optional | Alphanumeric (max 50) | "Unit 301" |
+| Field                 | Required | Format                | Example          |
+| --------------------- | -------- | --------------------- | ---------------- |
+| Building Number       | Optional | Alphanumeric (max 10) | "7700"           |
+| Street Name           | Optional | Text (max 200)        | "King Fahd Road" |
+| District              | Optional | Text (max 200)        | "Al Olaya"       |
+| City                  | Optional | Text (max 100)        | "Riyadh"         |
+| **Postal Code**       | Optional | **Exactly 5 digits**  | "12345"          |
+| **Additional Number** | Optional | **Exactly 4 digits**  | "6789"           |
+| Unit Number           | Optional | Alphanumeric (max 50) | "Unit 301"       |
 
 ### Validation Rules
 
 **Postal Code:**
+
 - Must be exactly 5 digits
 - Regex: `^\d{5}$`
 - Examples: ✅ "12345" | ❌ "1234" | ❌ "123456" | ❌ "12A45"
 
 **Additional Number:**
+
 - Must be exactly 4 digits
 - Regex: `^\d{4}$`
 - Examples: ✅ "6789" | ❌ "678" | ❌ "67890" | ❌ "67A9"
@@ -454,20 +483,25 @@ Unit Number: Unit 301
 ### Build Verification
 
 **Backend Build:**
+
 ```bash
 cd Backend && dotnet build
 ```
+
 **Result:** ✅ Success (0 errors, 4 warnings - unrelated)
 
 **Frontend Build:**
+
 ```bash
 cd frontend && npm run build
 ```
+
 **Result:** ✅ Success (0 errors, 0 TypeScript errors)
 
 ### TypeScript Type Safety
 
 ✅ **All TypeScript checks passed:**
+
 - InvoiceData interface properly typed
 - Field mappings correctly typed
 - No implicit any types
@@ -476,6 +510,7 @@ cd frontend && npm run build
 ### Database Migration
 
 ✅ **Migration created successfully:**
+
 - Command: `dotnet ef migrations add AddSaudiNationalAddressToCustomers --context BranchDbContext`
 - Output: "Build succeeded. Done."
 - Ready to apply: `dotnet ef database update --context BranchDbContext`
@@ -487,11 +522,12 @@ cd frontend && npm run build
 ### Example 1: Creating Customer with National Address
 
 **API Request:**
+
 ```json
 POST /api/v1/customers
 {
   "code": "CUST001",
-  "nameEn": "ABC Company",
+  "nameEn": "ABC Branch",
   "nameAr": "شركة ABC",
   "phone": "+966123456789",
   "buildingNumber": "7700",
@@ -505,10 +541,12 @@ POST /api/v1/customers
 ```
 
 **Validation:**
+
 - ✅ PostalCode: "12345" (valid - 5 digits)
 - ✅ AdditionalNumber: "6789" (valid - 4 digits)
 
 **Invalid Examples:**
+
 ```json
 {
   "postalCode": "1234"    // ❌ Error: "Postal code must be 5 digits"
@@ -522,6 +560,7 @@ POST /api/v1/customers
 ### Example 2: Invoice Display Configuration
 
 **Enable National Address Fields in Invoice:**
+
 ```typescript
 // In invoice builder UI
 const schema = {
@@ -539,18 +578,19 @@ const schema = {
           { key: "city", label: "City", visible: true },
           { key: "postalCode", label: "Postal Code", visible: true },
           { key: "additionalNumber", label: "Add. Number", visible: true },
-        ]
-      }
-    }
-  ]
+        ],
+      },
+    },
+  ],
 };
 ```
 
 **Invoice Rendering:**
+
 ```
 Customer Information
 ━━━━━━━━━━━━━━━━━━━━
-Customer:        ABC Company
+Customer:        ABC Branch
 Building #:      7700
 Street:          King Fahd Road
 District:        Al Olaya
@@ -564,35 +604,41 @@ Add. Number:     6789
 ## Key Features
 
 ✅ **Comprehensive Address Support**
+
 - 7 fields covering all Saudi National Address components
 - Follows Saudi Arabia's official address structure
 - Fully optional (nullable) fields
 
 ✅ **Proper Validation**
+
 - Postal Code: Exactly 5 digits (regex validated)
 - Additional Number: Exactly 4 digits (regex validated)
 - Field length restrictions per Saudi standards
 - Clear validation error messages
 
 ✅ **Schema-Driven Configuration**
+
 - All fields configurable via invoice schema
 - Opt-in visibility (default: hidden)
 - Customizable field labels
 - Easy to enable/disable per template
 
 ✅ **Type Safety**
+
 - Full TypeScript support
 - IntelliSense for all address fields
 - Compile-time type checking
 - No runtime type errors
 
 ✅ **Backward Compatibility**
+
 - All new fields are optional
 - Existing customers unaffected
 - Existing invoices continue to work
 - No breaking changes
 
 ✅ **Database Safety**
+
 - Nullable columns only
 - No data loss risk
 - Reversible migration
@@ -605,6 +651,7 @@ Add. Number:     6789
 Phase 4 is now complete. The system is ready for Phase 5:
 
 ### Phase 5: Full RTL Layout (5 tasks)
+
 1. Add RTL detection logic to invoice renderer
 2. Apply RTL CSS classes based on Arabic content
 3. Mirror text alignment and layout direction
@@ -616,6 +663,7 @@ Phase 4 is now complete. The system is ready for Phase 5:
 ## Code Statistics
 
 **Backend Changes:**
+
 - 6 files modified
 - ~150 lines added (entity, DTOs, service mappings)
 - 1 database migration created
@@ -623,12 +671,14 @@ Phase 4 is now complete. The system is ready for Phase 5:
 - 7 service method updates
 
 **Frontend Changes:**
+
 - 2 files modified
 - ~30 lines added (types, mapping, rendering)
 - 7 new InvoiceData interface properties
 - Schema field array extended
 
 **Total Implementation:**
+
 - 9 files modified
 - ~180 lines of code added
 - 0 errors, 0 warnings (new code)
@@ -640,9 +690,11 @@ Phase 4 is now complete. The system is ready for Phase 5:
 ## Documentation
 
 This implementation summary has been created at:
+
 - `docs/invoice builder/2025-12-10-phase-4-saudi-national-address-implementation.md`
 
 Progress tracking updated at:
+
 - `docs/invoice builder/2025-12-10-implementation-progress.md`
 
 ---

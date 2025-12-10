@@ -29,11 +29,12 @@ Implemented automatic seeding of default invoice templates for all branch databa
 ## Templates Created
 
 ### 1. 58mm Thermal Receipt (Compact)
+
 - **Name**: "Default 58mm Thermal Receipt"
 - **Status**: Inactive (available for selection)
 - **Features**:
   - Minimal layout optimized for narrow 58mm paper
-  - Company logo and name (English + Arabic)
+  - Branch logo and name (English + Arabic)
   - Basic invoice info (number, date, cashier)
   - Simple item table (Name, Qty, Total)
   - Totals section with VAT
@@ -41,11 +42,12 @@ Implemented automatic seeding of default invoice templates for all branch databa
   - Thank you message
 
 ### 2. 80mm Thermal Receipt (Default) ⭐
+
 - **Name**: "Default 80mm Thermal Receipt"
 - **Status**: **Active** (default template)
 - **Features**:
   - Standard layout for 80mm thermal printers
-  - Full company information with logo
+  - Full branch information with logo
   - Complete invoice details
   - Customer information section
   - Detailed item table (Item, Qty, Price, Total)
@@ -55,11 +57,12 @@ Implemented automatic seeding of default invoice templates for all branch databa
   - Multi-line footer messages
 
 ### 3. A4 Professional Invoice
+
 - **Name**: "Default A4 Invoice"
 - **Status**: Inactive (available for selection)
 - **Features**:
   - Professional split-layout design
-  - Company logo and full contact details
+  - Branch logo and full contact details
   - Bill To section with customer details
   - Comprehensive item table with index numbers
   - Discount column support
@@ -77,6 +80,7 @@ Implemented automatic seeding of default invoice templates for all branch databa
 **Location**: `Backend/Data/Branch/InvoiceTemplateSeeder.cs` (335 lines)
 
 **Key Methods**:
+
 ```csharp
 public static async Task SeedAsync(BranchDbContext context, Guid adminUserId)
 {
@@ -98,11 +102,13 @@ public static async Task SeedAsync(BranchDbContext context, Guid adminUserId)
 ```
 
 **Template Methods**:
+
 - `CreateThermal58mmTemplate()` - Returns InvoiceTemplate with 58mm JSON schema
 - `CreateThermal80mmTemplate()` - Returns InvoiceTemplate with 80mm JSON schema (active)
 - `CreateA4Template()` - Returns InvoiceTemplate with A4 JSON schema
 
 **Schema Structure**:
+
 - All schemas are stored as JSON strings
 - Follow the InvoiceSchema format from frontend types
 - Include sections: header, invoice-info, customer-info, line-items, totals, footer
@@ -112,6 +118,7 @@ public static async Task SeedAsync(BranchDbContext context, Guid adminUserId)
 ### Integration Points
 
 **BranchDbSeeder.cs** (line 1499-1501):
+
 ```csharp
 // Seed Invoice Templates (58mm, 80mm, A4)
 await InvoiceTemplateSeeder.SeedAsync(context, adminUserId);
@@ -119,6 +126,7 @@ Console.WriteLine($"    ✓ Created default invoice templates (58mm, 80mm, A4)")
 ```
 
 **HeadOfficeDbSeeder.cs** (line 252-253):
+
 ```csharp
 // Always ensure invoice templates exist (runs even for existing branches)
 await Branch.InvoiceTemplateSeeder.SeedAsync(branchContext, adminUser.Id);
@@ -129,6 +137,7 @@ await Branch.InvoiceTemplateSeeder.SeedAsync(branchContext, adminUser.Id);
 ## Seeding Behavior
 
 ### For New Branches
+
 1. Branch database is created
 2. BranchDbSeeder runs and seeds:
    - Categories
@@ -139,6 +148,7 @@ await Branch.InvoiceTemplateSeeder.SeedAsync(branchContext, adminUser.Id);
 3. Console output: `✓ Created default invoice templates (58mm, 80mm, A4)`
 
 ### For Existing Branches
+
 1. HeadOfficeDbSeeder checks all active branches
 2. Calls InvoiceTemplateSeeder for each branch
 3. Seeder checks if templates exist
@@ -146,6 +156,7 @@ await Branch.InvoiceTemplateSeeder.SeedAsync(branchContext, adminUser.Id);
 5. If templates exist, skips seeding (no duplicates)
 
 ### Idempotent Behavior
+
 - ✅ Safe to run multiple times
 - ✅ No duplicate templates created
 - ✅ Only seeds if template count is 0
@@ -170,6 +181,7 @@ await Branch.InvoiceTemplateSeeder.SeedAsync(branchContext, adminUser.Id);
 ### Manual Testing
 
 1. **New Branch Test**:
+
    ```bash
    # Create a new branch via Head Office API
    POST /api/v1/branches
@@ -179,6 +191,7 @@ await Branch.InvoiceTemplateSeeder.SeedAsync(branchContext, adminUser.Id);
    ```
 
 2. **Existing Branch Test**:
+
    ```bash
    # Delete all invoice templates from an existing branch
    DELETE /api/v1/invoice-templates/{id}
@@ -197,6 +210,7 @@ await Branch.InvoiceTemplateSeeder.SeedAsync(branchContext, adminUser.Id);
 ### Automated Testing
 
 Consider adding unit tests for:
+
 - `InvoiceTemplateSeeder.SeedAsync()` - Verifies 3 templates created
 - Template JSON validity - Parse each schema to ensure valid JSON
 - Default active template - Verify only 80mm is active
@@ -206,6 +220,7 @@ Consider adding unit tests for:
 ## Future Enhancements
 
 Potential improvements:
+
 1. **Configurable Defaults** - Allow head office to choose default template size
 2. **Template Marketplace** - Share custom templates across branches
 3. **Template Versioning** - Track template changes over time
@@ -220,10 +235,12 @@ Potential improvements:
 For existing deployments:
 
 **Option 1: Restart Application**
+
 - Simply restart the backend
 - HeadOfficeDbSeeder will automatically seed templates for branches without any
 
 **Option 2: Manual Seeding**
+
 ```bash
 # Run database migrations
 dotnet ef database update --context HeadOfficeDbContext
@@ -231,6 +248,7 @@ dotnet ef database update --context HeadOfficeDbContext
 ```
 
 **Option 3: API Call (Future)**
+
 ```bash
 # Trigger template seeding via API endpoint
 POST /api/v1/admin/seed-invoice-templates
@@ -241,9 +259,11 @@ POST /api/v1/admin/seed-invoice-templates
 ## Files Changed
 
 ### Backend Created (1 file)
+
 - `Backend/Data/Branch/InvoiceTemplateSeeder.cs` (335 lines)
 
 ### Backend Modified (2 files)
+
 - `Backend/Data/Branch/BranchDbSeeder.cs` (added seeder call)
 - `Backend/Data/HeadOffice/HeadOfficeDbSeeder.cs` (added seeder call)
 
@@ -266,6 +286,7 @@ POST /api/v1/admin/seed-invoice-templates
 **Implementation completed on:** December 9, 2025
 **Feature status:** ✅ Production Ready
 **Console Output Example**:
+
 ```
 === Creating Branch Databases ===
 ✓ Branch database created/verified: B001 (SQLite)
@@ -280,4 +301,4 @@ POST /api/v1/admin/seed-invoice-templates
 
 ---
 
-*This feature eliminates the need for manual template creation and provides immediate value to users.*
+_This feature eliminates the need for manual template creation and provides immediate value to users._
