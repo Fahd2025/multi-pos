@@ -13,11 +13,50 @@ namespace Backend.Migrations.Branch
         {
             migrationBuilder.DropTable(
                 name: "CompanyInfo");
+
+            migrationBuilder.CreateTable(
+                name: "InvoiceTemplates",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
+                    PaperSize = table.Column<int>(type: "INTEGER", nullable: false),
+                    CustomWidth = table.Column<int>(type: "INTEGER", nullable: true),
+                    CustomHeight = table.Column<int>(type: "INTEGER", nullable: true),
+                    Schema = table.Column<string>(type: "TEXT", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    CreatedBy = table.Column<Guid>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_InvoiceTemplates", x => x.Id);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InvoiceTemplates_Name",
+                table: "InvoiceTemplates",
+                column: "Name");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InvoiceTemplates_IsActive",
+                table: "InvoiceTemplates",
+                column: "IsActive");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InvoiceTemplates_CreatedAt",
+                table: "InvoiceTemplates",
+                column: "CreatedAt");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "InvoiceTemplates");
+
             migrationBuilder.CreateTable(
                 name: "CompanyInfo",
                 columns: table => new

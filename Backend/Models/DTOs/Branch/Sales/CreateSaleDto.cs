@@ -10,6 +10,11 @@ public class CreateSaleDto
     [Required]
     public InvoiceType InvoiceType { get; set; }
 
+    [MaxLength(50)]
+    public string? OrderNumber { get; set; }
+
+    public OrderType? OrderType { get; set; }
+
     [Required]
     [MinLength(1, ErrorMessage = "At least one line item is required")]
     public List<CreateSaleLineItemDto> LineItems { get; set; } = new();
@@ -20,6 +25,12 @@ public class CreateSaleDto
     [MaxLength(200)]
     public string? PaymentReference { get; set; }
 
+    [Range(0, double.MaxValue, ErrorMessage = "Amount paid cannot be negative")]
+    public decimal? AmountPaid { get; set; }
+
+    [Range(0, double.MaxValue, ErrorMessage = "Change returned cannot be negative")]
+    public decimal? ChangeReturned { get; set; }
+
     [MaxLength(1000)]
     public string? Notes { get; set; }
 }
@@ -28,6 +39,12 @@ public class CreateSaleLineItemDto
 {
     [Required]
     public Guid ProductId { get; set; }
+
+    [MaxLength(100)]
+    public string? Barcode { get; set; }
+
+    [MaxLength(50)]
+    public string? Unit { get; set; }
 
     [Required]
     [Range(1, int.MaxValue, ErrorMessage = "Quantity must be greater than 0")]
@@ -43,4 +60,7 @@ public class CreateSaleLineItemDto
     [Required]
     [Range(0, double.MaxValue, ErrorMessage = "Discount value cannot be negative")]
     public decimal DiscountValue { get; set; } = 0;
+
+    [MaxLength(500)]
+    public string? Notes { get; set; }
 }

@@ -13,6 +13,12 @@ public class SaleLineItem
     [Required]
     public Guid ProductId { get; set; }
 
+    [MaxLength(100)]
+    public string? Barcode { get; set; }
+
+    [MaxLength(50)]
+    public string? Unit { get; set; }
+
     [Required]
     public int Quantity { get; set; }
 
@@ -30,6 +36,9 @@ public class SaleLineItem
 
     [Required]
     public decimal LineTotal { get; set; }
+
+    [MaxLength(500)]
+    public string? Notes { get; set; }
 
     // Navigation properties
     public Sale Sale { get; set; } = null!;

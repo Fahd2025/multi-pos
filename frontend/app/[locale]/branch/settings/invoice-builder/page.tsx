@@ -111,73 +111,151 @@ export default function InvoiceBuilderPage() {
     switch (section.type) {
       case "header":
         return (
-          <div className="space-y-3">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={section.config?.showLogo ?? true}
-                onChange={(e) =>
-                  updateSectionConfig(section.id, { showLogo: e.target.checked })
-                }
-                className="rounded border-gray-300 dark:border-gray-600"
-              />
-              <span className="text-sm text-gray-700 dark:text-gray-300">Show Logo</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={section.config?.showCompanyName ?? true}
-                onChange={(e) =>
-                  updateSectionConfig(section.id, { showCompanyName: e.target.checked })
-                }
-                className="rounded border-gray-300 dark:border-gray-600"
-              />
-              <span className="text-sm text-gray-700 dark:text-gray-300">Show Company Name</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={section.config?.showAddress ?? true}
-                onChange={(e) =>
-                  updateSectionConfig(section.id, { showAddress: e.target.checked })
-                }
-                className="rounded border-gray-300 dark:border-gray-600"
-              />
-              <span className="text-sm text-gray-700 dark:text-gray-300">Show Address</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={section.config?.showPhone ?? true}
-                onChange={(e) =>
-                  updateSectionConfig(section.id, { showPhone: e.target.checked })
-                }
-                className="rounded border-gray-300 dark:border-gray-600"
-              />
-              <span className="text-sm text-gray-700 dark:text-gray-300">Show Phone</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={section.config?.showVatNumber ?? true}
-                onChange={(e) =>
-                  updateSectionConfig(section.id, { showVatNumber: e.target.checked })
-                }
-                className="rounded border-gray-300 dark:border-gray-600"
-              />
-              <span className="text-sm text-gray-700 dark:text-gray-300">Show VAT Number</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={section.config?.showCRN ?? true}
-                onChange={(e) =>
-                  updateSectionConfig(section.id, { showCRN: e.target.checked })
-                }
-                className="rounded border-gray-300 dark:border-gray-600"
-              />
-              <span className="text-sm text-gray-700 dark:text-gray-300">Show Commercial Reg. Number</span>
-            </label>
+          <div className="space-y-4">
+            {/* Logo */}
+            <div>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={section.config?.showLogo ?? true}
+                  onChange={(e) =>
+                    updateSectionConfig(section.id, { showLogo: e.target.checked })
+                  }
+                  className="rounded border-gray-300 dark:border-gray-600"
+                />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Show Logo</span>
+              </label>
+            </div>
+
+            {/* Branch Name */}
+            <div>
+              <label className="flex items-center gap-2 mb-1">
+                <input
+                  type="checkbox"
+                  checked={section.config?.showBranchName ?? true}
+                  onChange={(e) =>
+                    updateSectionConfig(section.id, { showBranchName: e.target.checked })
+                  }
+                  className="rounded border-gray-300 dark:border-gray-600"
+                />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Show Branch Name</span>
+              </label>
+              {section.config?.showBranchName && (
+                <input
+                  type="text"
+                  value={section.config?.branchNameLabel || "Branch Name"}
+                  onChange={(e) =>
+                    updateSectionConfig(section.id, { branchNameLabel: e.target.value })
+                  }
+                  className="mt-1 w-full px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
+                  placeholder="Label for Branch Name"
+                />
+              )}
+            </div>
+
+            {/* Address */}
+            <div>
+              <label className="flex items-center gap-2 mb-1">
+                <input
+                  type="checkbox"
+                  checked={section.config?.showAddress ?? true}
+                  onChange={(e) =>
+                    updateSectionConfig(section.id, { showAddress: e.target.checked })
+                  }
+                  className="rounded border-gray-300 dark:border-gray-600"
+                />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Show Address</span>
+              </label>
+              {section.config?.showAddress && (
+                <input
+                  type="text"
+                  value={section.config?.addressLabel || "Address"}
+                  onChange={(e) =>
+                    updateSectionConfig(section.id, { addressLabel: e.target.value })
+                  }
+                  className="mt-1 w-full px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
+                  placeholder="Label for Address"
+                />
+              )}
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label className="flex items-center gap-2 mb-1">
+                <input
+                  type="checkbox"
+                  checked={section.config?.showPhone ?? true}
+                  onChange={(e) =>
+                    updateSectionConfig(section.id, { showPhone: e.target.checked })
+                  }
+                  className="rounded border-gray-300 dark:border-gray-600"
+                />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Show Phone</span>
+              </label>
+              {section.config?.showPhone && (
+                <input
+                  type="text"
+                  value={section.config?.phoneLabel || "Phone"}
+                  onChange={(e) =>
+                    updateSectionConfig(section.id, { phoneLabel: e.target.value })
+                  }
+                  className="mt-1 w-full px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
+                  placeholder="Label for Phone"
+                />
+              )}
+            </div>
+
+            {/* VAT Number */}
+            <div>
+              <label className="flex items-center gap-2 mb-1">
+                <input
+                  type="checkbox"
+                  checked={section.config?.showVatNumber ?? true}
+                  onChange={(e) =>
+                    updateSectionConfig(section.id, { showVatNumber: e.target.checked })
+                  }
+                  className="rounded border-gray-300 dark:border-gray-600"
+                />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Show VAT Number</span>
+              </label>
+              {section.config?.showVatNumber && (
+                <input
+                  type="text"
+                  value={section.config?.vatNumberLabel || "VAT Number"}
+                  onChange={(e) =>
+                    updateSectionConfig(section.id, { vatNumberLabel: e.target.value })
+                  }
+                  className="mt-1 w-full px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
+                  placeholder="Label for VAT Number"
+                />
+              )}
+            </div>
+
+            {/* Commercial Registration Number */}
+            <div>
+              <label className="flex items-center gap-2 mb-1">
+                <input
+                  type="checkbox"
+                  checked={section.config?.showCRN ?? true}
+                  onChange={(e) =>
+                    updateSectionConfig(section.id, { showCRN: e.target.checked })
+                  }
+                  className="rounded border-gray-300 dark:border-gray-600"
+                />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Show Commercial Reg. Number</span>
+              </label>
+              {section.config?.showCRN && (
+                <input
+                  type="text"
+                  value={section.config?.crnLabel || "CR Number"}
+                  onChange={(e) =>
+                    updateSectionConfig(section.id, { crnLabel: e.target.value })
+                  }
+                  className="mt-1 w-full px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
+                  placeholder="Label for CR Number"
+                />
+              )}
+            </div>
           </div>
         );
 
@@ -318,45 +396,69 @@ export default function InvoiceBuilderPage() {
 
       case "footer":
         return (
-          <div className="space-y-3">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={section.config?.showZatcaQR ?? true}
-                onChange={(e) =>
-                  updateSectionConfig(section.id, { showZatcaQR: e.target.checked })
-                }
-                className="rounded border-gray-300 dark:border-gray-600"
-              />
-              <span className="text-sm text-gray-700 dark:text-gray-300">Show ZATCA QR Code</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={section.config?.showNotes ?? true}
-                onChange={(e) =>
-                  updateSectionConfig(section.id, { showNotes: e.target.checked })
-                }
-                className="rounded border-gray-300 dark:border-gray-600"
-              />
-              <span className="text-sm text-gray-700 dark:text-gray-300">Show Notes</span>
-            </label>
-            {section.config?.showNotes && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Notes Text
-                </label>
-                <textarea
-                  value={section.config?.notesText || ""}
+          <div className="space-y-4">
+            {/* ZATCA QR Code */}
+            <div>
+              <label className="flex items-center gap-2 mb-1">
+                <input
+                  type="checkbox"
+                  checked={section.config?.showZatcaQR ?? true}
                   onChange={(e) =>
-                    updateSectionConfig(section.id, { notesText: e.target.value })
+                    updateSectionConfig(section.id, { showZatcaQR: e.target.checked })
                   }
-                  rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                  placeholder="Thank you for your business!"
+                  className="rounded border-gray-300 dark:border-gray-600"
                 />
-              </div>
-            )}
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Show ZATCA QR Code</span>
+              </label>
+              {section.config?.showZatcaQR && (
+                <input
+                  type="text"
+                  value={section.config?.zatcaQRLabel || "Scan for e-Invoice"}
+                  onChange={(e) =>
+                    updateSectionConfig(section.id, { zatcaQRLabel: e.target.value })
+                  }
+                  className="mt-1 w-full px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
+                  placeholder="Label for QR Code"
+                />
+              )}
+            </div>
+
+            {/* Notes Section */}
+            <div>
+              <label className="flex items-center gap-2 mb-1">
+                <input
+                  type="checkbox"
+                  checked={section.config?.showNotes ?? true}
+                  onChange={(e) =>
+                    updateSectionConfig(section.id, { showNotes: e.target.checked })
+                  }
+                  className="rounded border-gray-300 dark:border-gray-600"
+                />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Show Notes</span>
+              </label>
+              {section.config?.showNotes && (
+                <>
+                  <input
+                    type="text"
+                    value={section.config?.notesLabel || "Notes"}
+                    onChange={(e) =>
+                      updateSectionConfig(section.id, { notesLabel: e.target.value })
+                    }
+                    className="mt-1 w-full px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
+                    placeholder="Section Label"
+                  />
+                  <textarea
+                    value={section.config?.notesText || ""}
+                    onChange={(e) =>
+                      updateSectionConfig(section.id, { notesText: e.target.value })
+                    }
+                    rows={2}
+                    className="mt-2 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                    placeholder="Notes content"
+                  />
+                </>
+              )}
+            </div>
           </div>
         );
 

@@ -75,25 +75,33 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(
               />
             </div>
           )}
-          {config.showCompanyName && data.companyName && (
+          {(config.showBranchName || config.showCompanyName) && data.companyName && (
             <h1 className="text-xl font-bold mb-1">{data.companyName}</h1>
           )}
-          {config.showCompanyName && data.companyNameAr && (
+          {(config.showBranchName || config.showCompanyName) && data.companyNameAr && (
             <h2 className="text-lg mb-2" dir="rtl">
               {data.companyNameAr}
             </h2>
           )}
           {config.showAddress && data.address && (
-            <p className="text-sm text-gray-700">{data.address}</p>
+            <p className="text-sm text-gray-700">
+              {config.addressLabel || "Address"}: {data.address}
+            </p>
           )}
           {config.showPhone && data.phone && (
-            <p className="text-sm text-gray-700">Tel: {data.phone}</p>
+            <p className="text-sm text-gray-700">
+              {config.phoneLabel || "Phone"}: {data.phone}
+            </p>
           )}
           {config.showVatNumber && data.vatNumber && (
-            <p className="text-sm text-gray-700">VAT: {data.vatNumber}</p>
+            <p className="text-sm text-gray-700">
+              {config.vatNumberLabel || "VAT Number"}: {data.vatNumber}
+            </p>
           )}
           {config.showCRN && data.commercialRegNumber && (
-            <p className="text-sm text-gray-700">CR: {data.commercialRegNumber}</p>
+            <p className="text-sm text-gray-700">
+              {config.crnLabel || "CR Number"}: {data.commercialRegNumber}
+            </p>
           )}
         </div>
       );
@@ -254,11 +262,19 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(
         <div className="invoice-footer mt-4 pt-4 border-t border-gray-300 text-center">
           {config.showZatcaQR && data.zatcaQrCode && (
             <div className="mb-3">
+              {config.zatcaQRLabel && (
+                <p className="text-xs text-gray-600 mb-1">{config.zatcaQRLabel}</p>
+              )}
               <QRCodeDisplay value={data.zatcaQrCode} size={128} />
             </div>
           )}
           {config.showNotes && config.notesText && (
-            <p className="text-sm text-gray-600 mb-2">{config.notesText}</p>
+            <div className="mb-2">
+              {config.notesLabel && (
+                <p className="text-xs font-semibold text-gray-700 mb-1">{config.notesLabel}</p>
+              )}
+              <p className="text-sm text-gray-600">{config.notesText}</p>
+            </div>
           )}
         </div>
       );

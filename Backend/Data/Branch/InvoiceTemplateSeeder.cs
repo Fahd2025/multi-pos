@@ -39,76 +39,124 @@ public static class InvoiceTemplateSeeder
     {
         var schema = @"{
   ""version"": ""1.0"",
-  ""paperSize"": ""58mm"",
+  ""paperSize"": ""Thermal58mm"",
+  ""priceIncludesVat"": true,
   ""sections"": [
     {
-      ""id"": ""header-58"",
+      ""id"": ""header"",
       ""type"": ""header"",
+      ""order"": 1,
       ""visible"": true,
-      ""alignment"": ""center"",
-      ""fields"": [
-        { ""field"": ""companyLogo"", ""show"": true, ""maxHeight"": 50 },
-        { ""field"": ""companyName"", ""show"": true, ""fontSize"": 14, ""bold"": true },
-        { ""field"": ""companyNameAr"", ""show"": true, ""fontSize"": 12, ""bold"": true },
-        { ""field"": ""vatNumber"", ""show"": true, ""prefix"": ""VAT: "" },
-        { ""field"": ""phone"", ""show"": true }
-      ]
+      ""config"": {
+        ""showLogo"": true,
+        ""showBranchName"": true,
+        ""branchNameLabel"": ""Branch Name"",
+        ""showAddress"": false,
+        ""addressLabel"": ""Address"",
+        ""showPhone"": true,
+        ""phoneLabel"": ""Phone"",
+        ""showVatNumber"": true,
+        ""vatNumberLabel"": ""VAT Number"",
+        ""showCRN"": false,
+        ""crnLabel"": ""CR Number"",
+        ""alignment"": ""center""
+      }
     },
     {
-      ""id"": ""invoice-info-58"",
-      ""type"": ""invoice-info"",
+      ""id"": ""invoice-title"",
+      ""type"": ""title"",
+      ""order"": 2,
       ""visible"": true,
-      ""alignment"": ""left"",
-      ""fields"": [
-        { ""field"": ""invoiceType"", ""show"": true, ""fontSize"": 12, ""bold"": true },
-        { ""field"": ""invoiceNumber"", ""show"": true, ""prefix"": ""Invoice: "" },
-        { ""field"": ""invoiceDate"", ""show"": true, ""prefix"": ""Date: "" },
-        { ""field"": ""cashierName"", ""show"": true, ""prefix"": ""Cashier: "" }
-      ]
+      ""config"": {
+        ""dynamicTitle"": true,
+        ""standardTitle"": ""Standard Tax Invoice"",
+        ""simplifiedTitle"": ""Simplified Tax Invoice""
+      }
     },
     {
-      ""id"": ""customer-info-58"",
-      ""type"": ""customer-info"",
+      ""id"": ""customer-info"",
+      ""type"": ""customer"",
+      ""order"": 3,
       ""visible"": false,
-      ""alignment"": ""left"",
-      ""fields"": [
-        { ""field"": ""customerName"", ""show"": true, ""prefix"": ""Customer: "" }
-      ]
+      ""config"": {
+        ""fields"": [
+          { ""key"": ""name"", ""label"": ""Customer Name"", ""visible"": true },
+          { ""key"": ""vatNumber"", ""label"": ""VAT Number"", ""visible"": false },
+          { ""key"": ""phone"", ""label"": ""Phone"", ""visible"": false }
+        ]
+      }
     },
     {
-      ""id"": ""line-items-58"",
-      ""type"": ""line-items"",
+      ""id"": ""invoice-meta"",
+      ""type"": ""metadata"",
+      ""order"": 4,
       ""visible"": true,
-      ""showBorders"": false,
-      ""columns"": [
-        { ""field"": ""name"", ""label"": ""Item"", ""width"": 60 },
-        { ""field"": ""quantity"", ""label"": ""Qty"", ""width"": 15, ""alignment"": ""right"" },
-        { ""field"": ""lineTotal"", ""label"": ""Total"", ""width"": 25, ""alignment"": ""right"" }
-      ]
+      ""config"": {
+        ""fields"": [
+          { ""key"": ""invoiceNumber"", ""label"": ""Invoice #"", ""visible"": true },
+          { ""key"": ""date"", ""label"": ""Date"", ""visible"": true },
+          { ""key"": ""cashier"", ""label"": ""Cashier"", ""visible"": true }
+        ]
+      }
     },
     {
-      ""id"": ""totals-58"",
-      ""type"": ""totals"",
+      ""id"": ""items-table"",
+      ""type"": ""items"",
+      ""order"": 5,
       ""visible"": true,
-      ""alignment"": ""right"",
-      ""fields"": [
-        { ""field"": ""subtotal"", ""show"": true, ""label"": ""Subtotal"" },
-        { ""field"": ""discount"", ""show"": true, ""label"": ""Discount"" },
-        { ""field"": ""vatAmount"", ""show"": true, ""label"": ""VAT (15%)"" },
-        { ""field"": ""total"", ""show"": true, ""label"": ""TOTAL"", ""fontSize"": 14, ""bold"": true }
-      ]
+      ""config"": {
+        ""columns"": [
+          { ""key"": ""name"", ""label"": ""Item"", ""visible"": true, ""width"": ""60%"" },
+          { ""key"": ""quantity"", ""label"": ""Qty"", ""visible"": true, ""width"": ""15%"" },
+          { ""key"": ""price"", ""label"": ""Price"", ""visible"": false, ""width"": ""0%"" },
+          { ""key"": ""total"", ""label"": ""Total"", ""visible"": true, ""width"": ""25%"" }
+        ]
+      }
     },
     {
-      ""id"": ""footer-58"",
+      ""id"": ""summary"",
+      ""type"": ""summary"",
+      ""order"": 6,
+      ""visible"": true,
+      ""config"": {
+        ""fields"": [
+          { ""key"": ""subtotal"", ""label"": ""Subtotal"", ""visible"": true },
+          { ""key"": ""discount"", ""label"": ""Discount"", ""visible"": true },
+          { ""key"": ""vatAmount"", ""label"": ""VAT (15%)"", ""visible"": true },
+          { ""key"": ""total"", ""label"": ""Total"", ""visible"": true, ""highlight"": true }
+        ]
+      }
+    },
+    {
+      ""id"": ""footer"",
       ""type"": ""footer"",
+      ""order"": 7,
       ""visible"": true,
-      ""alignment"": ""center"",
-      ""fields"": [
-        { ""field"": ""zatcaQrCode"", ""show"": true, ""size"": 100 },
-        { ""field"": ""customText"", ""show"": true, ""text"": ""Thank you for your business!"" }
-      ]
+      ""config"": {
+        ""showZatcaQR"": true,
+        ""zatcaQRLabel"": ""Scan for e-Invoice"",
+        ""showNotes"": true,
+        ""notesLabel"": ""Notes"",
+        ""notesText"": ""Thank you for your business!"",
+        ""showPoweredBy"": false,
+        ""poweredByText"": """"
+      }
     }
-  ]
+  ],
+  ""styling"": {
+    ""fontFamily"": ""Arial, sans-serif"",
+    ""fontSize"": {
+      ""header"": ""12px"",
+      ""title"": ""14px"",
+      ""body"": ""10px"",
+      ""footer"": ""9px""
+    },
+    ""spacing"": {
+      ""sectionGap"": ""12px"",
+      ""lineHeight"": ""1.4"",
+      ""padding"": ""8px""
+    }
+  }
 }";
 
         return new InvoiceTemplate
@@ -132,107 +180,124 @@ public static class InvoiceTemplateSeeder
     {
         var schema = @"{
   ""version"": ""1.0"",
-  ""paperSize"": ""80mm"",
+  ""paperSize"": ""Thermal80mm"",
+  ""priceIncludesVat"": true,
   ""sections"": [
     {
-      ""id"": ""header-80"",
+      ""id"": ""header"",
       ""type"": ""header"",
+      ""order"": 1,
       ""visible"": true,
-      ""alignment"": ""center"",
-      ""fields"": [
-        { ""field"": ""companyLogo"", ""show"": true, ""maxHeight"": 80 },
-        { ""field"": ""companyName"", ""show"": true, ""fontSize"": 16, ""bold"": true },
-        { ""field"": ""companyNameAr"", ""show"": true, ""fontSize"": 14, ""bold"": true },
-        { ""field"": ""address"", ""show"": true, ""fontSize"": 10 },
-        { ""field"": ""phone"", ""show"": true, ""fontSize"": 10 },
-        { ""field"": ""vatNumber"", ""show"": true, ""prefix"": ""VAT: "", ""fontSize"": 10 },
-        { ""field"": ""commercialRegNumber"", ""show"": true, ""prefix"": ""CR: "", ""fontSize"": 10 }
-      ]
+      ""config"": {
+        ""showLogo"": true,
+        ""showBranchName"": true,
+        ""branchNameLabel"": ""Branch Name"",
+        ""showAddress"": true,
+        ""addressLabel"": ""Address"",
+        ""showPhone"": true,
+        ""phoneLabel"": ""Phone"",
+        ""showVatNumber"": true,
+        ""vatNumberLabel"": ""VAT Number"",
+        ""showCRN"": true,
+        ""crnLabel"": ""CR Number"",
+        ""alignment"": ""center""
+      }
     },
     {
-      ""id"": ""separator-1-80"",
-      ""type"": ""separator"",
+      ""id"": ""invoice-title"",
+      ""type"": ""title"",
+      ""order"": 2,
       ""visible"": true,
-      ""style"": ""dashed""
+      ""config"": {
+        ""dynamicTitle"": true,
+        ""standardTitle"": ""Standard Tax Invoice"",
+        ""simplifiedTitle"": ""Simplified Tax Invoice""
+      }
     },
     {
-      ""id"": ""invoice-info-80"",
-      ""type"": ""invoice-info"",
+      ""id"": ""customer-info"",
+      ""type"": ""customer"",
+      ""order"": 3,
       ""visible"": true,
-      ""alignment"": ""left"",
-      ""fields"": [
-        { ""field"": ""invoiceType"", ""show"": true, ""fontSize"": 14, ""bold"": true, ""alignment"": ""center"" },
-        { ""field"": ""invoiceNumber"", ""show"": true, ""prefix"": ""Invoice #: "", ""bold"": true },
-        { ""field"": ""invoiceDate"", ""show"": true, ""prefix"": ""Date: "" },
-        { ""field"": ""cashierName"", ""show"": true, ""prefix"": ""Cashier: "" }
-      ]
+      ""config"": {
+        ""fields"": [
+          { ""key"": ""name"", ""label"": ""Customer Name"", ""visible"": true },
+          { ""key"": ""vatNumber"", ""label"": ""VAT Number"", ""visible"": true },
+          { ""key"": ""phone"", ""label"": ""Phone"", ""visible"": true }
+        ]
+      }
     },
     {
-      ""id"": ""customer-info-80"",
-      ""type"": ""customer-info"",
+      ""id"": ""invoice-meta"",
+      ""type"": ""metadata"",
+      ""order"": 4,
       ""visible"": true,
-      ""alignment"": ""left"",
-      ""fields"": [
-        { ""field"": ""customerName"", ""show"": true, ""prefix"": ""Customer: "", ""bold"": true },
-        { ""field"": ""customerVatNumber"", ""show"": true, ""prefix"": ""VAT: "" },
-        { ""field"": ""customerPhone"", ""show"": true, ""prefix"": ""Phone: "" }
-      ]
+      ""config"": {
+        ""fields"": [
+          { ""key"": ""invoiceNumber"", ""label"": ""Invoice #"", ""visible"": true },
+          { ""key"": ""date"", ""label"": ""Date"", ""visible"": true },
+          { ""key"": ""cashier"", ""label"": ""Cashier"", ""visible"": true }
+        ]
+      }
     },
     {
-      ""id"": ""separator-2-80"",
-      ""type"": ""separator"",
+      ""id"": ""items-table"",
+      ""type"": ""items"",
+      ""order"": 5,
       ""visible"": true,
-      ""style"": ""solid""
+      ""config"": {
+        ""columns"": [
+          { ""key"": ""name"", ""label"": ""Item"", ""visible"": true, ""width"": ""40%"" },
+          { ""key"": ""quantity"", ""label"": ""Qty"", ""visible"": true, ""width"": ""15%"" },
+          { ""key"": ""price"", ""label"": ""Price"", ""visible"": true, ""width"": ""20%"" },
+          { ""key"": ""total"", ""label"": ""Total"", ""visible"": true, ""width"": ""25%"" }
+        ]
+      }
     },
     {
-      ""id"": ""line-items-80"",
-      ""type"": ""line-items"",
+      ""id"": ""summary"",
+      ""type"": ""summary"",
+      ""order"": 6,
       ""visible"": true,
-      ""showBorders"": true,
-      ""fontSize"": 10,
-      ""columns"": [
-        { ""field"": ""name"", ""label"": ""Item"", ""width"": 45 },
-        { ""field"": ""quantity"", ""label"": ""Qty"", ""width"": 10, ""alignment"": ""center"" },
-        { ""field"": ""unitPrice"", ""label"": ""Price"", ""width"": 20, ""alignment"": ""right"" },
-        { ""field"": ""lineTotal"", ""label"": ""Total"", ""width"": 25, ""alignment"": ""right"" }
-      ]
+      ""config"": {
+        ""fields"": [
+          { ""key"": ""subtotal"", ""label"": ""Subtotal"", ""visible"": true },
+          { ""key"": ""discount"", ""label"": ""Discount"", ""visible"": true },
+          { ""key"": ""vatAmount"", ""label"": ""VAT (15%)"", ""visible"": true },
+          { ""key"": ""total"", ""label"": ""Total"", ""visible"": true, ""highlight"": true }
+        ]
+      }
     },
     {
-      ""id"": ""separator-3-80"",
-      ""type"": ""separator"",
-      ""visible"": true,
-      ""style"": ""solid""
-    },
-    {
-      ""id"": ""totals-80"",
-      ""type"": ""totals"",
-      ""visible"": true,
-      ""alignment"": ""right"",
-      ""fields"": [
-        { ""field"": ""subtotal"", ""show"": true, ""label"": ""Subtotal:"", ""fontSize"": 11 },
-        { ""field"": ""discount"", ""show"": true, ""label"": ""Discount:"", ""fontSize"": 11 },
-        { ""field"": ""vatAmount"", ""show"": true, ""label"": ""VAT (15%):"", ""fontSize"": 11 },
-        { ""field"": ""total"", ""show"": true, ""label"": ""TOTAL:"", ""fontSize"": 16, ""bold"": true }
-      ]
-    },
-    {
-      ""id"": ""separator-4-80"",
-      ""type"": ""separator"",
-      ""visible"": true,
-      ""style"": ""dashed""
-    },
-    {
-      ""id"": ""footer-80"",
+      ""id"": ""footer"",
       ""type"": ""footer"",
+      ""order"": 7,
       ""visible"": true,
-      ""alignment"": ""center"",
-      ""fields"": [
-        { ""field"": ""zatcaQrCode"", ""show"": true, ""size"": 120 },
-        { ""field"": ""customText"", ""show"": true, ""text"": ""Thank you for your business!"", ""fontSize"": 11 },
-        { ""field"": ""customText"", ""show"": true, ""text"": ""Please visit us again"", ""fontSize"": 9 }
-      ]
+      ""config"": {
+        ""showZatcaQR"": true,
+        ""zatcaQRLabel"": ""Scan for e-Invoice"",
+        ""showNotes"": true,
+        ""notesLabel"": ""Notes"",
+        ""notesText"": ""Thank you for your business!"",
+        ""showPoweredBy"": false,
+        ""poweredByText"": """"
+      }
     }
-  ]
+  ],
+  ""styling"": {
+    ""fontFamily"": ""Arial, sans-serif"",
+    ""fontSize"": {
+      ""header"": ""14px"",
+      ""title"": ""16px"",
+      ""body"": ""12px"",
+      ""footer"": ""10px""
+    },
+    ""spacing"": {
+      ""sectionGap"": ""15px"",
+      ""lineHeight"": ""1.5"",
+      ""padding"": ""10px""
+    }
+  }
 }";
 
         return new InvoiceTemplate
@@ -257,106 +322,123 @@ public static class InvoiceTemplateSeeder
         var schema = @"{
   ""version"": ""1.0"",
   ""paperSize"": ""A4"",
+  ""priceIncludesVat"": true,
   ""sections"": [
     {
-      ""id"": ""header-a4"",
+      ""id"": ""header"",
       ""type"": ""header"",
+      ""order"": 1,
       ""visible"": true,
-      ""layout"": ""split"",
-      ""left"": {
+      ""config"": {
+        ""showLogo"": true,
+        ""showBranchName"": true,
+        ""branchNameLabel"": ""Branch Name"",
+        ""showAddress"": true,
+        ""addressLabel"": ""Address"",
+        ""showPhone"": true,
+        ""phoneLabel"": ""Phone"",
+        ""showVatNumber"": true,
+        ""vatNumberLabel"": ""VAT Number"",
+        ""showCRN"": true,
+        ""crnLabel"": ""CR Number"",
+        ""alignment"": ""center""
+      }
+    },
+    {
+      ""id"": ""invoice-title"",
+      ""type"": ""title"",
+      ""order"": 2,
+      ""visible"": true,
+      ""config"": {
+        ""dynamicTitle"": true,
+        ""standardTitle"": ""Standard Tax Invoice"",
+        ""simplifiedTitle"": ""Simplified Tax Invoice""
+      }
+    },
+    {
+      ""id"": ""customer-info"",
+      ""type"": ""customer"",
+      ""order"": 3,
+      ""visible"": true,
+      ""config"": {
         ""fields"": [
-          { ""field"": ""companyLogo"", ""show"": true, ""maxHeight"": 100 },
-          { ""field"": ""companyName"", ""show"": true, ""fontSize"": 20, ""bold"": true },
-          { ""field"": ""companyNameAr"", ""show"": true, ""fontSize"": 16, ""bold"": true }
-        ]
-      },
-      ""right"": {
-        ""alignment"": ""right"",
-        ""fields"": [
-          { ""field"": ""address"", ""show"": true, ""fontSize"": 11 },
-          { ""field"": ""phone"", ""show"": true, ""fontSize"": 11, ""prefix"": ""Tel: "" },
-          { ""field"": ""email"", ""show"": true, ""fontSize"": 11, ""prefix"": ""Email: "" },
-          { ""field"": ""website"", ""show"": true, ""fontSize"": 11 },
-          { ""field"": ""vatNumber"", ""show"": true, ""fontSize"": 11, ""prefix"": ""VAT: "", ""bold"": true },
-          { ""field"": ""commercialRegNumber"", ""show"": true, ""fontSize"": 11, ""prefix"": ""CR: "" }
+          { ""key"": ""name"", ""label"": ""Customer Name"", ""visible"": true },
+          { ""key"": ""vatNumber"", ""label"": ""VAT Number"", ""visible"": true },
+          { ""key"": ""phone"", ""label"": ""Phone"", ""visible"": true }
         ]
       }
     },
     {
-      ""id"": ""invoice-info-a4"",
-      ""type"": ""invoice-info"",
+      ""id"": ""invoice-meta"",
+      ""type"": ""metadata"",
+      ""order"": 4,
       ""visible"": true,
-      ""layout"": ""split"",
-      ""left"": {
-        ""title"": ""Bill To:"",
+      ""config"": {
         ""fields"": [
-          { ""field"": ""customerName"", ""show"": true, ""fontSize"": 12, ""bold"": true },
-          { ""field"": ""customerVatNumber"", ""show"": true, ""prefix"": ""VAT: "" },
-          { ""field"": ""customerPhone"", ""show"": true, ""prefix"": ""Phone: "" }
-        ]
-      },
-      ""right"": {
-        ""alignment"": ""right"",
-        ""fields"": [
-          { ""field"": ""invoiceType"", ""show"": true, ""fontSize"": 18, ""bold"": true },
-          { ""field"": ""invoiceNumber"", ""show"": true, ""fontSize"": 14, ""bold"": true },
-          { ""field"": ""invoiceDate"", ""show"": true, ""prefix"": ""Date: "", ""fontSize"": 12 },
-          { ""field"": ""cashierName"", ""show"": true, ""prefix"": ""Issued by: "", ""fontSize"": 11 }
+          { ""key"": ""invoiceNumber"", ""label"": ""Invoice #"", ""visible"": true },
+          { ""key"": ""date"", ""label"": ""Date"", ""visible"": true },
+          { ""key"": ""cashier"", ""label"": ""Cashier"", ""visible"": true }
         ]
       }
     },
     {
-      ""id"": ""line-items-a4"",
-      ""type"": ""line-items"",
+      ""id"": ""items-table"",
+      ""type"": ""items"",
+      ""order"": 5,
       ""visible"": true,
-      ""showBorders"": true,
-      ""fontSize"": 11,
-      ""headerBackground"": ""#f0f0f0"",
-      ""alternateRowColors"": true,
-      ""columns"": [
-        { ""field"": ""index"", ""label"": ""#"", ""width"": 5, ""alignment"": ""center"" },
-        { ""field"": ""name"", ""label"": ""Description"", ""width"": 45 },
-        { ""field"": ""quantity"", ""label"": ""Quantity"", ""width"": 10, ""alignment"": ""center"" },
-        { ""field"": ""unitPrice"", ""label"": ""Unit Price"", ""width"": 15, ""alignment"": ""right"" },
-        { ""field"": ""discount"", ""label"": ""Discount"", ""width"": 10, ""alignment"": ""right"" },
-        { ""field"": ""lineTotal"", ""label"": ""Total"", ""width"": 15, ""alignment"": ""right"", ""bold"": true }
-      ]
+      ""config"": {
+        ""columns"": [
+          { ""key"": ""name"", ""label"": ""Item"", ""visible"": true, ""width"": ""40%"" },
+          { ""key"": ""quantity"", ""label"": ""Qty"", ""visible"": true, ""width"": ""15%"" },
+          { ""key"": ""price"", ""label"": ""Price"", ""visible"": true, ""width"": ""20%"" },
+          { ""key"": ""total"", ""label"": ""Total"", ""visible"": true, ""width"": ""25%"" }
+        ]
+      }
     },
     {
-      ""id"": ""totals-a4"",
-      ""type"": ""totals"",
+      ""id"": ""summary"",
+      ""type"": ""summary"",
+      ""order"": 6,
       ""visible"": true,
-      ""alignment"": ""right"",
-      ""width"": 40,
-      ""fields"": [
-        { ""field"": ""subtotal"", ""show"": true, ""label"": ""Subtotal:"", ""fontSize"": 12 },
-        { ""field"": ""discount"", ""show"": true, ""label"": ""Total Discount:"", ""fontSize"": 12 },
-        { ""field"": ""vatAmount"", ""show"": true, ""label"": ""VAT (15%):"", ""fontSize"": 12 },
-        { ""field"": ""total"", ""show"": true, ""label"": ""GRAND TOTAL:"", ""fontSize"": 16, ""bold"": true, ""background"": ""#f0f0f0"" }
-      ]
+      ""config"": {
+        ""fields"": [
+          { ""key"": ""subtotal"", ""label"": ""Subtotal"", ""visible"": true },
+          { ""key"": ""discount"", ""label"": ""Discount"", ""visible"": true },
+          { ""key"": ""vatAmount"", ""label"": ""VAT (15%)"", ""visible"": true },
+          { ""key"": ""total"", ""label"": ""Total"", ""visible"": true, ""highlight"": true }
+        ]
+      }
     },
     {
-      ""id"": ""footer-a4"",
+      ""id"": ""footer"",
       ""type"": ""footer"",
+      ""order"": 7,
       ""visible"": true,
-      ""layout"": ""split"",
-      ""left"": {
-        ""fields"": [
-          { ""field"": ""customText"", ""show"": true, ""text"": ""Terms & Conditions:"", ""bold"": true, ""fontSize"": 10 },
-          { ""field"": ""customText"", ""show"": true, ""text"": ""• Payment is due within 30 days"", ""fontSize"": 9 },
-          { ""field"": ""customText"", ""show"": true, ""text"": ""• Please include invoice number with payment"", ""fontSize"": 9 },
-          { ""field"": ""customText"", ""show"": true, ""text"": ""• Thank you for your business!"", ""fontSize"": 9 }
-        ]
-      },
-      ""right"": {
-        ""alignment"": ""center"",
-        ""fields"": [
-          { ""field"": ""zatcaQrCode"", ""show"": true, ""size"": 150 },
-          { ""field"": ""customText"", ""show"": true, ""text"": ""Scan for verification"", ""fontSize"": 9 }
-        ]
+      ""config"": {
+        ""showZatcaQR"": true,
+        ""zatcaQRLabel"": ""Scan for e-Invoice"",
+        ""showNotes"": true,
+        ""notesLabel"": ""Notes"",
+        ""notesText"": ""Thank you for your business! Payment is due within 30 days."",
+        ""showPoweredBy"": false,
+        ""poweredByText"": """"
       }
     }
-  ]
+  ],
+  ""styling"": {
+    ""fontFamily"": ""Arial, sans-serif"",
+    ""fontSize"": {
+      ""header"": ""16px"",
+      ""title"": ""18px"",
+      ""body"": ""12px"",
+      ""footer"": ""10px""
+    },
+    ""spacing"": {
+      ""sectionGap"": ""20px"",
+      ""lineHeight"": ""1.6"",
+      ""padding"": ""15px""
+    }
+  }
 }";
 
         return new InvoiceTemplate

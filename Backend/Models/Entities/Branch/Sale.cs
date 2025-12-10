@@ -14,8 +14,13 @@ public class Sale
     [MaxLength(50)]
     public string? InvoiceNumber { get; set; }
 
+    [MaxLength(50)]
+    public string? OrderNumber { get; set; }
+
     [Required]
     public InvoiceType InvoiceType { get; set; }
+
+    public OrderType? OrderType { get; set; }
 
     public Guid? CustomerId { get; set; }
 
@@ -38,6 +43,10 @@ public class Sale
 
     [Required]
     public decimal Total { get; set; }
+
+    public decimal? AmountPaid { get; set; }
+
+    public decimal? ChangeReturned { get; set; }
 
     [Required]
     public PaymentMethod PaymentMethod { get; set; }
@@ -76,4 +85,13 @@ public enum PaymentMethod
     Cash = 0,
     Card = 1,
     DigitalWallet = 2,
+    BankTransfer = 3,
+    Multiple = 4,
+}
+
+public enum OrderType
+{
+    TakeOut = 0,
+    DineIn = 1,
+    Delivery = 2,
 }

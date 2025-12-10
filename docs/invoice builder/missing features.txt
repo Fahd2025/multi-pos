@@ -1,0 +1,520 @@
+ Missing Features - Detailed Implementation List
+
+  Based on the comparison between your original prompt and what was implemented, here's a comprehensive list of missing features organized by priority and
+  category.
+
+  ---
+  🔴 Critical Missing Features (High Priority)
+
+  1. Drag-and-Drop Invoice Builder
+
+  Original Requirement: "Implement a drag-and-drop functionality allowing users to customize the layout of the invoice"
+
+  Current State: Form-based builder with expand/collapse sections
+
+  What's Missing:
+  - Three-panel layout (Section Palette | Canvas | Properties Panel)
+  - Draggable section items from palette
+  - Drop zones in canvas for section placement
+  - Visual drag handles for section reordering
+  - Drag-and-drop section removal (drag to trash)
+  - Live visual feedback during drag operations
+  - Touch gesture support for mobile drag-and-drop
+  - Collision detection for drop zones
+  - Section snap-to-grid functionality
+
+  Packages Already Installed:
+  - ✅ @dnd-kit/core
+  - ✅ @dnd-kit/sortable
+  - ✅ @dnd-kit/utilities
+
+  Implementation Effort: 6-10 hours (per their estimate)
+
+  Files to Create/Modify:
+  frontend/components/invoice-builder/
+  ├── SectionPalette.tsx (NEW) - Draggable section types
+  ├── InvoiceCanvas.tsx (NEW) - Drop zone with sortable sections
+  ├── DragOverlay.tsx (NEW) - Visual feedback during drag
+  └── InvoiceBuilder.tsx (MODIFY) - Add DndContext setup
+
+  frontend/app/[locale]/branch/settings/invoice-builder/
+  ├── page.tsx (MAJOR REFACTOR) - Replace form with drag-and-drop
+  └── [id]/page.tsx (MAJOR REFACTOR) - Replace form with drag-and-drop
+
+  ---
+  🟠 Important Missing Features (Medium Priority)
+
+  2. Mobile-Optimized Touch Interface
+
+  Original Requirement: "user-friendly interface that considers screen size, font size, and touch functionality for mobile devices"
+
+  Current State: Responsive design but not touch-optimized
+
+  What's Missing:
+  - Touch-optimized drag handles (larger hit areas)
+  - Touch gestures for section reordering (long-press + drag)
+  - Swipe actions for quick operations (swipe to delete)
+  - Pinch-to-zoom for preview
+  - Touch-friendly form controls (larger buttons/toggles)
+  - Mobile-specific layout adjustments
+  - Haptic feedback for touch interactions
+  - Pull-to-refresh for template list
+
+  Implementation Effort: 3-4 hours
+
+  ---
+  3. Customer Section - National Address Support
+
+  Original Requirement: "National address (formatted for Saudi Arabia)"
+
+  Current State: Generic address field
+
+  What's Missing:
+  - Structured Saudi national address fields:
+    - Building Number
+    - Street Name
+    - District
+    - City
+    - Postal Code (5 digits)
+    - Additional Number (4 digits)
+  - National address formatter (displays as: "Building St., District, City 12345-1234")
+  - Validation for Saudi address format
+  - UI component for national address input
+
+  Implementation Effort: 2-3 hours
+
+  Backend Changes:
+  // Add to Customer entity or Sale DTO
+  public string? BuildingNumber { get; set; }
+  public string? StreetName { get; set; }
+  public string? District { get; set; }
+  public string? City { get; set; }
+  public string? PostalCode { get; set; }
+  public string? AdditionalNumber { get; set; }
+
+  ---
+  4. Invoice Details Section - Missing Columns
+
+  Original Requirement: "Item name, Barcode, Unit of measurement, Price, Quantity, Discount, VAT, Subtotal, Notes"
+
+  Current State: Only Name, Quantity, Price, Total implemented
+
+  What's Missing:
+  - Barcode column - Display product barcode
+  - Unit of Measurement column - Display "Piece", "Kg", "Liter", etc.
+  - Discount column - Item-level discount display
+  - VAT column - Item-level VAT amount
+  - Notes row detail - Expandable notes under each item
+  - Column visibility toggles for all fields (already partially there)
+  - Label customization for all columns (already partially there)
+
+  Implementation Effort: 3-4 hours
+
+  Backend Changes:
+  // Add to SaleLineItem entity
+  public string? Barcode { get; set; }
+  public string? UnitOfMeasurement { get; set; }
+  public string? Notes { get; set; }
+
+  Frontend Schema Update:
+  // Add to items table columns
+  columns: [
+    { key: "barcode", label: "Barcode", visible: false },
+    { key: "unit", label: "Unit", visible: true },
+    { key: "discount", label: "Discount", visible: true },
+    { key: "vat", label: "VAT", visible: true },
+    // ... existing columns
+  ]
+
+  ---
+  5. Invoice Metadata Section - Missing Fields
+
+  Original Requirement: "Invoice number, Order number, Date and time of issuance, Cashier's name, Label for (Price includes VAT) or (Price excludes VAT)"
+
+  Current State: Invoice number, date, cashier only
+
+  What's Missing:
+  - Order Number field - Separate from invoice number
+  - Price Includes/Excludes VAT label - Dynamic label based on setting
+    - Show "Price includes VAT (15%)" or "Price excludes VAT"
+    - Toggle in template configuration
+  - Time of issuance - Currently only shows date
+
+  Implementation Effort: 2 hours
+
+  Backend Changes:
+  // Add to Sale entity
+  public string? OrderNumber { get; set; } // Separate from InvoiceNumber
+
+  Frontend Changes:
+  // In invoice metadata section config
+  {
+    key: "orderNumber",
+    label: "Order #",
+    visible: true
+  },
+  {
+    key: "priceIncludesVat",
+    label: "Price includes VAT (15%)", // or "Price excludes VAT"
+    visible: true,
+    value: schema.priceIncludesVat ? "Price includes VAT" : "Price excludes VAT"
+  }
+
+  ---
+  6. Invoice Summary Section - Paid & Change
+
+  Original Requirement: "Paid (optional), Change (optional)"
+
+  Current State: Subtotal, Discount, VAT, Total only
+
+  What's Missing:
+  - Paid field - Amount customer paid
+  - Change field - Change returned to customer
+  - Visibility toggles for both fields
+  - Label customization
+  - Display logic (only show if cash payment)
+
+  Implementation Effort: 1-2 hours
+
+  Backend Changes:
+  // Add to Sale entity
+  public decimal? AmountPaid { get; set; }
+  public decimal? ChangeReturned { get; set; }
+
+  Frontend Schema Update:
+  // Add to summary fields
+  fields: [
+    // ... existing fields
+    {
+      key: "paid",
+      label: "Paid",
+      visible: false, // Optional, show for cash payments
+      format: "0.00"
+    },
+    {
+      key: "change",
+      label: "Change",
+      visible: false, // Optional
+      format: "0.00"
+    }
+  ]
+
+  ---
+  7. Invoice Footer - Missing Elements
+
+  Original Requirement: "Barcode for the invoice number, Order type (options: take-out, dine-in, delivery), Payment method (Cash, Card ... etc), Invoice notes      
+  section"
+
+  Current State: ZATCA QR code, notes, powered-by text only
+
+  What's Missing:
+  - Invoice Number Barcode (separate from QR code)
+    - Barcode format selection (CODE128, CODE39, EAN13)
+    - Configurable height and width
+    - Toggle visibility
+  - Order Type field
+    - Display order type from sale data
+    - Options: Take Out, Dine In, Delivery
+    - Label customization
+  - Payment Method field
+    - Display payment method from sale data
+    - Options: Cash, Card, Mobile Payment, Multiple, etc.
+    - Label customization
+  - Invoice Notes Section (multiple lines)
+    - Already partially implemented
+    - Need UI to manage multiple note lines
+    - Support for different note types (terms, thank you, warranty, etc.)
+
+  Implementation Effort: 4-5 hours
+
+  Backend Changes:
+  // Add to Sale entity
+  public enum OrderType { TakeOut, DineIn, Delivery }
+  public OrderType? OrderType { get; set; }
+
+  public enum PaymentMethod { Cash, Card, MobilePayment, BankTransfer, Multiple }
+  public PaymentMethod PaymentMethod { get; set; }
+
+  NPM Package for Barcodes:
+  npm install react-barcode
+  npm install @types/react-barcode --save-dev
+
+  Footer Schema Update:
+  config: {
+    // ... existing config
+    showInvoiceBarcode: true,
+    invoiceBarcodeFormat: "CODE128",
+    invoiceBarcodeHeight: "40px",
+
+    showOrderType: true,
+    orderTypeLabel: "Order Type",
+
+    showPaymentMethod: true,
+    paymentMethodLabel: "Payment Method",
+
+    showNotes: true,
+    notes: [
+      { text: "Thank you for your business!", style: "normal" },
+      { text: "Terms: No returns after 7 days.", style: "small" }
+    ]
+  }
+
+  ---
+  🟡 Nice-to-Have Features (Low Priority)
+
+  8. Section Reordering
+
+  Original Requirement: Implicit in "drag-and-drop" requirement
+
+  Current State: Fixed section order
+
+  What's Missing:
+  - Change section order (Header before/after Title, etc.)
+  - Save custom section order in schema
+  - UI for reordering (up/down arrows if not drag-and-drop)
+  - Visual indicators of current order
+
+  Implementation Effort: 1-2 hours (with drag-and-drop) or 3 hours (with arrow buttons)
+
+  ---
+  9. Custom Sections
+
+  Original Requirement: Implicit in "dynamic and optional fields"
+
+  Current State: 7 predefined section types only
+
+  What's Missing:
+  - Add custom HTML/text sections
+  - Free-form section editor
+  - Image insertion support
+  - Custom field definitions
+  - Section templates library
+
+  Implementation Effort: 5-6 hours
+
+  ---
+  10. Styling Configuration UI
+
+  Original Requirement: Not explicitly requested, but schema supports it
+
+  Current State: Schema has styling field, but no UI to edit
+
+  What's Missing:
+  - Font family selector
+  - Font size configuration (header, body, footer)
+  - Color picker for text, background, borders
+  - Spacing/padding controls
+  - Border style configuration
+  - Preview style changes in real-time
+
+  Implementation Effort: 4-5 hours
+
+  UI Components Needed:
+  // Style Configuration Panel
+  - Font Family: Dropdown (Arial, Times New Roman, Courier, etc.)
+  - Font Sizes: Number inputs (header: 14px, body: 12px, footer: 10px)
+  - Colors: Color pickers (text, background, border, highlight)
+  - Spacing: Number inputs (section gap, line height, padding)
+  - Borders: Style/width/radius inputs
+
+  ---
+  11. Template Export to HTML
+
+  Original Requirement: "Save invoice templates in HTML format for future reference"
+
+  Current State: Templates saved as JSON, HTML generated dynamically
+
+  What's Missing:
+  - Export template as standalone HTML file
+  - Include inline CSS (no external dependencies)
+  - Sample data embedded in HTML for preview
+  - Download button on template management page
+  - Batch export (all templates as ZIP)
+
+  Implementation Effort: 2-3 hours
+
+  Backend Endpoint:
+  // New endpoint
+  GET /api/v1/invoice-templates/{id}/export-html
+  // Returns: HTML file download
+
+  ---
+  12. Logo Upload Backend
+
+  Original Requirement: "Logo" in header section
+
+  Current State: Frontend UI exists (in removed Company Info page), backend not implemented
+
+  What's Missing:
+  - Backend file upload endpoint
+  - Image validation (type, size, dimensions)
+  - File storage (local or cloud)
+  - Image optimization/resizing
+  - Logo URL returned in API response
+  - Support for multiple image formats (PNG, JPG, SVG)
+
+  Implementation Effort: 3-4 hours
+
+  Backend Implementation:
+  // New endpoint
+  POST /api/v1/branch/upload-logo
+  // Accepts: multipart/form-data with image file
+  // Returns: { logoUrl: "/uploads/branches/{branchId}/logo.png" }
+
+  // File storage
+  - Option 1: Local file system (Backend/uploads/branches/)
+  - Option 2: Azure Blob Storage
+  - Option 3: AWS S3
+
+  ---
+  13. Print Alignment Verification
+
+  Original Requirement: "Set printing to start from the top-left corner of the page (0 pixels from top, 0 pixels from left)"
+
+  Current State: Print CSS included, not explicitly documented/tested
+
+  What's Missing:
+  - Explicit CSS verification for 0,0 alignment
+  - Test cases for different paper sizes
+  - Margin override in print CSS
+  - Documentation of print behavior
+
+  Implementation Effort: 1 hour
+
+  Print CSS Fix:
+  @media print {
+    @page {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    .invoice-preview {
+      position: absolute;
+      top: 0;
+      left: 0;
+      margin: 0;
+      padding: 0;
+    }
+  }
+
+  ---
+  14. Live Preview in Builder
+
+  Original Requirement: Not explicitly requested, but highly valuable
+
+  Current State: Must save and navigate to preview page
+
+  What's Missing:
+  - Split-screen builder layout
+  - Left: Configuration form
+  - Right: Live preview pane
+  - Real-time updates as fields change
+  - Toggle preview visibility
+  - Preview with sample or real sale data
+
+  Implementation Effort: 3-4 hours
+
+  ---
+  15. Template Versioning
+
+  Original Requirement: Not requested
+
+  Current State: No version tracking
+
+  What's Missing:
+  - Version number field in template
+  - Track changes over time
+  - Restore previous versions
+  - Compare versions (diff viewer)
+  - Automatic versioning on save
+
+  Implementation Effort: 6-8 hours
+
+  ---
+  📦 Summary by Category
+
+  Backend Features (8 items)
+
+  1. Order number field (Sale entity)
+  2. Order type field (Sale entity + enum)
+  3. Payment method field (Sale entity + enum)
+  4. Barcode field (SaleLineItem entity)
+  5. Unit of measurement field (SaleLineItem entity)
+  6. Notes field (SaleLineItem entity)
+  7. Paid/Change fields (Sale entity)
+  8. Logo upload endpoint
+  9. National address fields (Customer entity)
+  10. Export HTML endpoint
+
+  Frontend UI Features (7 items)
+
+  1. Drag-and-drop builder ⭐
+  2. Mobile touch optimizations
+  3. Section reordering UI
+  4. Custom sections builder
+  5. Styling configuration panel
+  6. Live preview pane
+  7. National address formatter
+
+  Invoice Template Fields (6 areas)
+
+  1. Customer section: National address format
+  2. Metadata section: Order number, price VAT label
+  3. Items table: Barcode, unit, discount, VAT, notes columns
+  4. Summary section: Paid, change fields
+  5. Footer section: Invoice barcode, order type, payment method
+  6. Additional styling options
+
+  ---
+  🎯 Recommended Implementation Priority
+
+  Phase 3A: Complete Missing Fields (4-6 hours)
+
+  1. ✅ Order number field (backend + frontend)
+  2. ✅ Order type field (backend + frontend)
+  3. ✅ Payment method field (backend + frontend)
+  4. ✅ Paid/Change fields (backend + frontend)
+  5. ✅ Barcode, unit, notes columns (backend + frontend)
+  6. ✅ National address support
+
+  Phase 3B: Invoice Barcode (2-3 hours)
+
+  1. ✅ Install react-barcode library
+  2. ✅ Create Barcode component
+  3. ✅ Add to footer section
+  4. ✅ Configuration UI in builder
+
+  Phase 3C: Drag-and-Drop Builder (6-10 hours) ⭐
+
+  1. ✅ Three-panel layout
+  2. ✅ DndContext setup
+  3. ✅ Section palette component
+  4. ✅ Canvas with sortable sections
+  5. ✅ Drag overlay
+  6. ✅ Touch support
+
+  Phase 3D: Polish & Enhancements (6-8 hours)
+
+  1. ✅ Logo upload backend
+  2. ✅ Live preview pane
+  3. ✅ Styling configuration UI
+  4. ✅ Export to HTML
+  5. ✅ Mobile touch optimizations
+  6. ✅ Print alignment verification
+
+  ---
+  📊 Total Effort Estimate
+
+  | Priority        | Items    | Hours       | Status      |
+  |-----------------|----------|-------------|-------------|
+  | 🔴 Critical     | 1 item   | 6-10        | Not Started |
+  | 🟠 Important    | 7 items  | 18-26       | Not Started |
+  | 🟡 Nice-to-Have | 7 items  | 22-31       | Not Started |
+  | TOTAL           | 15 items | 46-67 hours | 0% Complete |
+
+  ---
