@@ -10,6 +10,7 @@
 import React, { forwardRef } from "react";
 import { InvoiceSchema, InvoiceSchemaSection } from "@/types/invoice-template.types";
 import QRCodeDisplay from "./QRCodeDisplay";
+import BarcodeDisplay from "./BarcodeDisplay";
 
 interface InvoiceData {
   // Company Info
@@ -24,6 +25,7 @@ interface InvoiceData {
 
   // Invoice Info
   invoiceNumber: string;
+  orderNumber?: string;
   invoiceDate: string;
   cashierName?: string;
 
@@ -38,9 +40,14 @@ interface InvoiceData {
   // Line Items
   items: Array<{
     name: string;
+    barcode?: string;
+    unit?: string;
     quantity: number;
     unitPrice: number;
+    discount?: number;
+    vat?: number;
     lineTotal: number;
+    notes?: string;
   }>;
 
   // Totals
@@ -48,6 +55,12 @@ interface InvoiceData {
   discount: number;
   vatAmount: number;
   total: number;
+  amountPaid?: number;
+  changeReturned?: number;
+
+  // Footer info
+  orderType?: string;
+  paymentMethod?: string;
 
   // ZATCA QR
   zatcaQrCode?: string;
@@ -155,8 +168,10 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(
 
       const fieldMap: Record<string, any> = {
         invoiceNumber: data.invoiceNumber,
+        orderNumber: data.orderNumber,
         date: data.invoiceDate,
         cashier: data.cashierName,
+        priceVATLabel: schema.priceIncludesVat ? "Price includes VAT (15%)" : "Price excludes VAT",
       };
 
       const visibleFields = fields.filter((f: any) => f.visible && fieldMap[f.key]);
@@ -181,9 +196,14 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(
 
       const columnMap: Record<string, (item: any) => string> = {
         name: (item) => item.name,
+        barcode: (item) => item.barcode || "-",
+        unit: (item) => item.unit || "-",
         quantity: (item) => item.quantity.toString(),
         price: (item) => item.unitPrice.toFixed(2),
+        discount: (item) => item.discount ? item.discount.toFixed(2) : "0.00",
+        vat: (item) => item.vat ? item.vat.toFixed(2) : "0.00",
         total: (item) => item.lineTotal.toFixed(2),
+        notes: (item) => item.notes || "-",
       };
 
       const visibleColumns = columns.filter((c: any) => c.visible);
@@ -231,6 +251,8 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(
         discount: data.discount.toFixed(2),
         vatAmount: data.vatAmount.toFixed(2),
         total: data.total.toFixed(2),
+        paid: data.amountPaid ? data.amountPaid.toFixed(2) : undefined,
+        change: data.changeReturned ? data.changeReturned.toFixed(2) : undefined,
       };
 
       const visibleFields = fields.filter((f: any) => f.visible);
@@ -260,6 +282,32 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(
 
       return (
         <div className="invoice-footer mt-4 pt-4 border-t border-gray-300 text-center">
+          {config.showOrderType && data.orderType && (
+            <div className="mb-2 text-sm">
+              <span className="font-semibold text-gray-700">{config.orderTypeLabel || "Order Type"}:</span>{" "}
+              <span className="text-gray-600">{data.orderType}</span>
+            </div>
+          )}
+          {config.showPaymentMethod && data.paymentMethod && (
+            <div className="mb-2 text-sm">
+              <span className="font-semibold text-gray-700">{config.paymentMethodLabel || "Payment Method"}:</span>{" "}
+              <span className="text-gray-600">{data.paymentMethod}</span>
+            </div>
+          )}
+          {config.showBarcode && data.invoiceNumber && (
+            <div className="mb-3">
+              {config.barcodeLabel && (
+                <p className="text-xs text-gray-600 mb-1">{config.barcodeLabel}</p>
+              )}
+              <BarcodeDisplay
+                value={data.invoiceNumber}
+                format={(config.barcodeFormat as any) || "CODE128"}
+                width={config.barcodeWidth || 2}
+                height={config.barcodeHeight || 50}
+                displayValue={config.showBarcodeValue ?? true}
+              />
+            </div>
+          )}
           {config.showZatcaQR && data.zatcaQrCode && (
             <div className="mb-3">
               {config.zatcaQRLabel && (

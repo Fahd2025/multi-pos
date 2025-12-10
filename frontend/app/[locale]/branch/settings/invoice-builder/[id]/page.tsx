@@ -430,6 +430,125 @@ export default function InvoiceBuilderEditPage() {
       case "footer":
         return (
           <div className="space-y-4">
+            {/* Order Type */}
+            <div>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={section.config?.showOrderType ?? false}
+                  onChange={(e) =>
+                    updateSectionConfig(section.id, { showOrderType: e.target.checked })
+                  }
+                  className="rounded border-gray-300 dark:border-gray-600"
+                />
+                <span className="text-sm text-gray-700 dark:text-gray-300">Show Order Type</span>
+              </label>
+              {section.config?.showOrderType && (
+                <input
+                  type="text"
+                  value={section.config?.orderTypeLabel || ""}
+                  onChange={(e) =>
+                    updateSectionConfig(section.id, { orderTypeLabel: e.target.value })
+                  }
+                  className="mt-2 ml-6 w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                  placeholder="Label for Order Type (e.g., Order Type, نوع الطلب)"
+                />
+              )}
+            </div>
+
+            {/* Payment Method */}
+            <div>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={section.config?.showPaymentMethod ?? false}
+                  onChange={(e) =>
+                    updateSectionConfig(section.id, { showPaymentMethod: e.target.checked })
+                  }
+                  className="rounded border-gray-300 dark:border-gray-600"
+                />
+                <span className="text-sm text-gray-700 dark:text-gray-300">Show Payment Method</span>
+              </label>
+              {section.config?.showPaymentMethod && (
+                <input
+                  type="text"
+                  value={section.config?.paymentMethodLabel || ""}
+                  onChange={(e) =>
+                    updateSectionConfig(section.id, { paymentMethodLabel: e.target.value })
+                  }
+                  className="mt-2 ml-6 w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                  placeholder="Label for Payment Method (e.g., Payment Method, طريقة الدفع)"
+                />
+              )}
+            </div>
+
+            {/* Invoice Barcode */}
+            <div>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={section.config?.showBarcode ?? false}
+                  onChange={(e) =>
+                    updateSectionConfig(section.id, { showBarcode: e.target.checked })
+                  }
+                  className="rounded border-gray-300 dark:border-gray-600"
+                />
+                <span className="text-sm text-gray-700 dark:text-gray-300">Show Invoice Barcode</span>
+              </label>
+              {section.config?.showBarcode && (
+                <div className="mt-2 ml-6 space-y-2">
+                  <input
+                    type="text"
+                    value={section.config?.barcodeLabel || ""}
+                    onChange={(e) =>
+                      updateSectionConfig(section.id, { barcodeLabel: e.target.value })
+                    }
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                    placeholder="Label for Barcode (e.g., Invoice Number, رقم الفاتورة)"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Width</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="5"
+                        value={section.config?.barcodeWidth || 2}
+                        onChange={(e) =>
+                          updateSectionConfig(section.id, { barcodeWidth: Number(e.target.value) })
+                        }
+                        className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Height</label>
+                      <input
+                        type="number"
+                        min="30"
+                        max="100"
+                        value={section.config?.barcodeHeight || 50}
+                        onChange={(e) =>
+                          updateSectionConfig(section.id, { barcodeHeight: Number(e.target.value) })
+                        }
+                        className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
+                      />
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={section.config?.showBarcodeValue ?? true}
+                      onChange={(e) =>
+                        updateSectionConfig(section.id, { showBarcodeValue: e.target.checked })
+                      }
+                      className="rounded border-gray-300 dark:border-gray-600"
+                    />
+                    <span className="text-xs text-gray-700 dark:text-gray-300">Display value below barcode</span>
+                  </label>
+                </div>
+              )}
+            </div>
+
             {/* ZATCA QR Code */}
             <div>
               <label className="flex items-center gap-2">
