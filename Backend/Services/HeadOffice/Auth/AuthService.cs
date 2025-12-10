@@ -96,7 +96,7 @@ public class AuthService : IAuthService
                 }
 
                 // For regular users, check if they have access to this branch
-                var branchUser = await _context.BranchUserAssignments.FirstOrDefaultAsync(bu =>
+                var branchUser = await _context.UserAssignments.FirstOrDefaultAsync(bu =>
                     bu.UserId == user.Id && bu.BranchId == branch.Id && bu.IsActive
                 );
 
@@ -290,7 +290,7 @@ public class AuthService : IAuthService
         {
             // Get user's first active branch assignment
             var branchUser = await _context
-                .BranchUserAssignments.Include(bu => bu.Branch)
+                .UserAssignments.Include(bu => bu.Branch)
                 .Where(bu => bu.UserId == user.Id && bu.IsActive && bu.Branch.IsActive)
                 .FirstOrDefaultAsync();
 
@@ -327,7 +327,7 @@ public class AuthService : IAuthService
         string? role,
         string? ipAddress,
         string? userAgent,
-        bool isBranchUser = false
+        bool isUser = false
     )
     {
         // Generate tokens
@@ -339,7 +339,7 @@ public class AuthService : IAuthService
             int.Parse(_configuration["Jwt:RefreshTokenExpiryDays"] ?? "7")
         );
 
-        if (!isBranchUser)
+        if (!isUser)
         {
             var refreshTokenEntity = new RefreshToken
             {
@@ -378,9 +378,9 @@ public class AuthService : IAuthService
 
         // Get user's branch assignments (only for head office users)
         var userBranches = new List<UserBranchInfo>();
-        if (!isBranchUser)
+        if (!isUser)
         {
-            userBranches = await _context.BranchUserAssignments
+            userBranches = await _context.UserAssignments
                 .Include(bu => bu.Branch)
                 .Where(bu => bu.UserId == user.Id && bu.IsActive && bu.Branch.IsActive)
                 .Select(bu => new UserBranchInfo

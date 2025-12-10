@@ -1,86 +1,371 @@
-using Backend.Models.DTOs.HeadOffice.Users;
-using Backend.Services.HeadOffice.Users;
+using Backend.Data.Branch;
+using Backend.Data.HeadOffice;
+using Backend.Data.Shared;
+using Backend.Models.DTOs.Branch.Users;
+using Backend.Services.Branch.Users;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Backend.Endpoints;
 
 /// <summary>
-/// User management endpoints
+/// API Endpoints for managing branch-specific users
+/// Head office admins can access any branch's users by providing branchId
+/// Branch users access their own branch's users via JWT context
 /// </summary>
 public static class UserEndpoints
 {
-    /// <summary>
-    /// Maps user management endpoints
-    /// </summary>
-    public static IEndpointRouteBuilder MapUserEndpoints(this IEndpointRouteBuilder app)
+    public static void MapUserEndpoints(this IEndpointRouteBuilder app)
     {
-        var usersGroup = app.MapGroup("/api/v1/users").WithTags("Users");
+        var branchUserGroup = app.MapGroup("/api/v1/branch/users")
+            .WithTags("Branch Users")
+            .RequireAuthorization();
 
-        // GET /api/v1/users - Get all users with filtering
-        usersGroup
+        // GET /api/v1/branch/users - Get all branch users
+        branchUserGroup
             .MapGet(
                 "",
                 async (
+                    [FromQuery] bool includeInactive,
+                    [FromQuery] Guid? branchId,
                     HttpContext httpContext,
-                    IUserService userService,
-                    bool? includeInactive = false,
-                    Guid? branchId = null,
-                    string? role = null,
-                    string? searchTerm = null,
-                    int page = 1,
-                    int pageSize = 50
+                    HeadOfficeDbContext headOfficeDb,
+                    DbContextFactory dbContextFactory,
+                    IServiceProvider serviceProvider
                 ) =>
                 {
                     try
                     {
-                        // Check if user is head office admin or branch manager
-                        var isHeadOfficeAdmin = httpContext.Items["IsHeadOfficeAdmin"] as bool? == true;
-                        var currentUserId = httpContext.Items["UserId"] as Guid?;
+                        var (service, branch) = await GetUserServiceAsync(branchId, httpContext, headOfficeDb, dbContextFactory, serviceProvider);
+                        if (service == null)
+                        {
+                            return Results.BadRequest(new
+                            {
+                                success = false,
+                                error = new { code = "NO_BRANCH_CONTEXT", message = "Branch ID required for head office admins" }
+                            });
+                        }
 
-                        if (!isHeadOfficeAdmin && branchId == null)
+                        var isHeadOfficeAdmin = httpContext.Items["IsHeadOfficeAdmin"] as bool? == true;
+                        var role = httpContext.Items["Role"] as string;
+                        var canViewInactive = role == "Manager" || isHeadOfficeAdmin;
+
+                        if (includeInactive && !canViewInactive)
                         {
                             return Results.Forbid();
                         }
 
-                        Backend.Models.Entities.HeadOffice.UserRole? parsedRole = null;
-                        if (!string.IsNullOrWhiteSpace(role))
-                        {
-                            if (
-                                Enum.TryParse<Backend.Models.Entities.HeadOffice.UserRole>(
-                                    role,
-                                    true,
-                                    out var r
-                                )
-                            )
+                        var users = await service.GetUsersAsync(includeInactive);
+                        return Results.Ok(new { success = true, data = users });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(
+                            new
                             {
-                                parsedRole = r;
+                                success = false,
+                                error = new { code = "ERROR", message = ex.Message }
                             }
+                        );
+                    }
+                }
+            )
+            .WithName("GetUsers")
+            .WithOpenApi();
+
+        // GET /api/v1/branch/users/:id - Get branch user by ID
+        branchUserGroup
+            .MapGet(
+                "/{id:guid}",
+                async (
+                    Guid id,
+                    [FromQuery] Guid? branchId,
+                    HttpContext httpContext,
+                    HeadOfficeDbContext headOfficeDb,
+                    DbContextFactory dbContextFactory,
+                    IServiceProvider serviceProvider
+                ) =>
+                {
+                    try
+                    {
+                        var (service, branch) = await GetUserServiceAsync(branchId, httpContext, headOfficeDb, dbContextFactory, serviceProvider);
+                        if (service == null)
+                        {
+                            return Results.BadRequest(new
+                            {
+                                success = false,
+                                error = new { code = "NO_BRANCH_CONTEXT", message = "Branch ID required for head office admins" }
+                            });
                         }
 
-                        var (users, totalCount) = await userService.GetUsersAsync(
-                            includeInactive ?? false,
-                            branchId,
-                            parsedRole,
-                            searchTerm,
-                            page,
-                            pageSize
+                        var user = await service.GetUserByIdAsync(id);
+                        if (user == null)
+                        {
+                            return Results.NotFound(
+                                new
+                                {
+                                    success = false,
+                                    error = new { code = "NOT_FOUND", message = $"User with ID {id} not found" }
+                                }
+                            );
+                        }
+
+                        return Results.Ok(new { success = true, data = user });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(
+                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                        );
+                    }
+                }
+            )
+            .WithName("GetUserById")
+            .WithOpenApi();
+
+        // POST /api/v1/branch/users - Create new branch user (Manager only)
+        branchUserGroup
+            .MapPost(
+                "",
+                async (
+                    [FromBody] CreateUserDto dto,
+                    [FromQuery] Guid? branchId,
+                    HttpContext httpContext,
+                    HeadOfficeDbContext headOfficeDb,
+                    DbContextFactory dbContextFactory,
+                    IServiceProvider serviceProvider
+                ) =>
+                {
+                    try
+                    {
+                        // Only managers and head office admins can create users
+                        var role = httpContext.Items["Role"] as string;
+                        var isHeadOfficeAdmin = httpContext.Items["IsHeadOfficeAdmin"] as bool? == true;
+
+                        if (role != "Manager" && !isHeadOfficeAdmin)
+                        {
+                            return Results.Forbid();
+                        }
+
+                        var (service, branch) = await GetUserServiceAsync(branchId, httpContext, headOfficeDb, dbContextFactory, serviceProvider);
+                        if (service == null)
+                        {
+                            return Results.BadRequest(new
+                            {
+                                success = false,
+                                error = new { code = "NO_BRANCH_CONTEXT", message = "Branch ID required for head office admins" }
+                            });
+                        }
+
+                        // Get the ID of the user creating this user
+                        var createdBy = httpContext.Items["UserId"] as Guid? ?? Guid.Empty;
+
+                        var user = await service.CreateUserAsync(dto, createdBy);
+                        return Results.Ok(
+                            new
+                            {
+                                success = true,
+                                data = user,
+                                message = "Branch user created successfully"
+                            }
+                        );
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        return Results.BadRequest(
+                            new
+                            {
+                                success = false,
+                                error = new { code = "VALIDATION_ERROR", message = ex.Message }
+                            }
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(
+                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                        );
+                    }
+                }
+            )
+            .WithName("CreateUser")
+            .WithOpenApi();
+
+        // PUT /api/v1/branch/users/:id - Update branch user (Manager only)
+        branchUserGroup
+            .MapPut(
+                "/{id:guid}",
+                async (
+                    Guid id,
+                    [FromBody] UpdateUserDto dto,
+                    [FromQuery] Guid? branchId,
+                    HttpContext httpContext,
+                    HeadOfficeDbContext headOfficeDb,
+                    DbContextFactory dbContextFactory,
+                    IServiceProvider serviceProvider
+                ) =>
+                {
+                    try
+                    {
+                        // Only managers and head office admins can update users
+                        var role = httpContext.Items["Role"] as string;
+                        var isHeadOfficeAdmin = httpContext.Items["IsHeadOfficeAdmin"] as bool? == true;
+
+                        if (role != "Manager" && !isHeadOfficeAdmin)
+                        {
+                            return Results.Forbid();
+                        }
+
+                        var (service, branch) = await GetUserServiceAsync(branchId, httpContext, headOfficeDb, dbContextFactory, serviceProvider);
+                        if (service == null)
+                        {
+                            return Results.BadRequest(new
+                            {
+                                success = false,
+                                error = new { code = "NO_BRANCH_CONTEXT", message = "Branch ID required for head office admins" }
+                            });
+                        }
+
+                        var user = await service.UpdateUserAsync(id, dto);
+                        return Results.Ok(
+                            new
+                            {
+                                success = true,
+                                data = user,
+                                message = "Branch user updated successfully"
+                            }
+                        );
+                    }
+                    catch (KeyNotFoundException ex)
+                    {
+                        return Results.NotFound(
+                            new
+                            {
+                                success = false,
+                                error = new { code = "NOT_FOUND", message = ex.Message }
+                            }
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(
+                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                        );
+                    }
+                }
+            )
+            .WithName("UpdateUser")
+            .WithOpenApi();
+
+        // DELETE /api/v1/branch/users/:id - Delete branch user (Manager only)
+        branchUserGroup
+            .MapDelete(
+                "/{id:guid}",
+                async (
+                    Guid id,
+                    [FromQuery] Guid? branchId,
+                    HttpContext httpContext,
+                    HeadOfficeDbContext headOfficeDb,
+                    DbContextFactory dbContextFactory,
+                    IServiceProvider serviceProvider
+                ) =>
+                {
+                    try
+                    {
+                        // Only managers and head office admins can delete users
+                        var role = httpContext.Items["Role"] as string;
+                        var isHeadOfficeAdmin = httpContext.Items["IsHeadOfficeAdmin"] as bool? == true;
+
+                        if (role != "Manager" && !isHeadOfficeAdmin)
+                        {
+                            return Results.Forbid();
+                        }
+
+                        var (service, branch) = await GetUserServiceAsync(branchId, httpContext, headOfficeDb, dbContextFactory, serviceProvider);
+                        if (service == null)
+                        {
+                            return Results.BadRequest(new
+                            {
+                                success = false,
+                                error = new { code = "NO_BRANCH_CONTEXT", message = "Branch ID required for head office admins" }
+                            });
+                        }
+
+                        await service.DeleteUserAsync(id);
+                        return Results.Ok(
+                            new
+                            {
+                                success = true,
+                                message = "Branch user deleted successfully"
+                            }
+                        );
+                    }
+                    catch (KeyNotFoundException ex)
+                    {
+                        return Results.NotFound(
+                            new
+                            {
+                                success = false,
+                                error = new { code = "NOT_FOUND", message = ex.Message }
+                            }
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(
+                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                        );
+                    }
+                }
+            )
+            .WithName("DeleteUser")
+            .WithOpenApi();
+
+        // POST /api/v1/branch/users/check-username - Check if username is available
+        branchUserGroup
+            .MapPost(
+                "/check-username",
+                async (
+                    [FromBody] CheckUsernameRequest request,
+                    [FromQuery] Guid? branchId,
+                    HttpContext httpContext,
+                    HeadOfficeDbContext headOfficeDb,
+                    DbContextFactory dbContextFactory,
+                    IServiceProvider serviceProvider
+                ) =>
+                {
+                    try
+                    {
+                        // Only managers and head office admins can check usernames
+                        var role = httpContext.Items["Role"] as string;
+                        var isHeadOfficeAdmin = httpContext.Items["IsHeadOfficeAdmin"] as bool? == true;
+
+                        if (role != "Manager" && !isHeadOfficeAdmin)
+                        {
+                            return Results.Forbid();
+                        }
+
+                        var (service, branch) = await GetUserServiceAsync(branchId, httpContext, headOfficeDb, dbContextFactory, serviceProvider);
+                        if (service == null)
+                        {
+                            return Results.BadRequest(new
+                            {
+                                success = false,
+                                error = new { code = "NO_BRANCH_CONTEXT", message = "Branch ID required for head office admins" }
+                            });
+                        }
+
+                        var isAvailable = await service.IsUsernameAvailableAsync(
+                            request.Username,
+                            request.ExcludeUserId
                         );
 
                         return Results.Ok(
                             new
                             {
                                 success = true,
-                                data = new
-                                {
-                                    users,
-                                    pagination = new
-                                    {
-                                        page,
-                                        pageSize,
-                                        totalCount,
-                                        totalPages = (int)Math.Ceiling((double)totalCount / pageSize),
-                                    },
-                                },
+                                data = new { isAvailable }
                             }
                         );
                     }
@@ -92,308 +377,63 @@ public static class UserEndpoints
                     }
                 }
             )
-            .RequireAuthorization()
-            .WithName("GetUsers")
+            .WithName("CheckUsername")
             .WithOpenApi();
+    }
 
-        // POST /api/v1/users - Create a new user (admin only)
-        usersGroup
-            .MapPost(
-                "",
-                async (
-                    [FromBody] CreateUserDto createDto,
-                    IUserService userService,
-                    HttpContext httpContext
-                ) =>
-                {
-                    try
-                    {
-                        // Check if user is head office admin
-                        if (httpContext.Items["IsHeadOfficeAdmin"] as bool? != true)
-                        {
-                            return Results.Forbid();
-                        }
+    /// <summary>
+    /// Helper method to get UserService with appropriate context
+    /// </summary>
+    private static async Task<(UserService?, Backend.Models.Entities.HeadOffice.Branch?)> GetUserServiceAsync(
+        Guid? branchId,
+        HttpContext httpContext,
+        HeadOfficeDbContext headOfficeDb,
+        DbContextFactory dbContextFactory,
+        IServiceProvider serviceProvider
+    )
+    {
+        var isHeadOfficeAdmin = httpContext.Items["IsHeadOfficeAdmin"] as bool? == true;
+        var contextBranchId = httpContext.Items["BranchId"] as Guid?;
 
-                        var currentUserId = httpContext.Items["UserId"] as Guid?;
-                        if (!currentUserId.HasValue)
-                        {
-                            return Results.Unauthorized();
-                        }
+        // Determine which branch to query
+        Guid targetBranchId;
+        if (branchId.HasValue && isHeadOfficeAdmin)
+        {
+            // Head office admin accessing a specific branch
+            targetBranchId = branchId.Value;
+        }
+        else if (contextBranchId.HasValue)
+        {
+            // Branch user accessing their own branch
+            targetBranchId = contextBranchId.Value;
+        }
+        else
+        {
+            return (null, null);
+        }
 
-                        var user = await userService.CreateUserAsync(createDto, currentUserId.Value);
+        // Get branch and create context
+        var branch = await headOfficeDb.Branches.FindAsync(targetBranchId);
+        if (branch == null)
+        {
+            return (null, null);
+        }
 
-                        return Results.Ok(new { success = true, data = user });
-                    }
-                    catch (InvalidOperationException ex)
-                    {
-                        return Results.BadRequest(
-                            new
-                            {
-                                success = false,
-                                error = new { code = "VALIDATION_ERROR", message = ex.Message },
-                            }
-                        );
-                    }
-                    catch (Exception ex)
-                    {
-                        return Results.BadRequest(
-                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
-                        );
-                    }
-                }
-            )
-            .RequireAuthorization()
-            .WithName("CreateUser")
-            .WithOpenApi();
+        // Ensure branch database schema is up to date
+        using (var scope = serviceProvider.CreateScope())
+        {
+            var migrationManager = scope.ServiceProvider.GetRequiredService<Backend.Services.Shared.Migrations.IBranchMigrationManager>();
+            await migrationManager.ApplyMigrationsAsync(branch.Id);
+        }
 
-        // PUT /api/v1/users/:id - Update user
-        usersGroup
-            .MapPut(
-                "/{id:guid}",
-                async (
-                    Guid id,
-                    [FromBody] UpdateUserDto updateDto,
-                    IUserService userService,
-                    HttpContext httpContext
-                ) =>
-                {
-                    try
-                    {
-                        var currentUserId = httpContext.Items["UserId"] as Guid?;
-                        if (!currentUserId.HasValue)
-                        {
-                            return Results.Unauthorized();
-                        }
+        var branchContext = dbContextFactory.CreateBranchContext(branch);
+        var branchUserService = new UserService(branchContext);
 
-                        // Users can update themselves, or admins can update anyone
-                        var isHeadOfficeAdmin = httpContext.Items["IsHeadOfficeAdmin"] as bool? == true;
-                        if (!isHeadOfficeAdmin && currentUserId.Value != id)
-                        {
-                            return Results.Forbid();
-                        }
-
-                        var user = await userService.UpdateUserAsync(id, updateDto, currentUserId.Value);
-
-                        return Results.Ok(new { success = true, data = user });
-                    }
-                    catch (InvalidOperationException ex)
-                    {
-                        return Results.NotFound(
-                            new
-                            {
-                                success = false,
-                                error = new { code = "NOT_FOUND", message = ex.Message },
-                            }
-                        );
-                    }
-                    catch (Exception ex)
-                    {
-                        return Results.BadRequest(
-                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
-                        );
-                    }
-                }
-            )
-            .RequireAuthorization()
-            .WithName("UpdateUser")
-            .WithOpenApi();
-
-        // DELETE /api/v1/users/:id - Delete user (admin only)
-        usersGroup
-            .MapDelete(
-                "/{id:guid}",
-                async (Guid id, IUserService userService, HttpContext httpContext) =>
-                {
-                    try
-                    {
-                        // Check if user is head office admin
-                        if (httpContext.Items["IsHeadOfficeAdmin"] as bool? != true)
-                        {
-                            return Results.Forbid();
-                        }
-
-                        var currentUserId = httpContext.Items["UserId"] as Guid?;
-                        if (!currentUserId.HasValue)
-                        {
-                            return Results.Unauthorized();
-                        }
-
-                        await userService.DeleteUserAsync(id, currentUserId.Value);
-
-                        return Results.Ok(
-                            new { success = true, message = "User deactivated successfully" }
-                        );
-                    }
-                    catch (InvalidOperationException ex)
-                    {
-                        return Results.NotFound(
-                            new
-                            {
-                                success = false,
-                                error = new { code = "NOT_FOUND", message = ex.Message },
-                            }
-                        );
-                    }
-                    catch (Exception ex)
-                    {
-                        return Results.BadRequest(
-                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
-                        );
-                    }
-                }
-            )
-            .RequireAuthorization()
-            .WithName("DeleteUser")
-            .WithOpenApi();
-
-        // POST /api/v1/users/:id/assign-branch - Assign user to branch
-        usersGroup
-            .MapPost(
-                "/{id:guid}/assign-branch",
-                async (
-                    Guid id,
-                    [FromBody] AssignBranchDto assignDto,
-                    IUserService userService,
-                    HttpContext httpContext
-                ) =>
-                {
-                    try
-                    {
-                        // Check if user is head office admin
-                        if (httpContext.Items["IsHeadOfficeAdmin"] as bool? != true)
-                        {
-                            return Results.Forbid();
-                        }
-
-                        var currentUserId = httpContext.Items["UserId"] as Guid?;
-                        if (!currentUserId.HasValue)
-                        {
-                            return Results.Unauthorized();
-                        }
-
-                        await userService.AssignBranchAsync(id, assignDto, currentUserId.Value);
-
-                        return Results.Ok(
-                            new { success = true, message = "User assigned to branch successfully" }
-                        );
-                    }
-                    catch (InvalidOperationException ex)
-                    {
-                        return Results.BadRequest(
-                            new
-                            {
-                                success = false,
-                                error = new { code = "VALIDATION_ERROR", message = ex.Message },
-                            }
-                        );
-                    }
-                    catch (Exception ex)
-                    {
-                        return Results.BadRequest(
-                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
-                        );
-                    }
-                }
-            )
-            .RequireAuthorization()
-            .WithName("AssignUserToBranch")
-            .WithOpenApi();
-
-        // DELETE /api/v1/users/:id/branches/:branchId - Remove branch assignment
-        usersGroup
-            .MapDelete(
-                "/{id:guid}/branches/{branchId:guid}",
-                async (
-                    Guid id,
-                    Guid branchId,
-                    IUserService userService,
-                    HttpContext httpContext
-                ) =>
-                {
-                    try
-                    {
-                        // Check if user is head office admin
-                        if (httpContext.Items["IsHeadOfficeAdmin"] as bool? != true)
-                        {
-                            return Results.Forbid();
-                        }
-
-                        var currentUserId = httpContext.Items["UserId"] as Guid?;
-                        if (!currentUserId.HasValue)
-                        {
-                            return Results.Unauthorized();
-                        }
-
-                        await userService.RemoveBranchAssignmentAsync(id, branchId, currentUserId.Value);
-
-                        return Results.Ok(
-                            new { success = true, message = "Branch assignment removed successfully" }
-                        );
-                    }
-                    catch (InvalidOperationException ex)
-                    {
-                        return Results.NotFound(
-                            new
-                            {
-                                success = false,
-                                error = new { code = "NOT_FOUND", message = ex.Message },
-                            }
-                        );
-                    }
-                    catch (Exception ex)
-                    {
-                        return Results.BadRequest(
-                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
-                        );
-                    }
-                }
-            )
-            .RequireAuthorization()
-            .WithName("RemoveBranchAssignment")
-            .WithOpenApi();
-
-        // GET /api/v1/users/:id/activity - Get user activity log
-        usersGroup
-            .MapGet(
-                "/{id:guid}/activity",
-                async (
-                    Guid id,
-                    IUserService userService,
-                    HttpContext httpContext,
-                    int? limit = 100
-                ) =>
-                {
-                    try
-                    {
-                        var currentUserId = httpContext.Items["UserId"] as Guid?;
-                        if (!currentUserId.HasValue)
-                        {
-                            return Results.Unauthorized();
-                        }
-
-                        // Users can view their own activity, or admins can view anyone's
-                        var isHeadOfficeAdmin = httpContext.Items["IsHeadOfficeAdmin"] as bool? == true;
-                        if (!isHeadOfficeAdmin && currentUserId.Value != id)
-                        {
-                            return Results.Forbid();
-                        }
-
-                        var activities = await userService.GetUserActivityAsync(id, limit ?? 100);
-
-                        return Results.Ok(new { success = true, data = activities });
-                    }
-                    catch (Exception ex)
-                    {
-                        return Results.BadRequest(
-                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
-                        );
-                    }
-                }
-            )
-            .RequireAuthorization()
-            .WithName("GetUserActivity")
-            .WithOpenApi();
-
-        return app;
+        return (branchUserService, branch);
     }
 }
+
+/// <summary>
+/// Request model for checking username availability
+/// </summary>
+public record CheckUsernameRequest(string Username, Guid? ExcludeUserId);

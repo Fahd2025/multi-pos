@@ -65,7 +65,7 @@ public class BranchService : IBranchService
             .OrderBy(b => b.Code)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Include(b => b.BranchUserAssignments)
+            .Include(b => b.UserAssignments)
             .ToListAsync();
 
         var branches = new List<BranchDto>();
@@ -75,7 +75,7 @@ public class BranchService : IBranchService
             int userCount = 0;
 
             // Count head office users assigned to this branch
-            int headOfficeUserCount = branch.BranchUserAssignments.Count(bu => bu.IsActive);
+            int headOfficeUserCount = branch.UserAssignments.Count(bu => bu.IsActive);
 
             // Count branch database users
             int branchUserCount = 0;
@@ -149,7 +149,7 @@ public class BranchService : IBranchService
     public async Task<BranchDto?> GetBranchByIdAsync(Guid id)
     {
         var branch = await _headOfficeContext
-            .Branches.Include(b => b.BranchUserAssignments)
+            .Branches.Include(b => b.UserAssignments)
             .FirstOrDefaultAsync(b => b.Id == id);
 
         if (branch == null)
@@ -161,7 +161,7 @@ public class BranchService : IBranchService
         int userCount = 0;
 
         // Count head office users assigned to this branch
-        int headOfficeUserCount = branch.BranchUserAssignments.Count(bu => bu.IsActive);
+        int headOfficeUserCount = branch.UserAssignments.Count(bu => bu.IsActive);
 
         // Count branch database users
         int branchUserCount = 0;
@@ -540,7 +540,7 @@ public class BranchService : IBranchService
         }
 
         var userCount = await _headOfficeContext
-            .BranchUserAssignments.Where(bu => bu.BranchId == id && bu.IsActive)
+            .UserAssignments.Where(bu => bu.BranchId == id && bu.IsActive)
             .CountAsync();
 
         return new BranchDto
@@ -1159,7 +1159,7 @@ public class BranchService : IBranchService
             user = existingAdminUser;
 
             // Check if admin is already assigned to this branch
-            var existingAssignment = await _headOfficeContext.BranchUserAssignments.AnyAsync(bu =>
+            var existingAssignment = await _headOfficeContext.UserAssignments.AnyAsync(bu =>
                 bu.UserId == user.Id && bu.BranchId == branch.Id
             );
 
@@ -1202,7 +1202,7 @@ public class BranchService : IBranchService
         }
 
         // Create branch user assignment with Manager role (highest branch-level role)
-        var branchUser = new BranchUserAssignment
+        var branchUser = new UserAssignment
         {
             Id = Guid.NewGuid(),
             UserId = user.Id,
@@ -1213,7 +1213,7 @@ public class BranchService : IBranchService
             AssignedBy = branch.CreatedBy,
         };
 
-        _headOfficeContext.BranchUserAssignments.Add(branchUser);
+        _headOfficeContext.UserAssignments.Add(branchUser);
         await _headOfficeContext.SaveChangesAsync();
 
         _logger.LogInformation(

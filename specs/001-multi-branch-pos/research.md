@@ -104,7 +104,7 @@ Implement **application-level multi-tenancy** with physical database separation 
 ```
 HeadOfficeDB (Provider: SQLite/MSSQL/PostgreSQL/MySQL)
 ├── Branches table (Id, Name, ConnectionString, Provider, etc.)
-├── BranchUsers table (UserId, BranchId, Role)
+├── Users table (UserId, BranchId, Role)
 ├── Users table (shared across system)
 ├── MainSettings table
 └── UserActivityLog table

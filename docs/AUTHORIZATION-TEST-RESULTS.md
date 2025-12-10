@@ -10,13 +10,13 @@
 
 ### Test Results
 
-| # | Test Case | Endpoint | Token | Expected | Actual | Status |
-|---|-----------|----------|-------|----------|--------|--------|
-| 1 | HeadOfficeAdmin accessing branches | GET /api/v1/branches | Valid Admin | 200 | 200 | ✅ PASS |
-| 2 | Invalid token accessing branches | GET /api/v1/branches | Invalid | 401 | 401 | ✅ PASS |
-| 3 | No token accessing branches | GET /api/v1/branches | None | 401 | 401 | ✅ PASS |
-| 4 | Admin accessing sales | GET /api/v1/sales | Valid Admin | 200 | 200 | ✅ PASS |
-| 5 | No token accessing sales | GET /api/v1/sales | None | 401 | 401 | ✅ PASS |
+| #   | Test Case                          | Endpoint             | Token       | Expected | Actual | Status  |
+| --- | ---------------------------------- | -------------------- | ----------- | -------- | ------ | ------- |
+| 1   | HeadOfficeAdmin accessing branches | GET /api/v1/branches | Valid Admin | 200      | 200    | ✅ PASS |
+| 2   | Invalid token accessing branches   | GET /api/v1/branches | Invalid     | 401      | 401    | ✅ PASS |
+| 3   | No token accessing branches        | GET /api/v1/branches | None        | 401      | 401    | ✅ PASS |
+| 4   | Admin accessing sales              | GET /api/v1/sales    | Valid Admin | 200      | 200    | ✅ PASS |
+| 5   | No token accessing sales           | GET /api/v1/sales    | None        | 401      | 401    | ✅ PASS |
 
 ## Authorization Patterns Identified
 
@@ -27,21 +27,27 @@ The following endpoints check for `IsHeadOfficeAdmin` and return `Results.Forbid
 #### Branch Management (`Backend/Endpoints/BranchEndpoints.cs`)
 
 - **GET /api/v1/branches** - List all branches
+
   - Line 65-68: Returns 403 if not HeadOfficeAdmin
 
 - **GET /api/v1/branches/{id}** - Get branch by ID
+
   - Line 117-120: Returns 403 if not HeadOfficeAdmin
 
 - **POST /api/v1/branches** - Create new branch
+
   - Line 166-169: Returns 403 if not HeadOfficeAdmin
 
 - **PUT /api/v1/branches/{id}** - Update branch
+
   - Line 225-228: Returns 403 if not HeadOfficeAdmin
 
 - **DELETE /api/v1/branches/{id}** - Delete branch
+
   - Line 276-279: Returns 403 if not HeadOfficeAdmin
 
 - **POST /api/v1/branches/{id}/test-connection** - Test database connection
+
   - Line 584-587: Returns 403 if not HeadOfficeAdmin
 
 - **POST /api/v1/branches/{id}/fix-logo-path** - Fix legacy logo path
@@ -50,9 +56,11 @@ The following endpoints check for `IsHeadOfficeAdmin` and return `Results.Forbid
 #### Branch Settings (Manager or HeadOfficeAdmin)
 
 - **GET /api/v1/branches/{id}/settings** - Get branch settings
+
   - Line 329-332: Returns 403 if not (HeadOfficeAdmin OR (branch manager for that branch))
 
 - **PUT /api/v1/branches/{id}/settings** - Update branch settings
+
   - Line 383-386: Returns 403 if not (HeadOfficeAdmin OR (branch manager for that branch))
 
 - **POST /api/v1/branches/{id}/logo** - Upload branch logo
@@ -74,7 +82,7 @@ if (userRole != "Manager" && userRole != "Admin" && httpContext.Items["IsHeadOff
 }
 ```
 
-#### Branch User Management (`Backend/Endpoints/BranchUserEndpoints.cs`)
+#### Branch User Management (`Backend/Endpoints/UserEndpoints.cs`)
 
 - **GET /api/v1/branch/users?includeInactive=true** - List inactive users
   - Line 54-57: Returns 403 if not (Manager OR HeadOfficeAdmin)
@@ -84,6 +92,7 @@ if (userRole != "Manager" && userRole != "Admin" && httpContext.Items["IsHeadOff
 The following endpoints use `.RequireAuthorization()` but don't check specific roles:
 
 #### Sales Endpoints
+
 - GET /api/v1/sales - List sales
 - POST /api/v1/sales - Create sale
 - GET /api/v1/sales/{id} - Get sale details
@@ -91,6 +100,7 @@ The following endpoints use `.RequireAuthorization()` but don't check specific r
 - GET /api/v1/sales/stats - Get sales statistics
 
 #### Inventory Endpoints
+
 - GET /api/v1/categories - List categories
 - POST /api/v1/categories - Create category
 - PUT /api/v1/categories/{id} - Update category
@@ -114,13 +124,13 @@ The following endpoints use `.RequireAuthorization()` but don't check specific r
 
 ## HTTP Status Code Matrix
 
-| Scenario | Status Code | Description |
-|----------|-------------|-------------|
-| Valid token with sufficient permissions | 200 | OK - Request successful |
-| Valid token but insufficient role | **403** | **Forbidden - User lacks required permissions** |
-| Invalid or expired token | 401 | Unauthorized - Authentication failed |
-| No token provided | 401 | Unauthorized - Authentication required |
-| Public endpoint | 200 | OK - No authentication needed |
+| Scenario                                | Status Code | Description                                     |
+| --------------------------------------- | ----------- | ----------------------------------------------- |
+| Valid token with sufficient permissions | 200         | OK - Request successful                         |
+| Valid token but insufficient role       | **403**     | **Forbidden - User lacks required permissions** |
+| Invalid or expired token                | 401         | Unauthorized - Authentication failed            |
+| No token provided                       | 401         | Unauthorized - Authentication required          |
+| Public endpoint                         | 200         | OK - No authentication needed                   |
 
 ## Authorization Implementation
 
@@ -154,6 +164,7 @@ httpContext.Items["IsHeadOfficeAdmin"]
 ### Authorization Patterns in Code
 
 #### Pattern 1: HeadOfficeAdmin Check
+
 ```csharp
 if (httpContext.Items["IsHeadOfficeAdmin"] as bool? != true)
 {
@@ -162,6 +173,7 @@ if (httpContext.Items["IsHeadOfficeAdmin"] as bool? != true)
 ```
 
 #### Pattern 2: Role-Based Check
+
 ```csharp
 var userRole = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
 if (userRole != "Manager" && userRole != "Admin" && !isHeadOfficeAdmin)
@@ -171,6 +183,7 @@ if (userRole != "Manager" && userRole != "Admin" && !isHeadOfficeAdmin)
 ```
 
 #### Pattern 3: Branch Context Check
+
 ```csharp
 var isHeadOfficeAdmin = httpContext.Items["IsHeadOfficeAdmin"] as bool? == true;
 var branchId = httpContext.Items["BranchId"] as Guid?;
@@ -196,12 +209,15 @@ if (!isHeadOfficeAdmin && (branchId != id || role != "Manager"))
 To fully validate the 403 Forbidden responses, additional tests should include:
 
 1. **Manager accessing HeadOfficeAdmin endpoints** (should be 403)
+
    - Example: Manager tries to GET /api/v1/branches
 
 2. **Cashier voiding a sale** (should be 403)
+
    - Example: Cashier tries to POST /api/v1/sales/{id}/void
 
 3. **Cashier accessing inactive users** (should be 403)
+
    - Example: Cashier tries to GET /api/v1/branch/users?includeInactive=true
 
 4. **Branch user accessing another branch's data** (should be 403)
@@ -216,10 +232,11 @@ bash test-auth.sh
 ```
 
 This script tests:
+
 - ✅ Admin authorization (200)
 - ✅ Invalid token rejection (401)
 - ✅ No token rejection (401)
-- ⚠️  Role-based restrictions (403) - requires Manager/Cashier users
+- ⚠️ Role-based restrictions (403) - requires Manager/Cashier users
 
 ## Conclusion
 

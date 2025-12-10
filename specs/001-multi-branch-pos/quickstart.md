@@ -7,6 +7,7 @@
 ## Overview
 
 This guide provides step-by-step instructions to implement the Multi-Branch POS System based on the design artifacts:
+
 - [plan.md](./plan.md) - Implementation plan
 - [research.md](./research.md) - Technology decisions
 - [data-model.md](./data-model.md) - Database schema
@@ -91,7 +92,7 @@ public class HeadOfficeDbContext : DbContext
 
     public DbSet<Branch> Branches { get; set; }
     public DbSet<User> Users { get; set; }
-    public DbSet<BranchUser> BranchUsers { get; set; }
+    public DbSet<User> Users { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<MainSetting> MainSettings { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
@@ -117,7 +118,7 @@ public class HeadOfficeDbContext : DbContext
             entity.HasIndex(e => e.LoginName).IsUnique();
         });
 
-        modelBuilder.Entity<BranchUser>(entity =>
+        modelBuilder.Entity<User>(entity =>
         {
             entity.HasIndex(e => new { e.UserId, e.BranchId }).IsUnique();
         });
@@ -377,9 +378,9 @@ npm install --save-dev msw
 Update `next.config.js`:
 
 ```javascript
-const createNextIntlPlugin = require('next-intl/plugin');
+const createNextIntlPlugin = require("next-intl/plugin");
 
-const withNextIntl = createNextIntlPlugin('./i18n.ts');
+const withNextIntl = createNextIntlPlugin("./i18n.ts");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -387,7 +388,7 @@ const nextConfig = {
     appDir: true,
   },
   images: {
-    domains: ['localhost'],
+    domains: ["localhost"],
   },
 };
 
@@ -397,7 +398,7 @@ module.exports = withNextIntl(nextConfig);
 Create `i18n.ts`:
 
 ```typescript
-import { getRequestConfig } from 'next-intl/server';
+import { getRequestConfig } from "next-intl/server";
 
 export default getRequestConfig(async ({ locale }) => ({
   messages: (await import(`./public/locales/${locale}/common.json`)).default,
@@ -407,15 +408,15 @@ export default getRequestConfig(async ({ locale }) => ({
 Create middleware for i18n routing (`middleware.ts`):
 
 ```typescript
-import createMiddleware from 'next-intl/middleware';
+import createMiddleware from "next-intl/middleware";
 
 export default createMiddleware({
-  locales: ['en', 'ar'],
-  defaultLocale: 'en',
+  locales: ["en", "ar"],
+  defaultLocale: "en",
 });
 
 export const config = {
-  matcher: ['/((?!api|_next|.*\\..*).*)'],
+  matcher: ["/((?!api|_next|.*\\..*).*)"],
 };
 ```
 
@@ -537,9 +538,10 @@ app.MapPost("/api/v1/auth/login", async (LoginRequest request, IAuthService auth
 Create `frontend/services/auth.service.ts`:
 
 ```typescript
-import axios from 'axios';
+import axios from "axios";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://localhost:5001/api/v1';
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL || "https://localhost:5001/api/v1";
 
 export interface LoginRequest {
   branchName: string;
@@ -570,7 +572,7 @@ class AuthService {
 
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const response = await axios.post(`${API_BASE}/auth/login`, credentials, {
-      withCredentials: true // Include cookies
+      withCredentials: true, // Include cookies
     });
 
     this.accessToken = response.data.data.accessToken;
@@ -578,25 +580,35 @@ class AuthService {
   }
 
   async logout(): Promise<void> {
-    await axios.post(`${API_BASE}/auth/logout`, {}, {
-      withCredentials: true,
-      headers: this.getAuthHeaders()
-    });
+    await axios.post(
+      `${API_BASE}/auth/logout`,
+      {},
+      {
+        withCredentials: true,
+        headers: this.getAuthHeaders(),
+      }
+    );
 
     this.accessToken = null;
   }
 
   async refreshToken(): Promise<string> {
-    const response = await axios.post(`${API_BASE}/auth/refresh`, {}, {
-      withCredentials: true
-    });
+    const response = await axios.post(
+      `${API_BASE}/auth/refresh`,
+      {},
+      {
+        withCredentials: true,
+      }
+    );
 
     this.accessToken = response.data.data.accessToken;
     return this.accessToken;
   }
 
   getAuthHeaders() {
-    return this.accessToken ? { Authorization: `Bearer ${this.accessToken}` } : {};
+    return this.accessToken
+      ? { Authorization: `Bearer ${this.accessToken}` }
+      : {};
   }
 }
 
@@ -618,20 +630,20 @@ See [data-model.md](./data-model.md) for entity definitions and [contracts/sales
 Create sales processing page at `frontend/app/[locale]/branch/sales/page.tsx`:
 
 ```typescript
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { salesService } from '@/services/sales.service';
-import { ProductSearch } from '@/components/sales/ProductSearch';
-import { SaleLineItemsList } from '@/components/sales/SaleLineItemsList';
-import { PaymentSection } from '@/components/sales/PaymentSection';
+import { useState } from "react";
+import { salesService } from "@/services/sales.service";
+import { ProductSearch } from "@/components/sales/ProductSearch";
+import { SaleLineItemsList } from "@/components/sales/SaleLineItemsList";
+import { PaymentSection } from "@/components/sales/PaymentSection";
 
 export default function SalesPage() {
   const [lineItems, setLineItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const handleAddProduct = (product, quantity) => {
-    setLineItems(prev => [...prev, { product, quantity }]);
+    setLineItems((prev) => [...prev, { product, quantity }]);
   };
 
   const handleCompleteSale = async (paymentDetails) => {
@@ -640,15 +652,15 @@ export default function SalesPage() {
       const sale = await salesService.createSale({
         customerId: null,
         invoiceType: 0, // Touch invoice
-        lineItems: lineItems.map(item => ({
+        lineItems: lineItems.map((item) => ({
           productId: item.product.id,
           quantity: item.quantity,
           unitPrice: item.product.sellingPrice,
           discountType: 0,
-          discountValue: 0
+          discountValue: 0,
         })),
         paymentMethod: paymentDetails.method,
-        paymentReference: paymentDetails.reference
+        paymentReference: paymentDetails.reference,
       });
 
       // Show success, print invoice
@@ -683,16 +695,16 @@ See [research.md](./research.md#3-offline-sync-queue--conflict-resolution-implem
 Create `frontend/lib/offline-sync.ts`:
 
 ```typescript
-import { openDB, DBSchema, IDBPDatabase } from 'idb';
+import { openDB, DBSchema, IDBPDatabase } from "idb";
 
 interface QueuedTransaction {
   id: string;
-  type: 'sale' | 'purchase' | 'expense';
+  type: "sale" | "purchase" | "expense";
   timestamp: Date;
   branchId: string;
   userId: string;
   data: any;
-  status: 'pending' | 'syncing' | 'completed' | 'failed';
+  status: "pending" | "syncing" | "completed" | "failed";
   retryCount: number;
   lastError?: string;
 }
@@ -701,7 +713,7 @@ interface OfflineQueueDB extends DBSchema {
   transactions: {
     key: string;
     value: QueuedTransaction;
-    indexes: { 'by-status': string; 'by-timestamp': Date };
+    indexes: { "by-status": string; "by-timestamp": Date };
   };
 }
 
@@ -709,30 +721,30 @@ class OfflineQueue {
   private db: IDBPDatabase<OfflineQueueDB> | null = null;
 
   async init() {
-    this.db = await openDB<OfflineQueueDB>('OfflineQueue', 1, {
+    this.db = await openDB<OfflineQueueDB>("OfflineQueue", 1, {
       upgrade(db) {
-        const store = db.createObjectStore('transactions', { keyPath: 'id' });
-        store.createIndex('by-status', 'status');
-        store.createIndex('by-timestamp', 'timestamp');
+        const store = db.createObjectStore("transactions", { keyPath: "id" });
+        store.createIndex("by-status", "status");
+        store.createIndex("by-timestamp", "timestamp");
       },
     });
   }
 
-  async add(transaction: Omit<QueuedTransaction, 'status' | 'retryCount'>) {
+  async add(transaction: Omit<QueuedTransaction, "status" | "retryCount">) {
     if (!this.db) await this.init();
 
-    await this.db!.add('transactions', {
+    await this.db!.add("transactions", {
       ...transaction,
-      status: 'pending',
-      retryCount: 0
+      status: "pending",
+      retryCount: 0,
     });
   }
 
   async getPending(): Promise<QueuedTransaction[]> {
     if (!this.db) await this.init();
 
-    const tx = this.db!.transaction('transactions', 'readonly');
-    const index = tx.store.index('by-timestamp');
+    const tx = this.db!.transaction("transactions", "readonly");
+    const index = tx.store.index("by-timestamp");
     return await index.getAll();
   }
 
@@ -743,41 +755,41 @@ class OfflineQueue {
       try {
         await this.syncTransaction(transaction);
       } catch (error) {
-        console.error('Sync failed:', error);
+        console.error("Sync failed:", error);
       }
     }
   }
 
   private async syncTransaction(transaction: QueuedTransaction) {
     // Update status to syncing
-    await this.updateStatus(transaction.id, 'syncing');
+    await this.updateStatus(transaction.id, "syncing");
 
     try {
       // Send to backend
-      const response = await fetch('/api/v1/sync/transaction', {
-        method: 'POST',
+      const response = await fetch("/api/v1/sync/transaction", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authService.getAccessToken()}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authService.getAccessToken()}`,
         },
-        body: JSON.stringify(transaction)
+        body: JSON.stringify(transaction),
       });
 
       if (response.ok) {
         // Mark as completed and remove
         await this.remove(transaction.id);
       } else {
-        throw new Error('Sync failed');
+        throw new Error("Sync failed");
       }
     } catch (error) {
       // Increment retry count
       const newRetryCount = transaction.retryCount + 1;
 
       if (newRetryCount >= 3) {
-        await this.updateStatus(transaction.id, 'failed', error.message);
+        await this.updateStatus(transaction.id, "failed", error.message);
       } else {
         await this.updateRetryCount(transaction.id, newRetryCount);
-        await this.updateStatus(transaction.id, 'pending');
+        await this.updateStatus(transaction.id, "pending");
       }
     }
   }
@@ -835,22 +847,22 @@ public class SalesServiceTests
 Create `frontend/__tests__/components/SalesForm.test.tsx`:
 
 ```typescript
-import { render, screen, fireEvent } from '@testing-library/react';
-import { SalesForm } from '@/components/sales/SalesForm';
+import { render, screen, fireEvent } from "@testing-library/react";
+import { SalesForm } from "@/components/sales/SalesForm";
 
-describe('SalesForm', () => {
-  test('adds product to line items', async () => {
+describe("SalesForm", () => {
+  test("adds product to line items", async () => {
     render(<SalesForm />);
 
-    const productSearch = screen.getByPlaceholderText('Search products...');
-    fireEvent.change(productSearch, { target: { value: 'Mouse' } });
+    const productSearch = screen.getByPlaceholderText("Search products...");
+    fireEvent.change(productSearch, { target: { value: "Mouse" } });
 
     // Wait for search results
-    const product = await screen.findByText('Wireless Mouse');
+    const product = await screen.findByText("Wireless Mouse");
     fireEvent.click(product);
 
     // Verify product added
-    expect(screen.getByText('Wireless Mouse')).toBeInTheDocument();
+    expect(screen.getByText("Wireless Mouse")).toBeInTheDocument();
   });
 });
 ```

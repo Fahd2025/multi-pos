@@ -11,7 +11,7 @@ public class HeadOfficeDbContext : DbContext
 
     public DbSet<BranchEntity> Branches { get; set; }
     public DbSet<User> Users { get; set; }
-    public DbSet<BranchUserAssignment> BranchUserAssignments { get; set; }
+    public DbSet<UserAssignment> UserAssignments { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<MainSetting> MainSettings { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
@@ -42,8 +42,8 @@ public class HeadOfficeDbContext : DbContext
             entity.Property(e => e.PasswordHash).IsRequired();
         });
 
-        // BranchUserAssignment configuration
-        modelBuilder.Entity<BranchUserAssignment>(entity =>
+        // UserAssignment configuration
+        modelBuilder.Entity<UserAssignment>(entity =>
         {
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.BranchId);
@@ -51,13 +51,13 @@ public class HeadOfficeDbContext : DbContext
 
             entity
                 .HasOne(e => e.User)
-                .WithMany(u => u.BranchUserAssignments)
+                .WithMany(u => u.UserAssignments)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity
                 .HasOne(e => e.Branch)
-                .WithMany(b => b.BranchUserAssignments)
+                .WithMany(b => b.UserAssignments)
                 .HasForeignKey(e => e.BranchId)
                 .OnDelete(DeleteBehavior.Cascade);
         });

@@ -110,7 +110,7 @@ public static class HeadOfficeDbSeeder
             // Assign admin user to all branches
             var adminUser = await context.Users.FirstAsync(u => u.Username == "admin");
 
-            var branchUser1 = new BranchUserAssignment
+            var branchUser1 = new UserAssignment
             {
                 Id = Guid.NewGuid(),
                 UserId = adminUser.Id,
@@ -121,7 +121,7 @@ public static class HeadOfficeDbSeeder
                 AssignedBy = adminUser.Id,
             };
 
-            var branchUser2 = new BranchUserAssignment
+            var branchUser2 = new UserAssignment
             {
                 Id = Guid.NewGuid(),
                 UserId = adminUser.Id,
@@ -132,7 +132,7 @@ public static class HeadOfficeDbSeeder
                 AssignedBy = adminUser.Id,
             };
 
-            var branchUser3 = new BranchUserAssignment
+            var branchUser3 = new UserAssignment
             {
                 Id = Guid.NewGuid(),
                 UserId = adminUser.Id,
@@ -143,7 +143,7 @@ public static class HeadOfficeDbSeeder
                 AssignedBy = adminUser.Id,
             };
 
-            context.BranchUserAssignments.AddRange(branchUser1, branchUser2, branchUser3);
+            context.UserAssignments.AddRange(branchUser1, branchUser2, branchUser3);
             await context.SaveChangesAsync();
 
             Console.WriteLine("✓ Admin user assigned to all branches");
@@ -209,57 +209,6 @@ public static class HeadOfficeDbSeeder
             Console.WriteLine("✓ Max failed login attempts configured (5 attempts)");
         }
 
-        // Create branch databases
-        await CreateBranchDatabasesAsync(context);
-    }
-
-    private static async Task CreateBranchDatabasesAsync(HeadOfficeDbContext context)
-    {
-        Console.WriteLine("\n=== Creating Branch Databases ===");
-
-        var branches = await context.Branches.Where(b => b.IsActive).ToListAsync();
-        var dbContextFactory = new DbContextFactory();
-        var adminUser = await context.Users.FirstAsync(u => u.Username == "admin");
-
-        foreach (var branch in branches)
-        {
-            try
-            {
-                // Ensure Upload directory structure exists for SQLite databases
-                if (branch.DatabaseProvider == DatabaseProvider.SQLite)
-                {
-                    var uploadPath = Path.Combine(
-                        "Upload",
-                        "Branches",
-                        branch.Code,
-                        "Database"
-                    );
-                    Directory.CreateDirectory(uploadPath);
-                }
-
-                using var branchContext = dbContextFactory.CreateBranchContext(branch);
-
-                // Ensure database is created
-                await branchContext.Database.EnsureCreatedAsync();
-
-                Console.WriteLine(
-                    $"✓ Branch database created/verified: {branch.Code} ({branch.DbName})"
-                );
-
-                // Seed sample data for the branch
-                await BranchDbSeeder.SeedAsync(branchContext, adminUser.Id, branch.Code);
-
-                // Always ensure invoice templates exist (runs even for existing branches)
-                await Branch.InvoiceTemplateSeeder.SeedAsync(branchContext, adminUser.Id);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(
-                    $"✗ Failed to create branch database {branch.Code}: {ex.Message}"
-                );
-            }
-        }
-
-        Console.WriteLine("=== Branch Databases Setup Complete ===\n");
+        Console.WriteLine("\nℹ Branch databases will be created and seeded by the migration system in Program.cs\n");
     }
 }

@@ -558,12 +558,14 @@ namespace Backend.Migrations.Branch
                         .HasColumnType("TEXT");
 
                     b.Property<decimal?>("AmountPaid")
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("CashierId")
                         .HasColumnType("TEXT");
 
                     b.Property<decimal?>("ChangeReturned")
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")

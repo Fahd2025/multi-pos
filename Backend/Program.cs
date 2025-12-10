@@ -135,8 +135,8 @@ builder.Services.AddScoped<
     Backend.Services.Shared.Reports.ReportService
 >();
 builder.Services.AddScoped<
-    Backend.Services.Branch.Users.IBranchUserService,
-    Backend.Services.Branch.Users.BranchUserService
+    Backend.Services.Branch.Users.IUserService,
+    Backend.Services.Branch.Users.UserService
 >();
 builder.Services.AddScoped<
     Backend.Services.Branch.IZatcaService,
@@ -274,6 +274,31 @@ using (var scope = app.Services.CreateScope())
             "Successfully migrated {Count} branch databases",
             result.BranchesSucceeded
         );
+
+        // Seed branch data after successful migrations
+        var branches = await context.Branches.Where(b => b.IsActive).ToListAsync();
+        var dbContextFactory = new Backend.Data.Shared.DbContextFactory();
+        var adminUser = await context.Users.FirstAsync(u => u.Username == "admin");
+
+        foreach (var branch in branches)
+        {
+            try
+            {
+                using var branchContext = dbContextFactory.CreateBranchContext(branch);
+                await Backend.Data.Branch.BranchDbSeeder.SeedAsync(branchContext, adminUser.Id, branch.Code);
+                await Backend.Data.Branch.InvoiceTemplateSeeder.SeedAsync(branchContext, adminUser.Id);
+                app.Logger.LogInformation("Seeded data for branch {BranchCode}", branch.Code);
+            }
+            catch (Exception ex)
+            {
+                app.Logger.LogError(ex, "Failed to seed data for branch {BranchCode}: {ErrorMessage}", branch.Code, ex.Message);
+                Console.WriteLine($"✗ Seeding failed for {branch.Code}: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"  Inner exception: {ex.InnerException.Message}");
+                }
+            }
+        }
     }
 }
 
@@ -335,9 +360,6 @@ app.MapBranchEndpoints();
 
 // Users
 app.MapUserEndpoints();
-
-// Branch Users
-app.MapBranchUserEndpoints();
 
 // Audit
 app.MapAuditEndpoints();

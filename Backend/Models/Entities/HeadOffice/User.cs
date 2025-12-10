@@ -55,7 +55,7 @@ public class User
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
-    public ICollection<BranchUserAssignment> BranchUserAssignments { get; set; } = new List<BranchUserAssignment>();
+    public ICollection<UserAssignment> UserAssignments { get; set; } = new List<UserAssignment>();
     public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
     public ICollection<UserActivityLog> ActivityLogs { get; set; } = new List<UserActivityLog>();
 }

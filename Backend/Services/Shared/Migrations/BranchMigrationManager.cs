@@ -85,14 +85,17 @@ public class BranchMigrationManager : IBranchMigrationManager
                     return result;
                 }
 
-                // 6. Ensure database exists
-                if (!await strategy.DatabaseExistsAsync(branchContext))
+                // 6. Check if database exists
+                var databaseExists = await strategy.DatabaseExistsAsync(branchContext);
+                
+                if (!databaseExists)
                 {
-                    _logger.LogInformation("Database does not exist for branch {BranchCode}, creating...", branch.Code);
-                    await branchContext.Database.EnsureCreatedAsync(cancellationToken);
+                    _logger.LogInformation("Database does not exist for branch {BranchCode}, will be created by migrations...", branch.Code);
                 }
 
                 // 7. Get pending migrations
+                // Note: For SQLite, GetPendingMigrationsAsync will work even if database doesn't exist yet
+                // For other providers, the database container must exist first (handled by strategy)
                 var pendingMigrations = await strategy.GetPendingMigrationsAsync(branchContext);
 
                 if (!pendingMigrations.Any())

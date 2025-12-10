@@ -224,7 +224,7 @@ Backend/                              # ASP.NET Core 8.0 API
 │   ├── Entities/
 │   │   ├── HeadOffice/              # Head office-specific entities
 │   │   │   ├── Branch.cs
-│   │   │   ├── BranchUser.cs
+│   │   │   ├── User.cs
 │   │   │   ├── MainSetting.cs
 │   │   │   └── UserActivityLog.cs
 │   │   └── Branch/                  # Branch database entities

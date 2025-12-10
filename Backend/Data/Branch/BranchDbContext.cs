@@ -1,5 +1,5 @@
 using Backend.Models.Entities.Branch;
-using BranchUser = Backend.Models.Entities.Branch.User; // Alias to avoid confusion with HeadOffice.User
+using User = Backend.Models.Entities.Branch.User; // Alias to avoid confusion with HeadOffice.User
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Data.Branch;
@@ -9,7 +9,7 @@ public class BranchDbContext : DbContext
     public BranchDbContext(DbContextOptions<BranchDbContext> options)
         : base(options) { }
 
-    public DbSet<BranchUser> Users { get; set; }
+    public DbSet<User> Users { get; set; }
     public DbSet<Category> Categories { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<ProductImage> ProductImages { get; set; }
@@ -30,7 +30,7 @@ public class BranchDbContext : DbContext
         base.OnModelCreating(modelBuilder);
 
         // User configuration (Branch-specific users)
-        modelBuilder.Entity<BranchUser>(entity =>
+        modelBuilder.Entity<User>(entity =>
         {
             entity.ToTable("Users"); // Table name
             entity.HasIndex(e => e.Username).IsUnique();
@@ -125,6 +125,8 @@ public class BranchDbContext : DbContext
             entity.Property(e => e.TaxAmount).HasPrecision(18, 2);
             entity.Property(e => e.TotalDiscount).HasPrecision(18, 2);
             entity.Property(e => e.Total).HasPrecision(18, 2);
+            entity.Property(e => e.AmountPaid).HasPrecision(18, 2);
+            entity.Property(e => e.ChangeReturned).HasPrecision(18, 2);
 
             entity
                 .HasOne(e => e.Customer)

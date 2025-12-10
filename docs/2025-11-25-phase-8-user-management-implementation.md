@@ -18,12 +18,14 @@ Implemented core user management and audit logging functionality for the Multi-B
 Created all User Management DTOs in `Backend/Models/DTOs/Users/`:
 
 1. **UserDto.cs** - User information response DTO
+
    - Basic user information (username, email, full names, phone, preferred language)
    - User status flags (isActive, isHeadOfficeAdmin)
    - Activity tracking (lastLoginAt, lastActivityAt)
    - Branch assignments (assignedBranchIds, assignedBranches with UserBranchDto)
 
 2. **CreateUserDto.cs** - User creation DTO
+
    - Required fields: username, email, password, fullNameEn
    - Optional fields: fullNameAr, phone, preferredLanguage
    - Flags: isActive, isHeadOfficeAdmin
@@ -31,6 +33,7 @@ Created all User Management DTOs in `Backend/Models/DTOs/Users/`:
    - Comprehensive validation attributes
 
 3. **UpdateUserDto.cs** - User update DTO
+
    - All fields optional (only update what changes)
    - Supports password change via newPassword field
    - Security: IsHeadOfficeAdmin cannot be changed via this DTO
@@ -46,34 +49,41 @@ Created all User Management DTOs in `Backend/Models/DTOs/Users/`:
 Implemented `IUserService` interface and `UserService` class with methods:
 
 - **GetUsersAsync()** - List users with filtering
+
   - Filter by active status, branch, role, search term
   - Pagination support (page, pageSize)
   - Returns (List<UserDto>, TotalCount) tuple
 
 - **GetUserByIdAsync()** - Get single user by ID
+
   - Includes branch assignments and related data
 
 - **CreateUserAsync()** - Create new user (admin only)
+
   - Password hashing using BCrypt
   - Username/email uniqueness validation
   - Automatic branch assignment during creation
   - Returns created UserDto
 
 - **UpdateUserAsync()** - Update user information
+
   - Email uniqueness validation
   - Optional password change
   - Users can update themselves, admins can update anyone
 
 - **DeleteUserAsync()** / **DeactivateUserAsync()** - Soft delete user
+
   - Sets isActive = false
   - Deactivates all branch assignments
 
 - **AssignBranchAsync()** - Assign user to branch with role
+
   - Validates user and branch existence
-  - Creates or updates BranchUser assignment
+  - Creates or updates User assignment
   - Role enum parsing
 
 - **RemoveBranchAssignmentAsync()** - Remove branch assignment
+
   - Soft delete (sets isActive = false)
 
 - **GetUserActivityAsync()** - Get user's last N activities
@@ -85,6 +95,7 @@ Implemented `IUserService` interface and `UserService` class with methods:
 Implemented `IAuditService` interface and `AuditService` class with methods:
 
 - **LogAsync()** - Permanent audit log entry
+
   - Records to AuditLog table (permanent retention)
   - Captures: userId, branchId, eventType, action, entityType, entityId
   - Includes old/new values (JSON strings)
@@ -92,6 +103,7 @@ Implemented `IAuditService` interface and `AuditService` class with methods:
   - Success/failure status with error messages
 
 - **LogActivityAsync()** - User activity log (circular buffer)
+
   - Records to UserActivityLog table
   - Maintains last 100 activities per user (circular buffer)
   - Automatically removes oldest when limit reached
@@ -99,11 +111,13 @@ Implemented `IAuditService` interface and `AuditService` class with methods:
   - IP address and user agent tracking
 
 - **GetUserAuditTrailAsync()** - Get user's audit trail
+
   - Queries AuditLog for specific user
   - Date range filtering (fromDate, toDate)
   - Pagination support
 
 - **GetUserRecentActivityAsync()** - Get recent activities
+
   - Returns last N activities from circular buffer
   - Limited to MaxActivitiesPerUser (100)
 
@@ -119,30 +133,36 @@ Implemented 9 user management and audit endpoints in `Backend/Program.cs`:
 #### User Management Endpoints
 
 1. **GET /api/v1/users** - List users with filtering
+
    - Query params: includeInactive, branchId, role, searchTerm, page, pageSize
    - Authorization: Requires authentication, head office admin or branch context
    - Returns: Paginated user list
 
 2. **POST /api/v1/users** - Create user (admin only)
+
    - Body: CreateUserDto
    - Authorization: Head office admin only
    - Returns: Created UserDto
 
 3. **PUT /api/v1/users/:id** - Update user
+
    - Body: UpdateUserDto
    - Authorization: User can update self, or admin can update anyone
    - Returns: Updated UserDto
 
 4. **DELETE /api/v1/users/:id** - Delete user (admin only)
+
    - Authorization: Head office admin only
    - Soft delete (deactivates user and branch assignments)
 
 5. **POST /api/v1/users/:id/assign-branch** - Assign user to branch
+
    - Body: AssignBranchDto
    - Authorization: Head office admin only
    - Creates or updates branch assignment
 
 6. **DELETE /api/v1/users/:id/branches/:branchId** - Remove branch assignment
+
    - Authorization: Head office admin only
    - Soft delete assignment
 
@@ -154,6 +174,7 @@ Implemented 9 user management and audit endpoints in `Backend/Program.cs`:
 #### Audit Endpoints
 
 8. **GET /api/v1/audit/logs** - Get audit logs (admin only)
+
    - Query params: userId, branchId, eventType, action, fromDate, toDate, page, pageSize
    - Authorization: Head office admin only
    - Returns: Paginated audit logs
@@ -168,12 +189,14 @@ Implemented 9 user management and audit endpoints in `Backend/Program.cs`:
 Created `frontend/services/user.service.ts` with complete API client:
 
 **TypeScript Interfaces:**
+
 - UserDto, UserBranchDto
 - CreateUserDto, BranchAssignmentDto
 - UpdateUserDto, AssignBranchDto
 - UserActivityDto, AuditLogDto
 
 **Service Functions:**
+
 - `getUsers()` - List users with filtering and pagination
 - `getUserById()` - Get single user
 - `createUser()` - Create new user
@@ -186,6 +209,7 @@ Created `frontend/services/user.service.ts` with complete API client:
 - `getUserAuditTrail()` - Get user audit trail
 
 All functions:
+
 - Use axios API client with auth interceptors
 - Return strongly-typed data
 - Handle ApiResponse wrapper
@@ -200,6 +224,7 @@ All functions:
 Modified `Backend/Models/Entities/HeadOffice/UserActivityLog.cs`:
 
 **Changes:**
+
 - Renamed `ActivityType` → `Action` (required, max 100 chars)
 - Renamed `Description` → `Details` (nullable)
 - Added `EntityType` (required, max 100 chars)
@@ -207,6 +232,7 @@ Modified `Backend/Models/Entities/HeadOffice/UserActivityLog.cs`:
 - Added `UserAgent` (nullable, max 500 chars)
 
 **Migration Required:**
+
 ```bash
 cd Backend
 dotnet ef migrations add UpdateUserActivityLogForPhase8 --context HeadOfficeDbContext
@@ -235,17 +261,20 @@ builder.Services.AddScoped<Backend.Services.Audit.IAuditService, Backend.Service
 All endpoints implement role-based authorization:
 
 **Head Office Admin Only:**
+
 - Create user
 - Delete user
 - Assign/remove branch assignments
 - View all audit logs
 
 **User Self-Service:**
+
 - Update own profile
 - View own activity log
 - View own audit trail
 
 **Admin or Self:**
+
 - Update user (admin can update anyone, user can update self)
 - View activity (admin can view anyone's, user can view own)
 
@@ -299,6 +328,7 @@ This prevents unbounded growth of activity logs while preserving recent history.
 Two-tier logging system:
 
 1. **AuditLog (Permanent)**
+
    - Records all critical operations
    - Never deleted
    - Includes before/after values
@@ -312,7 +342,7 @@ Two-tier logging system:
 
 ### User-Branch Assignment Model
 
-- Many-to-many relationship via BranchUser
+- Many-to-many relationship via User
 - Each assignment has a role (Cashier, Manager, Admin)
 - Soft delete (isActive flag)
 - Tracks who assigned and when
@@ -325,31 +355,37 @@ Two-tier logging system:
 ### Created Files
 
 **Backend DTOs:**
+
 - `Backend/Models/DTOs/Users/UserDto.cs`
 - `Backend/Models/DTOs/Users/CreateUserDto.cs`
 - `Backend/Models/DTOs/Users/UpdateUserDto.cs`
 - `Backend/Models/DTOs/Users/AssignBranchDto.cs`
 
 **Backend Services:**
+
 - `Backend/Services/Users/IUserService.cs`
 - `Backend/Services/Users/UserService.cs`
 - `Backend/Services/Audit/IAuditService.cs`
 - `Backend/Services/Audit/AuditService.cs`
 
 **Frontend Services:**
+
 - `frontend/services/user.service.ts`
 
 **Documentation:**
+
 - `Backend/MIGRATION_NOTE.md`
 - `docs/2025-11-25-phase-8-user-management-implementation.md`
 
 ### Modified Files
 
 **Backend:**
+
 - `Backend/Program.cs` - Added service registrations and 9 API endpoints
 - `Backend/Models/Entities/HeadOffice/UserActivityLog.cs` - Schema update
 
 **Documentation:**
+
 - `specs/001-multi-branch-pos/tasks.md` - Marked T216-T234 as completed
 
 ---
@@ -359,6 +395,7 @@ Two-tier logging system:
 ### Unit Tests
 
 1. **UserService Tests**
+
    - Test CreateUserAsync with duplicate username/email
    - Test GetUsersAsync with various filters
    - Test UpdateUserAsync with self vs admin permissions
@@ -373,11 +410,13 @@ Two-tier logging system:
 ### Integration Tests
 
 1. **User Management Flow**
+
    - Admin creates user → assigns to branch → verifies assignment
    - User updates own profile → admin updates user
    - Admin deactivates user → verify branch assignments deactivated
 
 2. **Authorization Tests**
+
    - Non-admin attempts to create user → 403 Forbidden
    - User attempts to update another user → 403 Forbidden
    - User views own activity → 200 OK
@@ -435,6 +474,7 @@ Authorization is implemented in API endpoints but requires:
 ### Audit Integration (T224) - Not Implemented
 
 Integrate AuditService with existing operations:
+
 - Sales transactions
 - Inventory changes
 - Branch management
@@ -444,37 +484,41 @@ Integrate AuditService with existing operations:
 
 ## API Endpoints Summary
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/api/v1/users` | List users | Yes (Admin or Branch) |
-| POST | `/api/v1/users` | Create user | Yes (Admin) |
-| PUT | `/api/v1/users/:id` | Update user | Yes (Self or Admin) |
-| DELETE | `/api/v1/users/:id` | Delete user | Yes (Admin) |
-| POST | `/api/v1/users/:id/assign-branch` | Assign to branch | Yes (Admin) |
-| DELETE | `/api/v1/users/:id/branches/:branchId` | Remove branch | Yes (Admin) |
-| GET | `/api/v1/users/:id/activity` | User activity | Yes (Self or Admin) |
-| GET | `/api/v1/audit/logs` | Audit logs | Yes (Admin) |
-| GET | `/api/v1/audit/user/:userId` | User audit trail | Yes (Self or Admin) |
+| Method | Endpoint                               | Description      | Auth Required         |
+| ------ | -------------------------------------- | ---------------- | --------------------- |
+| GET    | `/api/v1/users`                        | List users       | Yes (Admin or Branch) |
+| POST   | `/api/v1/users`                        | Create user      | Yes (Admin)           |
+| PUT    | `/api/v1/users/:id`                    | Update user      | Yes (Self or Admin)   |
+| DELETE | `/api/v1/users/:id`                    | Delete user      | Yes (Admin)           |
+| POST   | `/api/v1/users/:id/assign-branch`      | Assign to branch | Yes (Admin)           |
+| DELETE | `/api/v1/users/:id/branches/:branchId` | Remove branch    | Yes (Admin)           |
+| GET    | `/api/v1/users/:id/activity`           | User activity    | Yes (Self or Admin)   |
+| GET    | `/api/v1/audit/logs`                   | Audit logs       | Yes (Admin)           |
+| GET    | `/api/v1/audit/user/:userId`           | User audit trail | Yes (Self or Admin)   |
 
 ---
 
 ## Next Steps
 
 1. **Database Migration**
+
    - Run migration for UserActivityLog schema changes
    - Test migration on dev/staging environments
 
 2. **Frontend UI Implementation (T235-T239)**
+
    - Create user management pages
    - Create user form modal with role and branch assignment
    - Create user details page with activity log
    - Implement role-based UI hiding
 
 3. **Authorization Testing (T240-T243)**
+
    - Comprehensive role-based permission testing
    - Verify all endpoints respect authorization rules
 
 4. **Audit Integration (T224)**
+
    - Add audit logging to UserService methods
    - Add audit logging to existing services (Sales, Inventory, Branches)
 
@@ -503,22 +547,26 @@ Integrate AuditService with existing operations:
 ## Technical Decisions
 
 1. **Circular Buffer Implementation**
+
    - Chose database-level implementation over in-memory
    - Maintains consistency across server restarts
    - Simple COUNT + DELETE approach for buffer management
 
 2. **Two-Tier Audit System**
+
    - Permanent AuditLog for compliance and reporting
    - Circular UserActivityLog for quick user-centric access
    - Reduces query load on main audit table
 
 3. **Soft Delete Pattern**
+
    - Users and branch assignments use soft delete (isActive flag)
    - Preserves referential integrity
    - Allows audit trail to remain intact
    - Can be reactivated if needed
 
 4. **Authorization Pattern**
+
    - Check HttpContext.Items for user claims
    - Consistent pattern across all endpoints
    - Clear separation: Unauthorized (401) vs Forbidden (403)
@@ -533,22 +581,27 @@ Integrate AuditService with existing operations:
 ## Known Limitations
 
 1. **No Email Verification**
+
    - Users created without email verification
    - Consider adding email confirmation flow
 
 2. **No Password Strength Requirements**
+
    - Current minimum: 6 characters
    - Consider enforcing complexity rules
 
 3. **No Account Lockout**
+
    - FailedLoginAttempts tracked but not enforced
    - Consider implementing account lockout policy
 
 4. **No Role Hierarchy**
+
    - Roles are per-branch assignments
    - No global role hierarchy implemented
 
 5. **No Batch Operations**
+
    - No bulk user import/export
    - No batch branch assignments
 
@@ -561,11 +614,13 @@ Integrate AuditService with existing operations:
 ## Performance Considerations
 
 1. **Circular Buffer Cleanup**
+
    - Runs on every activity log call
    - Consider batching cleanup operations
    - Monitor query performance with many users
 
 2. **Audit Log Growth**
+
    - AuditLog table grows indefinitely
    - Consider archival strategy for old logs
    - Add indexes for common query patterns
@@ -582,6 +637,7 @@ Integrate AuditService with existing operations:
 ⚠️ **Not Tested** - .NET SDK not available in current environment
 
 **Before Deployment:**
+
 1. Run `dotnet build` in Backend directory
 2. Run `dotnet ef migrations add UpdateUserActivityLogForPhase8 --context HeadOfficeDbContext`
 3. Run `dotnet ef database update --context HeadOfficeDbContext`

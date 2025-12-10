@@ -3,7 +3,7 @@ namespace Backend.Models.DTOs.Branch.Users;
 /// <summary>
 /// Branch User DTO - Response for branch user queries
 /// </summary>
-public class BranchUserDto
+public class UserDto
 {
     public Guid Id { get; set; }
     public string Username { get; set; } = string.Empty;

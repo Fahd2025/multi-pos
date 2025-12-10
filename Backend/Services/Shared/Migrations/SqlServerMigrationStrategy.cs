@@ -11,6 +11,33 @@ public class SqlServerMigrationStrategy : BaseMigrationStrategy
 
     public override DatabaseProvider Provider => DatabaseProvider.MSSQL;
 
+    /// <summary>
+    /// Override to create schema from model for SQL Server instead of using SQLite-based migrations
+    /// </summary>
+    public override async Task ApplyMigrationsAsync(BranchDbContext context, CancellationToken cancellationToken)
+    {
+        var appliedMigrations = await context.Database.GetAppliedMigrationsAsync(cancellationToken);
+        
+        // If fresh database, create schema from model  
+        if (!appliedMigrations.Any())
+        {
+            Logger.LogInformation("Fresh SQL Server database - creating schema from model");
+            
+            // Get the script that creates all tables with proper SQL Server types
+            var script = context.Database.GenerateCreateScript();
+            
+            // Execute the script
+            await context.Database.ExecuteSqlRawAsync(script, cancellationToken);
+            
+            Logger.LogInformation("Schema created successfully for SQL Server");
+        }
+        else
+        {
+            // For existing databases, use standard migrations
+            await base.ApplyMigrationsAsync(context, cancellationToken);
+        }
+    }
+
     public override async Task<bool> CanConnectAsync(string connectionString)
     {
         try
@@ -57,6 +84,7 @@ public class SqlServerMigrationStrategy : BaseMigrationStrategy
             "ExpenseCategories",
             "Settings",
             "SyncQueue",
+            "InvoiceTemplates",
             "__EFMigrationsHistory"
         };
 

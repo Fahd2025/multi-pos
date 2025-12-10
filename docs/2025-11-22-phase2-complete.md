@@ -84,7 +84,7 @@ Phase 2 of the Multi-Branch POS System is now **85.7% complete**. All critical a
 - **File**: `frontend/types/entities.types.ts`
 - **Lines**: 515
 - **Features**:
-  - Head Office entities (User, Branch, BranchUser, etc.)
+  - Head Office entities (User, Branch, User, etc.)
   - Branch entities (Category, Product, Sale, etc.)
   - Composite/Extended types
   - View models for UI

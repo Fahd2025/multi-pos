@@ -27,6 +27,7 @@ Implemented a comprehensive multi-provider database migration system for branch 
 ### Problems Solved
 
 The previous system (`BranchDatabaseMigrator.cs`) had several critical issues:
+
 - ❌ Used `EnsureCreatedAsync()` - creates schema but doesn't track migrations
 - ❌ Manual SQL scripts for schema updates (SQLite-specific only)
 - ❌ Not provider-agnostic (hardcoded SQLite DDL)
@@ -38,6 +39,7 @@ The previous system (`BranchDatabaseMigrator.cs`) had several critical issues:
 ### New System Advantages
 
 The new system provides:
+
 - ✅ **Multi-Provider Support** - SQLite, MSSQL, PostgreSQL, MySQL
 - ✅ **Migration Tracking** - State tracked per branch in HeadOfficeDb
 - ✅ **Zero-Downtime** - Background service applies migrations automatically
@@ -54,12 +56,14 @@ The new system provides:
 ### Phase 1: Foundation (Core Infrastructure)
 
 **Created:**
+
 - `BranchMigrationState` entity with migration status tracking
 - `MigrationStatus` enum (Pending, InProgress, Completed, Failed, RequiresManualIntervention)
 - Updated `HeadOfficeDbContext` with `BranchMigrationStates` DbSet
 - Created EF Core migration `AddBranchMigrationState`
 
 **Key Properties:**
+
 - BranchId (FK to Branches)
 - LastMigrationApplied (string)
 - Status (MigrationStatus enum)
@@ -70,6 +74,7 @@ The new system provides:
 ### Phase 2: Migration Strategies (Provider-Specific Logic)
 
 **Created:**
+
 - `IMigrationStrategy` - Strategy interface
 - `BaseMigrationStrategy` - Base implementation with common EF Core logic
 - `SqliteMigrationStrategy` - SQLite-specific implementation
@@ -79,6 +84,7 @@ The new system provides:
 - `MigrationStrategyFactory` - Factory for strategy selection
 
 **Strategy Responsibilities:**
+
 - Connection validation (`CanConnectAsync`)
 - Database existence checks (`DatabaseExistsAsync`)
 - Pending/applied migrations retrieval
@@ -88,6 +94,7 @@ The new system provides:
 ### Phase 3: Migration Manager (Orchestration)
 
 **Created:**
+
 - `MigrationResult` DTO - Result of migration operations
 - `MigrationHistory` DTO - Migration history for branches
 - `IBranchMigrationManager` - Service interface
@@ -98,6 +105,7 @@ The new system provides:
   - Per-branch and all-branches migration methods
 
 **Core Methods:**
+
 - `ApplyMigrationsAsync(branchId)` - Migrate specific branch
 - `ApplyMigrationsToAllBranchesAsync()` - Migrate all active branches
 - `GetPendingMigrationsAsync(branchId)` - List pending migrations
@@ -107,6 +115,7 @@ The new system provides:
 ### Phase 4: Background Service (Automatic Migrations)
 
 **Created:**
+
 - `MigrationOrchestrator` - IHostedService implementation
 - Runs every 5 minutes (configurable)
 - 30-second initial delay on startup
@@ -116,6 +125,7 @@ The new system provides:
 ### Phase 5: API Endpoints (Manual Control)
 
 **Created:**
+
 - `MigrationEndpoints.cs` with 6 endpoints (HeadOfficeAdmin only):
   1. `POST /api/v1/migrations/branches/{branchId}/apply` - Apply to specific branch
   2. `POST /api/v1/migrations/branches/apply-all` - Apply to all branches
@@ -127,6 +137,7 @@ The new system provides:
 ### Phase 6: Registration and Cleanup
 
 **Updated:**
+
 - `Program.cs`:
   - Registered all migration strategies as scoped services
   - Registered `MigrationStrategyFactory` as singleton
@@ -134,10 +145,11 @@ The new system provides:
   - Registered `MigrationOrchestrator` as hosted service
   - Replaced database seeding code to use new migration system
   - Added `app.MapMigrationEndpoints()` call
-- `BranchUserEndpoints.cs`:
+- `UserEndpoints.cs`:
   - Updated to use `IBranchMigrationManager` instead of `BranchDatabaseMigrator`
 
 **Deleted:**
+
 - `Backend/Data/Shared/BranchDatabaseMigrator.cs` (old system)
 
 ---
@@ -204,11 +216,13 @@ The new system provides:
 ## Files Created
 
 ### Entities
+
 1. `Backend/Models/Entities/HeadOffice/BranchMigrationState.cs`
    - Entity for tracking migration state per branch
    - Includes MigrationStatus enum
 
 ### Migration Strategies
+
 2. `Backend/Services/Shared/Migrations/IMigrationStrategy.cs`
 3. `Backend/Services/Shared/Migrations/BaseMigrationStrategy.cs`
 4. `Backend/Services/Shared/Migrations/SqliteMigrationStrategy.cs`
@@ -218,6 +232,7 @@ The new system provides:
 8. `Backend/Services/Shared/Migrations/MigrationStrategyFactory.cs`
 
 ### Migration Manager
+
 9. `Backend/Models/DTOs/Shared/Migrations/MigrationDtos.cs`
    - MigrationResult DTO
    - MigrationHistory DTO
@@ -225,15 +240,19 @@ The new system provides:
 11. `Backend/Services/Shared/Migrations/BranchMigrationManager.cs`
 
 ### Background Service
+
 12. `Backend/Services/Shared/Migrations/MigrationOrchestrator.cs`
 
 ### API Endpoints
+
 13. `Backend/Endpoints/MigrationEndpoints.cs`
 
 ### Database Migration
+
 14. `Backend/Migrations/HeadOffice/[timestamp]_AddBranchMigrationState.cs`
 
 ### Documentation
+
 15. `docs/2025-12-06-branch-database-migration-system-implementation.md` (this file)
 
 ---
@@ -241,10 +260,12 @@ The new system provides:
 ## Files Modified
 
 1. **`Backend/Data/HeadOffice/HeadOfficeDbContext.cs`**
+
    - Added `DbSet<BranchMigrationState> BranchMigrationStates`
    - Added entity configuration with indexes and foreign key
 
 2. **`Backend/Program.cs`**
+
    - Removed `BranchDatabaseMigrator` service registration
    - Added migration strategy services (Scoped)
    - Added `MigrationStrategyFactory` (Singleton)
@@ -253,7 +274,7 @@ The new system provides:
    - Updated database seeding to use `IBranchMigrationManager`
    - Added `app.MapMigrationEndpoints()` call
 
-3. **`Backend/Endpoints/BranchUserEndpoints.cs`**
+3. **`Backend/Endpoints/UserEndpoints.cs`**
    - Line 425-426: Replaced `BranchDatabaseMigrator` with `IBranchMigrationManager`
 
 ---
@@ -273,21 +294,25 @@ The new system provides:
 Each database provider has its own strategy implementation:
 
 **SQLite Strategy:**
+
 - File-based database with directory creation
 - Write permission validation
 - Table listing via `sqlite_master`
 
 **SQL Server Strategy:**
+
 - Connection string masking for security
 - Table listing via `INFORMATION_SCHEMA.TABLES`
 - Network connection testing
 
 **PostgreSQL Strategy:**
+
 - Connection string masking
 - Schema-aware table listing (`public` schema)
 - SSL mode support
 
 **MySQL Strategy:**
+
 - Connection string masking
 - Database-scoped table listing
 - SSL mode support
@@ -295,6 +320,7 @@ Each database provider has its own strategy implementation:
 ### 2. Distributed Locking
 
 Prevents concurrent migrations to the same branch:
+
 - In-memory `SemaphoreSlim` for process-level locking
 - Database-backed `LockOwnerId` and `LockExpiresAt` for distributed locking
 - 10-minute lock timeout with automatic expiration
@@ -303,6 +329,7 @@ Prevents concurrent migrations to the same branch:
 ### 3. Retry Logic
 
 Automatic retry for transient failures:
+
 - Max 3 attempts per branch
 - Exponential backoff via background service (5-minute intervals)
 - Status changes:
@@ -312,12 +339,14 @@ Automatic retry for transient failures:
 ### 4. Schema Validation
 
 Post-migration validation ensures integrity:
+
 - Checks for all required tables
 - Provider-specific table listing queries
 - Returns `true/false` for validation status
 - Logs missing tables as warnings
 
 **Required Tables:**
+
 - Users
 - Categories
 - Products
@@ -332,11 +361,12 @@ Post-migration validation ensures integrity:
 - ExpenseCategories
 - Settings
 - SyncQueue
-- __EFMigrationsHistory
+- \_\_EFMigrationsHistory
 
 ### 5. Background Orchestration
 
 `MigrationOrchestrator` runs as `IHostedService`:
+
 - Starts 30 seconds after application startup
 - Checks every 5 minutes
 - Applies migrations to all active branches
@@ -356,13 +386,11 @@ POST /api/v1/migrations/branches/{branchId}/apply
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
-  "appliedMigrations": [
-    "20251206_InitialCreate",
-    "20251206_AddCustomerFields"
-  ],
+  "appliedMigrations": ["20251206_InitialCreate", "20251206_AddCustomerFields"],
   "errorMessage": null,
   "duration": "00:00:02.345",
   "branchesProcessed": 1,
@@ -378,6 +406,7 @@ POST /api/v1/migrations/branches/apply-all
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -400,6 +429,7 @@ GET /api/v1/migrations/branches/{branchId}/pending
 ```
 
 **Response:**
+
 ```json
 {
   "branchId": "guid-here",
@@ -418,17 +448,13 @@ GET /api/v1/migrations/branches/{branchId}/history
 ```
 
 **Response:**
+
 ```json
 {
   "branchId": "guid-here",
   "branchCode": "BR001",
-  "appliedMigrations": [
-    "20251206_InitialCreate",
-    "20251206_AddCustomerFields"
-  ],
-  "pendingMigrations": [
-    "20251206_AddProductIndex"
-  ],
+  "appliedMigrations": ["20251206_InitialCreate", "20251206_AddCustomerFields"],
+  "pendingMigrations": ["20251206_AddProductIndex"],
   "lastMigrationDate": "2025-12-06T10:30:00Z",
   "status": "Completed",
   "retryCount": 0,
@@ -443,6 +469,7 @@ GET /api/v1/migrations/branches/{branchId}/validate
 ```
 
 **Response:**
+
 ```json
 {
   "branchId": "guid-here",
@@ -458,6 +485,7 @@ GET /api/v1/migrations/branches/status
 ```
 
 **Response:**
+
 ```json
 [
   {
@@ -494,6 +522,7 @@ GET /api/v1/migrations/branches/status
 ### Startup Flow
 
 1. **Application Starts**
+
    - HeadOffice database migrated via `context.Database.MigrateAsync()`
    - Default data seeded via `DbSeeder.SeedAsync()`
    - `IBranchMigrationManager.ApplyMigrationsToAllBranchesAsync()` called
@@ -507,31 +536,38 @@ GET /api/v1/migrations/branches/status
 ### Per-Branch Migration Flow
 
 1. **Load Branch**
+
    - Fetch branch from HeadOfficeDb
    - Verify branch exists
 
 2. **Acquire Lock**
+
    - Check if lock is expired (clear if yes)
    - Check if already locked (fail if yes)
    - Acquire lock with 10-minute timeout
 
 3. **Get Strategy**
+
    - Factory selects strategy based on `branch.DatabaseProvider`
 
 4. **Validate Connection**
+
    - Test connection string
    - Ensure database exists (create if needed)
 
 5. **Check Migrations**
+
    - Get pending migrations via EF Core API
    - Skip if no pending migrations
 
 6. **Apply Migrations**
+
    - Update state to `InProgress`
    - Call `Database.MigrateAsync()`
    - Validate schema integrity
 
 7. **Update State**
+
    - On success: `Completed` with last migration name
    - On failure: `Failed` or `RequiresManualIntervention` (if retry count >= 3)
    - Increment retry count on failure
@@ -542,16 +578,19 @@ GET /api/v1/migrations/branches/status
 ### Error Handling
 
 **Connection Failures:**
+
 - Status: `Failed`
 - Retry: Automatic (background service)
 - Max attempts: 3
 
 **Migration Failures:**
+
 - Status: `Failed` or `RequiresManualIntervention`
 - Error details logged
 - Admin can investigate via status endpoint
 
 **Lock Conflicts:**
+
 - Returns immediately with error message
 - Does not increment retry count
 
@@ -580,27 +619,32 @@ GET /api/v1/migrations/branches/status
 ### Manual Testing Recommendations
 
 1. **Test Startup Migration**
+
    - Start application
    - Verify HeadOffice migration applied
    - Verify branch migrations applied
    - Check logs for success/failure messages
 
 2. **Test Background Service**
+
    - Create new branch via API
    - Wait 5 minutes
    - Verify migration applied automatically
    - Check `BranchMigrationStates` table
 
 3. **Test Manual Migration**
+
    - Call `POST /api/v1/migrations/branches/{id}/apply`
    - Verify response
    - Check migration history
 
 4. **Test Concurrent Migrations**
+
    - Call migration endpoint twice for same branch
    - Verify one succeeds, one fails with lock message
 
 5. **Test Retry Logic**
+
    - Create branch with invalid connection string
    - Wait for 3 automatic retries
    - Verify status changes to `RequiresManualIntervention`
@@ -617,31 +661,38 @@ GET /api/v1/migrations/branches/status
 ### Potential Improvements
 
 1. **Rollback Support**
+
    - Add `RollbackMigrationAsync(branchId, targetMigration)` method
    - Implement migration rollback via EF Core
 
 2. **Migration Scheduling**
+
    - Add configurable schedule (cron expression)
    - Allow per-branch migration windows
 
 3. **Notification System**
+
    - Email/SMS alerts for failed migrations
    - Webhook support for migration events
 
 4. **Dashboard UI**
+
    - Frontend dashboard for migration monitoring
    - Real-time status updates via SignalR
 
 5. **Performance Optimization**
+
    - Parallel migration processing (multiple branches at once)
    - Configurable parallelism level
 
 6. **Audit Trail**
+
    - Detailed migration history table
    - Track who triggered manual migrations
    - Before/after schema snapshots
 
 7. **Migration Scripts**
+
    - Support for custom SQL scripts
    - Pre/post migration hooks
 

@@ -3,10 +3,10 @@ using System.ComponentModel.DataAnnotations;
 namespace Backend.Models.Entities.HeadOffice;
 
 /// <summary>
-/// BranchUserAssignment - Links central HeadOffice users to branches
-/// This is different from Branch.BranchUser which represents branch-specific local users
+/// UserAssignment - Links central HeadOffice users to branches
+/// This is different from Branch.User which represents branch-specific local users
 /// </summary>
-public class BranchUserAssignment
+public class UserAssignment
 {
     [Key]
     public Guid Id { get; set; }

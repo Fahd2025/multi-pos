@@ -21,25 +21,30 @@
 ### Current State Analysis
 
 #### HeadOffice Database
+
 - **Provider:** SQLite
 - **Location:** `Upload/HeadOffice/Database/headoffice.db`
 - **Migration Status:** ✅ Proper EF Core migrations configured
 - **Migration Files:** `Backend/Migrations/HeadOffice/*.cs`
 
 #### Branch Databases
+
 Multiple databases per branch, each potentially using different providers:
 
 1. **SQLite**
+
    - File-based: `Upload/Branches/{Code}/Database/{Code}.db`
    - No username/password required
    - Directory auto-created by DbContextFactory
 
 2. **SQL Server (MSSQL)**
+
    - Network-based with credentials
    - Supports integrated security or SQL auth
    - SSL/TLS certificate options
 
 3. **PostgreSQL**
+
    - Network-based with credentials
    - SSL modes: Disable, Require, VerifyCA, VerifyFull
    - Port configurable (default: 5432)
@@ -54,6 +59,7 @@ Multiple databases per branch, each potentially using different providers:
 **File:** `Backend/Data/Shared/BranchDatabaseMigrator.cs`
 
 **Problems:**
+
 - ❌ Uses `EnsureCreatedAsync()` - Creates initial schema but doesn't track migrations
 - ❌ Manual SQL scripts for schema updates (SQLite-specific only)
 - ❌ Not provider-agnostic (hardcoded SQLite DDL)
@@ -63,6 +69,7 @@ Multiple databases per branch, each potentially using different providers:
 - ❌ No rollback capability
 
 **Current Code (to be replaced):**
+
 ```csharp
 // Runs at startup in Program.cs
 var branchMigrator = scope.ServiceProvider.GetRequiredService<BranchDatabaseMigrator>();
@@ -226,7 +233,7 @@ public class BranchMigrationState
 
     /// <summary>
     /// Name of the last migration that was successfully applied
-    /// Example: "20251215091544_AddBranchUsersTable"
+    /// Example: "20251215091544_AddUsersTable"
     /// </summary>
     public string LastMigrationApplied { get; set; } = string.Empty;
 
@@ -313,11 +320,13 @@ public enum MigrationStatus
 **File:** `Backend/Data/HeadOffice/HeadOfficeDbContext.cs`
 
 Add this DbSet property:
+
 ```csharp
 public DbSet<BranchMigrationState> BranchMigrationStates { get; set; }
 ```
 
 Add this configuration in `OnModelCreating()`:
+
 ```csharp
 // BranchMigrationState configuration
 modelBuilder.Entity<BranchMigrationState>(entity =>
@@ -1749,9 +1758,11 @@ app.MapMigrationEndpoints();
 #### Step 6.2: Delete Old Migration Code
 
 **Delete this file (no longer needed):**
+
 - `Backend/Data/Shared/BranchDatabaseMigrator.cs`
 
 **Remove this line from Program.cs:**
+
 ```csharp
 // Remove this line (around line 55):
 builder.Services.AddScoped<BranchDatabaseMigrator>();
@@ -2075,11 +2086,13 @@ public class MigrationIntegrationTests : IClassFixture<WebApplicationFactory<Pro
 
 ```markdown
 ## Pre-Testing Setup
+
 - [ ] Backup all branch databases
 - [ ] Create test branches for each provider (SQLite, MSSQL, PostgreSQL, MySQL)
 - [ ] Ensure test database servers are accessible
 
 ## Test 1: New Branch Creation
+
 - [ ] Create new SQLite branch
 - [ ] Verify migrations applied automatically (check logs)
 - [ ] Verify database file created at correct path
@@ -2087,6 +2100,7 @@ public class MigrationIntegrationTests : IClassFixture<WebApplicationFactory<Pro
 - [ ] Check BranchMigrationState table shows "Completed" status
 
 ## Test 2: Schema Update
+
 - [ ] Create new EF Core migration for BranchDbContext
 - [ ] Restart application
 - [ ] Verify migrations applied to all branches automatically
@@ -2094,12 +2108,14 @@ public class MigrationIntegrationTests : IClassFixture<WebApplicationFactory<Pro
 - [ ] Verify schema changes in all branch databases
 
 ## Test 3: Manual Migration Trigger
+
 - [ ] Call POST /api/v1/migrations/branches/{id}/apply
 - [ ] Verify 200 OK response
 - [ ] Check migration result includes applied migrations
 - [ ] Verify logs show migration execution
 
 ## Test 4: Connection Failure Handling
+
 - [ ] Create branch with invalid connection details
 - [ ] Trigger migration
 - [ ] Verify migration fails gracefully
@@ -2108,6 +2124,7 @@ public class MigrationIntegrationTests : IClassFixture<WebApplicationFactory<Pro
 - [ ] Verify error details captured
 
 ## Test 5: Lock Mechanism
+
 - [ ] Start migration for branch A
 - [ ] Immediately start another migration for same branch
 - [ ] Verify second request returns "already in progress" error
@@ -2116,12 +2133,14 @@ public class MigrationIntegrationTests : IClassFixture<WebApplicationFactory<Pro
 - [ ] Verify it succeeds
 
 ## Test 6: Migration History
+
 - [ ] Call GET /api/v1/migrations/branches/{id}/history
 - [ ] Verify response includes applied and pending migrations
 - [ ] Verify last migration date is correct
 - [ ] Verify status matches BranchMigrationState
 
 ## Test 7: Schema Validation
+
 - [ ] Call GET /api/v1/migrations/branches/{id}/validate
 - [ ] Verify returns true for valid database
 - [ ] Manually drop a required table
@@ -2129,6 +2148,7 @@ public class MigrationIntegrationTests : IClassFixture<WebApplicationFactory<Pro
 - [ ] Verify returns false
 
 ## Test 8: Background Service
+
 - [ ] Start application
 - [ ] Wait 30 seconds (initial delay)
 - [ ] Check logs for "Migration Orchestrator started"
@@ -2137,6 +2157,7 @@ public class MigrationIntegrationTests : IClassFixture<WebApplicationFactory<Pro
 - [ ] Verify no errors in logs
 
 ## Test 9: Multi-Provider
+
 - [ ] Create branches for each provider
 - [ ] Run migrations on all branches
 - [ ] Verify all succeed
@@ -2144,6 +2165,7 @@ public class MigrationIntegrationTests : IClassFixture<WebApplicationFactory<Pro
 - [ ] Verify provider-specific features work
 
 ## Test 10: Rollback Scenario
+
 - [ ] Create migration that will fail midway
 - [ ] Run migration
 - [ ] Verify database state is consistent
@@ -2161,6 +2183,7 @@ public class MigrationIntegrationTests : IClassFixture<WebApplicationFactory<Pro
 
 ```markdown
 ## Phase 1: Backup
+
 - [ ] Backup HeadOffice database
 - [ ] Backup all branch databases
 - [ ] Document current schema versions
@@ -2168,6 +2191,7 @@ public class MigrationIntegrationTests : IClassFixture<WebApplicationFactory<Pro
 - [ ] Test backup restoration
 
 ## Phase 2: Staging Environment
+
 - [ ] Deploy to staging
 - [ ] Run integration tests
 - [ ] Test each database provider
@@ -2176,6 +2200,7 @@ public class MigrationIntegrationTests : IClassFixture<WebApplicationFactory<Pro
 - [ ] Performance test with 100+ branches
 
 ## Phase 3: Production Preparation
+
 - [ ] Schedule deployment during low-traffic window
 - [ ] Notify team of deployment
 - [ ] Prepare rollback scripts
@@ -2183,6 +2208,7 @@ public class MigrationIntegrationTests : IClassFixture<WebApplicationFactory<Pro
 - [ ] Ensure database servers are accessible
 
 ## Phase 4: Deployment
+
 - [ ] Stop application
 - [ ] Deploy new code
 - [ ] Run HeadOffice migration: `dotnet ef database update`
@@ -2192,6 +2218,7 @@ public class MigrationIntegrationTests : IClassFixture<WebApplicationFactory<Pro
 - [ ] Check first branch migration completes successfully
 
 ## Phase 5: Verification
+
 - [ ] Call GET /api/v1/migrations/branches/status
 - [ ] Verify all branches show "Completed" or "Pending"
 - [ ] Manually trigger migration for one branch
@@ -2200,6 +2227,7 @@ public class MigrationIntegrationTests : IClassFixture<WebApplicationFactory<Pro
 - [ ] Verify automatic migration works
 
 ## Phase 6: Monitoring
+
 - [ ] Monitor logs for next 48 hours
 - [ ] Check for failed migrations
 - [ ] Review retry counts
@@ -2212,17 +2240,22 @@ public class MigrationIntegrationTests : IClassFixture<WebApplicationFactory<Pro
 **File:** `frontend/app/[locale]/head-office/migrations/page.tsx`
 
 ```typescript
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { migrationService } from '@/services/migration.service';
+import { useState, useEffect } from "react";
+import { migrationService } from "@/services/migration.service";
 
 interface MigrationStatus {
   branchId: string;
   branchCode: string;
   branchName: string;
   lastMigrationApplied: string;
-  status: 'Pending' | 'InProgress' | 'Completed' | 'Failed' | 'RequiresManualIntervention';
+  status:
+    | "Pending"
+    | "InProgress"
+    | "Completed"
+    | "Failed"
+    | "RequiresManualIntervention";
   lastAttemptAt: string;
   retryCount: number;
   errorDetails?: string;
@@ -2245,7 +2278,7 @@ export default function MigrationsPage() {
       const data = await migrationService.getAllStatus();
       setStatuses(data);
     } catch (error) {
-      console.error('Failed to load migration statuses', error);
+      console.error("Failed to load migration statuses", error);
     } finally {
       setLoading(false);
     }
@@ -2254,32 +2287,32 @@ export default function MigrationsPage() {
   const handleApplyAll = async () => {
     try {
       await migrationService.applyToAllBranches();
-      alert('Migration started for all branches');
+      alert("Migration started for all branches");
       loadStatuses();
     } catch (error) {
-      alert('Failed to start migrations');
+      alert("Failed to start migrations");
     }
   };
 
   const handleApplyBranch = async (branchId: string) => {
     try {
       await migrationService.applyToBranch(branchId);
-      alert('Migration started for branch');
+      alert("Migration started for branch");
       loadStatuses();
     } catch (error) {
-      alert('Failed to start migration');
+      alert("Failed to start migration");
     }
   };
 
   const getStatusBadge = (status: string) => {
     const colors = {
-      Pending: 'bg-yellow-500',
-      InProgress: 'bg-blue-500',
-      Completed: 'bg-green-500',
-      Failed: 'bg-red-500',
-      RequiresManualIntervention: 'bg-purple-500'
+      Pending: "bg-yellow-500",
+      InProgress: "bg-blue-500",
+      Completed: "bg-green-500",
+      Failed: "bg-red-500",
+      RequiresManualIntervention: "bg-purple-500",
     };
-    return colors[status as keyof typeof colors] || 'bg-gray-500';
+    return colors[status as keyof typeof colors] || "bg-gray-500";
   };
 
   return (
@@ -2301,28 +2334,48 @@ export default function MigrationsPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Branch</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Migration</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Attempt</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Retries</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Branch
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Last Migration
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Last Attempt
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Retries
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {statuses.map((status) => (
                 <tr key={status.branchId}>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{status.branchCode}</div>
-                    <div className="text-sm text-gray-500">{status.branchName}</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {status.branchCode}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {status.branchName}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full text-white ${getStatusBadge(status.status)}`}>
+                    <span
+                      className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full text-white ${getStatusBadge(
+                        status.status
+                      )}`}
+                    >
                       {status.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
-                    {status.lastMigrationApplied || 'None'}
+                    {status.lastMigrationApplied || "None"}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
                     {new Date(status.lastAttemptAt).toLocaleString()}
@@ -2353,38 +2406,48 @@ export default function MigrationsPage() {
 **File:** `frontend/services/migration.service.ts`
 
 ```typescript
-import { apiClient } from './api-client';
+import { apiClient } from "./api-client";
 
 export const migrationService = {
   async getAllStatus() {
-    const response = await apiClient.get('/api/v1/migrations/branches/status');
+    const response = await apiClient.get("/api/v1/migrations/branches/status");
     return response.data;
   },
 
   async applyToBranch(branchId: string) {
-    const response = await apiClient.post(`/api/v1/migrations/branches/${branchId}/apply`);
+    const response = await apiClient.post(
+      `/api/v1/migrations/branches/${branchId}/apply`
+    );
     return response.data;
   },
 
   async applyToAllBranches() {
-    const response = await apiClient.post('/api/v1/migrations/branches/apply-all');
+    const response = await apiClient.post(
+      "/api/v1/migrations/branches/apply-all"
+    );
     return response.data;
   },
 
   async getPendingMigrations(branchId: string) {
-    const response = await apiClient.get(`/api/v1/migrations/branches/${branchId}/pending`);
+    const response = await apiClient.get(
+      `/api/v1/migrations/branches/${branchId}/pending`
+    );
     return response.data;
   },
 
   async getHistory(branchId: string) {
-    const response = await apiClient.get(`/api/v1/migrations/branches/${branchId}/history`);
+    const response = await apiClient.get(
+      `/api/v1/migrations/branches/${branchId}/history`
+    );
     return response.data;
   },
 
   async validate(branchId: string) {
-    const response = await apiClient.get(`/api/v1/migrations/branches/${branchId}/validate`);
+    const response = await apiClient.get(
+      `/api/v1/migrations/branches/${branchId}/validate`
+    );
     return response.data;
-  }
+  },
 };
 ```
 
@@ -2452,110 +2515,127 @@ public class MigrationAlertService : IMigrationAlertService
 ### 6.1 Migration Development Guidelines
 
 #### DO:
+
 ✅ **Always test migrations on sample data before production**
-   ```bash
-   # Create test branch with sample data
-   # Run migration
-   # Verify data integrity
-   ```
+
+```bash
+# Create test branch with sample data
+# Run migration
+# Verify data integrity
+```
 
 ✅ **Use transactions for data migrations (when supported)**
-   ```csharp
-   public override void Up(MigrationBuilder migrationBuilder)
-   {
-       migrationBuilder.Sql(@"
-           BEGIN TRANSACTION;
-           -- Your data migration here
-           COMMIT;
-       ");
-   }
-   ```
+
+```csharp
+public override void Up(MigrationBuilder migrationBuilder)
+{
+    migrationBuilder.Sql(@"
+        BEGIN TRANSACTION;
+        -- Your data migration here
+        COMMIT;
+    ");
+}
+```
 
 ✅ **Add descriptive names with timestamps**
-   ```bash
-   dotnet ef migrations add AddUserIdToSales --context BranchDbContext
-   # Results in: 20251205143022_AddUserIdToSales.cs
-   ```
+
+```bash
+dotnet ef migrations add AddUserIdToSales --context BranchDbContext
+# Results in: 20251205143022_AddUserIdToSales.cs
+```
 
 ✅ **Include both Up() and Down() methods**
-   ```csharp
-   public override void Up(MigrationBuilder migrationBuilder)
-   {
-       migrationBuilder.AddColumn<string>(
-           name: "UserId",
-           table: "Sales",
-           nullable: true);
-   }
 
-   public override void Down(MigrationBuilder migrationBuilder)
-   {
-       migrationBuilder.DropColumn(
-           name: "UserId",
-           table: "Sales");
-   }
-   ```
+```csharp
+public override void Up(MigrationBuilder migrationBuilder)
+{
+    migrationBuilder.AddColumn<string>(
+        name: "UserId",
+        table: "Sales",
+        nullable: true);
+}
+
+public override void Down(MigrationBuilder migrationBuilder)
+{
+    migrationBuilder.DropColumn(
+        name: "UserId",
+        table: "Sales");
+}
+```
 
 ✅ **Test across all database providers**
-   - SQLite (file-based)
-   - SQL Server (network)
-   - PostgreSQL (network)
-   - MySQL (network)
+
+- SQLite (file-based)
+- SQL Server (network)
+- PostgreSQL (network)
+- MySQL (network)
 
 ✅ **Use EF Core abstractions (avoid raw SQL when possible)**
-   ```csharp
-   // Good
-   migrationBuilder.AddColumn<string>("Email", "Users");
 
-   // Avoid (provider-specific)
-   migrationBuilder.Sql("ALTER TABLE Users ADD COLUMN Email TEXT");
-   ```
+```csharp
+// Good
+migrationBuilder.AddColumn<string>("Email", "Users");
+
+// Avoid (provider-specific)
+migrationBuilder.Sql("ALTER TABLE Users ADD COLUMN Email TEXT");
+```
 
 ✅ **Version your migration files in git**
-   ```bash
-   git add Backend/Migrations/Branch/*.cs
-   git commit -m "Add migration: AddUserIdToSales"
-   ```
+
+```bash
+git add Backend/Migrations/Branch/*.cs
+git commit -m "Add migration: AddUserIdToSales"
+```
 
 #### DON'T:
+
 ❌ **Never modify applied migrations**
-   - Once a migration is applied to production, it's immutable
-   - Create a new migration instead
+
+- Once a migration is applied to production, it's immutable
+- Create a new migration instead
 
 ❌ **Don't use provider-specific features unless necessary**
-   ```csharp
-   // Avoid
-   migrationBuilder.Sql("CREATE INDEX CONCURRENTLY idx_name ON table");
 
-   // Use
-   migrationBuilder.CreateIndex("idx_name", "table", "column");
-   ```
+```csharp
+// Avoid
+migrationBuilder.Sql("CREATE INDEX CONCURRENTLY idx_name ON table");
+
+// Use
+migrationBuilder.CreateIndex("idx_name", "table", "column");
+```
 
 ❌ **Avoid long-running migrations**
-   - Break large migrations into smaller chunks
-   - Consider running heavy migrations during maintenance windows
+
+- Break large migrations into smaller chunks
+- Consider running heavy migrations during maintenance windows
 
 ❌ **Don't hardcode connection strings or secrets**
-   ```csharp
-   // Bad
-   var connStr = "Server=localhost;Database=mydb;User=admin;Password=secret";
 
-   // Good
-   var connStr = branchContext.Database.GetConnectionString();
-   ```
+```csharp
+// Bad
+var connStr = "Server=localhost;Database=mydb;User=admin;Password=secret";
+
+// Good
+var connStr = branchContext.Database.GetConnectionString();
+```
 
 ❌ **Never delete migration files that have been applied**
-   - EF Core tracks migrations in __EFMigrationsHistory table
-   - Deleting applied migrations will break future migrations
+
+- EF Core tracks migrations in \_\_EFMigrationsHistory table
+- Deleting applied migrations will break future migrations
 
 ### 6.2 Provider-Specific Considerations
 
 #### SQLite
+
 - **Limitations:**
+
   - Limited ALTER TABLE support (cannot drop columns directly)
   - No native support for changing column types
   - Requires table recreation for complex schema changes
 
 - **Workaround for dropping columns:**
+
   ```csharp
   protected override void Up(MigrationBuilder migrationBuilder)
   {
@@ -2577,7 +2657,9 @@ public class MigrationAlertService : IMigrationAlertService
   - Use local storage for better performance
 
 #### SQL Server
+
 - **Best Practices:**
+
   - Use transactions for data migrations
   - Consider table locks during peak hours
   - Monitor transaction log growth
@@ -2591,7 +2673,9 @@ public class MigrationAlertService : IMigrationAlertService
   ```
 
 #### PostgreSQL
+
 - **Best Practices:**
+
   - Use `CONCURRENTLY` for index creation to avoid locking
   - Monitor long-running transactions via `pg_stat_activity`
 
@@ -2601,7 +2685,9 @@ public class MigrationAlertService : IMigrationAlertService
   ```
 
 #### MySQL
+
 - **Considerations:**
+
   - Table-level locking during schema changes
   - Use `ALGORITHM=INPLACE` when possible
   - Monitor replication lag if using read replicas
@@ -2679,7 +2765,7 @@ public class RemoveObsoleteColumn : Migration
 Backend/Migrations/Branch/
 ├── 20251202101429_InitialBranchSchema.cs          # Schema foundation
 ├── 20251205143022_AddUserIdToSales.cs             # Feature: User tracking
-├── 20251210091544_AddBranchUsersTable.cs          # Feature: Branch users
+├── 20251210091544_AddUsersTable.cs          # Feature: Branch users
 ├── 20251215154033_AddInventoryDiscrepancyFlag.cs  # Feature: Inventory alerts
 └── BranchDbContextModelSnapshot.cs                # Current schema snapshot
 
@@ -2700,10 +2786,12 @@ Guidelines:
 #### Issue 1: Migration Locked for Too Long
 
 **Symptoms:**
+
 - Error: "Migration already in progress for this branch"
 - Lock has been held for more than 10 minutes
 
 **Diagnosis:**
+
 ```sql
 SELECT * FROM BranchMigrationStates
 WHERE LockOwnerId IS NOT NULL
@@ -2711,6 +2799,7 @@ AND LockExpiresAt < datetime('now');
 ```
 
 **Solution:**
+
 ```sql
 -- Clear expired locks
 UPDATE BranchMigrationStates
@@ -2719,6 +2808,7 @@ WHERE LockExpiresAt < datetime('now');
 ```
 
 **Prevention:**
+
 - Increase lock timeout for large migrations
 - Monitor migration duration
 - Implement lock health check in orchestrator
@@ -2728,11 +2818,13 @@ WHERE LockExpiresAt < datetime('now');
 #### Issue 2: Provider-Specific Migration Failure
 
 **Symptoms:**
-- SQLite error: "no such table: __EFMigrationsHistory"
+
+- SQLite error: "no such table: \_\_EFMigrationsHistory"
 - SQL Server error: "Cannot connect to server"
 - PostgreSQL error: "SSL connection required"
 
 **Diagnosis:**
+
 ```bash
 # Check connection string
 # Check database provider configuration
@@ -2740,6 +2832,7 @@ WHERE LockExpiresAt < datetime('now');
 ```
 
 **Solution for SQLite:**
+
 ```csharp
 // Ensure database directory exists
 var dbPath = connectionString.Replace("Data Source=", "");
@@ -2747,6 +2840,7 @@ Directory.CreateDirectory(Path.GetDirectoryName(dbPath));
 ```
 
 **Solution for Network Providers:**
+
 ```csharp
 // Test connection before migration
 if (!await strategy.CanConnectAsync(connectionString))
@@ -2760,11 +2854,13 @@ if (!await strategy.CanConnectAsync(connectionString))
 #### Issue 3: Partial Migration Applied
 
 **Symptoms:**
+
 - Migration failed midway
 - Database in inconsistent state
 - Some tables created, others missing
 
 **Diagnosis:**
+
 ```sql
 -- Check which migrations were applied
 SELECT * FROM __EFMigrationsHistory ORDER BY MigrationId;
@@ -2775,22 +2871,26 @@ SELECT * FROM __EFMigrationsHistory ORDER BY MigrationId;
 **Solution:**
 
 **Step 1: Identify last successful migration**
+
 ```sql
 SELECT MAX(MigrationId) FROM __EFMigrationsHistory;
 ```
 
 **Step 2: Manually rollback partial changes**
+
 ```sql
 -- Drop tables/columns created by failed migration
 -- Restore data from backup if necessary
 ```
 
 **Step 3: Fix migration script**
+
 - Review migration code
 - Add error handling
 - Test on staging environment
 
 **Step 4: Re-run migration**
+
 ```bash
 # Via API
 POST /api/v1/migrations/branches/{branchId}/apply
@@ -2803,11 +2903,13 @@ POST /api/v1/migrations/branches/{branchId}/apply
 #### Issue 4: Schema Validation Fails
 
 **Symptoms:**
+
 - Validation returns `false`
 - Required tables missing
 - Migration shows "Completed" but schema is incomplete
 
 **Diagnosis:**
+
 ```csharp
 var isValid = await migrationManager.ValidateBranchDatabaseAsync(branchId);
 // Returns false
@@ -2816,6 +2918,7 @@ var isValid = await migrationManager.ValidateBranchDatabaseAsync(branchId);
 **Solution:**
 
 **Step 1: Check which tables exist**
+
 ```sql
 -- SQLite
 SELECT name FROM sqlite_master WHERE type='table';
@@ -2831,10 +2934,12 @@ SELECT TABLE_NAME FROM information_schema.tables WHERE TABLE_SCHEMA = DATABASE()
 ```
 
 **Step 2: Identify missing tables**
+
 - Compare with required tables list in validation strategy
 - Check migration history
 
 **Step 3: Re-create database**
+
 ```bash
 # Drop and recreate database
 # Re-run all migrations
@@ -2846,11 +2951,13 @@ POST /api/v1/migrations/branches/{branchId}/apply
 #### Issue 5: Background Service Not Running
 
 **Symptoms:**
+
 - No logs from MigrationOrchestrator
 - Migrations not running automatically
 - Manual migrations work fine
 
 **Diagnosis:**
+
 ```bash
 # Check application logs
 grep "Migration Orchestrator" /path/to/logs/app.log
@@ -2862,18 +2969,21 @@ GET /api/v1/health
 **Solution:**
 
 **Step 1: Verify service registration**
+
 ```csharp
 // In Program.cs
 builder.Services.AddHostedService<MigrationOrchestrator>();
 ```
 
 **Step 2: Check for startup exceptions**
+
 ```bash
 # Look for exceptions during service startup
 grep "MigrationOrchestrator" /path/to/logs/app.log | grep -i error
 ```
 
 **Step 3: Restart application**
+
 ```bash
 dotnet run
 # Or restart service/container
@@ -2884,11 +2994,13 @@ dotnet run
 #### Issue 6: Retry Count Exceeds Maximum
 
 **Symptoms:**
+
 - Migration status: "RequiresManualIntervention"
 - Retry count >= 3
 - Error persists
 
 **Diagnosis:**
+
 ```sql
 SELECT * FROM BranchMigrationStates
 WHERE Status = 4 -- RequiresManualIntervention
@@ -2898,6 +3010,7 @@ AND RetryCount >= 3;
 **Solution:**
 
 **Step 1: Review error details**
+
 ```sql
 SELECT BranchId, ErrorDetails, RetryCount
 FROM BranchMigrationStates
@@ -2905,11 +3018,13 @@ WHERE Status = 4;
 ```
 
 **Step 2: Fix underlying issue**
+
 - Connection problems: Verify credentials, network
 - Schema problems: Review migration scripts
 - Data problems: Check for constraint violations
 
 **Step 3: Reset retry count**
+
 ```sql
 UPDATE BranchMigrationStates
 SET Status = 0, -- Pending
@@ -2919,6 +3034,7 @@ WHERE BranchId = '{branchId}';
 ```
 
 **Step 4: Trigger manual migration**
+
 ```bash
 POST /api/v1/migrations/branches/{branchId}/apply
 ```
@@ -2928,11 +3044,13 @@ POST /api/v1/migrations/branches/{branchId}/apply
 #### Issue 7: Concurrent Migrations
 
 **Symptoms:**
+
 - Multiple migration processes running
 - Database deadlocks
 - Lock contention
 
 **Diagnosis:**
+
 ```sql
 -- Check for multiple locks
 SELECT * FROM BranchMigrationStates
@@ -2940,6 +3058,7 @@ WHERE LockOwnerId IS NOT NULL;
 ```
 
 **Solution:**
+
 - System is designed to prevent this via distributed locking
 - If it occurs, it indicates a bug in lock mechanism
 - Clear all locks and restart:
@@ -2954,11 +3073,13 @@ SET LockOwnerId = NULL, LockExpiresAt = NULL;
 #### Issue 8: Migration Takes Too Long
 
 **Symptoms:**
+
 - Migration exceeds 10-minute lock timeout
 - Lock expires before migration completes
 - Migration fails with "Lock expired" error
 
 **Diagnosis:**
+
 ```csharp
 // Check migration duration in logs
 // Identify slow migration script
@@ -2967,12 +3088,14 @@ SET LockOwnerId = NULL, LockExpiresAt = NULL;
 **Solution:**
 
 **Option 1: Increase lock timeout**
+
 ```csharp
 // In BranchMigrationManager.cs
 private const int LockTimeoutMinutes = 30; // Increased from 10
 ```
 
 **Option 2: Break migration into smaller chunks**
+
 ```csharp
 // Instead of one large migration
 public class LargeMigration : Migration { }
@@ -2984,6 +3107,7 @@ public class LargeMigration_Part3 : Migration { }
 ```
 
 **Option 3: Run during maintenance window**
+
 ```bash
 # Temporarily disable background service
 # Run migration manually during off-peak hours
@@ -3009,30 +3133,36 @@ This migration system provides:
 ## Implementation Timeline
 
 ### Phase 1: Foundation (1-2 days)
+
 - Create entities and database migration
 - Setup base migration strategies
 - Register services
 
 ### Phase 2: Core Logic (2-3 days)
+
 - Implement provider-specific strategies
 - Build migration manager
 - Add lock mechanism
 
 ### Phase 3: Automation (1 day)
+
 - Create background service
 - Setup API endpoints
 
 ### Phase 4: Testing (2-3 days)
+
 - Write unit tests
 - Write integration tests
 - Manual testing across providers
 
 ### Phase 5: Frontend & Monitoring (1-2 days)
+
 - Build admin dashboard
 - Add alerting
 - Setup monitoring
 
 ### Phase 6: Deployment (1 day)
+
 - Deploy to staging
 - Test thoroughly
 - Deploy to production

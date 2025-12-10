@@ -3,7 +3,7 @@ namespace Backend.Models.DTOs.Branch.Users;
 /// <summary>
 /// Update Branch User DTO - Request for updating an existing branch user
 /// </summary>
-public class UpdateBranchUserDto
+public class UpdateUserDto
 {
     public string? Email { get; set; }
     public string? FullNameEn { get; set; }

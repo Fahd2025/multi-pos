@@ -19,7 +19,7 @@ public class BranchMigrationState
 
     /// <summary>
     /// Name of the last migration that was successfully applied
-    /// Example: "20251215091544_AddBranchUsersTable"
+    /// Example: "20251215091544_AddUsersTable"
     /// </summary>
     public string LastMigrationApplied { get; set; } = string.Empty;
 

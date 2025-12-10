@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Backend.Migrations.HeadOffice
 {
     [DbContext(typeof(HeadOfficeDbContext))]
-    [Migration("20251205171839_RenameBranchUserToBranchUserAssignment")]
-    partial class RenameBranchUserToBranchUserAssignment
+    [Migration("20251210195716_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -235,40 +235,55 @@ namespace Backend.Migrations.HeadOffice
                     b.ToTable("Branches");
                 });
 
-            modelBuilder.Entity("Backend.Models.Entities.HeadOffice.BranchUserAssignment", b =>
+            modelBuilder.Entity("Backend.Models.Entities.HeadOffice.BranchMigrationState", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("AssignedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("AssignedBy")
-                        .HasColumnType("TEXT");
-
                     b.Property<Guid>("BranchId")
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("IsActive")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ErrorDetails")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("LastAttemptAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LastMigrationApplied")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LockExpiresAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LockOwnerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("RetryCount")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Role")
+                    b.Property<int>("Status")
                         .HasColumnType("INTEGER");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BranchId");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("UserId", "BranchId")
+                    b.HasIndex("BranchId")
                         .IsUnique();
 
-                    b.ToTable("BranchUserAssignments");
+                    b.HasIndex("LastAttemptAt");
+
+                    b.HasIndex("LockExpiresAt");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("BranchMigrationStates");
                 });
 
             modelBuilder.Entity("Backend.Models.Entities.HeadOffice.MainSetting", b =>
@@ -474,23 +489,51 @@ namespace Backend.Migrations.HeadOffice
                     b.ToTable("UserActivityLogs");
                 });
 
-            modelBuilder.Entity("Backend.Models.Entities.HeadOffice.BranchUserAssignment", b =>
+            modelBuilder.Entity("Backend.Models.Entities.HeadOffice.UserAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("AssignedBy")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "BranchId")
+                        .IsUnique();
+
+                    b.ToTable("UserAssignments");
+                });
+
+            modelBuilder.Entity("Backend.Models.Entities.HeadOffice.BranchMigrationState", b =>
                 {
                     b.HasOne("Backend.Models.Entities.HeadOffice.Branch", "Branch")
-                        .WithMany("BranchUserAssignments")
+                        .WithMany()
                         .HasForeignKey("BranchId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Backend.Models.Entities.HeadOffice.User", "User")
-                        .WithMany("BranchUserAssignments")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Branch");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Backend.Models.Entities.HeadOffice.RefreshToken", b =>
@@ -515,18 +558,37 @@ namespace Backend.Migrations.HeadOffice
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Backend.Models.Entities.HeadOffice.UserAssignment", b =>
+                {
+                    b.HasOne("Backend.Models.Entities.HeadOffice.Branch", "Branch")
+                        .WithMany("UserAssignments")
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Backend.Models.Entities.HeadOffice.User", "User")
+                        .WithMany("UserAssignments")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Backend.Models.Entities.HeadOffice.Branch", b =>
                 {
-                    b.Navigation("BranchUserAssignments");
+                    b.Navigation("UserAssignments");
                 });
 
             modelBuilder.Entity("Backend.Models.Entities.HeadOffice.User", b =>
                 {
                     b.Navigation("ActivityLogs");
 
-                    b.Navigation("BranchUserAssignments");
-
                     b.Navigation("RefreshTokens");
+
+                    b.Navigation("UserAssignments");
                 });
 #pragma warning restore 612, 618
         }

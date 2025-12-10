@@ -11,14 +11,27 @@ public static class BranchDbSeeder
         string branchCode
     )
     {
-        // Check if data already exists
-        if (await context.Categories.AnyAsync())
+        // Check if data already exists - verify all major entities
+        var hasCategories = await context.Categories.AnyAsync();
+        var hasSuppliers = await context.Suppliers.AnyAsync();
+        var hasProducts = await context.Products.AnyAsync();
+        var hasCustomers = await context.Customers.AnyAsync();
+        
+        if (hasCategories && hasSuppliers && hasProducts && hasCustomers)
         {
             Console.WriteLine($"  → Branch {branchCode} already has data, skipping seed");
             return;
         }
-
-        Console.WriteLine($"  → Seeding sample data for branch {branchCode}");
+        
+        // If partial data exists, warn but continue
+        if (hasCategories || hasSuppliers || hasProducts || hasCustomers)
+        {
+            Console.WriteLine($"  ⚠ Branch {branchCode} has partial data, re-seeding...");
+        }
+        else
+        {
+            Console.WriteLine($"  → Seeding sample data for branch {branchCode}");
+        }
 
         // Seed Categories (20+)
         var categories = new List<Category>
@@ -310,6 +323,7 @@ public static class BranchDbSeeder
         Console.WriteLine($"    ✓ Created {categories.Count} categories");
 
         // Seed Suppliers (20+)
+        Console.WriteLine($"    → Creating suppliers...");
         var suppliers = new List<Supplier>
         {
             new Supplier
@@ -659,6 +673,7 @@ public static class BranchDbSeeder
         Console.WriteLine($"    ✓ Created {suppliers.Count} suppliers");
 
         // Seed Products (20+)
+        Console.WriteLine($"    → Creating products...");
         var products = new List<Product>
         {
             new Product
@@ -1128,6 +1143,7 @@ public static class BranchDbSeeder
         Console.WriteLine($"    ✓ Created {products.Count} products");
 
         // Seed Customers (20+)
+        Console.WriteLine($"    → Creating customers...");
         var customers = new List<Customer>
         {
             new Customer

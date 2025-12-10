@@ -1,6 +1,6 @@
 using Backend.Data.Branch;
 using Backend.Models.DTOs.Branch.Users;
-using BranchUser = Backend.Models.Entities.Branch.User; // Alias
+using User = Backend.Models.Entities.Branch.User; // Alias
 using Backend.Utilities;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,16 +9,16 @@ namespace Backend.Services.Branch.Users;
 /// <summary>
 /// Service for managing branch-specific users
 /// </summary>
-public class BranchUserService : IBranchUserService
+public class UserService : IUserService
 {
     private readonly BranchDbContext _context;
 
-    public BranchUserService(BranchDbContext context)
+    public UserService(BranchDbContext context)
     {
         _context = context;
     }
 
-    public async Task<List<BranchUserDto>> GetBranchUsersAsync(bool includeInactive = false)
+    public async Task<List<UserDto>> GetUsersAsync(bool includeInactive = false)
     {
         var query = _context.Users.AsQueryable();
 
@@ -29,7 +29,7 @@ public class BranchUserService : IBranchUserService
 
         var users = await query
             .OrderBy(u => u.FullNameEn)
-            .Select(u => new BranchUserDto
+            .Select(u => new UserDto
             {
                 Id = u.Id,
                 Username = u.Username,
@@ -50,11 +50,11 @@ public class BranchUserService : IBranchUserService
         return users;
     }
 
-    public async Task<BranchUserDto?> GetBranchUserByIdAsync(Guid userId)
+    public async Task<UserDto?> GetUserByIdAsync(Guid userId)
     {
         var user = await _context.Users
             .Where(u => u.Id == userId)
-            .Select(u => new BranchUserDto
+            .Select(u => new UserDto
             {
                 Id = u.Id,
                 Username = u.Username,
@@ -75,11 +75,11 @@ public class BranchUserService : IBranchUserService
         return user;
     }
 
-    public async Task<BranchUserDto?> GetBranchUserByUsernameAsync(string username)
+    public async Task<UserDto?> GetUserByUsernameAsync(string username)
     {
         var user = await _context.Users
             .Where(u => u.Username == username)
-            .Select(u => new BranchUserDto
+            .Select(u => new UserDto
             {
                 Id = u.Id,
                 Username = u.Username,
@@ -100,7 +100,7 @@ public class BranchUserService : IBranchUserService
         return user;
     }
 
-    public async Task<BranchUserDto> CreateBranchUserAsync(CreateBranchUserDto dto, Guid createdBy)
+    public async Task<UserDto> CreateUserAsync(CreateUserDto dto, Guid createdBy)
     {
         // Check if username already exists
         if (!await IsUsernameAvailableAsync(dto.Username))
@@ -112,7 +112,7 @@ public class BranchUserService : IBranchUserService
         var passwordHash = PasswordHasher.HashPassword(dto.Password);
 
         // Create user entity
-        var user = new BranchUser
+        var user = new User
         {
             Id = Guid.NewGuid(),
             Username = dto.Username,
@@ -132,7 +132,7 @@ public class BranchUserService : IBranchUserService
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        return new BranchUserDto
+        return new UserDto
         {
             Id = user.Id,
             Username = user.Username,
@@ -150,7 +150,7 @@ public class BranchUserService : IBranchUserService
         };
     }
 
-    public async Task<BranchUserDto> UpdateBranchUserAsync(Guid userId, UpdateBranchUserDto dto)
+    public async Task<UserDto> UpdateUserAsync(Guid userId, UpdateUserDto dto)
     {
         var user = await _context.Users.FindAsync(userId);
         if (user == null)
@@ -190,7 +190,7 @@ public class BranchUserService : IBranchUserService
 
         await _context.SaveChangesAsync();
 
-        return new BranchUserDto
+        return new UserDto
         {
             Id = user.Id,
             Username = user.Username,
@@ -208,7 +208,7 @@ public class BranchUserService : IBranchUserService
         };
     }
 
-    public async Task DeleteBranchUserAsync(Guid userId)
+    public async Task DeleteUserAsync(Guid userId)
     {
         var user = await _context.Users.FindAsync(userId);
         if (user == null)
@@ -235,7 +235,7 @@ public class BranchUserService : IBranchUserService
         return !await query.AnyAsync();
     }
 
-    public async Task<BranchUserDto?> ValidateCredentialsAsync(string username, string password)
+    public async Task<UserDto?> ValidateCredentialsAsync(string username, string password)
     {
         var user = await _context.Users
             .Where(u => u.Username == username && u.IsActive)
@@ -252,7 +252,7 @@ public class BranchUserService : IBranchUserService
             return null;
         }
 
-        return new BranchUserDto
+        return new UserDto
         {
             Id = user.Id,
             Username = user.Username,

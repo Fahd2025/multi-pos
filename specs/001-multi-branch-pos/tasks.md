@@ -48,7 +48,7 @@
 
 ### Database Foundation
 
-- [x] T013 Create HeadOfficeDbContext in Backend/Data/HeadOfficeDbContext.cs with User, Branch, BranchUser, RefreshToken, MainSetting, AuditLog, UserActivityLog entities
+- [x] T013 Create HeadOfficeDbContext in Backend/Data/HeadOfficeDbContext.cs with User, Branch, User, RefreshToken, MainSetting, AuditLog, UserActivityLog entities
 - [x] T014 Create BranchDbContext in Backend/Data/BranchDbContext.cs with Category, Product, ProductImage, Sale, SaleLineItem, Customer, Supplier, Purchase, PurchaseLineItem, Expense, ExpenseCategory, Setting, SyncQueue entities
 - [x] T015 Create DbContextFactory in Backend/Data/DbContextFactory.cs with multi-provider support (SQLite, MSSQL, PostgreSQL, MySQL)
 - [x] T016 Create EF Core migration for HeadOfficeDb using `dotnet ef migrations add InitialCreate --context HeadOfficeDbContext`
@@ -58,7 +58,7 @@
 
 - [x] T018 [P] Create Branch entity in Backend/Models/Entities/HeadOffice/Branch.cs per data-model.md
 - [x] T019 [P] Create User entity in Backend/Models/Entities/HeadOffice/User.cs per data-model.md
-- [x] T020 [P] Create BranchUser entity in Backend/Models/Entities/HeadOffice/BranchUser.cs per data-model.md
+- [x] T020 [P] Create User entity in Backend/Models/Entities/HeadOffice/User.cs per data-model.md
 - [x] T021 [P] Create RefreshToken entity in Backend/Models/Entities/HeadOffice/RefreshToken.cs per data-model.md
 - [x] T022 [P] Create MainSetting entity in Backend/Models/Entities/HeadOffice/MainSetting.cs per data-model.md
 - [x] T023 [P] Create AuditLog entity in Backend/Models/Entities/HeadOffice/AuditLog.cs per data-model.md
@@ -856,7 +856,7 @@ With multiple developers (3-4 team members):
 - [ ] T515 Write component tests for ProductSearch component
 - [ ] T516 Write component tests for SaleLineItemsList component
 - [ ] T517 Write component tests for PaymentSection component
-- [ ] T518 Write offline sync tests in frontend/__tests__/lib/offline-sync.test.ts
+- [ ] T518 Write offline sync tests in frontend/**tests**/lib/offline-sync.test.ts
 - [ ] T519 Set up CI/CD pipeline (GitHub Actions)
 - [ ] T520 Configure automated test runs on git push
 - [ ] T521 Add global error boundary to root layout (app/layout.tsx)
@@ -1028,10 +1028,12 @@ With multiple developers (3-4 team members):
 **Total New Tasks**: 156 tasks (T501-T656)
 **Duration**: 7 weeks (with 2 mid-level developers working in parallel)
 **Team Allocation**:
+
 - Developer A (Backend): 78 tasks (~11 tasks/week)
 - Developer B (Frontend): 78 tasks (~11 tasks/week)
 
 **Phases**:
+
 1. **Week 1-2**: Production Readiness (Testing, Security, i18n) - 42 tasks
 2. **Week 3**: Cash Management - 23 tasks
 3. **Week 4**: Returns & Refunds - 30 tasks
@@ -1040,6 +1042,7 @@ With multiple developers (3-4 team members):
 6. **Week 7**: Final Polish & Deployment - 14 tasks
 
 **Architecture Ready for Future**:
+
 - Payment gateway integration (Stripe, Square) - interface ready
 - Gift cards & store credit - data model ready
 - Both can be added without changing core logic

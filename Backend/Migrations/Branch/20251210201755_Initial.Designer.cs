@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Backend.Migrations.Branch
 {
     [DbContext(typeof(BranchDbContext))]
-    [Migration("20251209161046_AddInvoiceTemplates")]
-    partial class AddInvoiceTemplates
+    [Migration("20251210201755_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -87,12 +87,24 @@ namespace Backend.Migrations.Branch
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("AdditionalNumber")
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("AddressAr")
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("AddressEn")
                         .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("BuildingNumber")
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Code")
@@ -104,6 +116,10 @@ namespace Backend.Migrations.Branch
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("CreatedBy")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("District")
+                        .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
@@ -136,8 +152,20 @@ namespace Backend.Migrations.Branch
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("PostalCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StreetName")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
                     b.Property<decimal>("TotalPurchases")
                         .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UnitNumber")
+                        .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -532,7 +560,15 @@ namespace Backend.Migrations.Branch
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal?>("AmountPaid")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid>("CashierId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("ChangeReturned")
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
@@ -553,6 +589,13 @@ namespace Backend.Migrations.Branch
 
                     b.Property<string>("Notes")
                         .HasColumnType("TEXT");
+
+                    b.Property<string>("OrderNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("OrderType")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("PaymentMethod")
                         .HasColumnType("INTEGER");
@@ -625,6 +668,10 @@ namespace Backend.Migrations.Branch
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Barcode")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("DiscountType")
                         .HasColumnType("INTEGER");
 
@@ -640,6 +687,10 @@ namespace Backend.Migrations.Branch
                         .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid>("ProductId")
                         .HasColumnType("TEXT");
 
@@ -647,6 +698,10 @@ namespace Backend.Migrations.Branch
                         .HasColumnType("INTEGER");
 
                     b.Property<Guid>("SaleId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Unit")
+                        .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("UnitPrice")

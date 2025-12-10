@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Backend.Migrations.HeadOffice
 {
     /// <inheritdoc />
-    public partial class InitialHeadOfficeSchema : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -67,6 +67,8 @@ namespace Backend.Migrations.HeadOffice
                     DateFormat = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
                     NumberFormat = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
                     TaxRate = table.Column<decimal>(type: "TEXT", precision: 5, scale: 2, nullable: false),
+                    EnableTax = table.Column<bool>(type: "INTEGER", nullable: false),
+                    PriceIncludesTax = table.Column<bool>(type: "INTEGER", nullable: false),
                     IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
@@ -121,30 +123,28 @@ namespace Backend.Migrations.HeadOffice
                 });
 
             migrationBuilder.CreateTable(
-                name: "BranchUsers",
+                name: "BranchMigrationStates",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    UserId = table.Column<Guid>(type: "TEXT", nullable: false),
                     BranchId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Role = table.Column<int>(type: "INTEGER", nullable: false),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
-                    AssignedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    AssignedBy = table.Column<Guid>(type: "TEXT", nullable: false)
+                    LastMigrationApplied = table.Column<string>(type: "TEXT", nullable: false),
+                    Status = table.Column<int>(type: "INTEGER", nullable: false),
+                    LastAttemptAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    RetryCount = table.Column<int>(type: "INTEGER", nullable: false),
+                    ErrorDetails = table.Column<string>(type: "TEXT", nullable: true),
+                    LockOwnerId = table.Column<string>(type: "TEXT", nullable: true),
+                    LockExpiresAt = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_BranchUsers", x => x.Id);
+                    table.PrimaryKey("PK_BranchMigrationStates", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_BranchUsers_Branches_BranchId",
+                        name: "FK_BranchMigrationStates_Branches_BranchId",
                         column: x => x.BranchId,
                         principalTable: "Branches",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_BranchUsers_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -200,6 +200,35 @@ namespace Backend.Migrations.HeadOffice
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "UserAssignments",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    UserId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    BranchId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Role = table.Column<int>(type: "INTEGER", nullable: false),
+                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
+                    AssignedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    AssignedBy = table.Column<Guid>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserAssignments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserAssignments_Branches_BranchId",
+                        column: x => x.BranchId,
+                        principalTable: "Branches",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserAssignments_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AuditLogs_BranchId",
                 table: "AuditLogs",
@@ -237,20 +266,25 @@ namespace Backend.Migrations.HeadOffice
                 column: "IsActive");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BranchUsers_BranchId",
-                table: "BranchUsers",
-                column: "BranchId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_BranchUsers_UserId",
-                table: "BranchUsers",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_BranchUsers_UserId_BranchId",
-                table: "BranchUsers",
-                columns: new[] { "UserId", "BranchId" },
+                name: "IX_BranchMigrationStates_BranchId",
+                table: "BranchMigrationStates",
+                column: "BranchId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BranchMigrationStates_LastAttemptAt",
+                table: "BranchMigrationStates",
+                column: "LastAttemptAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BranchMigrationStates_LockExpiresAt",
+                table: "BranchMigrationStates",
+                column: "LockExpiresAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BranchMigrationStates_Status",
+                table: "BranchMigrationStates",
+                column: "Status");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MainSettings_Key",
@@ -280,6 +314,22 @@ namespace Backend.Migrations.HeadOffice
                 columns: new[] { "UserId", "Timestamp" });
 
             migrationBuilder.CreateIndex(
+                name: "IX_UserAssignments_BranchId",
+                table: "UserAssignments",
+                column: "BranchId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserAssignments_UserId",
+                table: "UserAssignments",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserAssignments_UserId_BranchId",
+                table: "UserAssignments",
+                columns: new[] { "UserId", "BranchId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Users_Email",
                 table: "Users",
                 column: "Email",
@@ -304,7 +354,7 @@ namespace Backend.Migrations.HeadOffice
                 name: "AuditLogs");
 
             migrationBuilder.DropTable(
-                name: "BranchUsers");
+                name: "BranchMigrationStates");
 
             migrationBuilder.DropTable(
                 name: "MainSettings");
@@ -314,6 +364,9 @@ namespace Backend.Migrations.HeadOffice
 
             migrationBuilder.DropTable(
                 name: "UserActivityLogs");
+
+            migrationBuilder.DropTable(
+                name: "UserAssignments");
 
             migrationBuilder.DropTable(
                 name: "Branches");
