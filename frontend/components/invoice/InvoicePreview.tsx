@@ -80,6 +80,19 @@ interface InvoicePreviewProps {
 
 const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(
   ({ schema, data }, ref) => {
+    // RTL Detection: Check if Arabic content is present
+    const hasArabicContent = (text?: string): boolean => {
+      if (!text) return false;
+      const arabicRegex = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
+      return arabicRegex.test(text);
+    };
+
+    // Detect if invoice should use RTL layout
+    // Use explicit schema.rtl if set, otherwise auto-detect from Arabic content
+    const isRTL = schema.rtl !== undefined
+      ? schema.rtl
+      : (hasArabicContent(data.companyNameAr) || hasArabicContent(data.customerName));
+
     const renderHeader = (section: InvoiceSchemaSection) => {
       if (!section.visible) return null;
       const config = section.config || {};
@@ -232,7 +245,7 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(
                 {visibleColumns.map((column: any, index: number) => (
                   <th
                     key={index}
-                    className="text-left py-2 px-1 font-semibold"
+                    className={`${isRTL ? "text-right" : "text-left"} py-2 px-1 font-semibold`}
                     style={{ width: column.width }}
                   >
                     {column.label}
@@ -244,7 +257,7 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(
               {data.items.map((item, itemIndex) => (
                 <tr key={itemIndex} className="border-b border-gray-200">
                   {visibleColumns.map((column: any, colIndex: number) => (
-                    <td key={colIndex} className="py-2 px-1">
+                    <td key={colIndex} className={`${isRTL ? "text-right" : "text-left"} py-2 px-1`}>
                       {columnMap[column.key]?.(item) || "-"}
                     </td>
                   ))}
@@ -367,7 +380,11 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(
     const sortedSections = [...schema.sections].sort((a, b) => a.order - b.order);
 
     return (
-      <div ref={ref} className="invoice-preview bg-white p-6 max-w-3xl mx-auto">
+      <div
+        ref={ref}
+        className="invoice-preview bg-white p-6 max-w-3xl mx-auto"
+        dir={isRTL ? "rtl" : "ltr"}
+      >
         <style jsx>{`
           @media print {
             .invoice-preview {

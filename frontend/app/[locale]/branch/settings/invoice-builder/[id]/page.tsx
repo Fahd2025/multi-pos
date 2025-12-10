@@ -750,6 +750,25 @@ export default function InvoiceBuilderEditPage() {
               </select>
             </div>
 
+            {/* RTL Layout Toggle */}
+            {schema && (
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="rtl-toggle"
+                  checked={schema.rtl ?? false}
+                  onChange={(e) => setSchema((prev) => prev ? { ...prev, rtl: e.target.checked } : prev)}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                />
+                <label
+                  htmlFor="rtl-toggle"
+                  className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Enable RTL Layout (Right-to-Left for Arabic)
+                </label>
+              </div>
+            )}
+
             {/* Custom Size Fields */}
             {paperSize === PaperSize.Custom && (
               <div className="grid grid-cols-2 gap-4">

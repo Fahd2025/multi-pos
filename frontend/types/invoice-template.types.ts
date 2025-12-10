@@ -168,6 +168,7 @@ export interface InvoiceSchema {
   version: string;
   paperSize: string;
   priceIncludesVat: boolean;
+  rtl?: boolean; // Optional: Force RTL layout (auto-detected if not specified)
   sections: InvoiceSchemaSection[];
   styling?: InvoiceStyling;
 }
