@@ -82,7 +82,14 @@ public static class InvoiceTemplateSeeder
         ""fields"": [
           { ""key"": ""name"", ""label"": ""Customer Name"", ""visible"": true },
           { ""key"": ""vatNumber"", ""label"": ""VAT Number"", ""visible"": false },
-          { ""key"": ""phone"", ""label"": ""Phone"", ""visible"": false }
+          { ""key"": ""phone"", ""label"": ""Phone"", ""visible"": false },
+          { ""key"": ""buildingNumber"", ""label"": ""Building Number"", ""visible"": false },
+          { ""key"": ""streetName"", ""label"": ""Street Name"", ""visible"": false },
+          { ""key"": ""district"", ""label"": ""District"", ""visible"": false },
+          { ""key"": ""city"", ""label"": ""City"", ""visible"": false },
+          { ""key"": ""postalCode"", ""label"": ""Postal Code"", ""visible"": false },
+          { ""key"": ""additionalNumber"", ""label"": ""Additional Number"", ""visible"": false },
+          { ""key"": ""unitNumber"", ""label"": ""Unit Number"", ""visible"": false }
         ]
       }
     },

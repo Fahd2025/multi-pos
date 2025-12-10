@@ -46,6 +46,41 @@ public class CustomerDto
     public string? AddressAr { get; set; }
 
     /// <summary>
+    /// Saudi National Address: Building Number
+    /// </summary>
+    public string? BuildingNumber { get; set; }
+
+    /// <summary>
+    /// Saudi National Address: Street Name
+    /// </summary>
+    public string? StreetName { get; set; }
+
+    /// <summary>
+    /// Saudi National Address: District
+    /// </summary>
+    public string? District { get; set; }
+
+    /// <summary>
+    /// Saudi National Address: City
+    /// </summary>
+    public string? City { get; set; }
+
+    /// <summary>
+    /// Saudi National Address: Postal Code (5 digits)
+    /// </summary>
+    public string? PostalCode { get; set; }
+
+    /// <summary>
+    /// Saudi National Address: Additional Number (4 digits)
+    /// </summary>
+    public string? AdditionalNumber { get; set; }
+
+    /// <summary>
+    /// Saudi National Address: Unit Number (optional)
+    /// </summary>
+    public string? UnitNumber { get; set; }
+
+    /// <summary>
     /// Path to customer logo/photo
     /// </summary>
     public string? LogoPath { get; set; }

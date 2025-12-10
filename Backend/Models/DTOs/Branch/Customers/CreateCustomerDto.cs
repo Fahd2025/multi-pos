@@ -53,6 +53,50 @@ public class CreateCustomerDto
     public string? AddressAr { get; set; }
 
     /// <summary>
+    /// Saudi National Address: Building Number
+    /// </summary>
+    [StringLength(10, ErrorMessage = "Building number cannot exceed 10 characters")]
+    public string? BuildingNumber { get; set; }
+
+    /// <summary>
+    /// Saudi National Address: Street Name
+    /// </summary>
+    [StringLength(200, ErrorMessage = "Street name cannot exceed 200 characters")]
+    public string? StreetName { get; set; }
+
+    /// <summary>
+    /// Saudi National Address: District
+    /// </summary>
+    [StringLength(200, ErrorMessage = "District cannot exceed 200 characters")]
+    public string? District { get; set; }
+
+    /// <summary>
+    /// Saudi National Address: City
+    /// </summary>
+    [StringLength(100, ErrorMessage = "City cannot exceed 100 characters")]
+    public string? City { get; set; }
+
+    /// <summary>
+    /// Saudi National Address: Postal Code (5 digits)
+    /// </summary>
+    [StringLength(10, ErrorMessage = "Postal code cannot exceed 10 characters")]
+    [RegularExpression(@"^\d{5}$", ErrorMessage = "Postal code must be 5 digits")]
+    public string? PostalCode { get; set; }
+
+    /// <summary>
+    /// Saudi National Address: Additional Number (4 digits)
+    /// </summary>
+    [StringLength(10, ErrorMessage = "Additional number cannot exceed 10 characters")]
+    [RegularExpression(@"^\d{4}$", ErrorMessage = "Additional number must be 4 digits")]
+    public string? AdditionalNumber { get; set; }
+
+    /// <summary>
+    /// Saudi National Address: Unit Number
+    /// </summary>
+    [StringLength(50, ErrorMessage = "Unit number cannot exceed 50 characters")]
+    public string? UnitNumber { get; set; }
+
+    /// <summary>
     /// Path to customer logo/photo
     /// </summary>
     [StringLength(500, ErrorMessage = "Logo path cannot exceed 500 characters")]

@@ -30,6 +30,28 @@ public class Customer
     [MaxLength(500)]
     public string? AddressAr { get; set; }
 
+    // Saudi National Address fields
+    [MaxLength(10)]
+    public string? BuildingNumber { get; set; }
+
+    [MaxLength(200)]
+    public string? StreetName { get; set; }
+
+    [MaxLength(200)]
+    public string? District { get; set; }
+
+    [MaxLength(100)]
+    public string? City { get; set; }
+
+    [MaxLength(10)]
+    public string? PostalCode { get; set; }
+
+    [MaxLength(10)]
+    public string? AdditionalNumber { get; set; }
+
+    [MaxLength(50)]
+    public string? UnitNumber { get; set; }
+
     [MaxLength(500)]
     public string? LogoPath { get; set; }
 

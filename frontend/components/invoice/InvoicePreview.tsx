@@ -33,6 +33,13 @@ interface InvoiceData {
   customerName?: string;
   customerVatNumber?: string;
   customerPhone?: string;
+  customerBuildingNumber?: string;
+  customerStreetName?: string;
+  customerDistrict?: string;
+  customerCity?: string;
+  customerPostalCode?: string;
+  customerAdditionalNumber?: string;
+  customerUnitNumber?: string;
 
   // Invoice Type
   isSimplified: boolean;
@@ -143,6 +150,13 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(
         name: data.customerName,
         vatNumber: data.customerVatNumber,
         phone: data.customerPhone,
+        buildingNumber: data.customerBuildingNumber,
+        streetName: data.customerStreetName,
+        district: data.customerDistrict,
+        city: data.customerCity,
+        postalCode: data.customerPostalCode,
+        additionalNumber: data.customerAdditionalNumber,
+        unitNumber: data.customerUnitNumber,
       };
 
       const visibleFields = fields.filter((f: any) => f.visible && fieldMap[f.key]);
