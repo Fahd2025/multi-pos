@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -15,19 +15,19 @@ namespace Backend.Migrations.Branch
                 name: "Categories",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Code = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    NameEn = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    NameAr = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    DescriptionEn = table.Column<string>(type: "TEXT", nullable: true),
-                    DescriptionAr = table.Column<string>(type: "TEXT", nullable: true),
-                    ParentCategoryId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    ImagePath = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    DisplayOrder = table.Column<int>(type: "INTEGER", nullable: false),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    CreatedBy = table.Column<Guid>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    Code = table.Column<string>(maxLength: 50, nullable: false),
+                    NameEn = table.Column<string>(maxLength: 200, nullable: false),
+                    NameAr = table.Column<string>(maxLength: 200, nullable: false),
+                    DescriptionEn = table.Column<string>(nullable: true),
+                    DescriptionAr = table.Column<string>(nullable: true),
+                    ParentCategoryId = table.Column<Guid>(nullable: true),
+                    ImagePath = table.Column<string>(maxLength: 500, nullable: true),
+                    DisplayOrder = table.Column<int>(nullable: false),
+                    IsActive = table.Column<bool>(nullable: false),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    UpdatedAt = table.Column<DateTime>(nullable: false),
+                    CreatedBy = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -44,30 +44,30 @@ namespace Backend.Migrations.Branch
                 name: "Customers",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Code = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    NameEn = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    NameAr = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
-                    Email = table.Column<string>(type: "TEXT", maxLength: 255, nullable: true),
-                    Phone = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    AddressEn = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    AddressAr = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    BuildingNumber = table.Column<string>(type: "TEXT", maxLength: 10, nullable: true),
-                    StreetName = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
-                    District = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
-                    City = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
-                    PostalCode = table.Column<string>(type: "TEXT", maxLength: 10, nullable: true),
-                    AdditionalNumber = table.Column<string>(type: "TEXT", maxLength: 10, nullable: true),
-                    UnitNumber = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    LogoPath = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    TotalPurchases = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    VisitCount = table.Column<int>(type: "INTEGER", nullable: false),
-                    LastVisitAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LoyaltyPoints = table.Column<int>(type: "INTEGER", nullable: false),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    CreatedBy = table.Column<Guid>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    Code = table.Column<string>(maxLength: 50, nullable: false),
+                    NameEn = table.Column<string>(maxLength: 200, nullable: false),
+                    NameAr = table.Column<string>(maxLength: 200, nullable: true),
+                    Email = table.Column<string>(maxLength: 255, nullable: true),
+                    Phone = table.Column<string>(maxLength: 50, nullable: true),
+                    AddressEn = table.Column<string>(maxLength: 500, nullable: true),
+                    AddressAr = table.Column<string>(maxLength: 500, nullable: true),
+                    BuildingNumber = table.Column<string>(maxLength: 10, nullable: true),
+                    StreetName = table.Column<string>(maxLength: 200, nullable: true),
+                    District = table.Column<string>(maxLength: 200, nullable: true),
+                    City = table.Column<string>(maxLength: 100, nullable: true),
+                    PostalCode = table.Column<string>(maxLength: 10, nullable: true),
+                    AdditionalNumber = table.Column<string>(maxLength: 10, nullable: true),
+                    UnitNumber = table.Column<string>(maxLength: 50, nullable: true),
+                    LogoPath = table.Column<string>(maxLength: 500, nullable: true),
+                    TotalPurchases = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    VisitCount = table.Column<int>(nullable: false),
+                    LastVisitAt = table.Column<DateTime>(nullable: true),
+                    LoyaltyPoints = table.Column<int>(nullable: false),
+                    IsActive = table.Column<bool>(nullable: false),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    UpdatedAt = table.Column<DateTime>(nullable: false),
+                    CreatedBy = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -78,14 +78,14 @@ namespace Backend.Migrations.Branch
                 name: "ExpenseCategories",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Code = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    NameEn = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    NameAr = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    BudgetAllocation = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: true),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    Code = table.Column<string>(maxLength: 50, nullable: false),
+                    NameEn = table.Column<string>(maxLength: 200, nullable: false),
+                    NameAr = table.Column<string>(maxLength: 200, nullable: false),
+                    BudgetAllocation = table.Column<decimal>(precision: 18, scale: 2, nullable: true),
+                    IsActive = table.Column<bool>(nullable: false),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    UpdatedAt = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -96,17 +96,17 @@ namespace Backend.Migrations.Branch
                 name: "InvoiceTemplates",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    Description = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
-                    PaperSize = table.Column<int>(type: "INTEGER", nullable: false),
-                    CustomWidth = table.Column<int>(type: "INTEGER", nullable: true),
-                    CustomHeight = table.Column<int>(type: "INTEGER", nullable: true),
-                    Schema = table.Column<string>(type: "TEXT", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    CreatedBy = table.Column<Guid>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    Name = table.Column<string>(maxLength: 200, nullable: false),
+                    Description = table.Column<string>(maxLength: 500, nullable: true),
+                    IsActive = table.Column<bool>(nullable: false),
+                    PaperSize = table.Column<int>(nullable: false),
+                    CustomWidth = table.Column<int>(nullable: true),
+                    CustomHeight = table.Column<int>(nullable: true),
+                    Schema = table.Column<string>(nullable: false),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    UpdatedAt = table.Column<DateTime>(nullable: false),
+                    CreatedBy = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -117,12 +117,12 @@ namespace Backend.Migrations.Branch
                 name: "Settings",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Key = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    Value = table.Column<string>(type: "TEXT", nullable: true),
-                    Description = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedBy = table.Column<Guid>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    Key = table.Column<string>(maxLength: 200, nullable: false),
+                    Value = table.Column<string>(nullable: true),
+                    Description = table.Column<string>(maxLength: 500, nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: false),
+                    UpdatedBy = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -133,21 +133,21 @@ namespace Backend.Migrations.Branch
                 name: "Suppliers",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Code = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    NameEn = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    NameAr = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
-                    Email = table.Column<string>(type: "TEXT", maxLength: 255, nullable: true),
-                    Phone = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    AddressEn = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    AddressAr = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    LogoPath = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    PaymentTerms = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
-                    DeliveryTerms = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    CreatedBy = table.Column<Guid>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    Code = table.Column<string>(maxLength: 50, nullable: false),
+                    NameEn = table.Column<string>(maxLength: 200, nullable: false),
+                    NameAr = table.Column<string>(maxLength: 200, nullable: true),
+                    Email = table.Column<string>(maxLength: 255, nullable: true),
+                    Phone = table.Column<string>(maxLength: 50, nullable: true),
+                    AddressEn = table.Column<string>(maxLength: 500, nullable: true),
+                    AddressAr = table.Column<string>(maxLength: 500, nullable: true),
+                    LogoPath = table.Column<string>(maxLength: 500, nullable: true),
+                    PaymentTerms = table.Column<string>(maxLength: 200, nullable: true),
+                    DeliveryTerms = table.Column<string>(maxLength: 200, nullable: true),
+                    IsActive = table.Column<bool>(nullable: false),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    UpdatedAt = table.Column<DateTime>(nullable: false),
+                    CreatedBy = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -158,16 +158,16 @@ namespace Backend.Migrations.Branch
                 name: "SyncQueue",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    SyncId = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    TransactionType = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    TransactionData = table.Column<string>(type: "TEXT", nullable: false),
-                    Timestamp = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    SyncStatus = table.Column<int>(type: "INTEGER", nullable: false),
-                    RetryCount = table.Column<int>(type: "INTEGER", nullable: false),
-                    LastSyncAttempt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    ErrorMessage = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    SyncId = table.Column<string>(maxLength: 100, nullable: false),
+                    TransactionType = table.Column<string>(maxLength: 100, nullable: false),
+                    TransactionData = table.Column<string>(nullable: false),
+                    Timestamp = table.Column<DateTime>(nullable: false),
+                    SyncStatus = table.Column<int>(nullable: false),
+                    RetryCount = table.Column<int>(nullable: false),
+                    LastSyncAttempt = table.Column<DateTime>(nullable: true),
+                    ErrorMessage = table.Column<string>(nullable: true),
+                    CreatedAt = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -178,21 +178,21 @@ namespace Backend.Migrations.Branch
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Username = table.Column<string>(type: "TEXT", nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", nullable: false),
-                    Email = table.Column<string>(type: "TEXT", nullable: false),
-                    FullNameEn = table.Column<string>(type: "TEXT", nullable: false),
-                    FullNameAr = table.Column<string>(type: "TEXT", nullable: true),
-                    Phone = table.Column<string>(type: "TEXT", nullable: true),
-                    PreferredLanguage = table.Column<string>(type: "TEXT", nullable: false),
-                    Role = table.Column<string>(type: "TEXT", nullable: false),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
-                    LastLoginAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LastActivityAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    CreatedBy = table.Column<Guid>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    Username = table.Column<string>(nullable: false),
+                    PasswordHash = table.Column<string>(nullable: false),
+                    Email = table.Column<string>(nullable: false),
+                    FullNameEn = table.Column<string>(nullable: false),
+                    FullNameAr = table.Column<string>(nullable: true),
+                    Phone = table.Column<string>(nullable: true),
+                    PreferredLanguage = table.Column<string>(nullable: false),
+                    Role = table.Column<string>(nullable: false),
+                    IsActive = table.Column<bool>(nullable: false),
+                    LastLoginAt = table.Column<DateTime>(nullable: true),
+                    LastActivityAt = table.Column<DateTime>(nullable: true),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    UpdatedAt = table.Column<DateTime>(nullable: false),
+                    CreatedBy = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -203,20 +203,20 @@ namespace Backend.Migrations.Branch
                 name: "Expenses",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    ExpenseCategoryId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Amount = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    ExpenseDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    DescriptionEn = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false),
-                    DescriptionAr = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    PaymentMethod = table.Column<int>(type: "INTEGER", nullable: false),
-                    PaymentReference = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
-                    ReceiptImagePath = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    ApprovalStatus = table.Column<int>(type: "INTEGER", nullable: false),
-                    ApprovedBy = table.Column<Guid>(type: "TEXT", nullable: true),
-                    ApprovedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    CreatedBy = table.Column<Guid>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    ExpenseCategoryId = table.Column<Guid>(nullable: false),
+                    Amount = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    ExpenseDate = table.Column<DateTime>(nullable: false),
+                    DescriptionEn = table.Column<string>(maxLength: 500, nullable: false),
+                    DescriptionAr = table.Column<string>(maxLength: 500, nullable: true),
+                    PaymentMethod = table.Column<int>(nullable: false),
+                    PaymentReference = table.Column<string>(maxLength: 200, nullable: true),
+                    ReceiptImagePath = table.Column<string>(maxLength: 500, nullable: true),
+                    ApprovalStatus = table.Column<int>(nullable: false),
+                    ApprovedBy = table.Column<Guid>(nullable: true),
+                    ApprovedAt = table.Column<DateTime>(nullable: true),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    CreatedBy = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -233,24 +233,24 @@ namespace Backend.Migrations.Branch
                 name: "Products",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    SKU = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    NameEn = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    NameAr = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    DescriptionEn = table.Column<string>(type: "TEXT", nullable: true),
-                    DescriptionAr = table.Column<string>(type: "TEXT", nullable: true),
-                    CategoryId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    SellingPrice = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    CostPrice = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    StockLevel = table.Column<int>(type: "INTEGER", nullable: false),
-                    MinStockThreshold = table.Column<int>(type: "INTEGER", nullable: false),
-                    HasInventoryDiscrepancy = table.Column<bool>(type: "INTEGER", nullable: false),
-                    SupplierId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    Barcode = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    CreatedBy = table.Column<Guid>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    SKU = table.Column<string>(maxLength: 100, nullable: false),
+                    NameEn = table.Column<string>(maxLength: 200, nullable: false),
+                    NameAr = table.Column<string>(maxLength: 200, nullable: false),
+                    DescriptionEn = table.Column<string>(nullable: true),
+                    DescriptionAr = table.Column<string>(nullable: true),
+                    CategoryId = table.Column<Guid>(nullable: false),
+                    SellingPrice = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    CostPrice = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    StockLevel = table.Column<int>(nullable: false),
+                    MinStockThreshold = table.Column<int>(nullable: false),
+                    HasInventoryDiscrepancy = table.Column<bool>(nullable: false),
+                    SupplierId = table.Column<Guid>(nullable: true),
+                    Barcode = table.Column<string>(maxLength: 100, nullable: true),
+                    IsActive = table.Column<bool>(nullable: false),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    UpdatedAt = table.Column<DateTime>(nullable: false),
+                    CreatedBy = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -273,18 +273,18 @@ namespace Backend.Migrations.Branch
                 name: "Purchases",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    PurchaseOrderNumber = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    SupplierId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    PurchaseDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    ReceivedDate = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    TotalCost = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    PaymentStatus = table.Column<int>(type: "INTEGER", nullable: false),
-                    AmountPaid = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    InvoiceImagePath = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    Notes = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    CreatedBy = table.Column<Guid>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    PurchaseOrderNumber = table.Column<string>(maxLength: 50, nullable: false),
+                    SupplierId = table.Column<Guid>(nullable: false),
+                    PurchaseDate = table.Column<DateTime>(nullable: false),
+                    ReceivedDate = table.Column<DateTime>(nullable: true),
+                    TotalCost = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    PaymentStatus = table.Column<int>(nullable: false),
+                    AmountPaid = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    InvoiceImagePath = table.Column<string>(maxLength: 500, nullable: true),
+                    Notes = table.Column<string>(nullable: true),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    CreatedBy = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -301,30 +301,30 @@ namespace Backend.Migrations.Branch
                 name: "Sales",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    TransactionId = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    InvoiceNumber = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    OrderNumber = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    InvoiceType = table.Column<int>(type: "INTEGER", nullable: false),
-                    OrderType = table.Column<int>(type: "INTEGER", nullable: true),
-                    CustomerId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    CashierId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    UserId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    SaleDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Subtotal = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    TaxAmount = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    TotalDiscount = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    Total = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    AmountPaid = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: true),
-                    ChangeReturned = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: true),
-                    PaymentMethod = table.Column<int>(type: "INTEGER", nullable: false),
-                    PaymentReference = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
-                    Notes = table.Column<string>(type: "TEXT", nullable: true),
-                    IsVoided = table.Column<bool>(type: "INTEGER", nullable: false),
-                    VoidedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    VoidedBy = table.Column<Guid>(type: "TEXT", nullable: true),
-                    VoidReason = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    TransactionId = table.Column<string>(maxLength: 50, nullable: false),
+                    InvoiceNumber = table.Column<string>(maxLength: 50, nullable: true),
+                    OrderNumber = table.Column<string>(maxLength: 50, nullable: true),
+                    InvoiceType = table.Column<int>(nullable: false),
+                    OrderType = table.Column<int>(nullable: true),
+                    CustomerId = table.Column<Guid>(nullable: true),
+                    CashierId = table.Column<Guid>(nullable: false),
+                    UserId = table.Column<Guid>(nullable: true),
+                    SaleDate = table.Column<DateTime>(nullable: false),
+                    Subtotal = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    TaxAmount = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    TotalDiscount = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    Total = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    AmountPaid = table.Column<decimal>(precision: 18, scale: 2, nullable: true),
+                    ChangeReturned = table.Column<decimal>(precision: 18, scale: 2, nullable: true),
+                    PaymentMethod = table.Column<int>(nullable: false),
+                    PaymentReference = table.Column<string>(maxLength: 200, nullable: true),
+                    Notes = table.Column<string>(nullable: true),
+                    IsVoided = table.Column<bool>(nullable: false),
+                    VoidedAt = table.Column<DateTime>(nullable: true),
+                    VoidedBy = table.Column<Guid>(nullable: true),
+                    VoidReason = table.Column<string>(maxLength: 500, nullable: true),
+                    CreatedAt = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -346,13 +346,13 @@ namespace Backend.Migrations.Branch
                 name: "ProductImages",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    ProductId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    ImagePath = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false),
-                    ThumbnailPath = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false),
-                    DisplayOrder = table.Column<int>(type: "INTEGER", nullable: false),
-                    UploadedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UploadedBy = table.Column<Guid>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    ProductId = table.Column<Guid>(nullable: false),
+                    ImagePath = table.Column<string>(maxLength: 500, nullable: false),
+                    ThumbnailPath = table.Column<string>(maxLength: 500, nullable: false),
+                    DisplayOrder = table.Column<int>(nullable: false),
+                    UploadedAt = table.Column<DateTime>(nullable: false),
+                    UploadedBy = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -369,12 +369,12 @@ namespace Backend.Migrations.Branch
                 name: "PurchaseLineItems",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    PurchaseId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    ProductId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Quantity = table.Column<int>(type: "INTEGER", nullable: false),
-                    UnitCost = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    LineTotal = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false)
+                    Id = table.Column<Guid>(nullable: false),
+                    PurchaseId = table.Column<Guid>(nullable: false),
+                    ProductId = table.Column<Guid>(nullable: false),
+                    Quantity = table.Column<int>(nullable: false),
+                    UnitCost = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    LineTotal = table.Column<decimal>(precision: 18, scale: 2, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -397,18 +397,18 @@ namespace Backend.Migrations.Branch
                 name: "SaleLineItems",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    SaleId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    ProductId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Barcode = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
-                    Unit = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    Quantity = table.Column<int>(type: "INTEGER", nullable: false),
-                    UnitPrice = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    DiscountType = table.Column<int>(type: "INTEGER", nullable: false),
-                    DiscountValue = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    DiscountedUnitPrice = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    LineTotal = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    Notes = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true)
+                    Id = table.Column<Guid>(nullable: false),
+                    SaleId = table.Column<Guid>(nullable: false),
+                    ProductId = table.Column<Guid>(nullable: false),
+                    Barcode = table.Column<string>(maxLength: 100, nullable: true),
+                    Unit = table.Column<string>(maxLength: 50, nullable: true),
+                    Quantity = table.Column<int>(nullable: false),
+                    UnitPrice = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    DiscountType = table.Column<int>(nullable: false),
+                    DiscountValue = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    DiscountedUnitPrice = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    LineTotal = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    Notes = table.Column<string>(maxLength: 500, nullable: true)
                 },
                 constraints: table =>
                 {

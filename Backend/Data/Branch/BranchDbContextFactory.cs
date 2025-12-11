@@ -12,8 +12,7 @@ public class BranchDbContextFactory : IDesignTimeDbContextFactory<BranchDbContex
     {
         var optionsBuilder = new DbContextOptionsBuilder<BranchDbContext>();
 
-        // Use SQLite for design-time migrations
-        // This creates a temporary database for migration generation
+        // Use SQLite for design-time migrations (universally available)
         optionsBuilder.UseSqlite("Data Source=design_time_branch.db");
 
         return new BranchDbContext(optionsBuilder.Options);

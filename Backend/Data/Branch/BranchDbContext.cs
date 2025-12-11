@@ -24,6 +24,7 @@ public class BranchDbContext : DbContext
     public DbSet<Setting> Settings { get; set; }
     public DbSet<SyncQueue> SyncQueue { get; set; }
     public DbSet<InvoiceTemplate> InvoiceTemplates { get; set; }
+    public DbSet<Driver> Drivers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -244,6 +245,19 @@ public class BranchDbContext : DbContext
             entity.HasIndex(e => e.Name);
             entity.HasIndex(e => e.IsActive);
             entity.HasIndex(e => e.CreatedAt);
+        });
+
+        // Driver configuration
+        modelBuilder.Entity<Driver>(entity =>
+        {
+            entity.HasIndex(e => e.Code).IsUnique();
+            entity.HasIndex(e => e.Phone);
+            entity.HasIndex(e => e.Email);
+            entity.HasIndex(e => e.LicenseNumber);
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => e.IsAvailable);
+
+            entity.Property(e => e.AverageRating).HasPrecision(3, 2);
         });
     }
 }

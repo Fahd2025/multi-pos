@@ -16,15 +16,17 @@ public static class BranchDbSeeder
         var hasSuppliers = await context.Suppliers.AnyAsync();
         var hasProducts = await context.Products.AnyAsync();
         var hasCustomers = await context.Customers.AnyAsync();
-        
-        if (hasCategories && hasSuppliers && hasProducts && hasCustomers)
+        var hasExpenseCategories = await context.ExpenseCategories.AnyAsync();
+        var hasDrivers = await context.Drivers.AnyAsync();
+
+        if (hasCategories && hasSuppliers && hasProducts && hasCustomers && hasExpenseCategories && hasDrivers)
         {
             Console.WriteLine($"  → Branch {branchCode} already has data, skipping seed");
             return;
         }
-        
+
         // If partial data exists, warn but continue
-        if (hasCategories || hasSuppliers || hasProducts || hasCustomers)
+        if (hasCategories || hasSuppliers || hasProducts || hasCustomers || hasExpenseCategories || hasDrivers)
         {
             Console.WriteLine($"  ⚠ Branch {branchCode} has partial data, re-seeding...");
         }
@@ -1511,6 +1513,512 @@ public static class BranchDbSeeder
         context.Customers.AddRange(customers);
         await context.SaveChangesAsync();
         Console.WriteLine($"    ✓ Created {customers.Count} customers");
+
+        // Seed ExpenseCategories (15+)
+        Console.WriteLine($"    → Creating expense categories...");
+        var expenseCategories = new List<ExpenseCategory>
+        {
+            new ExpenseCategory
+            {
+                Id = Guid.NewGuid(),
+                Code = "EXP001",
+                NameEn = "Rent & Lease",
+                NameAr = "إيجار ومستأجر",
+                BudgetAllocation = 5000.00m,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new ExpenseCategory
+            {
+                Id = Guid.NewGuid(),
+                Code = "EXP002",
+                NameEn = "Utilities",
+                NameAr = "المرافق",
+                BudgetAllocation = 1500.00m,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new ExpenseCategory
+            {
+                Id = Guid.NewGuid(),
+                Code = "EXP003",
+                NameEn = "Salaries & Wages",
+                NameAr = "الرواتب والأجور",
+                BudgetAllocation = 20000.00m,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new ExpenseCategory
+            {
+                Id = Guid.NewGuid(),
+                Code = "EXP004",
+                NameEn = "Marketing & Advertising",
+                NameAr = "التسويق والإعلان",
+                BudgetAllocation = 3000.00m,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new ExpenseCategory
+            {
+                Id = Guid.NewGuid(),
+                Code = "EXP005",
+                NameEn = "Office Supplies",
+                NameAr = "مستلزمات المكتب",
+                BudgetAllocation = 800.00m,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new ExpenseCategory
+            {
+                Id = Guid.NewGuid(),
+                Code = "EXP006",
+                NameEn = "Maintenance & Repairs",
+                NameAr = "الصيانة والإصلاحات",
+                BudgetAllocation = 2000.00m,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new ExpenseCategory
+            {
+                Id = Guid.NewGuid(),
+                Code = "EXP007",
+                NameEn = "Transportation & Fuel",
+                NameAr = "النقل والوقود",
+                BudgetAllocation = 1200.00m,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new ExpenseCategory
+            {
+                Id = Guid.NewGuid(),
+                Code = "EXP008",
+                NameEn = "Insurance",
+                NameAr = "التأمين",
+                BudgetAllocation = 1000.00m,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new ExpenseCategory
+            {
+                Id = Guid.NewGuid(),
+                Code = "EXP009",
+                NameEn = "Taxes & Licenses",
+                NameAr = "الضرائب والتراخيص",
+                BudgetAllocation = 2500.00m,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new ExpenseCategory
+            {
+                Id = Guid.NewGuid(),
+                Code = "EXP010",
+                NameEn = "Professional Services",
+                NameAr = "الخدمات المهنية",
+                BudgetAllocation = 1500.00m,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new ExpenseCategory
+            {
+                Id = Guid.NewGuid(),
+                Code = "EXP011",
+                NameEn = "Equipment & Software",
+                NameAr = "المعدات والبرمجيات",
+                BudgetAllocation = 3000.00m,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new ExpenseCategory
+            {
+                Id = Guid.NewGuid(),
+                Code = "EXP012",
+                NameEn = "Bank Fees & Charges",
+                NameAr = "رسوم ورسوم البنك",
+                BudgetAllocation = 500.00m,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new ExpenseCategory
+            {
+                Id = Guid.NewGuid(),
+                Code = "EXP013",
+                NameEn = "Training & Development",
+                NameAr = "التدريب والتطوير",
+                BudgetAllocation = 1000.00m,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new ExpenseCategory
+            {
+                Id = Guid.NewGuid(),
+                Code = "EXP014",
+                NameEn = "Cleaning & Sanitation",
+                NameAr = "التنظيف والصرف الصحي",
+                BudgetAllocation = 600.00m,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new ExpenseCategory
+            {
+                Id = Guid.NewGuid(),
+                Code = "EXP015",
+                NameEn = "Security Services",
+                NameAr = "خدمات الأمن",
+                BudgetAllocation = 800.00m,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new ExpenseCategory
+            {
+                Id = Guid.NewGuid(),
+                Code = "EXP016",
+                NameEn = "Packaging & Shipping",
+                NameAr = "التعبئة والشحن",
+                BudgetAllocation = 900.00m,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new ExpenseCategory
+            {
+                Id = Guid.NewGuid(),
+                Code = "EXP017",
+                NameEn = "Inventory Shrinkage",
+                NameAr = "انكماش المخزون",
+                BudgetAllocation = 1000.00m,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new ExpenseCategory
+            {
+                Id = Guid.NewGuid(),
+                Code = "EXP018",
+                NameEn = "Miscellaneous",
+                NameAr = "متنوعة",
+                BudgetAllocation = 500.00m,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+        };
+
+        context.ExpenseCategories.AddRange(expenseCategories);
+        await context.SaveChangesAsync();
+        Console.WriteLine($"    ✓ Created {expenseCategories.Count} expense categories");
+
+        // Seed Drivers (12+)
+        Console.WriteLine($"    → Creating drivers...");
+        var drivers = new List<Driver>
+        {
+            new Driver
+            {
+                Id = Guid.NewGuid(),
+                Code = "DRV001",
+                NameEn = "Ahmed Hassan",
+                NameAr = "أحمد حسن",
+                Phone = "+966501234567",
+                Email = "ahmed.hassan@multipos.com",
+                AddressEn = "123 King Fahd Road, Riyadh",
+                AddressAr = "123 طريق الملك فهد، الرياض",
+                LicenseNumber = "DL12345678",
+                LicenseExpiryDate = DateTime.UtcNow.AddYears(2),
+                VehicleNumber = "ABC-1234",
+                VehicleType = "Motorcycle",
+                VehicleColor = "Black",
+                IsActive = true,
+                IsAvailable = true,
+                TotalDeliveries = 245,
+                AverageRating = 4.8m,
+                Notes = "Experienced driver, fluent in Arabic and English",
+                CreatedBy = adminUserId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new Driver
+            {
+                Id = Guid.NewGuid(),
+                Code = "DRV002",
+                NameEn = "Mohammed Ali",
+                NameAr = "محمد علي",
+                Phone = "+966502345678",
+                Email = "mohammed.ali@multipos.com",
+                AddressEn = "456 Olaya Street, Riyadh",
+                AddressAr = "456 شارع العليا، الرياض",
+                LicenseNumber = "DL23456789",
+                LicenseExpiryDate = DateTime.UtcNow.AddYears(3),
+                VehicleNumber = "DEF-5678",
+                VehicleType = "Van",
+                VehicleColor = "White",
+                IsActive = true,
+                IsAvailable = true,
+                TotalDeliveries = 189,
+                AverageRating = 4.6m,
+                Notes = "Specializes in large deliveries",
+                CreatedBy = adminUserId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new Driver
+            {
+                Id = Guid.NewGuid(),
+                Code = "DRV003",
+                NameEn = "Khalid Abdullah",
+                NameAr = "خالد عبد الله",
+                Phone = "+966503456789",
+                Email = "khalid.a@multipos.com",
+                AddressEn = "789 Prince Sultan Road, Jeddah",
+                AddressAr = "789 طريق الأمير سلطان، جدة",
+                LicenseNumber = "DL34567890",
+                LicenseExpiryDate = DateTime.UtcNow.AddYears(1),
+                VehicleNumber = "GHI-9012",
+                VehicleType = "Motorcycle",
+                VehicleColor = "Red",
+                IsActive = true,
+                IsAvailable = false,
+                TotalDeliveries = 312,
+                AverageRating = 4.9m,
+                Notes = "Top-rated driver, excellent customer service",
+                CreatedBy = adminUserId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new Driver
+            {
+                Id = Guid.NewGuid(),
+                Code = "DRV004",
+                NameEn = "Fahad Ibrahim",
+                NameAr = "فهد إبراهيم",
+                Phone = "+966504567890",
+                Email = "fahad.ibrahim@multipos.com",
+                AddressEn = "321 Al Malqa Road, Riyadh",
+                AddressAr = "321 طريق الملقا، الرياض",
+                LicenseNumber = "DL45678901",
+                LicenseExpiryDate = DateTime.UtcNow.AddYears(2),
+                VehicleNumber = "JKL-3456",
+                VehicleType = "Car",
+                VehicleColor = "Silver",
+                IsActive = true,
+                IsAvailable = true,
+                TotalDeliveries = 156,
+                AverageRating = 4.5m,
+                Notes = "New driver, showing great potential",
+                CreatedBy = adminUserId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new Driver
+            {
+                Id = Guid.NewGuid(),
+                Code = "DRV005",
+                NameEn = "Saeed Mohammed",
+                NameAr = "سعيد محمد",
+                Phone = "+966505678901",
+                Email = "saeed.m@multipos.com",
+                AddressEn = "654 King Abdullah Road, Dammam",
+                AddressAr = "654 طريق الملك عبد الله، الدمام",
+                LicenseNumber = "DL56789012",
+                LicenseExpiryDate = DateTime.UtcNow.AddYears(3),
+                VehicleNumber = "MNO-7890",
+                VehicleType = "Motorcycle",
+                VehicleColor = "Blue",
+                IsActive = true,
+                IsAvailable = true,
+                TotalDeliveries = 278,
+                AverageRating = 4.7m,
+                Notes = "Excellent knowledge of local routes",
+                CreatedBy = adminUserId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new Driver
+            {
+                Id = Guid.NewGuid(),
+                Code = "DRV006",
+                NameEn = "Abdullah Saleh",
+                NameAr = "عبد الله صالح",
+                Phone = "+966506789012",
+                Email = "abdullah.saleh@multipos.com",
+                AddressEn = "987 Tahlia Street, Jeddah",
+                AddressAr = "987 شارع التحلية، جدة",
+                LicenseNumber = "DL67890123",
+                LicenseExpiryDate = DateTime.UtcNow.AddYears(1).AddMonths(6),
+                VehicleNumber = "PQR-1234",
+                VehicleType = "Van",
+                VehicleColor = "White",
+                IsActive = true,
+                IsAvailable = true,
+                TotalDeliveries = 203,
+                AverageRating = 4.6m,
+                Notes = "Reliable for bulk deliveries",
+                CreatedBy = adminUserId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new Driver
+            {
+                Id = Guid.NewGuid(),
+                Code = "DRV007",
+                NameEn = "Omar Nasser",
+                NameAr = "عمر ناصر",
+                Phone = "+966507890123",
+                Email = "omar.nasser@multipos.com",
+                AddressEn = "246 Al Khobar Street, Khobar",
+                AddressAr = "246 شارع الخبر، الخبر",
+                LicenseNumber = "DL78901234",
+                LicenseExpiryDate = DateTime.UtcNow.AddYears(2).AddMonths(3),
+                VehicleNumber = "STU-5678",
+                VehicleType = "Motorcycle",
+                VehicleColor = "Green",
+                IsActive = true,
+                IsAvailable = false,
+                TotalDeliveries = 167,
+                AverageRating = 4.4m,
+                Notes = "Part-time driver, available evenings",
+                CreatedBy = adminUserId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new Driver
+            {
+                Id = Guid.NewGuid(),
+                Code = "DRV008",
+                NameEn = "Faisal Ahmed",
+                NameAr = "فيصل أحمد",
+                Phone = "+966508901234",
+                Email = "faisal.ahmed@multipos.com",
+                AddressEn = "135 Makkah Road, Mecca",
+                AddressAr = "135 طريق مكة، مكة المكرمة",
+                LicenseNumber = "DL89012345",
+                LicenseExpiryDate = DateTime.UtcNow.AddYears(3).AddMonths(2),
+                VehicleNumber = "VWX-9012",
+                VehicleType = "Car",
+                VehicleColor = "Black",
+                IsActive = true,
+                IsAvailable = true,
+                TotalDeliveries = 221,
+                AverageRating = 4.8m,
+                Notes = "Professional driver, punctual",
+                CreatedBy = adminUserId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new Driver
+            {
+                Id = Guid.NewGuid(),
+                Code = "DRV009",
+                NameEn = "Tariq Hassan",
+                NameAr = "طارق حسن",
+                Phone = "+966509012345",
+                Email = "tariq.hassan@multipos.com",
+                AddressEn = "864 Medina Road, Medina",
+                AddressAr = "864 طريق المدينة، المدينة المنورة",
+                LicenseNumber = "DL90123456",
+                LicenseExpiryDate = DateTime.UtcNow.AddYears(1).AddMonths(9),
+                VehicleNumber = "YZA-3456",
+                VehicleType = "Motorcycle",
+                VehicleColor = "Yellow",
+                IsActive = true,
+                IsAvailable = true,
+                TotalDeliveries = 134,
+                AverageRating = 4.3m,
+                Notes = "Quick delivery specialist",
+                CreatedBy = adminUserId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new Driver
+            {
+                Id = Guid.NewGuid(),
+                Code = "DRV010",
+                NameEn = "Yazeed Khalid",
+                NameAr = "يزيد خالد",
+                Phone = "+966500123456",
+                Email = "yazeed.khalid@multipos.com",
+                AddressEn = "753 Al Ahsa Street, Al Ahsa",
+                AddressAr = "753 شارع الأحساء، الأحساء",
+                LicenseNumber = "DL01234567",
+                LicenseExpiryDate = DateTime.UtcNow.AddYears(2).AddMonths(6),
+                VehicleNumber = "BCD-7890",
+                VehicleType = "Van",
+                VehicleColor = "Gray",
+                IsActive = true,
+                IsAvailable = true,
+                TotalDeliveries = 195,
+                AverageRating = 4.7m,
+                Notes = "Specializes in fragile item delivery",
+                CreatedBy = adminUserId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new Driver
+            {
+                Id = Guid.NewGuid(),
+                Code = "DRV011",
+                NameEn = "Nawaf Ali",
+                NameAr = "نواف علي",
+                Phone = "+966501234568",
+                Email = "nawaf.ali@multipos.com",
+                AddressEn = "159 Corniche Road, Jeddah",
+                AddressAr = "159 طريق الكورنيش، جدة",
+                LicenseNumber = "DL11234567",
+                LicenseExpiryDate = DateTime.UtcNow.AddYears(1).AddMonths(3),
+                VehicleNumber = "EFG-1234",
+                VehicleType = "Motorcycle",
+                VehicleColor = "Orange",
+                IsActive = false,
+                IsAvailable = false,
+                TotalDeliveries = 89,
+                AverageRating = 4.2m,
+                Notes = "On leave - returning next month",
+                CreatedBy = adminUserId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+            new Driver
+            {
+                Id = Guid.NewGuid(),
+                Code = "DRV012",
+                NameEn = "Rakan Mohammed",
+                NameAr = "راكان محمد",
+                Phone = "+966502345679",
+                Email = "rakan.m@multipos.com",
+                AddressEn = "357 King Saud Road, Riyadh",
+                AddressAr = "357 طريق الملك سعود، الرياض",
+                LicenseNumber = "DL22345678",
+                LicenseExpiryDate = DateTime.UtcNow.AddYears(3).AddMonths(6),
+                VehicleNumber = "HIJ-5678",
+                VehicleType = "Car",
+                VehicleColor = "Brown",
+                IsActive = true,
+                IsAvailable = true,
+                TotalDeliveries = 267,
+                AverageRating = 4.9m,
+                Notes = "Expert in cold chain deliveries",
+                CreatedBy = adminUserId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            },
+        };
+
+        context.Drivers.AddRange(drivers);
+        await context.SaveChangesAsync();
+        Console.WriteLine($"    ✓ Created {drivers.Count} drivers");
 
         // Seed Invoice Templates (58mm, 80mm, A4)
         await InvoiceTemplateSeeder.SeedAsync(context, adminUserId);
