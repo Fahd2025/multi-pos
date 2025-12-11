@@ -43,6 +43,11 @@ public class Product
 
     public Guid? SupplierId { get; set; }
 
+    /// <summary>
+    /// Unit of measurement for this product (e.g., kg, liter, piece)
+    /// </summary>
+    public Guid? UnitId { get; set; }
+
     [MaxLength(100)]
     public string? Barcode { get; set; }
 
@@ -61,6 +66,7 @@ public class Product
     // Navigation properties
     public Category Category { get; set; } = null!;
     public Supplier? Supplier { get; set; }
+    public Unit? Unit { get; set; }
     public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
     public ICollection<SaleLineItem> SaleLineItems { get; set; } = new List<SaleLineItem>();
     public ICollection<PurchaseLineItem> PurchaseLineItems { get; set; } =

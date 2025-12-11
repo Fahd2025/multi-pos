@@ -6,6 +6,7 @@ using Backend.Models.Entities.Branch; // For Category, Product, etc.
 using Backend.Models.Entities.HeadOffice;
 using HeadOfficeUser = Backend.Models.Entities.HeadOffice.User;
 using Backend.Services.Branch.Images;
+using Backend.Services.Shared.Migrations;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
@@ -20,18 +21,21 @@ public class BranchService : IBranchService
     private readonly DbContextFactory _dbContextFactory;
     private readonly ILogger<BranchService> _logger;
     private readonly IImageService _imageService;
+    private readonly IBranchMigrationManager _migrationManager;
 
     public BranchService(
         HeadOfficeDbContext headOfficeContext,
         DbContextFactory dbContextFactory,
         ILogger<BranchService> logger,
-        IImageService imageService
+        IImageService imageService,
+        IBranchMigrationManager migrationManager
     )
     {
         _headOfficeContext = headOfficeContext;
         _dbContextFactory = dbContextFactory;
         _logger = logger;
         _imageService = imageService;
+        _migrationManager = migrationManager;
     }
 
     public async Task<(List<BranchDto> Branches, int TotalCount)> GetBranchesAsync(
@@ -840,9 +844,6 @@ public class BranchService : IBranchService
                 branch.Code
             );
 
-            // Create a branch context
-            using var branchContext = _dbContextFactory.CreateBranchContext(branch);
-
             // Ensure database directory exists for SQLite
             if (branch.DatabaseProvider == DatabaseProvider.SQLite)
             {
@@ -862,8 +863,27 @@ public class BranchService : IBranchService
                 }
             }
 
-            // Run migrations (this will create the database if it doesn't exist)
-            await branchContext.Database.MigrateAsync();
+            // Run migrations using the BranchMigrationManager to ensure migration state is tracked
+            var migrationResult = await _migrationManager.ApplyMigrationsAsync(id);
+
+            if (!migrationResult.Success)
+            {
+                _logger.LogError(
+                    "Failed to apply migrations for branch {BranchCode}: {ErrorMessage}",
+                    branch.Code,
+                    migrationResult.ErrorMessage
+                );
+                return (false, $"Migration failed: {migrationResult.ErrorMessage}");
+            }
+
+            _logger.LogInformation(
+                "Successfully applied {Count} migrations for branch {BranchCode}",
+                migrationResult.AppliedMigrations.Count,
+                branch.Code
+            );
+
+            // Create a branch context for seeding
+            using var branchContext = _dbContextFactory.CreateBranchContext(branch);
 
             // Seed sample data
             await SeedBranchDataAsync(branchContext, branch);

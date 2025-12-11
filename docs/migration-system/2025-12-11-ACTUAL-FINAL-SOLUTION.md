@@ -1,8 +1,10 @@
 # Multi-Provider Migration System - ACTUAL FINAL SOLUTION
 
 **Date**: December 11, 2025
-**Status**: ✅ **RESOLVED** (Really this time!)
+**Status**: ⚠️ **SUPERSEDED** - See newer workflow with `Clean-All-Migrations.ps1`
 **Build Status**: ✅ Success (0 errors, 4 warnings - unrelated)
+
+> **NOTE**: This document describes an earlier approach. The current recommended workflow uses `Clean-All-Migrations.ps1` which cleans all three files (migration, designer, and snapshot). See `2025-12-11-driver-table-migration-test.md` for the latest approach.
 
 ## Executive Summary
 
@@ -76,13 +78,15 @@ Run the PowerShell script:
 
 ```bash
 cd Backend/Migrations/Branch
-powershell.exe -ExecutionPolicy Bypass -File Remove-TypeAnnotations.ps1
+powershell.exe -ExecutionPolicy Bypass -File Clean-All-Migrations.ps1
 ```
+
+> **UPDATE**: The current script `Clean-All-Migrations.ps1` cleans all three files (migration, designer, and snapshot) for better consistency.
 
 This script:
 - ✅ Removes `type:` annotations from `*_Initial.cs` (the migration file)
-- ✅ Leaves Designer and Snapshot files unchanged
-- ✅ Result: Migration file with clean type-agnostic column definitions
+- ✅ Removes `.HasColumnType()` calls from Designer and Snapshot files
+- ✅ Result: All migration files with clean type-agnostic column definitions
 
 **Before**:
 ```csharp
@@ -138,9 +142,9 @@ When applying migrations **without** type annotations, EF Core:
 
 ### Created
 1. `Backend/Migrations/Branch/20251211084643_Initial.cs` - Migration file (type annotations removed)
-2. `Backend/Migrations/Branch/20251211084643_Initial.Designer.cs` - Designer file (unchanged)
-3. `Backend/Migrations/Branch/BranchDbContextModelSnapshot.cs` - Snapshot (unchanged)
-4. `Backend/Migrations/Branch/Remove-TypeAnnotations.ps1` - Cleanup script
+2. `Backend/Migrations/Branch/20251211084643_Initial.Designer.cs` - Designer file (cleaned)
+3. `Backend/Migrations/Branch/BranchDbContextModelSnapshot.cs` - Snapshot (cleaned)
+4. `Backend/Migrations/Branch/Clean-All-Migrations.ps1` - Cleanup script (current version)
 
 ## Migration Workflow for Future Changes
 
@@ -155,7 +159,7 @@ dotnet ef migrations add MigrationName --context BranchDbContext --output-dir Mi
 ### 2. Remove Type Annotations
 ```bash
 cd Migrations/Branch
-powershell.exe -ExecutionPolicy Bypass -File Remove-TypeAnnotations.ps1
+powershell.exe -ExecutionPolicy Bypass -File Clean-All-Migrations.ps1
 ```
 
 ### 3. Build
@@ -170,13 +174,17 @@ dotnet build
 - Test MySQL branch creation (if applicable)
 - Test PostgreSQL branch creation (if applicable)
 
-## Why Designer and Snapshot Are Left Unchanged
+## Why All Files Are Now Cleaned
 
-- **Designer file** (`.Designer.cs`): Contains metadata for EF Core to understand the model when generating **future migrations**. Type annotations here don't affect runtime migration application.
+> **UPDATE**: The current approach cleans all three files for better consistency.
 
-- **Snapshot file** (`ModelSnapshot.cs`): Records the current state of the model for comparison when generating new migrations. Also not used during migration application.
+- **Designer file** (`.Designer.cs`): Contains metadata for EF Core. Cleaning removes `.HasColumnType()` calls for consistency.
 
-- **Migration file** (`.cs`): Contains the actual `Up()` and `Down()` methods that execute SQL commands. **This is what we clean.**
+- **Snapshot file** (`ModelSnapshot.cs`): Records the current state of the model. Also cleaned to remove `.HasColumnType()` calls.
+
+- **Migration file** (`.cs`): Contains the actual `Up()` and `Down()` methods that execute SQL commands. Cleaned to remove `type:` annotations.
+
+The updated approach (`Clean-All-Migrations.ps1`) cleans all files to ensure complete type-agnostic migrations.
 
 ## Testing Results
 
@@ -222,11 +230,13 @@ cd Backend && dotnet build
 - **Problem**: Broke C# syntax in fluent API chains
 - **Error**: Hundreds of "CS1002: ; expected" errors
 
-### Final Solution: Remove Type Annotations from Migration File Only
+### Final Solution: Remove Type Annotations from All Migration Files
 - ✅ Migration Up/Down methods: Clean, no type annotations
-- ✅ Designer file: Unchanged (only used for generating future migrations)
-- ✅ Snapshot file: Unchanged (only used for model comparison)
+- ✅ Designer file: Cleaned (removes `.HasColumnType()` calls)
+- ✅ Snapshot file: Cleaned (removes `.HasColumnType()` calls)
 - ✅ EF Core: Uses CLR types to determine database-specific DDL
+
+> **UPDATE**: The current approach (`Clean-All-Migrations.ps1`) cleans all three files for better consistency across future migrations.
 
 ## Key Insights
 
@@ -251,31 +261,75 @@ Is all that's needed to make migrations provider-agnostic.
 
 ## PowerShell Script
 
-`Remove-TypeAnnotations.ps1`:
+> **UPDATE**: The current script is `Clean-All-Migrations.ps1` which processes all migration files automatically.
+
+`Clean-All-Migrations.ps1` (current version):
 
 ```powershell
-# Remove type annotations ONLY from the migration file Up() and Down() methods
-# Leave Designer and Snapshot files untouched
+# Remove ALL type annotations from ALL migration, designer, and snapshot files
+# This script removes .HasColumnType("...") calls and type: annotations
+# Usage: Run this script after generating any new migration
 
-$migrationFile = Get-ChildItem -Filter "*_Initial.cs" | Where-Object { $_.Name -notlike "*.Designer.cs" } | Select-Object -First 1
+Write-Host "Cleaning all migration files..." -ForegroundColor Cyan
+Write-Host ""
 
-if ($migrationFile) {
-    Write-Host "Processing: $($migrationFile.Name)" -ForegroundColor Cyan
+# Get all migration files (excluding backups)
+$migrationFiles = Get-ChildItem -Filter "*_*.cs" | Where-Object {
+    $_.Name -notlike "*.Designer.cs" -and
+    $_.Name -notlike "*Backup*"
+}
 
-    $content = Get-Content $migrationFile.FullName -Raw
+$designerFiles = Get-ChildItem -Filter "*_*.Designer.cs" | Where-Object {
+    $_.Name -notlike "*Backup*"
+}
 
-    # Remove type: "TEXT", or type: "INTEGER", etc.
-    $content = $content -replace 'type:\s*"[^"]*",\s*', ''
+$snapshotFile = "BranchDbContextModelSnapshot.cs"
 
-    # Remove , type: "TEXT" or , type: "INTEGER" at end of parameter list
-    $content = $content -replace ',\s*type:\s*"[^"]*"', ''
+# Combine all files to process
+$allFiles = @()
+$allFiles += $migrationFiles
+$allFiles += $designerFiles
+if (Test-Path $snapshotFile) {
+    $allFiles += Get-Item $snapshotFile
+}
 
-    Set-Content $migrationFile.FullName -Value $content -NoNewline
+$cleanedCount = 0
 
-    Write-Host "✓ Removed type annotations from $($migrationFile.Name)" -ForegroundColor Green
-    Write-Host "✓ Designer and Snapshot files left unchanged" -ForegroundColor Green
+foreach ($file in $allFiles) {
+    if ($file -and (Test-Path $file)) {
+        Write-Host "Processing: $($file.Name)" -ForegroundColor Yellow
+
+        $content = Get-Content $file.FullName -Raw
+
+        # Count type annotations before cleaning
+        $typeCount = ([regex]::Matches($content, 'type:\s*"[^"]*"')).Count
+        $hasColumnTypeCount = ([regex]::Matches($content, '\.HasColumnType\("[^"]*"\)')).Count
+
+        if ($typeCount -eq 0 -and $hasColumnTypeCount -eq 0) {
+            Write-Host "  → Already clean (no type annotations found)" -ForegroundColor Gray
+            continue
+        }
+
+        # Remove type: "TEXT", or type: "INTEGER", from migration Up/Down methods
+        $content = $content -replace 'type:\s*"[^"]*",\s*', ''
+        $content = $content -replace ',\s*type:\s*"[^"]*"', ''
+
+        # Remove .HasColumnType("...") from fluent API chains (Designer/Snapshot)
+        $content = $content -replace '\.HasColumnType\("[^"]*"\)\s*', ''
+
+        Set-Content $file.FullName -Value $content -NoNewline
+
+        Write-Host "  ✓ Removed $typeCount type: annotations and $hasColumnTypeCount HasColumnType() calls" -ForegroundColor Green
+        $cleanedCount++
+    }
+}
+
+Write-Host ""
+if ($cleanedCount -gt 0) {
+    Write-Host "Successfully cleaned $cleanedCount file(s)!" -ForegroundColor Green
+    Write-Host "Now run: dotnet build" -ForegroundColor Cyan
 } else {
-    Write-Host "✗ No migration file found" -ForegroundColor Red
+    Write-Host "All files are already clean!" -ForegroundColor Green
 }
 ```
 

@@ -18,15 +18,16 @@ public static class BranchDbSeeder
         var hasCustomers = await context.Customers.AnyAsync();
         var hasExpenseCategories = await context.ExpenseCategories.AnyAsync();
         var hasDrivers = await context.Drivers.AnyAsync();
+        var hasUnits = await context.Units.AnyAsync();
 
-        if (hasCategories && hasSuppliers && hasProducts && hasCustomers && hasExpenseCategories && hasDrivers)
+        if (hasCategories && hasSuppliers && hasProducts && hasCustomers && hasExpenseCategories && hasDrivers && hasUnits)
         {
             Console.WriteLine($"  → Branch {branchCode} already has data, skipping seed");
             return;
         }
 
         // If partial data exists, warn but continue
-        if (hasCategories || hasSuppliers || hasProducts || hasCustomers || hasExpenseCategories || hasDrivers)
+        if (hasCategories || hasSuppliers || hasProducts || hasCustomers || hasExpenseCategories || hasDrivers || hasUnits)
         {
             Console.WriteLine($"  ⚠ Branch {branchCode} has partial data, re-seeding...");
         }
@@ -2019,6 +2020,324 @@ public static class BranchDbSeeder
         context.Drivers.AddRange(drivers);
         await context.SaveChangesAsync();
         Console.WriteLine($"    ✓ Created {drivers.Count} drivers");
+
+        // Seed Units (15+)
+        Console.WriteLine($"    → Creating units of measurement...");
+        var units = new List<Unit>
+        {
+            // Weight Units (Base: Gram)
+            new Unit
+            {
+                Id = Guid.NewGuid(),
+                Code = "G",
+                NameEn = "Gram",
+                NameAr = "جرام",
+                Symbol = "g",
+                IsBaseUnit = true,
+                BaseUnitId = null,
+                ConversionFactor = 1,
+                AllowFractional = true,
+                DecimalPlaces = 2,
+                DisplayOrder = 1,
+                IsActive = true,
+                Notes = "Base unit for weight measurements",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = adminUserId,
+            },
+            new Unit
+            {
+                Id = Guid.NewGuid(),
+                Code = "KG",
+                NameEn = "Kilogram",
+                NameAr = "كيلوجرام",
+                Symbol = "kg",
+                IsBaseUnit = false,
+                BaseUnitId = null, // Will be set after first unit is saved
+                ConversionFactor = 1000,
+                AllowFractional = true,
+                DecimalPlaces = 3,
+                DisplayOrder = 2,
+                IsActive = true,
+                Notes = "1 Kilogram = 1000 Grams",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = adminUserId,
+            },
+            new Unit
+            {
+                Id = Guid.NewGuid(),
+                Code = "TON",
+                NameEn = "Ton",
+                NameAr = "طن",
+                Symbol = "t",
+                IsBaseUnit = false,
+                BaseUnitId = null,
+                ConversionFactor = 1000000,
+                AllowFractional = true,
+                DecimalPlaces = 3,
+                DisplayOrder = 3,
+                IsActive = true,
+                Notes = "1 Ton = 1,000,000 Grams",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = adminUserId,
+            },
+            // Volume Units (Base: Liter)
+            new Unit
+            {
+                Id = Guid.NewGuid(),
+                Code = "L",
+                NameEn = "Liter",
+                NameAr = "لتر",
+                Symbol = "L",
+                IsBaseUnit = true,
+                BaseUnitId = null,
+                ConversionFactor = 1,
+                AllowFractional = true,
+                DecimalPlaces = 2,
+                DisplayOrder = 4,
+                IsActive = true,
+                Notes = "Base unit for volume measurements",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = adminUserId,
+            },
+            new Unit
+            {
+                Id = Guid.NewGuid(),
+                Code = "ML",
+                NameEn = "Milliliter",
+                NameAr = "مليلتر",
+                Symbol = "mL",
+                IsBaseUnit = false,
+                BaseUnitId = null,
+                ConversionFactor = 0.001m,
+                AllowFractional = true,
+                DecimalPlaces = 2,
+                DisplayOrder = 5,
+                IsActive = true,
+                Notes = "1 Milliliter = 0.001 Liters",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = adminUserId,
+            },
+            // Count Units (Discrete)
+            new Unit
+            {
+                Id = Guid.NewGuid(),
+                Code = "PCS",
+                NameEn = "Piece",
+                NameAr = "قطعة",
+                Symbol = "pc",
+                IsBaseUnit = true,
+                BaseUnitId = null,
+                ConversionFactor = 1,
+                AllowFractional = false,
+                DecimalPlaces = 0,
+                DisplayOrder = 6,
+                IsActive = true,
+                Notes = "Individual items or pieces",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = adminUserId,
+            },
+            new Unit
+            {
+                Id = Guid.NewGuid(),
+                Code = "DZN",
+                NameEn = "Dozen",
+                NameAr = "دستة",
+                Symbol = "dz",
+                IsBaseUnit = false,
+                BaseUnitId = null,
+                ConversionFactor = 12,
+                AllowFractional = false,
+                DecimalPlaces = 0,
+                DisplayOrder = 7,
+                IsActive = true,
+                Notes = "1 Dozen = 12 Pieces",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = adminUserId,
+            },
+            new Unit
+            {
+                Id = Guid.NewGuid(),
+                Code = "CTN",
+                NameEn = "Carton",
+                NameAr = "كرتون",
+                Symbol = "ctn",
+                IsBaseUnit = false,
+                BaseUnitId = null,
+                ConversionFactor = 24,
+                AllowFractional = false,
+                DecimalPlaces = 0,
+                DisplayOrder = 8,
+                IsActive = true,
+                Notes = "1 Carton = 24 Pieces (default)",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = adminUserId,
+            },
+            new Unit
+            {
+                Id = Guid.NewGuid(),
+                Code = "BOX",
+                NameEn = "Box",
+                NameAr = "صندوق",
+                Symbol = "box",
+                IsBaseUnit = false,
+                BaseUnitId = null,
+                ConversionFactor = 6,
+                AllowFractional = false,
+                DecimalPlaces = 0,
+                DisplayOrder = 9,
+                IsActive = true,
+                Notes = "1 Box = 6 Pieces (default)",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = adminUserId,
+            },
+            // Length Units (Base: Meter)
+            new Unit
+            {
+                Id = Guid.NewGuid(),
+                Code = "M",
+                NameEn = "Meter",
+                NameAr = "متر",
+                Symbol = "m",
+                IsBaseUnit = true,
+                BaseUnitId = null,
+                ConversionFactor = 1,
+                AllowFractional = true,
+                DecimalPlaces = 2,
+                DisplayOrder = 10,
+                IsActive = true,
+                Notes = "Base unit for length measurements",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = adminUserId,
+            },
+            new Unit
+            {
+                Id = Guid.NewGuid(),
+                Code = "CM",
+                NameEn = "Centimeter",
+                NameAr = "سنتيمتر",
+                Symbol = "cm",
+                IsBaseUnit = false,
+                BaseUnitId = null,
+                ConversionFactor = 0.01m,
+                AllowFractional = true,
+                DecimalPlaces = 2,
+                DisplayOrder = 11,
+                IsActive = true,
+                Notes = "1 Centimeter = 0.01 Meters",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = adminUserId,
+            },
+            // Area Units (Base: Square Meter)
+            new Unit
+            {
+                Id = Guid.NewGuid(),
+                Code = "SQM",
+                NameEn = "Square Meter",
+                NameAr = "متر مربع",
+                Symbol = "m²",
+                IsBaseUnit = true,
+                BaseUnitId = null,
+                ConversionFactor = 1,
+                AllowFractional = true,
+                DecimalPlaces = 2,
+                DisplayOrder = 12,
+                IsActive = true,
+                Notes = "Base unit for area measurements",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = adminUserId,
+            },
+            // Packaging Units
+            new Unit
+            {
+                Id = Guid.NewGuid(),
+                Code = "PKG",
+                NameEn = "Package",
+                NameAr = "حزمة",
+                Symbol = "pkg",
+                IsBaseUnit = true,
+                BaseUnitId = null,
+                ConversionFactor = 1,
+                AllowFractional = false,
+                DecimalPlaces = 0,
+                DisplayOrder = 13,
+                IsActive = true,
+                Notes = "Generic packaging unit",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = adminUserId,
+            },
+            new Unit
+            {
+                Id = Guid.NewGuid(),
+                Code = "BTL",
+                NameEn = "Bottle",
+                NameAr = "زجاجة",
+                Symbol = "btl",
+                IsBaseUnit = true,
+                BaseUnitId = null,
+                ConversionFactor = 1,
+                AllowFractional = false,
+                DecimalPlaces = 0,
+                DisplayOrder = 14,
+                IsActive = true,
+                Notes = "Used for bottled products",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = adminUserId,
+            },
+            new Unit
+            {
+                Id = Guid.NewGuid(),
+                Code = "BAG",
+                NameEn = "Bag",
+                NameAr = "كيس",
+                Symbol = "bag",
+                IsBaseUnit = true,
+                BaseUnitId = null,
+                ConversionFactor = 1,
+                AllowFractional = false,
+                DecimalPlaces = 0,
+                DisplayOrder = 15,
+                IsActive = true,
+                Notes = "Used for bagged products",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = adminUserId,
+            },
+        };
+
+        // Save units first
+        context.Units.AddRange(units);
+        await context.SaveChangesAsync();
+
+        // Update BaseUnitId for derived units
+        var gramUnit = units.First(u => u.Code == "G");
+        var literUnit = units.First(u => u.Code == "L");
+        var pieceUnit = units.First(u => u.Code == "PCS");
+        var meterUnit = units.First(u => u.Code == "M");
+
+        units.First(u => u.Code == "KG").BaseUnitId = gramUnit.Id;
+        units.First(u => u.Code == "TON").BaseUnitId = gramUnit.Id;
+        units.First(u => u.Code == "ML").BaseUnitId = literUnit.Id;
+        units.First(u => u.Code == "DZN").BaseUnitId = pieceUnit.Id;
+        units.First(u => u.Code == "CTN").BaseUnitId = pieceUnit.Id;
+        units.First(u => u.Code == "BOX").BaseUnitId = pieceUnit.Id;
+        units.First(u => u.Code == "CM").BaseUnitId = meterUnit.Id;
+
+        await context.SaveChangesAsync();
+        Console.WriteLine($"    ✓ Created {units.Count} units of measurement");
 
         // Seed Invoice Templates (58mm, 80mm, A4)
         await InvoiceTemplateSeeder.SeedAsync(context, adminUserId);

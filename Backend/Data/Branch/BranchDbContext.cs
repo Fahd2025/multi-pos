@@ -25,6 +25,7 @@ public class BranchDbContext : DbContext
     public DbSet<SyncQueue> SyncQueue { get; set; }
     public DbSet<InvoiceTemplate> InvoiceTemplates { get; set; }
     public DbSet<Driver> Drivers { get; set; }
+    public DbSet<Unit> Units { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -61,6 +62,7 @@ public class BranchDbContext : DbContext
             entity.HasIndex(e => e.SKU).IsUnique();
             entity.HasIndex(e => e.CategoryId);
             entity.HasIndex(e => e.SupplierId);
+            entity.HasIndex(e => e.UnitId);
             entity.HasIndex(e => e.Barcode);
             entity.HasIndex(e => e.IsActive);
             entity.HasIndex(e => e.StockLevel);
@@ -78,6 +80,12 @@ public class BranchDbContext : DbContext
                 .HasOne(e => e.Supplier)
                 .WithMany(s => s.Products)
                 .HasForeignKey(e => e.SupplierId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity
+                .HasOne(e => e.Unit)
+                .WithMany(u => u.Products)
+                .HasForeignKey(e => e.UnitId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
@@ -258,6 +266,24 @@ public class BranchDbContext : DbContext
             entity.HasIndex(e => e.IsAvailable);
 
             entity.Property(e => e.AverageRating).HasPrecision(3, 2);
+        });
+
+        // Unit configuration
+        modelBuilder.Entity<Unit>(entity =>
+        {
+            entity.HasIndex(e => e.Code).IsUnique();
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => e.BaseUnitId);
+            entity.HasIndex(e => e.DisplayOrder);
+
+            entity.Property(e => e.ConversionFactor).HasPrecision(18, 6);
+
+            // Self-referencing relationship for base unit
+            entity
+                .HasOne(e => e.BaseUnit)
+                .WithMany(u => u.DerivedUnits)
+                .HasForeignKey(e => e.BaseUnitId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
