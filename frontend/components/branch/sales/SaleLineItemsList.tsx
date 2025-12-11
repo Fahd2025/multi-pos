@@ -13,11 +13,14 @@ export interface SaleLineItem {
   productId: string;
   productName: string;
   productSku: string;
+  barcode?: string;
+  unit?: string;
   quantity: number;
   unitPrice: number;
   discountType: DiscountType;
   discountValue: number;
-  productImage?: string; // Add product image URL
+  productImage?: string;
+  notes?: string;
 }
 
 interface SaleLineItemsListProps {

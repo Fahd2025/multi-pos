@@ -16,6 +16,7 @@ import { UserRole } from "@/types/enums";
 import { Button } from "@/components/shared/Button";
 import InvoicePrintDialog from "@/components/invoice/InvoicePrintDialog";
 import { BRANCH_ROUTES } from "@/lib/routes";
+import React from "react";
 
 export default function InvoicePreviewPage() {
   const params = useParams();
@@ -53,6 +54,47 @@ export default function InvoicePreviewPage() {
       // Load branch info
       const branchInfo = await branchInfoService.getBranchInfo();
 
+      // Helper function to format address
+      const formatAddress = (address: any): string => {
+        if (!address) return "123 Main Street";
+
+        let addressObj: any = address;
+
+        // If it's a JSON string, parse it first
+        if (typeof address === "string") {
+          try {
+            addressObj = JSON.parse(address);
+          } catch {
+            // If parsing fails, it's already a plain string address
+            return address;
+          }
+        }
+
+        // If it's an object, build address from non-null components
+        if (typeof addressObj === "object") {
+          // Build from components (ignore null values)
+          const parts = [
+            addressObj.BuildingNumber || addressObj.buildingNumber,
+            addressObj.Street || addressObj.street,
+            addressObj.District || addressObj.district,
+            addressObj.City || addressObj.city,
+            addressObj.PostalCode || addressObj.postalCode,
+          ].filter(Boolean); // Remove null/undefined/empty values
+
+          // If we have components, use them
+          if (parts.length > 0) {
+            return parts.join(", ");
+          }
+
+          // Otherwise, fall back to ShortAddress
+          if (addressObj.ShortAddress || addressObj.shortAddress) {
+            return addressObj.ShortAddress || addressObj.shortAddress;
+          }
+        }
+
+        return "123 Main Street";
+      };
+
       // Generate sample data
       const sampleData = {
         // Branch Info
@@ -61,16 +103,20 @@ export default function InvoicePreviewPage() {
         logoUrl: branchInfo?.logoPath || undefined,
         vatNumber: branchInfo?.taxNumber || "123456789012345",
         commercialRegNumber: branchInfo?.crn || "1234567890",
-        address: branchInfo?.addressEn || "123 Main Street, Riyadh 12345",
+        address: formatAddress(branchInfo?.addressEn),
         phone: branchInfo?.phone || "+966 50 123 4567",
         email: branchInfo?.email || "info@branch.com",
 
         // Invoice Info
         invoiceNumber: "INV-2025-001",
-        invoiceDate: new Date().toLocaleDateString("en-US", {
+        invoiceDate: new Date().toLocaleString("en-US", {
           year: "numeric",
           month: "short",
           day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
         }),
         cashierName: "John Doe",
 
@@ -89,18 +135,21 @@ export default function InvoicePreviewPage() {
             quantity: 2,
             unitPrice: 50.0,
             lineTotal: 100.0,
+            notes: "Handle with care - fragile item",
           },
           {
             name: "Product B - Premium Service",
             quantity: 1,
             unitPrice: 75.5,
             lineTotal: 75.5,
+            notes: "", // No notes for this item
           },
           {
             name: "Product C - Standard Item",
             quantity: 3,
             unitPrice: 25.0,
             lineTotal: 75.0,
+            notes: "Customer requested gift wrapping",
           },
         ],
 
@@ -241,7 +290,9 @@ export default function InvoicePreviewPage() {
                   <h1 className="text-xl font-bold mb-1">{invoiceData.branchName}</h1>
                 )}
                 {invoiceData.address && (
-                  <p className="text-sm text-gray-700">{invoiceData.address}</p>
+                  <p className="text-sm text-gray-700 break-words max-w-full px-2">
+                    {invoiceData.address}
+                  </p>
                 )}
                 {invoiceData.vatNumber && (
                   <p className="text-sm text-gray-700">VAT: {invoiceData.vatNumber}</p>
@@ -277,12 +328,22 @@ export default function InvoicePreviewPage() {
                 </thead>
                 <tbody>
                   {invoiceData.items.map((item: any, index: number) => (
-                    <tr key={index} className="border-b border-gray-200">
-                      <td className="py-2">{item.name}</td>
-                      <td className="text-center py-2">{item.quantity}</td>
-                      <td className="text-right py-2">{item.unitPrice.toFixed(2)}</td>
-                      <td className="text-right py-2">{item.lineTotal.toFixed(2)}</td>
-                    </tr>
+                    <React.Fragment key={index}>
+                      <tr className="border-b border-gray-200">
+                        <td className="py-2">{item.name}</td>
+                        <td className="text-center py-2">{item.quantity}</td>
+                        <td className="text-right py-2">{item.unitPrice.toFixed(2)}</td>
+                        <td className="text-right py-2">{item.lineTotal.toFixed(2)}</td>
+                      </tr>
+                      {/* Detail row for notes */}
+                      {item.notes && item.notes.trim() !== "" && (
+                        <tr className="bg-gray-50">
+                          <td colSpan={4} className="py-2 px-2 pl-4 text-xs text-gray-700">
+                            <span className="font-semibold">Details:</span> {item.notes}
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>
@@ -292,14 +353,24 @@ export default function InvoicePreviewPage() {
                   <span>Subtotal:</span>
                   <span>{invoiceData.subtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between mb-1">
-                  <span>Discount:</span>
-                  <span>{invoiceData.discount.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between mb-1">
-                  <span>VAT (15%):</span>
-                  <span>{invoiceData.vatAmount.toFixed(2)}</span>
-                </div>
+                {invoiceData.discount > 0 && (
+                  <>
+                    <div className="flex justify-between mb-1">
+                      <span>Discount:</span>
+                      <span>{invoiceData.discount.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between mb-1">
+                      <span>Total (Excl. VAT):</span>
+                      <span>{(invoiceData.subtotal - invoiceData.discount).toFixed(2)}</span>
+                    </div>
+                  </>
+                )}
+                {invoiceData.vatAmount > 0 && (
+                  <div className="flex justify-between mb-1">
+                    <span>VAT (15%):</span>
+                    <span>{invoiceData.vatAmount.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between font-bold text-lg border-t border-gray-300 pt-2 mt-2">
                   <span>Total:</span>
                   <span>{invoiceData.total.toFixed(2)}</span>

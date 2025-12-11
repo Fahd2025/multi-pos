@@ -83,10 +83,14 @@ export default function SaleDetailsPage() {
 
         // Invoice Info
         invoiceNumber: sale.invoiceNumber || sale.transactionId,
-        invoiceDate: new Date(sale.saleDate).toLocaleDateString("en-US", {
+        invoiceDate: new Date(sale.saleDate).toLocaleString("en-US", {
           year: "numeric",
           month: "short",
           day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
         }),
         cashierName: sale.cashierName,
 
@@ -101,9 +105,12 @@ export default function SaleDetailsPage() {
         // Line Items
         items: sale.lineItems.map((item) => ({
           name: item.productName,
+          barcode: item.barcode,
+          unit: item.unit,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           lineTotal: item.lineTotal,
+          notes: item.notes,
         })),
 
         // Totals

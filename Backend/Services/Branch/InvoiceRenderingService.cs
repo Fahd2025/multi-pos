@@ -162,6 +162,8 @@ public class InvoiceRenderingService : IInvoiceRenderingService
         styles.AppendLine("table td { padding: 5px; border: 1px solid #ddd; }");
         styles.AppendLine("table td.right { text-align: right; }");
         styles.AppendLine("table td.center { text-align: center; }");
+        styles.AppendLine("table tr.item-details td { background: #f9f9f9; font-size: 10px; padding: 5px 5px 5px 15px; border-top: none; }");
+        styles.AppendLine("table tr.item-details .details-label { font-weight: bold; }");
 
         styles.AppendLine(".summary { margin-top: 15px; }");
         styles.AppendLine(".summary-line { display: flex; justify-content: space-between; padding: 3px 0; }");
@@ -190,6 +192,74 @@ public class InvoiceRenderingService : IInvoiceRenderingService
         };
     }
 
+    /// <summary>
+    /// Formats address from JSON string or plain text
+    /// </summary>
+    private string FormatAddress(string? address)
+    {
+        if (string.IsNullOrWhiteSpace(address))
+        {
+            return string.Empty;
+        }
+
+        // Try to parse as JSON object
+        try
+        {
+            using var doc = JsonDocument.Parse(address);
+            var root = doc.RootElement;
+
+            // Extract address components (case-insensitive property lookup)
+            var buildingNumber = GetJsonProperty(root, "BuildingNumber", "buildingNumber");
+            var street = GetJsonProperty(root, "Street", "street");
+            var district = GetJsonProperty(root, "District", "district");
+            var city = GetJsonProperty(root, "City", "city");
+            var postalCode = GetJsonProperty(root, "PostalCode", "postalCode");
+
+            // Build address from non-null components
+            var parts = new[] { buildingNumber, street, district, city, postalCode }
+                .Where(p => !string.IsNullOrWhiteSpace(p))
+                .ToArray();
+
+            if (parts.Length > 0)
+            {
+                return string.Join(", ", parts);
+            }
+
+            // Fall back to ShortAddress if all components are null
+            var shortAddress = GetJsonProperty(root, "ShortAddress", "shortAddress");
+            if (!string.IsNullOrWhiteSpace(shortAddress))
+            {
+                return shortAddress;
+            }
+
+            return string.Empty;
+        }
+        catch
+        {
+            // If parsing fails, it's a plain string - return as-is
+            return address;
+        }
+    }
+
+    /// <summary>
+    /// Gets JSON property value with case-insensitive fallback
+    /// </summary>
+    private string? GetJsonProperty(JsonElement element, params string[] propertyNames)
+    {
+        foreach (var name in propertyNames)
+        {
+            if (element.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.String)
+            {
+                var value = prop.GetString();
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    return value;
+                }
+            }
+        }
+        return null;
+    }
+
     private string RenderHeader(InvoiceSchemaSection section, Backend.Models.Entities.HeadOffice.Branch branch)
     {
         var html = new StringBuilder();
@@ -207,7 +277,11 @@ public class InvoiceRenderingService : IInvoiceRenderingService
 
         if (section.Config?.ContainsKey("showAddress") == true && (bool)(section.Config["showAddress"] ?? false) && !string.IsNullOrEmpty(branch.AddressEn))
         {
-            html.AppendLine($"<p>{branch.AddressEn}</p>");
+            var formattedAddress = FormatAddress(branch.AddressEn);
+            if (!string.IsNullOrWhiteSpace(formattedAddress))
+            {
+                html.AppendLine($"<p>{formattedAddress}</p>");
+            }
         }
 
         if (section.Config?.ContainsKey("showPhone") == true && (bool)(section.Config["showPhone"] ?? false) && !string.IsNullOrEmpty(branch.Phone))
@@ -231,9 +305,20 @@ public class InvoiceRenderingService : IInvoiceRenderingService
 
     private string RenderTitle(InvoiceSchemaSection section, Sale sale)
     {
-        var title = sale.InvoiceType == InvoiceType.Standard
-            ? section.Config?.GetValueOrDefault("standardTitle")?.ToString() ?? "Standard Tax Invoice"
-            : section.Config?.GetValueOrDefault("simplifiedTitle")?.ToString() ?? "Simplified Tax Invoice";
+        string title;
+
+        // Check if invoice has no VAT (tax amount is zero) - use nonVatTitle
+        if (sale.TaxAmount == 0)
+        {
+            title = section.Config?.GetValueOrDefault("nonVatTitle")?.ToString() ?? "Invoice";
+        }
+        else
+        {
+            // Use standardTitle for Standard invoices, simplifiedTitle for Simplified invoices
+            title = sale.InvoiceType == InvoiceType.Standard
+                ? section.Config?.GetValueOrDefault("standardTitle")?.ToString() ?? "Standard Tax Invoice"
+                : section.Config?.GetValueOrDefault("simplifiedTitle")?.ToString() ?? "Simplified Tax Invoice";
+        }
 
         return $"<div class='invoice-title'>{title}</div>";
     }
@@ -241,6 +326,10 @@ public class InvoiceRenderingService : IInvoiceRenderingService
     private string RenderCustomer(InvoiceSchemaSection section, Sale sale)
     {
         if (sale.Customer == null) return "";
+
+        // Hide the ENTIRE customer section if phone is blank
+        // Note: Customer entity doesn't have a VAT number field
+        if (string.IsNullOrWhiteSpace(sale.Customer.Phone)) return "";
 
         var html = new StringBuilder();
         html.AppendLine("<div class='section'>");
@@ -252,10 +341,7 @@ public class InvoiceRenderingService : IInvoiceRenderingService
             html.AppendLine($"<div class='field-group'><span class='field-label'>Email:</span><span>{sale.Customer.Email}</span></div>");
         }
 
-        if (!string.IsNullOrEmpty(sale.Customer.Phone))
-        {
-            html.AppendLine($"<div class='field-group'><span class='field-label'>Phone:</span><span>{sale.Customer.Phone}</span></div>");
-        }
+        html.AppendLine($"<div class='field-group'><span class='field-label'>Phone:</span><span>{sale.Customer.Phone}</span></div>");
 
         html.AppendLine("</div>");
         return html.ToString();
@@ -267,7 +353,7 @@ public class InvoiceRenderingService : IInvoiceRenderingService
         html.AppendLine("<div class='section'>");
         html.AppendLine($"<div class='field-group'><span class='field-label'>Invoice #:</span><span>{sale.InvoiceNumber}</span></div>");
         html.AppendLine($"<div class='field-group'><span class='field-label'>Transaction ID:</span><span>{sale.TransactionId}</span></div>");
-        html.AppendLine($"<div class='field-group'><span class='field-label'>Date:</span><span>{sale.SaleDate:yyyy-MM-dd HH:mm}</span></div>");
+        html.AppendLine($"<div class='field-group'><span class='field-label'>Date & Time:</span><span>{sale.SaleDate:yyyy-MM-dd HH:mm:ss}</span></div>");
         html.AppendLine("</div>");
         return html.ToString();
     }
@@ -287,12 +373,22 @@ public class InvoiceRenderingService : IInvoiceRenderingService
         foreach (var item in sale.LineItems)
         {
             var productName = item.Product?.NameEn ?? "Unknown Product";
+
+            // Main item row
             html.AppendLine("<tr>");
             html.AppendLine($"<td>{productName}</td>");
             html.AppendLine($"<td class='center'>{item.Quantity}</td>");
             html.AppendLine($"<td class='right'>{item.UnitPrice:F2}</td>");
             html.AppendLine($"<td class='right'>{item.LineTotal:F2}</td>");
             html.AppendLine("</tr>");
+
+            // Details row for notes (only if notes exist)
+            if (!string.IsNullOrWhiteSpace(item.Notes))
+            {
+                html.AppendLine("<tr class='item-details'>");
+                html.AppendLine($"<td colspan='4'><span class='details-label'>Details:</span> {item.Notes}</td>");
+                html.AppendLine("</tr>");
+            }
         }
 
         html.AppendLine("</tbody>");
@@ -309,9 +405,18 @@ public class InvoiceRenderingService : IInvoiceRenderingService
         if (sale.TotalDiscount > 0)
         {
             html.AppendLine($"<div class='summary-line'><span>Discount:</span><span>-{sale.TotalDiscount:F2}</span></div>");
+
+            // Show subtotal after discount (total excluding VAT)
+            var totalExclVat = sale.Subtotal - sale.TotalDiscount;
+            html.AppendLine($"<div class='summary-line'><span>Total (Excl. VAT):</span><span>{totalExclVat:F2}</span></div>");
         }
 
-        html.AppendLine($"<div class='summary-line'><span>VAT (15%):</span><span>{sale.TaxAmount:F2}</span></div>");
+        // Only show VAT line if there is VAT
+        if (sale.TaxAmount > 0)
+        {
+            html.AppendLine($"<div class='summary-line'><span>VAT (15%):</span><span>{sale.TaxAmount:F2}</span></div>");
+        }
+
         html.AppendLine($"<div class='summary-line total'><span>Total:</span><span>{sale.Total:F2}</span></div>");
         html.AppendLine("</div>");
         return html.ToString();
@@ -368,6 +473,7 @@ public class InvoiceRenderingService : IInvoiceRenderingService
                     Quantity = 2,
                     UnitPrice = 30.00m,
                     LineTotal = 60.00m,
+                    Notes = "Handle with care - fragile item",
                     Product = new Product
                     {
                         NameEn = "Sample Product 1",
@@ -385,6 +491,7 @@ public class InvoiceRenderingService : IInvoiceRenderingService
                     Quantity = 1,
                     UnitPrice = 45.00m,
                     LineTotal = 45.00m,
+                    Notes = null, // No notes for this item
                     Product = new Product
                     {
                         NameEn = "Sample Product 2",

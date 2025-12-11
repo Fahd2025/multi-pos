@@ -29,9 +29,12 @@ interface InvoiceData {
   isSimplified: boolean;
   items: Array<{
     name: string;
+    barcode?: string;
+    unit?: string;
     quantity: number;
     unitPrice: number;
     lineTotal: number;
+    notes?: string;
   }>;
   subtotal: number;
   discount: number;

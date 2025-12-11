@@ -210,6 +210,7 @@ export const DEFAULT_INVOICE_SCHEMA: InvoiceSchema = {
         dynamicTitle: true,
         standardTitle: "Standard Tax Invoice",
         simplifiedTitle: "Simplified Tax Invoice",
+        nonVatTitle: "Invoice",
       },
     },
     {
@@ -262,7 +263,7 @@ export const DEFAULT_INVOICE_SCHEMA: InvoiceSchema = {
           { key: "discount", label: "Discount", visible: false, width: "10%" },
           { key: "vat", label: "VAT", visible: false, width: "8%" },
           { key: "total", label: "Total", visible: true, width: "15%" },
-          { key: "notes", label: "Notes", visible: false, width: "0%" },
+          // Note: Item notes are displayed as detail rows below each item, not as a column
         ],
       },
     },
@@ -275,6 +276,7 @@ export const DEFAULT_INVOICE_SCHEMA: InvoiceSchema = {
         fields: [
           { key: "subtotal", label: "Subtotal", visible: true },
           { key: "discount", label: "Discount", visible: true },
+          { key: "totalExclVat", label: "Total (Excl. VAT)", visible: true },
           { key: "vatAmount", label: "VAT (15%)", visible: true },
           { key: "total", label: "Total", visible: true, highlight: true },
           { key: "paid", label: "Paid", visible: false },

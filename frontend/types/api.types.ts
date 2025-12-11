@@ -232,12 +232,15 @@ export interface SaleLineItemDetailDto {
   productId: string;
   productName: string;
   productSku: string;
+  barcode?: string;
+  unit?: string;
   quantity: number;
   unitPrice: number;
   discountType: number;
   discountValue: number;
   discountedUnitPrice: number;
   lineTotal: number;
+  notes?: string;
 }
 
 export interface VoidSaleDto {

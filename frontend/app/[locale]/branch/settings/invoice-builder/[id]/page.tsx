@@ -323,6 +323,20 @@ export default function InvoiceBuilderEditPage() {
                 placeholder="Simplified Tax Invoice"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Invoice Title (When VAT = 0)
+              </label>
+              <input
+                type="text"
+                value={section.config?.nonVatTitle || ""}
+                onChange={(e) =>
+                  updateSectionConfig(section.id, { nonVatTitle: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                placeholder="Invoice"
+              />
+            </div>
           </div>
         );
 

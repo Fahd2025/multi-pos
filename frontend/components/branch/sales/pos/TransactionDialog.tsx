@@ -172,6 +172,7 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
         paymentMethod: paymentMethodMap[paymentMethod],
         lineItems: cart.map((item) => ({
           productId: item.id,
+          barcode: item.barcode,
           quantity: item.quantity,
           unitPrice: item.sellingPrice,
           discountType: discountValue > 0 ? (discountType === "percentage" ? 1 : 2) : 0,

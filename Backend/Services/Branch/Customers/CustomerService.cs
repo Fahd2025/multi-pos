@@ -338,12 +338,15 @@ public class CustomerService : ICustomerService
                     Id = li.Id,
                     ProductId = li.ProductId,
                     ProductName = li.Product != null ? li.Product.NameEn : string.Empty,
+                    Barcode = li.Barcode,
+                    Unit = li.Unit,
                     Quantity = li.Quantity,
                     UnitPrice = li.UnitPrice,
                     DiscountType = li.DiscountType,
                     DiscountValue = li.DiscountValue,
                     DiscountedUnitPrice = li.DiscountedUnitPrice,
-                    LineTotal = li.LineTotal
+                    LineTotal = li.LineTotal,
+                    Notes = li.Notes
                 }).ToList()
             })
             .ToListAsync();

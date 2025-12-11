@@ -94,6 +94,40 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema
   // Note: Auto-detection is disabled by default to prevent unwanted RTL layout
   const isRTL = schema.rtl ?? false;
 
+  // Format address from JSON string or plain text
+  const formatAddress = (address?: string): string => {
+    if (!address || address.trim() === '') return '';
+
+    // Try to parse as JSON object
+    try {
+      const addressObj = JSON.parse(address);
+
+      // Extract address components
+      const parts = [
+        addressObj.BuildingNumber || addressObj.buildingNumber,
+        addressObj.Street || addressObj.street,
+        addressObj.District || addressObj.district,
+        addressObj.City || addressObj.city,
+        addressObj.PostalCode || addressObj.postalCode,
+      ].filter(Boolean); // Remove null/undefined/empty values
+
+      // If we have components, use them
+      if (parts.length > 0) {
+        return parts.join(', ');
+      }
+
+      // Otherwise, fall back to ShortAddress
+      if (addressObj.ShortAddress || addressObj.shortAddress) {
+        return addressObj.ShortAddress || addressObj.shortAddress;
+      }
+
+      return '';
+    } catch {
+      // If parsing fails, it's a plain string - return as-is
+      return address;
+    }
+  };
+
   const renderHeader = (section: InvoiceSchemaSection) => {
     if (!section.visible) return null;
     const config = section.config || {};
@@ -128,8 +162,8 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema
           </h2>
         )}
         {config.showAddress && data.address && (
-          <p className="text-sm text-gray-700">
-            {config.addressLabel || "Address"}: {data.address}
+          <p className="text-sm text-gray-700 break-words">
+            {config.addressLabel || "Address"}: {formatAddress(data.address)}
           </p>
         )}
         {config.showPhone && data.phone && (
@@ -155,9 +189,16 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema
     if (!section.visible) return null;
     const config = section.config || {};
 
-    const title = data.isSimplified
-      ? config.simplifiedTitle || "Simplified Tax Invoice"
-      : config.standardTitle || "Standard Tax Invoice";
+    let title: string;
+
+    // Check if invoice has no VAT (VAT amount is zero) - use nonVatTitle
+    if (data.vatAmount === 0) {
+      title = config.nonVatTitle || "Invoice";
+    } else {
+      title = data.isSimplified
+        ? config.simplifiedTitle || "Simplified Tax Invoice"
+        : config.standardTitle || "Standard Tax Invoice";
+    }
 
     return (
       <div className="invoice-title text-center mb-4">
@@ -168,6 +209,12 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema
 
   const renderCustomer = (section: InvoiceSchemaSection) => {
     if (!section.visible) return null;
+
+    // Hide the ENTIRE customer section if phone is blank
+    if (!data.customerPhone || data.customerPhone.trim() === '') {
+      return null;
+    }
+
     const fields = section.config?.fields || [];
 
     const fieldMap: Record<string, any> = {
@@ -241,10 +288,10 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema
       discount: (item) => (item.discount ? item.discount.toFixed(2) : "0.00"),
       vat: (item) => (item.vat ? item.vat.toFixed(2) : "0.00"),
       total: (item) => item.lineTotal.toFixed(2),
-      notes: (item) => item.notes || "-",
     };
 
-    const visibleColumns = columns.filter((c: any) => c.visible);
+    // Filter out notes column - notes will be shown as detail rows instead
+    const visibleColumns = columns.filter((c: any) => c.visible && c.key !== "notes");
 
     if (visibleColumns.length === 0) return null;
 
@@ -266,13 +313,27 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema
           </thead>
           <tbody>
             {data.items.map((item, itemIndex) => (
-              <tr key={itemIndex} className="border-b border-gray-200">
-                {visibleColumns.map((column: any, colIndex: number) => (
-                  <td key={colIndex} className={`${isRTL ? "text-right" : "text-left"} py-2 px-1`}>
-                    {columnMap[column.key]?.(item) || "-"}
-                  </td>
-                ))}
-              </tr>
+              <React.Fragment key={itemIndex}>
+                {/* Main item row */}
+                <tr className="border-b border-gray-200">
+                  {visibleColumns.map((column: any, colIndex: number) => (
+                    <td key={colIndex} className={`${isRTL ? "text-right" : "text-left"} py-2 px-1`}>
+                      {columnMap[column.key]?.(item) || "-"}
+                    </td>
+                  ))}
+                </tr>
+                {/* Details row for notes (only if notes exist) */}
+                {item.notes && item.notes.trim() !== "" && (
+                  <tr className="item-details bg-gray-50">
+                    <td
+                      colSpan={visibleColumns.length}
+                      className={`${isRTL ? "text-right" : "text-left"} py-2 px-1 pl-4 text-xs`}
+                    >
+                      <span className="font-semibold">Details:</span> {item.notes}
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
             ))}
           </tbody>
         </table>
@@ -284,16 +345,35 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema
     if (!section.visible) return null;
     const fields = section.config?.fields || [];
 
+    // Calculate total excluding VAT (subtotal after discount)
+    const totalExclVat = data.subtotal - data.discount;
+
     const fieldMap: Record<string, any> = {
       subtotal: data.subtotal.toFixed(2),
       discount: data.discount.toFixed(2),
+      totalExclVat: totalExclVat.toFixed(2),
       vatAmount: data.vatAmount.toFixed(2),
       total: data.total.toFixed(2),
       paid: data.amountPaid ? data.amountPaid.toFixed(2) : undefined,
       change: data.changeReturned ? data.changeReturned.toFixed(2) : undefined,
     };
 
-    const visibleFields = fields.filter((f: any) => f.visible);
+    // Filter fields based on visibility and conditional logic
+    const visibleFields = fields.filter((f: any) => {
+      // Hide discount if it equals zero
+      if (f.key === "discount" && data.discount <= 0) {
+        return false;
+      }
+      // Hide totalExclVat if there's no discount
+      if (f.key === "totalExclVat" && data.discount <= 0) {
+        return false;
+      }
+      // Hide VAT if it equals zero
+      if (f.key === "vatAmount" && data.vatAmount <= 0) {
+        return false;
+      }
+      return f.visible;
+    });
 
     if (visibleFields.length === 0) return null;
 
