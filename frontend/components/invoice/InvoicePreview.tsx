@@ -82,17 +82,17 @@ interface InvoicePreviewProps {
 const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema, data }, ref) => {
   // RTL Detection: Check if Arabic content is present
   const hasArabicContent = (text?: string): boolean => {
-    if (!text) return false;
+    if (!text || text.trim() === '') return false;
     const arabicRegex = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
     return arabicRegex.test(text);
   };
 
   // Detect if invoice should use RTL layout
-  // Use explicit schema.rtl if set, otherwise auto-detect from Arabic content
-  const isRTL =
-    schema.rtl !== undefined
-      ? schema.rtl
-      : hasArabicContent(data.branchNameAr) || hasArabicContent(data.customerName);
+  // Priority:
+  // 1. Explicit schema.rtl setting (if defined)
+  // 2. Otherwise, default to LTR (false) - user must explicitly enable RTL
+  // Note: Auto-detection is disabled by default to prevent unwanted RTL layout
+  const isRTL = schema.rtl ?? false;
 
   const renderHeader = (section: InvoiceSchemaSection) => {
     if (!section.visible) return null;
@@ -394,6 +394,22 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema
   // Sort sections by order
   const sortedSections = [...schema.sections].sort((a, b) => a.order - b.order);
 
+  // Get paper width for print styles
+  const getPaperWidth = (paperSize: string): string => {
+    switch (paperSize) {
+      case "Thermal58mm":
+        return "58mm";
+      case "Thermal80mm":
+        return "80mm";
+      case "A4":
+        return "210mm";
+      default:
+        return "80mm";
+    }
+  };
+
+  const paperWidth = getPaperWidth(schema.paperSize);
+
   return (
     <div
       ref={ref}
@@ -401,10 +417,38 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema
       dir={isRTL ? "rtl" : "ltr"}
     >
       <style jsx>{`
+        @page {
+          size: ${paperWidth} auto;
+          margin: 5mm;
+        }
+
+        .invoice-preview {
+          max-width: ${paperWidth};
+        }
+
         @media print {
-          .invoice-preview {
+          body {
+            margin: 0;
             padding: 0;
-            max-width: 100%;
+          }
+
+          .invoice-preview {
+            width: ${paperWidth};
+            max-width: ${paperWidth};
+            padding: 0;
+            margin: 0;
+            page-break-inside: avoid;
+          }
+
+          @page {
+            margin: 0;
+          }
+        }
+
+        @media screen {
+          .invoice-preview {
+            max-width: 48rem; /* 768px for preview on screen */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
           }
         }
       `}</style>

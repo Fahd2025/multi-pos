@@ -122,13 +122,26 @@ public class InvoiceRenderingService : IInvoiceRenderingService
     {
         var styles = new StringBuilder();
         styles.AppendLine("<style>");
-        styles.AppendLine("@media print { body { margin: 0; padding: 0; } }");
-        styles.AppendLine("* { box-sizing: border-box; }");
-        styles.AppendLine("body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: white; color: black; }");
 
         // Paper size specific styles
         var width = GetPaperWidth(paperSize, customWidth);
-        styles.AppendLine($".invoice-container {{ width: {width}mm; margin: 0 auto; padding: 10px; background: white; color: black; }}");
+
+        // @page rule to set actual print page size
+        styles.AppendLine($"@page {{ size: {width}mm auto; margin: 5mm; }}");
+
+        // Base styles
+        styles.AppendLine("* { box-sizing: border-box; }");
+        styles.AppendLine("body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: white; color: black; }");
+
+        // Container with paper-size specific width
+        styles.AppendLine($".invoice-container {{ width: {width}mm; max-width: {width}mm; margin: 0 auto; padding: 10px; background: white; color: black; }}");
+
+        // Print-specific styles
+        styles.AppendLine("@media print {");
+        styles.AppendLine("  body { margin: 0; padding: 0; }");
+        styles.AppendLine($"  .invoice-container {{ width: {width}mm; max-width: {width}mm; margin: 0; padding: 5mm; page-break-inside: avoid; }}");
+        styles.AppendLine("  @page { margin: 0; }");
+        styles.AppendLine("}");
 
         // Typography
         styles.AppendLine($".invoice-container {{ font-size: {schema.Styling?.FontSize?.Body ?? "12px"}; }}");
