@@ -137,7 +137,7 @@ export const getBranchNavigation = (locale: string) => [
 export const getHeadOfficeNavigation = (locale: string) => [
   { name: "Dashboard", href: HEAD_OFFICE_ROUTES.DASHBOARD(locale), icon: "📊" },
   { name: "Branches", href: HEAD_OFFICE_ROUTES.BRANCHES(locale), icon: "🏢" },
-  { name: "Users", href: HEAD_OFFICE_ROUTES.USERS(locale), icon: "👥" },
+  //{ name: "Users", href: HEAD_OFFICE_ROUTES.USERS(locale), icon: "👥" },
   { name: "Migrations", href: HEAD_OFFICE_ROUTES.MIGRATIONS(locale), icon: "🔄" },
   { name: "Audit Logs", href: HEAD_OFFICE_ROUTES.AUDIT_LOGS(locale), icon: "📋" },
   { name: "Analytics", href: HEAD_OFFICE_ROUTES.ANALYTICS(locale), icon: "📈" },
