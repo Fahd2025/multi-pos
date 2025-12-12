@@ -36,8 +36,12 @@ public static class BranchDbSeeder
             Console.WriteLine($"  → Seeding sample data for branch {branchCode}");
         }
 
-        // Seed Categories (20+)
-        var categories = new List<Category>
+        // Seed Categories (20+) - Check for existing codes to avoid duplicates
+        var existingCategoryCodes = (await context.Categories
+            .Select(c => c.Code)
+            .ToArrayAsync()).ToHashSet();
+
+        var categoriesToSeed = new List<Category>
         {
             new Category
             {
@@ -321,13 +325,33 @@ public static class BranchDbSeeder
             },
         };
 
-        context.Categories.AddRange(categories);
-        await context.SaveChangesAsync();
-        Console.WriteLine($"    ✓ Created {categories.Count} categories");
+        var categories = new List<Category>();
+        foreach (var category in categoriesToSeed)
+        {
+            if (!existingCategoryCodes.Contains(category.Code))
+            {
+                categories.Add(category);
+            }
+        }
 
-        // Seed Suppliers (20+)
+        if (categories.Count > 0)
+        {
+            context.Categories.AddRange(categories);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"    ✓ Created {categories.Count} categories");
+        }
+        else
+        {
+            Console.WriteLine($"    → 0 categories created (all already exist)");
+        }
+
+        // Seed Suppliers (20+) - Check for existing codes to avoid duplicates
         Console.WriteLine($"    → Creating suppliers...");
-        var suppliers = new List<Supplier>
+        var existingSupplierCodes = (await context.Suppliers
+            .Select(s => s.Code)
+            .ToArrayAsync()).ToHashSet();
+
+        var suppliersToSeed = new List<Supplier>
         {
             new Supplier
             {
@@ -671,15 +695,36 @@ public static class BranchDbSeeder
             },
         };
 
-        context.Suppliers.AddRange(suppliers);
-        await context.SaveChangesAsync();
-        Console.WriteLine($"    ✓ Created {suppliers.Count} suppliers");
-
-        // Seed Products (20+)
-        Console.WriteLine($"    → Creating products...");
-        var products = new List<Product>
+        var suppliers = new List<Supplier>();
+        foreach (var supplier in suppliersToSeed)
         {
-            new Product
+            if (!existingSupplierCodes.Contains(supplier.Code))
+            {
+                suppliers.Add(supplier);
+            }
+        }
+
+        if (suppliers.Count > 0)
+        {
+            context.Suppliers.AddRange(suppliers);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"    ✓ Created {suppliers.Count} suppliers");
+        }
+        else
+        {
+            Console.WriteLine($"    → 0 suppliers created (all already exist)");
+        }
+
+        // Seed Products (20+) - Check for existing SKUs and handle missing suppliers/categories
+        Console.WriteLine($"    → Creating products...");
+
+        var existingProductSKUs = (await context.Products
+            .Select(p => p.SKU)
+            .ToArrayAsync()).ToHashSet();
+
+        var productsToSeed = new List<(Product Product, int CategoryIndex, int SupplierIndex)>
+        {
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD001",
@@ -687,8 +732,6 @@ public static class BranchDbSeeder
                 NameAr = "ماوس لاسلكي",
                 DescriptionEn = "Ergonomic wireless mouse with USB receiver",
                 DescriptionAr = "ماوس لاسلكي مريح مع مستقبل USB",
-                CategoryId = categories[0].Id, // Electronics
-                SupplierId = suppliers[0].Id, // TechSupply Co.
                 SellingPrice = 29.99m,
                 CostPrice = 15.00m,
                 StockLevel = 50,
@@ -698,8 +741,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 0, 0), // Electronics, TechSupply Co.
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD002",
@@ -707,8 +750,6 @@ public static class BranchDbSeeder
                 NameAr = "كابل USB-C",
                 DescriptionEn = "1.5m USB-C to USB-C cable, fast charging",
                 DescriptionAr = "كابل USB-C بطول 1.5 متر، شحن سريع",
-                CategoryId = categories[0].Id, // Electronics
-                SupplierId = suppliers[0].Id,
                 SellingPrice = 12.99m,
                 CostPrice = 6.00m,
                 StockLevel = 100,
@@ -718,8 +759,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 0, 0), // Electronics
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD003",
@@ -727,8 +768,6 @@ public static class BranchDbSeeder
                 NameAr = "تي شيرت قطني",
                 DescriptionEn = "100% cotton, available in multiple colors",
                 DescriptionAr = "100% قطن، متوفر بألوان متعددة",
-                CategoryId = categories[1].Id, // Clothing
-                SupplierId = suppliers[1].Id, // Fashion Wholesale
                 SellingPrice = 19.99m,
                 CostPrice = 8.00m,
                 StockLevel = 75,
@@ -738,8 +777,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 1, 1), // Clothing, Fashion Wholesale
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD004",
@@ -747,8 +786,6 @@ public static class BranchDbSeeder
                 NameAr = "بنطال جينز",
                 DescriptionEn = "Classic fit denim jeans",
                 DescriptionAr = "بنطال جينز كلاسيكي",
-                CategoryId = categories[1].Id, // Clothing
-                SupplierId = suppliers[1].Id,
                 SellingPrice = 49.99m,
                 CostPrice = 25.00m,
                 StockLevel = 40,
@@ -758,8 +795,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 1, 1),
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD005",
@@ -767,8 +804,6 @@ public static class BranchDbSeeder
                 NameAr = "قهوة عضوية",
                 DescriptionEn = "Premium organic coffee beans, 250g",
                 DescriptionAr = "حبوب قهوة عضوية فاخرة، 250 جرام",
-                CategoryId = categories[2].Id, // Food & Beverages
-                SupplierId = suppliers[2].Id, // Global Foods
                 SellingPrice = 15.99m,
                 CostPrice = 8.00m,
                 StockLevel = 60,
@@ -778,8 +813,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 2, 2), // Food & Beverages, Global Foods
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD006",
@@ -787,8 +822,6 @@ public static class BranchDbSeeder
                 NameAr = "شاي أخضر",
                 DescriptionEn = "Premium green tea, 50 bags",
                 DescriptionAr = "شاي أخضر فاخر، 50 كيس",
-                CategoryId = categories[2].Id, // Food & Beverages
-                SupplierId = suppliers[2].Id,
                 SellingPrice = 8.99m,
                 CostPrice = 4.00m,
                 StockLevel = 80,
@@ -798,8 +831,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 2, 2),
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD007",
@@ -807,8 +840,6 @@ public static class BranchDbSeeder
                 NameAr = "مصباح مكتب LED",
                 DescriptionEn = "Adjustable LED desk lamp with USB port",
                 DescriptionAr = "مصباح مكتب LED قابل للتعديل مع منفذ USB",
-                CategoryId = categories[3].Id, // Home & Garden
-                SupplierId = suppliers[3].Id, // HomeDecor Distributors
                 SellingPrice = 39.99m,
                 CostPrice = 20.00m,
                 StockLevel = 30,
@@ -818,8 +849,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 3, 3), // Home & Garden, HomeDecor Distributors
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD008",
@@ -827,8 +858,6 @@ public static class BranchDbSeeder
                 NameAr = "سجادة يوغا",
                 DescriptionEn = "Non-slip yoga mat with carrying strap",
                 DescriptionAr = "سجادة يوغا غير قابلة للانزلاق مع حزام حمل",
-                CategoryId = categories[4].Id, // Sports & Outdoors
-                SupplierId = suppliers[4].Id, // SportGear International
                 SellingPrice = 24.99m,
                 CostPrice = 12.00m,
                 StockLevel = 45,
@@ -838,8 +867,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 4, 4), // Sports & Outdoors, SportGear International
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD009",
@@ -847,8 +876,6 @@ public static class BranchDbSeeder
                 NameAr = "رواية الأكثر مبيعاً",
                 DescriptionEn = "Popular fiction bestseller, hardcover",
                 DescriptionAr = "رواية خيالية شهيرة، غلاف صلب",
-                CategoryId = categories[5].Id, // Books & Media
-                SupplierId = suppliers[5].Id, // BookWorld Publishers
                 SellingPrice = 24.99m,
                 CostPrice = 12.00m,
                 StockLevel = 35,
@@ -858,8 +885,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 5, 5), // Books & Media, BookWorld Publishers
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD010",
@@ -867,8 +894,6 @@ public static class BranchDbSeeder
                 NameAr = "مجموعة بناء ليغو",
                 DescriptionEn = "Creative building blocks set, 500 pieces",
                 DescriptionAr = "مجموعة مكعبات بناء إبداعية، 500 قطعة",
-                CategoryId = categories[6].Id, // Toys & Games
-                SupplierId = suppliers[6].Id, // ToysRUs Wholesale
                 SellingPrice = 59.99m,
                 CostPrice = 30.00m,
                 StockLevel = 25,
@@ -878,8 +903,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 6, 6), // Toys & Games, ToysRUs Wholesale
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD011",
@@ -887,8 +912,6 @@ public static class BranchDbSeeder
                 NameAr = "كريم للوجه",
                 DescriptionEn = "Anti-aging face cream with SPF 30",
                 DescriptionAr = "كريم مضاد للشيخوخة مع عامل حماية 30",
-                CategoryId = categories[7].Id, // Health & Beauty
-                SupplierId = suppliers[7].Id, // BeautyPro Cosmetics
                 SellingPrice = 34.99m,
                 CostPrice = 17.00m,
                 StockLevel = 40,
@@ -898,8 +921,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 7, 7), // Health & Beauty, BeautyPro Cosmetics
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD012",
@@ -907,8 +930,6 @@ public static class BranchDbSeeder
                 NameAr = "مجموعة دفاتر",
                 DescriptionEn = "5-pack college ruled notebooks",
                 DescriptionAr = "مجموعة 5 دفاتر بخطوط كلاسيكية",
-                CategoryId = categories[8].Id, // Office Supplies
-                SupplierId = suppliers[8].Id, // OfficeMax Supplies
                 SellingPrice = 14.99m,
                 CostPrice = 7.00m,
                 StockLevel = 70,
@@ -918,8 +939,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 8, 8), // Office Supplies, OfficeMax Supplies
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD013",
@@ -927,8 +948,6 @@ public static class BranchDbSeeder
                 NameAr = "حامل هاتف للسيارة",
                 DescriptionEn = "Universal smartphone car mount",
                 DescriptionAr = "حامل هاتف ذكي عالمي للسيارة",
-                CategoryId = categories[9].Id, // Automotive
-                SupplierId = suppliers[9].Id, // AutoParts Direct
                 SellingPrice = 19.99m,
                 CostPrice = 9.00m,
                 StockLevel = 55,
@@ -938,8 +957,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 9, 9), // Automotive, AutoParts Direct
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD014",
@@ -947,8 +966,6 @@ public static class BranchDbSeeder
                 NameAr = "طعام كلاب",
                 DescriptionEn = "Premium dry dog food, 10kg",
                 DescriptionAr = "طعام كلاب جاف فاخر، 10 كجم",
-                CategoryId = categories[10].Id, // Pet Supplies
-                SupplierId = suppliers[10].Id, // PetCare Wholesale
                 SellingPrice = 39.99m,
                 CostPrice = 20.00m,
                 StockLevel = 30,
@@ -958,8 +975,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 10, 10), // Pet Supplies, PetCare Wholesale
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD015",
@@ -967,8 +984,6 @@ public static class BranchDbSeeder
                 NameAr = "قلادة فضية",
                 DescriptionEn = "Sterling silver pendant necklace",
                 DescriptionAr = "قلادة فضية أصلية مع دلاية",
-                CategoryId = categories[11].Id, // Jewelry & Accessories
-                SupplierId = suppliers[11].Id, // Jewelry Imports Ltd.
                 SellingPrice = 79.99m,
                 CostPrice = 40.00m,
                 StockLevel = 20,
@@ -978,8 +993,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 11, 11), // Jewelry & Accessories, Jewelry Imports Ltd.
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD016",
@@ -987,8 +1002,6 @@ public static class BranchDbSeeder
                 NameAr = "عربة أطفال",
                 DescriptionEn = "Lightweight folding baby stroller",
                 DescriptionAr = "عربة أطفال قابلة للطي خفيفة الوزن",
-                CategoryId = categories[12].Id, // Baby & Kids
-                SupplierId = suppliers[12].Id, // BabyWorld Distributors
                 SellingPrice = 149.99m,
                 CostPrice = 75.00m,
                 StockLevel = 15,
@@ -998,8 +1011,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 12, 12), // Baby & Kids, BabyWorld Distributors
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD017",
@@ -1007,8 +1020,6 @@ public static class BranchDbSeeder
                 NameAr = "مثقاب كهربائي",
                 DescriptionEn = "18V cordless power drill with battery",
                 DescriptionAr = "مثقاب كهربائي لاسلكي 18 فولت مع بطارية",
-                CategoryId = categories[13].Id, // Tools & Hardware
-                SupplierId = suppliers[13].Id, // Hardware Depot
                 SellingPrice = 89.99m,
                 CostPrice = 45.00m,
                 StockLevel = 22,
@@ -1018,8 +1029,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 13, 13), // Tools & Hardware, Hardware Depot
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD018",
@@ -1027,8 +1038,6 @@ public static class BranchDbSeeder
                 NameAr = "جيتار صوتي",
                 DescriptionEn = "6-string acoustic guitar with case",
                 DescriptionAr = "جيتار صوتي 6 أوتار مع حقيبة",
-                CategoryId = categories[14].Id, // Musical Instruments
-                SupplierId = suppliers[14].Id, // MusicMakers Inc.
                 SellingPrice = 199.99m,
                 CostPrice = 100.00m,
                 StockLevel = 12,
@@ -1038,8 +1047,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 14, 14), // Musical Instruments, MusicMakers Inc.
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD019",
@@ -1047,8 +1056,6 @@ public static class BranchDbSeeder
                 NameAr = "مجموعة ألوان أكريليك",
                 DescriptionEn = "24-color acrylic paint set with brushes",
                 DescriptionAr = "مجموعة 24 لون أكريليك مع فرش",
-                CategoryId = categories[15].Id, // Art & Crafts
-                SupplierId = suppliers[15].Id, // ArtSupply Central
                 SellingPrice = 29.99m,
                 CostPrice = 15.00m,
                 StockLevel = 40,
@@ -1058,8 +1065,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 15, 15), // Art & Crafts, ArtSupply Central
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD020",
@@ -1067,8 +1074,6 @@ public static class BranchDbSeeder
                 NameAr = "كرسي مكتب",
                 DescriptionEn = "Ergonomic office chair with lumbar support",
                 DescriptionAr = "كرسي مكتب مريح مع دعم قطني",
-                CategoryId = categories[16].Id, // Furniture
-                SupplierId = suppliers[16].Id, // Furniture World
                 SellingPrice = 249.99m,
                 CostPrice = 125.00m,
                 StockLevel = 18,
@@ -1078,8 +1083,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 16, 16), // Furniture, Furniture World
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD021",
@@ -1087,8 +1092,6 @@ public static class BranchDbSeeder
                 NameAr = "خلاط",
                 DescriptionEn = "High-speed kitchen blender, 1000W",
                 DescriptionAr = "خلاط مطبخ عالي السرعة، 1000 واط",
-                CategoryId = categories[17].Id, // Kitchen & Dining
-                SupplierId = suppliers[17].Id, // KitchenPro Supplies
                 SellingPrice = 79.99m,
                 CostPrice = 40.00m,
                 StockLevel = 28,
@@ -1098,8 +1101,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 17, 17), // Kitchen & Dining, KitchenPro Supplies
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD022",
@@ -1107,8 +1110,6 @@ public static class BranchDbSeeder
                 NameAr = "أحذية جري",
                 DescriptionEn = "Lightweight running shoes with cushioning",
                 DescriptionAr = "أحذية جري خفيفة الوزن مع توسيد",
-                CategoryId = categories[18].Id, // Footwear
-                SupplierId = suppliers[18].Id, // Footwear Factory
                 SellingPrice = 89.99m,
                 CostPrice = 45.00m,
                 StockLevel = 50,
@@ -1118,8 +1119,8 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
-            new Product
+            }, 18, 18), // Footwear, Footwear Factory
+            (new Product
             {
                 Id = Guid.NewGuid(),
                 SKU = "PRD023",
@@ -1127,8 +1128,6 @@ public static class BranchDbSeeder
                 NameAr = "حقيبة ظهر للسفر",
                 DescriptionEn = "40L travel backpack with laptop compartment",
                 DescriptionAr = "حقيبة ظهر للسفر 40 لتر مع مقصورة للابتوب",
-                CategoryId = categories[19].Id, // Travel & Luggage
-                SupplierId = suppliers[19].Id, // Travel Essentials Ltd.
                 SellingPrice = 69.99m,
                 CostPrice = 35.00m,
                 StockLevel = 32,
@@ -1138,16 +1137,40 @@ public static class BranchDbSeeder
                 CreatedBy = adminUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-            },
+            }, 19, 19), // Travel & Luggage, Travel Essentials Ltd.
         };
 
-        context.Products.AddRange(products);
-        await context.SaveChangesAsync();
-        Console.WriteLine($"    ✓ Created {products.Count} products");
+        var products = new List<Product>();
+        foreach (var (product, catIndex, supplierIndex) in productsToSeed)
+        {
+            if (!existingProductSKUs.Contains(product.SKU) &&
+                catIndex < categories.Count &&
+                supplierIndex < suppliers.Count)
+            {
+                product.CategoryId = categories[catIndex].Id; // Electronics
+                product.SupplierId = suppliers[supplierIndex].Id; // TechSupply Co.
+                products.Add(product);
+            }
+        }
 
-        // Seed Customers (20+)
+        if (products.Count > 0)
+        {
+            context.Products.AddRange(products);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"    ✓ Created {products.Count} products");
+        }
+        else
+        {
+            Console.WriteLine($"    → 0 products created (all already exist or missing dependencies)");
+        }
+
+        // Seed Customers (20+) - Check for existing codes to avoid duplicates
         Console.WriteLine($"    → Creating customers...");
-        var customers = new List<Customer>
+        var existingCustomerCodes = (await context.Customers
+            .Select(c => c.Code)
+            .ToArrayAsync()).ToHashSet();
+
+        var customersToSeed = new List<Customer>
         {
             new Customer
             {
@@ -1511,13 +1534,33 @@ public static class BranchDbSeeder
             },
         };
 
-        context.Customers.AddRange(customers);
-        await context.SaveChangesAsync();
-        Console.WriteLine($"    ✓ Created {customers.Count} customers");
+        var customers = new List<Customer>();
+        foreach (var customer in customersToSeed)
+        {
+            if (!existingCustomerCodes.Contains(customer.Code))
+            {
+                customers.Add(customer);
+            }
+        }
 
-        // Seed ExpenseCategories (15+)
+        if (customers.Count > 0)
+        {
+            context.Customers.AddRange(customers);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"    ✓ Created {customers.Count} customers");
+        }
+        else
+        {
+            Console.WriteLine($"    → 0 customers created (all already exist)");
+        }
+
+        // Seed ExpenseCategories (15+) - Check for existing codes to avoid duplicates
         Console.WriteLine($"    → Creating expense categories...");
-        var expenseCategories = new List<ExpenseCategory>
+        var existingExpenseCategoryCodes = (await context.ExpenseCategories
+            .Select(ec => ec.Code)
+            .ToArrayAsync()).ToHashSet();
+
+        var expenseCategoriesToSeed = new List<ExpenseCategory>
         {
             new ExpenseCategory
             {
@@ -1719,13 +1762,33 @@ public static class BranchDbSeeder
             },
         };
 
-        context.ExpenseCategories.AddRange(expenseCategories);
-        await context.SaveChangesAsync();
-        Console.WriteLine($"    ✓ Created {expenseCategories.Count} expense categories");
+        var expenseCategories = new List<ExpenseCategory>();
+        foreach (var expenseCategory in expenseCategoriesToSeed)
+        {
+            if (!existingExpenseCategoryCodes.Contains(expenseCategory.Code))
+            {
+                expenseCategories.Add(expenseCategory);
+            }
+        }
 
-        // Seed Drivers (12+)
+        if (expenseCategories.Count > 0)
+        {
+            context.ExpenseCategories.AddRange(expenseCategories);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"    ✓ Created {expenseCategories.Count} expense categories");
+        }
+        else
+        {
+            Console.WriteLine($"    → 0 expense categories created (all already exist)");
+        }
+
+        // Seed Drivers (12+) - Check for existing codes to avoid duplicates
         Console.WriteLine($"    → Creating drivers...");
-        var drivers = new List<Driver>
+        var existingDriverCodes = (await context.Drivers
+            .Select(d => d.Code)
+            .ToArrayAsync()).ToHashSet();
+
+        var driversToSeed = new List<Driver>
         {
             new Driver
             {
@@ -2017,13 +2080,33 @@ public static class BranchDbSeeder
             },
         };
 
-        context.Drivers.AddRange(drivers);
-        await context.SaveChangesAsync();
-        Console.WriteLine($"    ✓ Created {drivers.Count} drivers");
+        var drivers = new List<Driver>();
+        foreach (var driver in driversToSeed)
+        {
+            if (!existingDriverCodes.Contains(driver.Code))
+            {
+                drivers.Add(driver);
+            }
+        }
 
-        // Seed Units (15+)
+        if (drivers.Count > 0)
+        {
+            context.Drivers.AddRange(drivers);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"    ✓ Created {drivers.Count} drivers");
+        }
+        else
+        {
+            Console.WriteLine($"    → 0 drivers created (all already exist)");
+        }
+
+        // Seed Units (15+) - Check for existing codes to avoid duplicates
         Console.WriteLine($"    → Creating units of measurement...");
-        var units = new List<Unit>
+        var existingUnitCodes = (await context.Units
+            .Select(u => u.Code)
+            .ToArrayAsync()).ToHashSet();
+
+        var unitsToSeed = new List<Unit>
         {
             // Weight Units (Base: Gram)
             new Unit
@@ -2318,26 +2401,76 @@ public static class BranchDbSeeder
             },
         };
 
-        // Save units first
-        context.Units.AddRange(units);
-        await context.SaveChangesAsync();
+        var units = new List<Unit>();
+        foreach (var unit in unitsToSeed)
+        {
+            if (!existingUnitCodes.Contains(unit.Code))
+            {
+                units.Add(unit);
+            }
+        }
 
-        // Update BaseUnitId for derived units
-        var gramUnit = units.First(u => u.Code == "G");
-        var literUnit = units.First(u => u.Code == "L");
-        var pieceUnit = units.First(u => u.Code == "PCS");
-        var meterUnit = units.First(u => u.Code == "M");
+        if (units.Count > 0)
+        {
+            // Save units first
+            context.Units.AddRange(units);
+            await context.SaveChangesAsync();
 
-        units.First(u => u.Code == "KG").BaseUnitId = gramUnit.Id;
-        units.First(u => u.Code == "TON").BaseUnitId = gramUnit.Id;
-        units.First(u => u.Code == "ML").BaseUnitId = literUnit.Id;
-        units.First(u => u.Code == "DZN").BaseUnitId = pieceUnit.Id;
-        units.First(u => u.Code == "CTN").BaseUnitId = pieceUnit.Id;
-        units.First(u => u.Code == "BOX").BaseUnitId = pieceUnit.Id;
-        units.First(u => u.Code == "CM").BaseUnitId = meterUnit.Id;
+            // Update BaseUnitId for derived units - we need to handle this carefully when there are both new and existing units
+            var allUnitsInDatabase = await context.Units.ToListAsync();
+            var newUnitsMap = units.ToDictionary(u => u.Code, u => u);
 
-        await context.SaveChangesAsync();
-        Console.WriteLine($"    ✓ Created {units.Count} units of measurement");
+            var unitsToUpdate = new List<Unit>();
+
+            // Find the specific units to update only if they are in our new units list
+            if (newUnitsMap.ContainsKey("KG") && allUnitsInDatabase.Any(u => u.Code == "G"))
+            {
+                newUnitsMap["KG"].BaseUnitId = allUnitsInDatabase.First(u => u.Code == "G").Id;
+                unitsToUpdate.Add(newUnitsMap["KG"]);
+            }
+            if (newUnitsMap.ContainsKey("TON") && allUnitsInDatabase.Any(u => u.Code == "G"))
+            {
+                newUnitsMap["TON"].BaseUnitId = allUnitsInDatabase.First(u => u.Code == "G").Id;
+                unitsToUpdate.Add(newUnitsMap["TON"]);
+            }
+            if (newUnitsMap.ContainsKey("ML") && allUnitsInDatabase.Any(u => u.Code == "L"))
+            {
+                newUnitsMap["ML"].BaseUnitId = allUnitsInDatabase.First(u => u.Code == "L").Id;
+                unitsToUpdate.Add(newUnitsMap["ML"]);
+            }
+            if (newUnitsMap.ContainsKey("DZN") && allUnitsInDatabase.Any(u => u.Code == "PCS"))
+            {
+                newUnitsMap["DZN"].BaseUnitId = allUnitsInDatabase.First(u => u.Code == "PCS").Id;
+                unitsToUpdate.Add(newUnitsMap["DZN"]);
+            }
+            if (newUnitsMap.ContainsKey("CTN") && allUnitsInDatabase.Any(u => u.Code == "PCS"))
+            {
+                newUnitsMap["CTN"].BaseUnitId = allUnitsInDatabase.First(u => u.Code == "PCS").Id;
+                unitsToUpdate.Add(newUnitsMap["CTN"]);
+            }
+            if (newUnitsMap.ContainsKey("BOX") && allUnitsInDatabase.Any(u => u.Code == "PCS"))
+            {
+                newUnitsMap["BOX"].BaseUnitId = allUnitsInDatabase.First(u => u.Code == "PCS").Id;
+                unitsToUpdate.Add(newUnitsMap["BOX"]);
+            }
+            if (newUnitsMap.ContainsKey("CM") && allUnitsInDatabase.Any(u => u.Code == "M"))
+            {
+                newUnitsMap["CM"].BaseUnitId = allUnitsInDatabase.First(u => u.Code == "M").Id;
+                unitsToUpdate.Add(newUnitsMap["CM"]);
+            }
+
+            if (unitsToUpdate.Any())
+            {
+                context.Units.UpdateRange(unitsToUpdate);
+                await context.SaveChangesAsync();
+            }
+
+            Console.WriteLine($"    ✓ Created {units.Count} units of measurement");
+        }
+        else
+        {
+            Console.WriteLine($"    → 0 units created (all already exist)");
+        }
 
         // Seed Invoice Templates (58mm, 80mm, A4)
         await InvoiceTemplateSeeder.SeedAsync(context, adminUserId);

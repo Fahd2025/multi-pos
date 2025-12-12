@@ -42,25 +42,27 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
   const [currentLogoPath, setCurrentLogoPath] = useState<string | null>(null); // Track current logo path separately
   const { execute } = useApiOperation();
 
-  // Form state
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     code: "",
     nameEn: "",
     nameAr: "",
     email: "",
     phone: "",
     databaseProvider: 0, // SQLite by default
-    dbServer: "",
+    dbServer: "localhost", // Default to localhost for new branches
     dbName: "",
     dbPort: 0,
     dbUsername: "",
     dbPassword: "",
-    trustServerCertificate: false, // For MSSQL
+    trustServerCertificate: true, // For MSSQL - will be set to true only when MSSQL is selected in create mode
     sslMode: 0, // For PostgreSQL, MySQL: 0=Disable, 1=Require, 2=VerifyCA, 3=VerifyFull
     language: "en",
-    currency: "USD",
-    taxRate: 0,
-  });
+    currency: "SAR", // Default currency to SAR
+    taxRate: 15, // Default tax rate to 15%
+  };
+
+  // Form state
+  const [formData, setFormData] = useState(initialFormData);
 
   /**
    * Extract entity ID from logoPath URL
@@ -112,24 +114,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
       setCurrentLogoPath(branch.logoPath || null);
     } else {
       // Reset form for create mode
-      setFormData({
-        code: "",
-        nameEn: "",
-        nameAr: "",
-        email: "",
-        phone: "",
-        databaseProvider: 0,
-        dbServer: "",
-        dbName: "",
-        dbPort: 0,
-        dbUsername: "",
-        dbPassword: "",
-        trustServerCertificate: false,
-        sslMode: 0,
-        language: "en",
-        currency: "USD",
-        taxRate: 0,
-      });
+      setFormData(initialFormData);
       setCurrentLogoPath(null);
     }
     setSelectedImages([]);
@@ -248,7 +233,9 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
     await execute({
       operation: createOrUpdateBranch,
       successMessage: isEditMode ? "Branch updated" : "Branch created",
-      successDetail: `${formData.nameEn} has been ${isEditMode ? "updated" : "created"} successfully`,
+      successDetail: `${formData.nameEn} has been ${
+        isEditMode ? "updated" : "created"
+      } successfully`,
       onSuccess: async (result) => {
         savedBranch = result;
 
