@@ -27,19 +27,20 @@ export default function PosLayout() {
   const [isCartVisible, setIsCartVisible] = useState(true); // Default true for desktop
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
-  // Set initial cart visibility based on screen size (only once on mount)
+  // Set initial cart visibility and sidebar state based on screen size (only once on mount)
   useEffect(() => {
     // On mobile (<= 768px), hide cart by default
     // On desktop, show cart by default
     const isMobile = window.innerWidth <= 768;
     setIsCartVisible(!isMobile);
-  }, []);
 
-  // Load sidebar collapsed state from localStorage
-  useEffect(() => {
+    // Load sidebar collapsed state from localStorage
     const stored = localStorage.getItem("pos_sidebar_collapsed");
     if (stored !== null) {
       setIsSidebarCollapsed(stored === "true");
+    } else {
+      // Default: collapsed on mobile, expanded on desktop
+      setIsSidebarCollapsed(isMobile);
     }
   }, []);
 
@@ -177,13 +178,16 @@ export default function PosLayout() {
   return (
     <ToastProvider>
       <div className={styles.container}>
-        <CategorySidebar
-          categories={categories}
-          activeCategory={activeCategory}
-          onSelectCategory={setActiveCategory}
-          isCollapsed={isSidebarCollapsed}
-          onToggleCollapse={handleToggleSidebar}
-        />
+        {/* Desktop Sidebar - shown on left side on large screens */}
+        <div className={styles.desktopSidebarWrapper}>
+          <CategorySidebar
+            categories={categories}
+            activeCategory={activeCategory}
+            onSelectCategory={setActiveCategory}
+            isCollapsed={isSidebarCollapsed}
+            onToggleCollapse={handleToggleSidebar}
+          />
+        </div>
 
         <div className={styles.mainContent}>
           <TopBar
@@ -195,6 +199,18 @@ export default function PosLayout() {
             isSidebarCollapsed={isSidebarCollapsed}
             onToggleSidebar={handleToggleSidebar}
           />
+
+          {/* Mobile Categories Bar - shown between nav and search on mobile */}
+          <div className={styles.mobileCategoriesWrapper}>
+            <CategorySidebar
+              categories={categories}
+              activeCategory={activeCategory}
+              onSelectCategory={setActiveCategory}
+              isCollapsed={isSidebarCollapsed}
+              onToggleCollapse={handleToggleSidebar}
+            />
+          </div>
+
           <ProductGrid products={filteredProducts} onAddToCart={handleAddToCart} />
         </div>
 

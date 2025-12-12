@@ -38,6 +38,14 @@
 }
 
 /* Layout */
+.desktopSidebarWrapper {
+  display: block;
+}
+
+.mobileCategoriesWrapper {
+  display: none;
+}
+
 .mainContent {
   flex: 1;
   display: flex;
@@ -179,14 +187,390 @@
 /* Top Bar */
 .topBar {
   display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Navigation Bar Row (Row 1) */
+.navBarRow {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
+}
+
+.topBarHeader {
+  display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  gap: 0.75rem;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+/* Small Back Button */
+.backBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.backBtn:hover {
+  background-color: var(--primary-hover);
+  transform: scale(1.05);
+}
+
+.backBtn:active {
+  transform: scale(0.95);
+}
+
+/* Main Action Buttons Group */
+.mainActionButtons {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* Secondary Buttons Group */
+.secondaryButtons {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.navBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 0.75rem;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  min-height: 44px;
+  min-width: 44px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.navBtn:hover,
+.navBtn:active,
+.navBtn.btnExpanded {
+  padding: 0.75rem 1.25rem;
+  min-width: auto;
+  gap: 0.5rem;
+}
+
+.navBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.navBtn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.navBtn:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btnLabel {
+  font-weight: 600;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.navBtn:hover .btnLabel,
+.navBtn:active .btnLabel,
+.navBtn.btnExpanded .btnLabel {
+  max-width: 150px;
+  opacity: 1;
+}
+
+/* Button Color Variants */
+.btnPrimary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btnPrimary:hover {
+  background-color: var(--primary-hover);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btnDanger {
+  background-color: #ef4444;
+  color: white;
+}
+
+.btnDanger:hover {
+  background-color: #dc2626;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btnWarning {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.btnWarning:hover {
+  background-color: #d97706;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.btnInfo {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.btnInfo:hover {
+  background-color: #2563eb;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btnSuccess {
+  background-color: #10b981;
+  color: white;
+}
+
+.btnSuccess:hover {
+  background-color: #059669;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btnSecondary {
+  background-color: #6b7280;
+  color: white;
+}
+
+.btnSecondary:hover {
+  background-color: #4b5563;
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}
+
+.btnActive {
+  transform: scale(0.95);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.mobileMenuBtn {
+  display: none;
+  background-color: #6b7280;
+  color: white;
+  padding: 0.75rem;
+  min-width: 44px;
+  gap: 0;
+}
+
+.mobileMenuBtn:hover {
+  background-color: #4b5563;
+}
+
+.mobileMenuBtn.menuOpen {
+  background-color: #4b5563;
+}
+
+.mobileMenuBtn:hover,
+.mobileMenuBtn:active,
+.mobileMenuBtn.btnExpanded {
+  padding: 0.75rem 1.25rem;
+  gap: 0.5rem;
+}
+
+.mobileMenuBtn:hover .btnLabel,
+.mobileMenuBtn:active .btnLabel,
+.mobileMenuBtn.btnExpanded .btnLabel {
+  max-width: 100px;
+  opacity: 1;
+}
+
+/* Large Date/Time Display - Fills remaining space */
+.dateTimeDisplay {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 0 1rem;
+  overflow: hidden;
+}
+
+.dateTimeLarge {
+  font-size: clamp(0.95rem, 1.8vw, 1.25rem);
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary-color) 0%, #059669 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.3;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  max-width: 100%;
+}
+
+/* Allow date/time to wrap on very small screens */
+@media (max-width: 640px) {
+  .dateTimeLarge {
+    white-space: normal;
+    word-break: keep-all;
+  }
+}
+
+/* Single line on larger screens */
+@media (min-width: 641px) {
+  .dateTimeLarge {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* Cashier Info */
+.cashierInfo {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0.625rem;
+  background-color: var(--card-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 44px;
+  overflow: hidden;
+}
+
+.cashierInfo:hover,
+.cashierInfo:active,
+.cashierInfo.cashierExpanded {
+  padding: 0.625rem 1rem;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+  gap: 0.5rem;
+}
+
+.userIcon {
+  color: var(--primary-color);
+  flex-shrink: 0;
+}
+
+.cashierName {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cashierInfo:hover .cashierName,
+.cashierInfo:active .cashierName,
+.cashierInfo.cashierExpanded .cashierName {
+  max-width: 200px;
+  opacity: 1;
+}
+
+/* Mobile Menu Dropdown */
+.mobileMenu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: auto;
+  right: 0;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.625rem;
+  animation: slideDown 0.2s ease;
+  backdrop-filter: blur(8px);
+  min-width: 280px;
+  max-width: 90vw;
+}
+
+.mobileMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1rem 1.125rem;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: white;
+  width: 100%;
+  text-align: left;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.mobileMenuItem:active {
+  transform: scale(0.97);
+}
+
+.mobileMenuItem:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Search Bar Row */
+.searchBarRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .searchBar {
   flex: 1;
   position: relative;
+}
+
+/* Cart Animation */
+@keyframes cartBounce {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.15) rotate(10deg); }
+  50% { transform: scale(1.1) rotate(-10deg); }
+  75% { transform: scale(1.15) rotate(5deg); }
+}
+
+.animateCart {
+  animation: cartBounce 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
 }
 
 .searchInput {
@@ -1256,6 +1640,19 @@
 @media (max-width: 768px) {
   .container {
     flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  /* Hide desktop sidebar on mobile */
+  .desktopSidebarWrapper {
+    display: none;
+  }
+
+  /* Show mobile categories wrapper */
+  .mobileCategoriesWrapper {
+    display: block;
+    order: 2;
   }
 
   /* Dialog Responsive Styles */
@@ -1367,6 +1764,14 @@
     flex: 1;
     padding: 0.5rem;
     gap: 0.5rem;
+    overflow-y: visible;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Product grid comes after search bar */
+  .productGrid {
+    order: 4;
   }
 
   /* Hide order panel by default on mobile */
@@ -1430,7 +1835,117 @@
 
   /* Adjust top bar for mobile */
   .topBar {
-    gap: 0.75rem;
+    gap: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    order: 1;
+  }
+
+  /* Navigation bar row on mobile - ensure it's always on top */
+  .navBarRow {
+    padding-bottom: 0.5rem;
+    position: relative;
+    order: 1;
+  }
+
+  /* Search bar row on mobile - ensure it's below categories */
+  .searchBarRow {
+    order: 3;
+  }
+
+  .topBarHeader {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* Back button stays the same size on mobile */
+  .backBtn {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+  }
+
+  /* Hide main and secondary action buttons on mobile */
+  .mainActionButtons,
+  .secondaryButtons {
+    display: none;
+  }
+
+  /* Show mobile menu button */
+  .mobileMenuBtn {
+    display: flex;
+    order: 99;
+  }
+
+  /* Date/Time Display on mobile - still prominent */
+  .dateTimeDisplay {
+    order: 3;
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 0 0.5rem;
+  }
+
+  .dateTimeLarge {
+    font-size: clamp(0.8rem, 2vw, 1rem);
+    white-space: normal;
+    word-break: keep-all;
+  }
+
+  /* Cashier info on mobile - position at end before More button */
+  .cashierInfo {
+    padding: 0.5rem;
+    order: 98;
+    min-width: 40px;
+  }
+
+  .cashierInfo:hover,
+  .cashierInfo:active,
+  .cashierInfo.cashierExpanded {
+    padding: 0.5rem 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .cashierName {
+    font-size: 0.8rem;
+  }
+
+  .userIcon {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Adjust navigation buttons */
+  .navBtn {
+    padding: 0.65rem;
+    font-size: 0.8rem;
+    min-height: 40px;
+    min-width: 40px;
+    gap: 0;
+  }
+
+  .navBtn:hover,
+  .navBtn:active,
+  .navBtn.btnExpanded {
+    padding: 0.65rem 0.9rem;
+    gap: 0.5rem;
+  }
+
+  .navBtn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Adjust button group gaps on mobile */
+  .mainActionButtons,
+  .secondaryButtons {
+    gap: 0.5rem;
+  }
+
+  /* Mobile menu positioning - keep absolute positioning */
+  .mobileMenu {
+    position: absolute;
+    min-width: 260px;
+    max-width: 85vw;
   }
 
   .searchInput {
@@ -1627,6 +2142,114 @@
   .notFoundNotification svg {
     width: 16px;
     height: 16px;
+  }
+
+  /* Extra small mobile adjustments */
+  .topBar {
+    display: flex;
+    flex-direction: column;
+    order: 1;
+  }
+
+  .navBarRow {
+    order: 1;
+  }
+
+  .mobileCategoriesWrapper {
+    display: block;
+    order: 2;
+  }
+
+  .searchBarRow {
+    order: 3;
+  }
+
+  .productGrid {
+    order: 4;
+  }
+
+  .backBtn {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+  }
+
+  .backBtn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .cashierInfo {
+    padding: 0.375rem;
+    min-width: 36px;
+    gap: 0;
+    order: 98;
+  }
+
+  .cashierInfo:hover,
+  .cashierInfo:active,
+  .cashierInfo.cashierExpanded {
+    padding: 0.375rem 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .userIcon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .cashierName {
+    font-size: 0.75rem;
+  }
+
+  .dateTimeLarge {
+    font-size: clamp(0.7rem, 1.8vw, 0.9rem);
+    white-space: normal;
+  }
+
+  .navBtn {
+    padding: 0.55rem;
+    min-height: 36px;
+    min-width: 36px;
+    gap: 0;
+  }
+
+  .navBtn:hover,
+  .navBtn:active,
+  .navBtn.btnExpanded {
+    padding: 0.55rem 0.7rem;
+    gap: 0.5rem;
+  }
+
+  .navBtn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .mobileMenuBtn {
+    padding: 0.55rem;
+    min-height: 36px;
+    min-width: 36px;
+    gap: 0;
+  }
+
+  .mobileMenuBtn:hover,
+  .mobileMenuBtn:active,
+  .mobileMenuBtn.btnExpanded {
+    padding: 0.55rem 0.7rem;
+    gap: 0.5rem;
+  }
+
+  /* Tighter gaps on very small screens */
+  .mainActionButtons,
+  .secondaryButtons {
+    gap: 0.375rem;
+  }
+
+  /* Mobile menu on very small screens */
+  .mobileMenu {
+    min-width: 240px;
+    max-width: 80vw;
   }
 }
 

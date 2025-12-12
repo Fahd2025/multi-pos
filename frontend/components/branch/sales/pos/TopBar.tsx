@@ -1,13 +1,31 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Search, ShoppingCart, Loader2, CheckCircle, AlertCircle, Menu } from "lucide-react";
+import {
+  Search,
+  ShoppingCart,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+  Menu,
+  ArrowLeft,
+  FileText,
+  Clock,
+  DollarSign,
+  Table2,
+  Truck,
+  User,
+  Calendar,
+  MoreVertical,
+  Printer,
+} from "lucide-react";
 import styles from "./Pos2.module.css";
 import { FloatingSearchPanel } from "./FloatingSearchPanel";
 import { ProductDto } from "@/types/api.types";
 import { useDebounce } from "@/hooks/useDebounce";
 import inventoryService from "@/services/inventory.service";
 import { playErrorBeep, playSuccessBeep } from "@/lib/utils";
+import { getCurrentUser } from "@/lib/auth";
 
 interface TopBarProps {
   cartItemCount: number;
@@ -40,6 +58,58 @@ export const TopBar: React.FC<TopBarProps> = ({
   const isBarcodeScan = useRef<boolean>(false);
   const [isCartAnimating, setIsCartAnimating] = useState(false);
   const prevCartItemCount = useRef(cartItemCount);
+
+  // New state for navigation menu and date/time
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  const [cashierName, setCashierName] = useState<string>("Cashier");
+
+  // Button press feedback states
+  const [activeButton, setActiveButton] = useState<string | null>(null);
+  const [expandedButton, setExpandedButton] = useState<string | null>(null);
+  const [expandedCashier, setExpandedCashier] = useState(false);
+
+  // Get cashier name on mount
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (user) {
+      setCashierName(user.fullNameEn || user.username || "Cashier");
+    }
+  }, []);
+
+  // Update date/time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Close menu on click outside
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      // Close menu if clicking outside of it
+      if (!target.closest(`.${styles.mobileMenu}`) && !target.closest(`.${styles.mobileMenuBtn}`)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    const handleResize = () => {
+      setIsMenuOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [isMenuOpen]);
 
   // Trigger cart animation when item count changes
   useEffect(() => {
@@ -219,51 +289,321 @@ export const TopBar: React.FC<TopBarProps> = ({
     setIsSearchPanelVisible(false);
   };
 
+  // Button press feedback
+  const handleButtonPress = (buttonId: string, callback?: () => void) => {
+    setActiveButton(buttonId);
+    setExpandedButton(buttonId);
+    playSuccessBeep();
+
+    setTimeout(() => {
+      setActiveButton(null);
+      callback?.();
+    }, 150);
+
+    // Auto-hide label after 2.5 seconds
+    setTimeout(() => {
+      setExpandedButton(null);
+    }, 2500);
+  };
+
+  // Handle cashier info click
+  const handleCashierClick = () => {
+    setExpandedCashier(true);
+
+    // Auto-hide after 2.5 seconds
+    setTimeout(() => {
+      setExpandedCashier(false);
+    }, 2500);
+  };
+
+  // Navigation button handlers
+  const handleBack = () => {
+    handleButtonPress("back", () => {
+      window.history.back();
+    });
+  };
+
+  const handleReturnInvoice = () => {
+    handleButtonPress("return", () => {
+      // TODO: Implement return invoice functionality
+      console.log("Return Invoice clicked");
+    });
+  };
+
+  const handlePendingInvoices = () => {
+    handleButtonPress("pending", () => {
+      // TODO: Implement pending invoices functionality
+      console.log("Pending Invoices clicked");
+    });
+  };
+
+  const handleCashDrawer = () => {
+    handleButtonPress("cash-drawer", () => {
+      // TODO: Implement cash drawer functionality
+      console.log("Cash Drawer clicked");
+    });
+  };
+
+  const handleTableManagement = () => {
+    handleButtonPress("tables", () => {
+      // TODO: Implement table management functionality
+      console.log("Table Management clicked");
+    });
+  };
+
+  const handleDeliveryManagement = () => {
+    handleButtonPress("delivery", () => {
+      // TODO: Implement delivery management functionality
+      console.log("Delivery Management clicked");
+    });
+  };
+
+  const handlePrintInvoice = () => {
+    handleButtonPress("print", () => {
+      // TODO: Implement print invoice functionality
+      console.log("Print Invoice clicked");
+    });
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  // Format date and time
+  const formatDateTime = (date: Date) => {
+    const dateStr = date.toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+    const timeStr = date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    });
+    return `${dateStr} • ${timeStr}`;
+  };
+
   return (
     <>
       <div className={styles.topBar}>
-        {/* Sidebar Toggle Button - visible when sidebar is collapsed */}
-        {isSidebarCollapsed && (
-          <button
-            className={styles.sidebarToggleBtn}
-            onClick={onToggleSidebar}
-            aria-label="Show categories"
-            title="Show categories"
-          >
-            <Menu size={24} />
-          </button>
-        )}
+        {/* Row 1: Navigation Bar with Buttons and User Info */}
+        <div className={styles.navBarRow}>
+          <div className={styles.topBarHeader}>
+            {/* Small Back Button - Icon Only */}
+            <button
+              className={`${styles.backBtn} ${activeButton === "back" ? styles.btnActive : ""}`}
+              onClick={handleBack}
+              aria-label="Go back"
+              title="Go back"
+            >
+              <ArrowLeft size={20} />
+            </button>
 
-        <div className={styles.searchBar}>
-          <Search className={styles.searchIcon} />
-          {isSearching && <Loader2 className={styles.searchLoadingIcon} />}
-          {scanSuccess && <CheckCircle className={styles.scanSuccessIcon} />}
-          <input
-            ref={searchInputRef}
-            type="text"
-            placeholder="Search by name, barcode, or SKU..."
-            className={`${styles.searchInput} ${scanSuccess ? styles.scanSuccess : ""}`}
-            value={searchQuery}
-            onChange={handleSearchChange}
-            onKeyDown={handleKeyDown}
-            onFocus={handleSearchFocus}
-          />
-          {searchQuery && !isSearching && (
-            <span className={styles.searchClearBtn} onClick={() => setSearchQuery("")}>
-              ×
-            </span>
+            {/* Main Action Buttons */}
+            <div className={styles.mainActionButtons}>
+              <button
+                className={`${styles.navBtn} ${styles.btnSecondary} ${
+                  activeButton === "print" ? styles.btnActive : ""
+                } ${expandedButton === "print" ? styles.btnExpanded : ""}`}
+                onClick={handlePrintInvoice}
+                aria-label="Print invoice"
+                title="Print invoice"
+              >
+                <Printer size={20} />
+                <span className={styles.btnLabel}>Print</span>
+              </button>
+
+              <button
+                className={`${styles.navBtn} ${styles.btnDanger} ${
+                  activeButton === "return" ? styles.btnActive : ""
+                } ${expandedButton === "return" ? styles.btnExpanded : ""}`}
+                onClick={handleReturnInvoice}
+                aria-label="Return invoice"
+                title="Return invoice"
+              >
+                <FileText size={20} />
+                <span className={styles.btnLabel}>Return</span>
+              </button>
+
+              <button
+                className={`${styles.navBtn} ${styles.btnInfo} ${
+                  activeButton === "pending" ? styles.btnActive : ""
+                } ${expandedButton === "pending" ? styles.btnExpanded : ""}`}
+                onClick={handlePendingInvoices}
+                aria-label="Pending invoices"
+                title="Pending invoices"
+              >
+                <Clock size={20} />
+                <span className={styles.btnLabel}>Pending</span>
+              </button>
+            </div>
+
+            {/* Large Date/Time Display - Fills remaining space */}
+            <div className={styles.dateTimeDisplay}>
+              <div className={styles.dateTimeLarge}>{formatDateTime(currentDateTime)}</div>
+            </div>
+
+            {/* Secondary Buttons */}
+            <div className={styles.secondaryButtons}>
+              <button
+                className={`${styles.navBtn} ${styles.btnPrimary} ${
+                  activeButton === "delivery" ? styles.btnActive : ""
+                } ${expandedButton === "delivery" ? styles.btnExpanded : ""}`}
+                onClick={handleDeliveryManagement}
+                aria-label="Delivery management"
+                title="Delivery management"
+              >
+                <Truck size={20} />
+                <span className={styles.btnLabel}>Delivery</span>
+              </button>
+
+              <button
+                className={`${styles.navBtn} ${styles.btnSecondary} ${
+                  activeButton === "tables" ? styles.btnActive : ""
+                } ${expandedButton === "tables" ? styles.btnExpanded : ""}`}
+                onClick={handleTableManagement}
+                aria-label="Table management"
+                title="Table management"
+              >
+                <Table2 size={20} />
+                <span className={styles.btnLabel}>Tables</span>
+              </button>
+
+              <button
+                className={`${styles.navBtn} ${styles.btnWarning} ${
+                  activeButton === "cash-drawer" ? styles.btnActive : ""
+                } ${expandedButton === "cash-drawer" ? styles.btnExpanded : ""}`}
+                onClick={handleCashDrawer}
+                aria-label="Open cash drawer"
+                title="Open cash drawer"
+              >
+                <DollarSign size={20} />
+                <span className={styles.btnLabel}>Cash Drawer</span>
+              </button>
+            </div>
+
+            {/* Cashier Info */}
+            <div
+              className={`${styles.cashierInfo} ${expandedCashier ? styles.cashierExpanded : ""}`}
+              onClick={handleCashierClick}
+            >
+              <User size={20} className={styles.userIcon} />
+              <span className={styles.cashierName}>{cashierName}</span>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              className={`${styles.navBtn} ${styles.mobileMenuBtn} ${
+                isMenuOpen ? styles.menuOpen : ""
+              } ${expandedButton === "menu" ? styles.btnExpanded : ""}`}
+              onClick={toggleMenu}
+              aria-label="More options"
+              title="More options"
+            >
+              <MoreVertical size={20} />
+              {/* <span className={styles.btnLabel}>More</span> */}
+            </button>
+          </div>
+
+          {/* Mobile Dropdown Menu */}
+          {isMenuOpen && (
+            <div className={styles.mobileMenu}>
+              <button
+                className={`${styles.mobileMenuItem} ${styles.btnSecondary}`}
+                onClick={handlePrintInvoice}
+              >
+                <Printer size={20} />
+                <span>Print Invoice</span>
+              </button>
+              <button
+                className={`${styles.mobileMenuItem} ${styles.btnDanger}`}
+                onClick={handleReturnInvoice}
+              >
+                <FileText size={20} />
+                <span>Return Invoice</span>
+              </button>
+              <button
+                className={`${styles.mobileMenuItem} ${styles.btnInfo}`}
+                onClick={handlePendingInvoices}
+              >
+                <Clock size={20} />
+                <span>Pending Invoices</span>
+              </button>
+
+              <button
+                className={`${styles.mobileMenuItem} ${styles.btnPrimary}`}
+                onClick={handleDeliveryManagement}
+              >
+                <Truck size={20} />
+                <span>Delivery Management</span>
+              </button>
+              <button
+                className={`${styles.mobileMenuItem} ${styles.btnSecondary}`}
+                onClick={handleTableManagement}
+              >
+                <Table2 size={20} />
+                <span>Table Management</span>
+              </button>
+
+              <button
+                className={`${styles.mobileMenuItem} ${styles.btnWarning}`}
+                onClick={handleCashDrawer}
+              >
+                <DollarSign size={20} />
+                <span>Cash Drawer</span>
+              </button>
+            </div>
           )}
         </div>
 
-        {/* Cart Toggle Button - visible on all screens */}
-        <button
-          className={`${styles.cartToggleBtn} ${isCartAnimating ? styles.animateCart : ""}`}
-          onClick={onToggleCart}
-          aria-label="Toggle shopping cart"
-        >
-          <ShoppingCart size={24} />
-          {cartItemCount > 0 && <span className={styles.cartBadge}>{cartItemCount}</span>}
-        </button>
+        {/* Row 2: Search Bar Row (Original Layout) */}
+        <div className={styles.searchBarRow}>
+          {/* Sidebar Toggle Button - visible when sidebar is collapsed */}
+          {isSidebarCollapsed && (
+            <button
+              className={styles.sidebarToggleBtn}
+              onClick={onToggleSidebar}
+              aria-label="Show categories"
+              title="Show categories"
+            >
+              <Menu size={24} />
+            </button>
+          )}
+
+          <div className={styles.searchBar}>
+            <Search className={styles.searchIcon} />
+            {isSearching && <Loader2 className={styles.searchLoadingIcon} />}
+            {scanSuccess && <CheckCircle className={styles.scanSuccessIcon} />}
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search by name, barcode, or SKU..."
+              className={`${styles.searchInput} ${scanSuccess ? styles.scanSuccess : ""}`}
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onKeyDown={handleKeyDown}
+              onFocus={handleSearchFocus}
+            />
+            {searchQuery && !isSearching && (
+              <span className={styles.searchClearBtn} onClick={() => setSearchQuery("")}>
+                ×
+              </span>
+            )}
+          </div>
+
+          {/* Cart Toggle Button */}
+          <button
+            className={`${styles.cartToggleBtn} ${isCartAnimating ? styles.animateCart : ""}`}
+            onClick={onToggleCart}
+            aria-label="Toggle shopping cart"
+          >
+            <ShoppingCart size={24} />
+            {cartItemCount > 0 && <span className={styles.cartBadge}>{cartItemCount}</span>}
+          </button>
+        </div>
       </div>
 
       {/* Scan Success Notification */}
