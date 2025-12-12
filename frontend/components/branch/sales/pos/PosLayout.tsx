@@ -6,9 +6,9 @@ import { CategorySidebar } from "./CategorySidebar";
 import { TopBar } from "./TopBar";
 import { ProductGrid } from "./ProductGrid";
 import { OrderPanel } from "./OrderPanel";
-import { ToastProvider } from "../../../../hooks/useToast";
+import { ToastProvider, useToast } from "../../../../hooks/useToast";
 import inventoryService from "@/services/inventory.service";
-import { CategoryDto, ProductDto } from "@/types/api.types";
+import { CategoryDto, ProductDto, SaleDto } from "@/types/api.types";
 import { playErrorBeep, playSuccessBeep } from "@/lib/utils";
 import { useApiError } from "@/hooks/useApiError";
 import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
@@ -17,7 +17,8 @@ interface CartItem extends ProductDto {
   quantity: number;
 }
 
-export default function PosLayout() {
+function PosLayoutContent() {
+  const toast = useToast();
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [categories, setCategories] = useState<CategoryDto[]>([]);
@@ -26,6 +27,7 @@ export default function PosLayout() {
   const { error, isError, executeWithErrorHandling } = useApiError();
   const [isCartVisible, setIsCartVisible] = useState(true); // Default true for desktop
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [lastSale, setLastSale] = useState<SaleDto | null>(null); // Track last completed sale
 
   // Set initial cart visibility and sidebar state based on screen size (only once on mount)
   useEffect(() => {
@@ -175,8 +177,12 @@ export default function PosLayout() {
     );
   }
 
+  // Toast handler for TopBar
+  const handleToast = (type: 'success' | 'error' | 'warning' | 'info', title: string, message?: string) => {
+    toast[type](title, message);
+  };
+
   return (
-    <ToastProvider>
       <div className={styles.container}>
         {/* Desktop Sidebar - shown on left side on large screens */}
         <div className={styles.desktopSidebarWrapper}>
@@ -198,6 +204,8 @@ export default function PosLayout() {
             branchCode={branchCode}
             isSidebarCollapsed={isSidebarCollapsed}
             onToggleSidebar={handleToggleSidebar}
+            lastSale={lastSale}
+            onToast={handleToast}
           />
 
           {/* Mobile Categories Bar - shown between nav and search on mobile */}
@@ -225,9 +233,17 @@ export default function PosLayout() {
             onClearAll={handleClearAll}
             onUpdateQuantity={handleUpdateQuantity}
             onClose={handleToggleCart}
+            onTransactionComplete={(sale) => setLastSale(sale)}
           />
         </div>
       </div>
+  );
+}
+
+export default function PosLayout() {
+  return (
+    <ToastProvider>
+      <PosLayoutContent />
     </ToastProvider>
   );
 }

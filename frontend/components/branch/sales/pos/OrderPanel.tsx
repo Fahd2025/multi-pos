@@ -8,7 +8,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { X, ShoppingBag } from "lucide-react";
 import styles from "./Pos2.module.css";
-import { ProductDto } from "@/types/api.types";
+import { ProductDto, SaleDto } from "@/types/api.types";
 import { buildProductImageUrl } from "@/lib/image-utils";
 import { TransactionDialog } from "./TransactionDialog";
 import { useToast } from "@/hooks/useToast";
@@ -23,6 +23,7 @@ interface OrderPanelProps {
   onClearAll: () => void;
   onUpdateQuantity: (id: string, quantity: number) => void;
   onClose?: () => void;
+  onTransactionComplete?: (sale: SaleDto) => void;
 }
 
 export const OrderPanel: React.FC<OrderPanelProps> = ({
@@ -31,6 +32,7 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
   onClearAll,
   onUpdateQuantity,
   onClose,
+  onTransactionComplete,
 }) => {
   const toast = useToast();
   const [showTransactionDialog, setShowTransactionDialog] = useState(false);
@@ -131,7 +133,10 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
     setShowTransactionDialog(true);
   };
 
-  const handleTransactionSuccess = () => {
+  const handleTransactionSuccess = (sale?: SaleDto) => {
+    if (sale && onTransactionComplete) {
+      onTransactionComplete(sale);
+    }
     onClearAll();
     setShowTransactionDialog(false);
   };
@@ -557,7 +562,7 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
         onClose={() => setShowTransactionDialog(false)}
         cart={cart}
         subtotal={subtotal}
-        onSuccess={handleTransactionSuccess}
+        onSuccess={(sale) => handleTransactionSuccess(sale)}
       />
     </>
   );

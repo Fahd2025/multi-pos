@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   X,
   CreditCard,
@@ -12,14 +12,15 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import styles from "./Pos2.module.css";
-import { ProductDto } from "@/types/api.types";
+import { ProductDto, SaleDto } from "@/types/api.types";
 import salesService from "@/services/sales.service";
 import invoiceTemplateService from "@/services/invoice-template.service";
 import branchInfoService from "@/services/branch-info.service";
 import { InvoiceSchema } from "@/types/invoice-template.types";
 import { useToast } from "../../../../hooks/useToast";
-import { renderInvoiceToHtml } from "@/lib/invoice-renderer";
 import { transformSaleToInvoiceData } from "@/lib/invoice-data-transformer";
+import InvoicePreview from "@/components/invoice/InvoicePreview";
+import { useReactToPrint } from "react-to-print";
 
 interface OrderItem extends ProductDto {
   quantity: number;
@@ -30,7 +31,7 @@ interface TransactionDialogProps {
   onClose: () => void;
   cart: OrderItem[];
   subtotal: number;
-  onSuccess: () => void;
+  onSuccess: (sale: SaleDto) => void;
 }
 
 interface InvoiceData {
@@ -101,6 +102,11 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
   const [amountPaid, setAmountPaid] = useState("");
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Invoice printing state (hidden, for direct print)
+  const invoiceRef = useRef<HTMLDivElement>(null);
+  const [invoiceSchema, setInvoiceSchema] = useState<InvoiceSchema | null>(null);
+  const [invoiceData, setInvoiceData] = useState<any>(null);
 
   // Customer Details
   const [customer, setCustomer] = useState<CustomerDetails>({
@@ -244,7 +250,7 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
         7000 // Show for 7 seconds
       );
 
-      // Automatically prepare and print invoice using active template
+      // Automatically prepare and print invoice using InvoicePreview (same as sales page)
       try {
         console.log("Starting invoice preparation...");
         // Load active template
@@ -270,50 +276,46 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
           // Transform sale data to invoice data format using shared utility
           const transformedData = transformSaleToInvoiceData(sale, branchInfo);
 
-          console.log("Generating invoice HTML...");
-          // Generate HTML from template and data
-          const invoiceHtml = renderInvoiceToHtml(parsedSchema, transformedData);
-          console.log("Invoice HTML generated, opening print window...");
-
-          // Open print window and write invoice HTML
-          const printWindow = window.open("", "_blank");
-          if (printWindow) {
-            printWindow.document.write(invoiceHtml);
-            printWindow.document.close();
-            printWindow.focus();
-
-            // Wait for content to load then print
-            printWindow.onload = () => {
-              console.log("Print window loaded, triggering print...");
-              printWindow.print();
-              console.log("Print dialog opened");
-
-              // Auto-close window after printing or when print dialog is closed
-              // Use a combination of onafterprint and blur events
-              printWindow.onafterprint = () => {
-                console.log("Print completed or cancelled, closing window...");
-                setTimeout(() => {
-                  printWindow.close();
-                }, 100);
-              };
-
-              // Fallback: close on window blur (when user closes print dialog)
-              printWindow.onblur = () => {
-                setTimeout(() => {
-                  if (!printWindow.closed) {
-                    printWindow.close();
-                  }
-                }, 500);
-              };
-            };
-          } else {
-            console.error("Failed to open print window - popup may be blocked");
-            toast.warning(
-              "Popup blocked",
-              "Please allow popups for this site to enable invoice printing.",
-              5000
-            );
-          }
+          // Set invoice data and trigger print automatically
+          setInvoiceSchema(parsedSchema);
+          setInvoiceData(transformedData);
+          
+          // Trigger print after a short delay to ensure rendering
+          setTimeout(() => {
+            console.log("Attempting to print, invoiceRef.current:", invoiceRef.current);
+            console.log("handlePrint type:", typeof handlePrint);
+            console.log("handlePrint:", handlePrint);
+            
+            if (invoiceRef.current && handlePrint) {
+              console.log("Triggering print...");
+              try {
+                const result = handlePrint();
+                console.log("Print result:", result);
+              } catch (printErr) {
+                console.error("Error calling handlePrint:", printErr);
+              }
+              
+              // Close dialog after print is triggered
+              setTimeout(() => {
+                onSuccess(sale);
+                onClose();
+                
+                // Reset form state
+                setOrderType("takeaway");
+                setPaymentMethod("cash");
+                setDiscountValue(0);
+                setAmountPaid("");
+                setCustomer({ name: "", phone: "", email: "", address: "" });
+                setTable({ tableNumber: "", tableName: "" });
+                setDriver({ driverId: "", driverName: "" });
+              }, 1000);
+            } else {
+              console.error("Cannot print - invoiceRef.current:", invoiceRef.current, "handlePrint:", handlePrint);
+              // Close dialog even if print fails
+              onSuccess(sale);
+              onClose();
+            }
+          }, 500);
         }
       } catch (printError: any) {
         console.error("Failed to prepare invoice:", printError);
@@ -323,20 +325,11 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
           "Transaction completed but failed to prepare invoice. You can print it from the sales list.",
           5000
         );
+        
+        // Close dialog on error
+        onSuccess(sale);
+        onClose();
       }
-
-      // Reset form and close transaction dialog
-      onSuccess();
-      onClose();
-
-      // Reset form state
-      setOrderType("takeaway");
-      setPaymentMethod("cash");
-      setDiscountValue(0);
-      setAmountPaid("");
-      setCustomer({ name: "", phone: "", email: "", address: "" });
-      setTable({ tableNumber: "", tableName: "" });
-      setDriver({ driverId: "", driverName: "" });
     } catch (err: any) {
       console.error("Error processing transaction:", err);
       const errorMessage = err.message || "Failed to process transaction";
@@ -347,10 +340,23 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
     }
   };
 
+  // Set up print handler using react-to-print (same as sales page)
+  const handlePrint = useReactToPrint({
+    contentRef: invoiceRef,
+    documentTitle: `Invoice-${invoiceData?.invoiceNumber || 'POS'}`,
+  });
+
   if (!isOpen) return null;
 
   return (
     <>
+      {/* Hidden invoice for printing */}
+      {invoiceSchema && invoiceData && (
+        <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
+          <InvoicePreview ref={invoiceRef} schema={invoiceSchema} data={invoiceData} />
+        </div>
+      )}
+
       <div className={styles.dialogBackdrop} onClick={onClose}>
       <div className={styles.dialogContainer} onClick={(e) => e.stopPropagation()}>
         {/* Header */}

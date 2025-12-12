@@ -26,6 +26,13 @@ import { useDebounce } from "@/hooks/useDebounce";
 import inventoryService from "@/services/inventory.service";
 import { playErrorBeep, playSuccessBeep } from "@/lib/utils";
 import { getCurrentUser } from "@/lib/auth";
+import { SaleDto } from "@/types/api.types";
+import InvoicePreview from "@/components/invoice/InvoicePreview";
+import invoiceTemplateService from "@/services/invoice-template.service";
+import branchInfoService from "@/services/branch-info.service";
+import { InvoiceSchema } from "@/types/invoice-template.types";
+import { transformSaleToInvoiceData } from "@/lib/invoice-data-transformer";
+import { useReactToPrint } from "react-to-print";
 
 interface TopBarProps {
   cartItemCount: number;
@@ -35,6 +42,8 @@ interface TopBarProps {
   branchCode: string;
   isSidebarCollapsed: boolean;
   onToggleSidebar: () => void;
+  lastSale: SaleDto | null; // Last completed sale for reprinting
+  onToast: (type: 'success' | 'error' | 'warning' | 'info', title: string, message?: string) => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
@@ -45,6 +54,8 @@ export const TopBar: React.FC<TopBarProps> = ({
   branchCode,
   isSidebarCollapsed,
   onToggleSidebar,
+  lastSale,
+  onToast,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<ProductDto[]>([]);
@@ -68,6 +79,11 @@ export const TopBar: React.FC<TopBarProps> = ({
   const [activeButton, setActiveButton] = useState<string | null>(null);
   const [expandedButton, setExpandedButton] = useState<string | null>(null);
   const [expandedCashier, setExpandedCashier] = useState(false);
+
+  // Invoice printing state (hidden)
+  const invoiceRef = useRef<HTMLDivElement>(null);
+  const [invoiceSchema, setInvoiceSchema] = useState<InvoiceSchema | null>(null);
+  const [invoiceData, setInvoiceData] = useState<any>(null);
 
   // Get cashier name on mount
   useEffect(() => {
@@ -359,11 +375,54 @@ export const TopBar: React.FC<TopBarProps> = ({
   };
 
   const handlePrintInvoice = () => {
-    handleButtonPress("print", () => {
-      // TODO: Implement print invoice functionality
+    handleButtonPress("print", async () => {
       console.log("Print Invoice clicked");
+      
+      if (!lastSale) {
+        onToast('warning', 'No invoice to print', 'Complete a transaction first to print an invoice.');
+        return;
+      }
+
+      try {
+        // Load active template
+        const template = await invoiceTemplateService.getActiveTemplate();
+        if (!template) {
+          onToast('warning', 'No invoice template', 'Please activate a template in Settings.');
+          return;
+        }
+
+        // Parse schema
+        const parsedSchema = JSON.parse(template.schema) as InvoiceSchema;
+
+        // Load branch info
+        const branchInfo = await branchInfoService.getBranchInfo();
+
+        // Transform sale data to invoice data format
+        const transformedData = transformSaleToInvoiceData(lastSale, branchInfo);
+
+        // Set invoice data and trigger print
+        setInvoiceSchema(parsedSchema);
+        setInvoiceData(transformedData);
+        
+        // Trigger print after a short delay
+        setTimeout(() => {
+          if (invoiceRef.current) {
+            handlePrint();
+            onToast('success', 'Printing invoice', `Reprinting invoice #${lastSale.invoiceNumber}`);
+          }
+        }, 300);
+      } catch (error: any) {
+        console.error('Failed to print invoice:', error);
+        onToast('error', 'Print failed', error.message || 'Failed to prepare invoice for printing.');
+      }
     });
   };
+
+  // Set up print handler using react-to-print
+  const handlePrint = useReactToPrint({
+    contentRef: invoiceRef,
+    documentTitle: `Invoice-${invoiceData?.invoiceNumber || 'POS'}`,
+  });
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -388,6 +447,13 @@ export const TopBar: React.FC<TopBarProps> = ({
 
   return (
     <>
+      {/* Hidden invoice for printing */}
+      {invoiceSchema && invoiceData && (
+        <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
+          <InvoicePreview ref={invoiceRef} schema={invoiceSchema} data={invoiceData} />
+        </div>
+      )}
+
       <div className={styles.topBar}>
         {/* Row 1: Navigation Bar with Buttons and User Info */}
         <div className={styles.navBarRow}>
