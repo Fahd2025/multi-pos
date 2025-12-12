@@ -37,4 +37,14 @@ public interface IBranchMigrationManager
     /// Validate that a branch database schema is correct
     /// </summary>
     Task<bool> ValidateBranchDatabaseAsync(Guid branchId);
+
+    /// <summary>
+    /// Rollback the last applied migration for a branch
+    /// </summary>
+    Task<MigrationResult> RollbackLastMigrationAsync(Guid branchId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Rollback the last applied migration for all active branches
+    /// </summary>
+    Task<MigrationResult> RollbackAllBranchesAsync(CancellationToken cancellationToken = default);
 }

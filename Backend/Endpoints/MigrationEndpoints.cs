@@ -17,9 +17,10 @@ public static class MigrationEndpoints
         group.MapPost("/branches/{branchId:guid}/apply", async (
             Guid branchId,
             IBranchMigrationManager migrationManager,
+            string? targetMigration,
             CancellationToken cancellationToken) =>
         {
-            var result = await migrationManager.ApplyMigrationsAsync(branchId, null, cancellationToken);
+            var result = await migrationManager.ApplyMigrationsAsync(branchId, targetMigration, cancellationToken);
             return result.Success ? Results.Ok(result) : Results.BadRequest(result);
         })
         .RequireAuthorization(policy => policy.RequireRole("Admin"))
@@ -80,6 +81,35 @@ public static class MigrationEndpoints
         .WithName("ValidateBranchDatabase")
         .WithSummary("Validate branch database schema integrity")
         .Produces(200);
+
+        // Rollback last migration for a branch (Admin only)
+        group.MapPost("/branches/{branchId:guid}/rollback", async (
+            Guid branchId,
+            IBranchMigrationManager migrationManager,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await migrationManager.RollbackLastMigrationAsync(branchId, cancellationToken);
+            return result.Success ? Results.Ok(result) : Results.BadRequest(result);
+        })
+        .RequireAuthorization(policy => policy.RequireRole("Admin"))
+        .WithName("RollbackLastMigration")
+        .WithSummary("Rollback the last applied migration for a specific branch")
+        .Produces<Models.DTOs.Shared.Migrations.MigrationResult>(200)
+        .Produces<Models.DTOs.Shared.Migrations.MigrationResult>(400);
+
+        // Rollback last migration for all branches (Admin only)
+        group.MapPost("/branches/rollback-all", async (
+            IBranchMigrationManager migrationManager,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await migrationManager.RollbackAllBranchesAsync(cancellationToken);
+            return result.Success ? Results.Ok(result) : Results.BadRequest(result);
+        })
+        .RequireAuthorization(policy => policy.RequireRole("Admin"))
+        .WithName("RollbackAllBranches")
+        .WithSummary("Rollback the last applied migration for all active branches")
+        .Produces<Models.DTOs.Shared.Migrations.MigrationResult>(200)
+        .Produces<Models.DTOs.Shared.Migrations.MigrationResult>(400);
 
         // Get migration status for all branches
         group.MapGet("/branches/status", async (

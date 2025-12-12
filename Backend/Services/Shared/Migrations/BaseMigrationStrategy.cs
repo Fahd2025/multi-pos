@@ -1,6 +1,8 @@
 using Backend.Data.Branch;
 using Backend.Models.Entities.HeadOffice;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Backend.Services.Shared.Migrations;
 
@@ -43,6 +45,23 @@ public abstract class BaseMigrationStrategy : IMigrationStrategy
     {
         Logger.LogInformation("Applying migrations using EF Core MigrateAsync for provider {Provider}", Provider);
         await context.Database.MigrateAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Rollback to a specific migration using EF Core Migrator
+    /// </summary>
+    public virtual async Task RollbackToMigrationAsync(BranchDbContext context, string? targetMigration, CancellationToken cancellationToken)
+    {
+        Logger.LogInformation("Rolling back to migration {TargetMigration} for provider {Provider}", targetMigration ?? "(empty)", Provider);
+
+        var serviceProvider = context.GetInfrastructure();
+        var migrator = serviceProvider.GetService<Microsoft.EntityFrameworkCore.Migrations.IMigrator>();
+        if (migrator == null)
+        {
+            throw new InvalidOperationException("Could not get IMigrator service");
+        }
+
+        await migrator.MigrateAsync(targetMigration, cancellationToken);
     }
 
     // Provider-specific methods to be implemented by derived classes

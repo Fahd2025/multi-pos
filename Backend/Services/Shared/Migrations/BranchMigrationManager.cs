@@ -323,6 +323,197 @@ public class BranchMigrationManager : IBranchMigrationManager
         }
     }
 
+    public async Task<MigrationResult> RollbackLastMigrationAsync(
+        Guid branchId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var result = new MigrationResult();
+
+        try
+        {
+            // 1. Load branch
+            var branch = await _headOfficeContext.Branches
+                .FirstOrDefaultAsync(b => b.Id == branchId, cancellationToken);
+
+            if (branch == null)
+            {
+                result.ErrorMessage = "Branch not found";
+                return result;
+            }
+
+            _logger.LogInformation("Starting rollback process for branch {BranchCode} ({BranchId})", branch.Code, branchId);
+
+            // 2. Acquire distributed lock
+            if (!await AcquireMigrationLockAsync(branchId, cancellationToken))
+            {
+                result.ErrorMessage = "Migration operation already in progress for this branch";
+                _logger.LogWarning("Cannot acquire lock for branch {BranchCode}", branch.Code);
+                return result;
+            }
+
+            try
+            {
+                // 3. Get migration strategy for provider
+                var strategy = _strategyFactory.GetStrategy(branch.DatabaseProvider);
+                _logger.LogInformation("Using {StrategyType} for branch {BranchCode}", strategy.GetType().Name, branch.Code);
+
+                // 4. Create branch context
+                using var branchContext = _dbContextFactory.CreateBranchContext(branch);
+
+                // 5. Get applied migrations
+                var appliedMigrations = await strategy.GetAppliedMigrationsAsync(branchContext);
+
+                if (appliedMigrations.Count == 0)
+                {
+                    result.ErrorMessage = "No migrations to rollback";
+                    _logger.LogWarning("No migrations to rollback for branch {BranchCode}", branch.Code);
+                    return result;
+                }
+
+                // 6. Get the target migration (second to last, or null for complete rollback to empty)
+                string? targetMigration = appliedMigrations.Count > 1
+                    ? appliedMigrations[appliedMigrations.Count - 2]
+                    : null;
+
+                var migrationToRemove = appliedMigrations.Last();
+
+                _logger.LogInformation(
+                    "Rolling back migration {Migration} for branch {BranchCode}",
+                    migrationToRemove,
+                    branch.Code
+                );
+
+                // 7. Update state to InProgress
+                await UpdateMigrationStateAsync(
+                    branchId,
+                    MigrationStatus.InProgress,
+                    null,
+                    cancellationToken
+                );
+
+                // 8. Perform rollback using strategy
+                await strategy.RollbackToMigrationAsync(branchContext, targetMigration, cancellationToken);
+
+                // 9. Validate schema integrity
+                if (!await strategy.ValidateSchemaIntegrityAsync(branchContext))
+                {
+                    throw new InvalidOperationException("Schema integrity validation failed after rollback");
+                }
+
+                // 10. Get new last migration
+                var updatedAppliedMigrations = await strategy.GetAppliedMigrationsAsync(branchContext);
+                var lastMigration = updatedAppliedMigrations.LastOrDefault() ?? string.Empty;
+
+                // 11. Update state to Completed
+                await UpdateMigrationStateAsync(
+                    branchId,
+                    MigrationStatus.Completed,
+                    lastMigration,
+                    cancellationToken
+                );
+
+                result.Success = true;
+                result.AppliedMigrations = new List<string> { $"Rolled back: {migrationToRemove}" };
+                result.BranchesProcessed = 1;
+                result.BranchesSucceeded = 1;
+
+                _logger.LogInformation(
+                    "Successfully rolled back migration {Migration} for branch {BranchCode}",
+                    migrationToRemove,
+                    branch.Code
+                );
+            }
+            finally
+            {
+                // 12. Release lock
+                await ReleaseMigrationLockAsync(branchId, cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error rolling back migration for branch {BranchId}", branchId);
+
+            // Update state to Failed
+            await UpdateMigrationStateAsync(
+                branchId,
+                MigrationStatus.Failed,
+                null,
+                cancellationToken,
+                ex.Message
+            );
+
+            result.ErrorMessage = ex.Message;
+            result.BranchesProcessed = 1;
+            result.BranchesFailed = 1;
+        }
+        finally
+        {
+            stopwatch.Stop();
+            result.Duration = stopwatch.Elapsed;
+        }
+
+        return result;
+    }
+
+    public async Task<MigrationResult> RollbackAllBranchesAsync(
+        CancellationToken cancellationToken = default
+    )
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var result = new MigrationResult { Success = true };
+
+        _logger.LogInformation("Starting rollback process for all active branches");
+
+        var branches = await _headOfficeContext.Branches
+            .Where(b => b.IsActive)
+            .ToListAsync(cancellationToken);
+
+        _logger.LogInformation("Found {Count} active branches to rollback", branches.Count);
+
+        foreach (var branch in branches)
+        {
+            var branchResult = await RollbackLastMigrationAsync(branch.Id, cancellationToken);
+
+            result.BranchesProcessed++;
+
+            if (branchResult.Success)
+            {
+                result.BranchesSucceeded++;
+                result.AppliedMigrations.AddRange(
+                    branchResult.AppliedMigrations.Select(m => $"[{branch.Code}] {m}")
+                );
+            }
+            else
+            {
+                result.BranchesFailed++;
+                result.Success = false;
+
+                if (string.IsNullOrEmpty(result.ErrorMessage))
+                {
+                    result.ErrorMessage = $"Failed branches: {branch.Code}";
+                }
+                else
+                {
+                    result.ErrorMessage += $", {branch.Code}";
+                }
+            }
+        }
+
+        stopwatch.Stop();
+        result.Duration = stopwatch.Elapsed;
+
+        _logger.LogInformation(
+            "Completed rollback process for all branches: {Succeeded}/{Total} succeeded in {Duration}",
+            result.BranchesSucceeded,
+            result.BranchesProcessed,
+            result.Duration
+        );
+
+        return result;
+    }
+
     private async Task<BranchMigrationState> GetOrCreateMigrationStateAsync(
         Guid branchId,
         CancellationToken cancellationToken

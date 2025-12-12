@@ -39,6 +39,11 @@ public interface IMigrationStrategy
     Task ApplyMigrationsAsync(BranchDbContext context, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Rollback to a specific migration (null for complete rollback)
+    /// </summary>
+    Task RollbackToMigrationAsync(BranchDbContext context, string? targetMigration, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Validate that the database schema is correct and all required tables exist
     /// </summary>
     Task<bool> ValidateSchemaIntegrityAsync(BranchDbContext context);

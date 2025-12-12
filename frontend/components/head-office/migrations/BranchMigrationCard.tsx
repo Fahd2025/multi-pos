@@ -1,25 +1,55 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BranchMigrationStatus } from "@/types/migrations";
 import { MigrationStatusBadge } from "./MigrationStatusBadge";
+import { getPendingMigrations } from "@/lib/migrations";
 
 interface BranchMigrationCardProps {
   migration: BranchMigrationStatus;
+  isExpanded: boolean;
+  onToggleExpand: (branchId: string, isExpanded: boolean) => void;
   onApplyMigrations: (branchId: string) => void;
   onViewHistory: (branchId: string) => void;
   onViewPending: (branchId: string) => void;
   onValidate: (branchId: string) => void;
+  onRollback: (branchId: string) => void;
 }
 
 export function BranchMigrationCard({
   migration,
+  isExpanded,
+  onToggleExpand,
   onApplyMigrations,
   onViewHistory,
   onViewPending,
   onValidate,
+  onRollback,
 }: BranchMigrationCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [pendingCount, setPendingCount] = useState<number | null>(null);
+  const [isLoadingPending, setIsLoadingPending] = useState(false);
+
+  // Load pending count immediately on mount to determine button visibility
+  useEffect(() => {
+    loadPendingCount();
+  }, []);
+
+  const handleToggle = () => {
+    onToggleExpand(migration.branchId, !isExpanded);
+  };
+
+  const loadPendingCount = async () => {
+    setIsLoadingPending(true);
+    try {
+      const data = await getPendingMigrations(migration.branchId);
+      setPendingCount(data.count);
+    } catch (error) {
+      console.error("Failed to load pending migrations count:", error);
+      setPendingCount(0);
+    } finally {
+      setIsLoadingPending(false);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString("en-US", {
@@ -63,7 +93,7 @@ export function BranchMigrationCard({
           </div>
 
           <button
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={handleToggle}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
             <svg
@@ -124,36 +154,57 @@ export function BranchMigrationCard({
       {/* Expanded Details */}
       {isExpanded && (
         <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-900/50">
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => onApplyMigrations(migration.branchId)}
-              disabled={migration.isLocked || migration.status === "InProgress"}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors"
-            >
-              Apply Migrations
-            </button>
+          {isLoadingPending ? (
+            <div className="flex items-center justify-center py-4">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {pendingCount !== null && pendingCount > 0 && (
+                <button
+                  onClick={() => onApplyMigrations(migration.branchId)}
+                  disabled={migration.isLocked || migration.status === "InProgress"}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+                >
+                  Apply Migrations ({pendingCount})
+                </button>
+              )}
 
-            <button
-              onClick={() => onViewHistory(migration.branchId)}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm font-medium transition-colors"
-            >
-              View History
-            </button>
+              <button
+                onClick={() => onViewHistory(migration.branchId)}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm font-medium transition-colors"
+              >
+                View History
+              </button>
 
-            <button
-              onClick={() => onViewPending(migration.branchId)}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium transition-colors"
-            >
-              Pending Migrations
-            </button>
+              {pendingCount !== null && pendingCount > 0 && (
+                <button
+                  onClick={() => onViewPending(migration.branchId)}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium transition-colors"
+                >
+                  Pending Migrations ({pendingCount})
+                </button>
+              )}
 
-            <button
-              onClick={() => onValidate(migration.branchId)}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium transition-colors"
-            >
-              Validate Schema
-            </button>
-          </div>
+              <button
+                onClick={() => onValidate(migration.branchId)}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium transition-colors"
+              >
+                Validate Schema
+              </button>
+
+              {migration.lastMigrationApplied && (
+                <button
+                  onClick={() => onRollback(migration.branchId)}
+                  disabled={migration.isLocked || migration.status === "InProgress"}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+                  title="Rollback last migration"
+                >
+                  Undo Last Migration
+                </button>
+              )}
+            </div>
+          )}
 
           {migration.lockExpiresAt && (
             <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">

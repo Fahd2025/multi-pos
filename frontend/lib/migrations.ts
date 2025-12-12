@@ -32,9 +32,19 @@ function createHeaders(): HeadersInit {
 }
 /**
  * Apply migrations to a specific branch
+ * @param branchId - The branch ID
+ * @param targetMigration - Optional target migration name to apply up to (inclusive)
  */
-export async function applyBranchMigrations(branchId: string): Promise<MigrationResult> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/migrations/branches/${branchId}/apply`, {
+export async function applyBranchMigrations(
+  branchId: string,
+  targetMigration?: string
+): Promise<MigrationResult> {
+  const url = new URL(`${API_BASE_URL}/api/v1/migrations/branches/${branchId}/apply`);
+  if (targetMigration) {
+    url.searchParams.append("targetMigration", targetMigration);
+  }
+
+  const response = await fetch(url.toString(), {
     method: "POST",
     headers: createHeaders(),
   });
@@ -123,6 +133,40 @@ export async function getAllMigrationStatus(): Promise<BranchMigrationStatus[]> 
 
   if (!response.ok) {
     throw new Error("Failed to fetch migration status");
+  }
+
+  return response.json();
+}
+
+/**
+ * Rollback/undo the last applied migration for a specific branch
+ */
+export async function rollbackLastMigration(branchId: string): Promise<MigrationResult> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/migrations/branches/${branchId}/rollback`, {
+    method: "POST",
+    headers: createHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.errorMessage || "Failed to rollback migration");
+  }
+
+  return response.json();
+}
+
+/**
+ * Rollback/undo the last applied migration for all active branches
+ */
+export async function rollbackAllBranches(): Promise<MigrationResult> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/migrations/branches/rollback-all`, {
+    method: "POST",
+    headers: createHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.errorMessage || "Failed to rollback migrations for all branches");
   }
 
   return response.json();

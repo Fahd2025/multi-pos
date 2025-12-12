@@ -2,11 +2,23 @@
 
 import { useEffect, useState } from "react";
 import { BranchMigrationStatus } from "@/types/migrations";
-import { getAllMigrationStatus, validateBranchDatabase } from "@/lib/migrations";
+import {
+  getAllMigrationStatus,
+  validateBranchDatabase,
+  rollbackLastMigration,
+  rollbackAllBranches,
+  getPendingMigrations,
+} from "@/lib/migrations";
 import { BranchMigrationCard } from "@/components/head-office/migrations/BranchMigrationCard";
 import { MigrationHistoryModal } from "@/components/head-office/migrations/MigrationHistoryModal";
 import { ApplyMigrationsDialog } from "@/components/head-office/migrations/ApplyMigrationsDialog";
 import { PendingMigrationsModal } from "@/components/head-office/migrations/PendingMigrationsModal";
+import { MigrationsHeader } from "@/components/head-office/migrations/MigrationsHeader";
+import { MigrationsStats } from "@/components/head-office/migrations/MigrationsStats";
+import { MigrationsFilters } from "@/components/head-office/migrations/MigrationsFilters";
+import { ConfirmationDialog } from "@/components/shared/ConfirmationDialog";
+import { useToast } from "@/hooks/useToast";
+import { useConfirmation } from "@/hooks/useConfirmation";
 
 export default function MigrationsPage() {
   const [migrations, setMigrations] = useState<BranchMigrationStatus[]>([]);
@@ -15,6 +27,8 @@ export default function MigrationsPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [hasPendingMigrations, setHasPendingMigrations] = useState(false);
+  const [hasAppliedMigrations, setHasAppliedMigrations] = useState(false);
 
   // Modal states
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
@@ -25,6 +39,13 @@ export default function MigrationsPage() {
     name: string;
   } | null>(null);
   const [isApplyingToAll, setIsApplyingToAll] = useState(false);
+  const [isRollingBack, setIsRollingBack] = useState(false);
+  const [isRollingBackAll, setIsRollingBackAll] = useState(false);
+  const [expandedBranches, setExpandedBranches] = useState<Set<string>>(new Set());
+
+  const toast = useToast();
+  const rollbackConfirmation = useConfirmation<BranchMigrationStatus>();
+  const rollbackAllConfirmation = useConfirmation<null>();
 
   useEffect(() => {
     loadMigrations();
@@ -37,6 +58,13 @@ export default function MigrationsPage() {
     filterMigrations();
   }, [migrations, searchQuery, statusFilter]);
 
+  useEffect(() => {
+    // Check if any branch has pending migrations
+    checkPendingMigrations();
+    // Check if any branch has applied migrations that can be rolled back
+    checkAppliedMigrations();
+  }, [migrations]);
+
   const loadMigrations = async () => {
     try {
       const data = await getAllMigrationStatus();
@@ -44,9 +72,36 @@ export default function MigrationsPage() {
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load migration status");
+      toast.error("Load Failed", "Failed to load migration status");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const checkPendingMigrations = async () => {
+    try {
+      // Check if any branch has pending migrations by querying each
+      const pendingChecks = await Promise.all(
+        migrations.map(async (m) => {
+          try {
+            const pending = await getPendingMigrations(m.branchId);
+            return pending.count > 0;
+          } catch {
+            return false;
+          }
+        })
+      );
+      setHasPendingMigrations(pendingChecks.some((hasPending) => hasPending));
+    } catch (error) {
+      console.error("Failed to check pending migrations:", error);
+      setHasPendingMigrations(false);
+    }
+  };
+
+  const checkAppliedMigrations = () => {
+    // Check if any branch has applied migrations that can be rolled back
+    const hasApplied = migrations.some((m) => m.lastMigrationApplied && m.lastMigrationApplied !== "");
+    setHasAppliedMigrations(hasApplied);
   };
 
   const filterMigrations = () => {
@@ -106,18 +161,85 @@ export default function MigrationsPage() {
 
     try {
       const result = await validateBranchDatabase(branchId);
-      const message = result.isValid
-        ? `✓ Database schema for "${branch.branchName}" is valid`
-        : `✗ Database schema for "${branch.branchName}" has integrity issues`;
-
-      alert(message);
+      if (result.isValid) {
+        toast.success("Schema Valid", `Database schema for "${branch.branchName}" is valid`);
+      } else {
+        toast.error("Schema Invalid", `Database schema for "${branch.branchName}" has integrity issues`);
+      }
     } catch (err) {
-      alert(`Failed to validate: ${err instanceof Error ? err.message : "Unknown error"}`);
+      toast.error("Validation Failed", `Failed to validate: ${err instanceof Error ? err.message : "Unknown error"}`);
+    }
+  };
+
+  const handleRollback = (branchId: string) => {
+    const branch = migrations.find((m) => m.branchId === branchId);
+    if (!branch) return;
+
+    // Open confirmation dialog
+    rollbackConfirmation.open(branch);
+  };
+
+  const confirmRollback = async () => {
+    if (!rollbackConfirmation.data) return;
+
+    setIsRollingBack(true);
+    const branch = rollbackConfirmation.data;
+
+    try {
+      const result = await rollbackLastMigration(branch.branchId);
+      if (result.success) {
+        toast.success("Rollback Successful", `Successfully rolled back migration for "${branch.branchName}"`);
+        loadMigrations();
+        rollbackConfirmation.close();
+      } else {
+        toast.error("Rollback Failed", result.errorMessage || "Unknown error");
+      }
+    } catch (err) {
+      toast.error("Rollback Failed", err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setIsRollingBack(false);
+    }
+  };
+
+  const handleRollbackAll = () => {
+    // Open confirmation dialog
+    rollbackAllConfirmation.open(null);
+  };
+
+  const confirmRollbackAll = async () => {
+    setIsRollingBackAll(true);
+
+    try {
+      const result = await rollbackAllBranches();
+      if (result.success) {
+        toast.success("Rollback Successful", "Successfully rolled back migrations for all branches");
+        loadMigrations();
+        rollbackAllConfirmation.close();
+      } else {
+        toast.error("Rollback Failed", result.errorMessage || "Unknown error");
+      }
+    } catch (err) {
+      toast.error("Rollback Failed", err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setIsRollingBackAll(false);
     }
   };
 
   const handleMigrationSuccess = () => {
     loadMigrations();
+    toast.success("Migration Success", "Migrations applied successfully");
+  };
+
+  const handleToggleExpand = (branchId: string, isExpanded: boolean) => {
+    setExpandedBranches((prev) => {
+      const next = new Set(prev);
+      if (isExpanded) {
+        next.add(branchId);
+      } else {
+        next.delete(branchId);
+      }
+      return next;
+    });
   };
 
   const getStatusCounts = () => {
@@ -139,88 +261,25 @@ export default function MigrationsPage() {
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto pb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Branch Migrations
-              </h1>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Manage database migrations across all branches
-              </p>
-            </div>
-            <button
-              onClick={handleApplyToAll}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              Apply to All Branches
-            </button>
-          </div>
+          <MigrationsHeader
+            onApplyToAll={handleApplyToAll}
+            onRollbackAll={handleRollbackAll}
+            hasPendingMigrations={hasPendingMigrations}
+            hasAppliedMigrations={hasAppliedMigrations}
+          />
 
           {/* Stats */}
-          <div className="mt-6 grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total Branches</p>
-              <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
-                {stats.total}
-              </p>
-            </div>
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
-              <p className="text-sm text-green-600 dark:text-green-400">Completed</p>
-              <p className="mt-1 text-2xl font-semibold text-green-900 dark:text-green-300">
-                {stats.completed}
-              </p>
-            </div>
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4">
-              <p className="text-sm text-yellow-600 dark:text-yellow-400">Pending</p>
-              <p className="mt-1 text-2xl font-semibold text-yellow-900 dark:text-yellow-300">
-                {stats.pending}
-              </p>
-            </div>
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-              <p className="text-sm text-blue-600 dark:text-blue-400">In Progress</p>
-              <p className="mt-1 text-2xl font-semibold text-blue-900 dark:text-blue-300">
-                {stats.inProgress}
-              </p>
-            </div>
-            <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
-              <p className="text-sm text-red-600 dark:text-red-400">Failed</p>
-              <p className="mt-1 text-2xl font-semibold text-red-900 dark:text-red-300">
-                {stats.failed}
-              </p>
-            </div>
-          </div>
+          <MigrationsStats stats={stats} />
 
           {/* Filters */}
-          <div className="mt-6 flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <input
-                type="text"
-                placeholder="Search branches..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">All Status</option>
-              <option value="Completed">Completed</option>
-              <option value="Pending">Pending</option>
-              <option value="InProgress">In Progress</option>
-              <option value="Failed">Failed</option>
-              <option value="RequiresManualIntervention">Manual Action Required</option>
-            </select>
-            <button
-              onClick={loadMigrations}
-              disabled={isLoading}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium disabled:opacity-50"
-            >
-              {isLoading ? "Loading..." : "Refresh"}
-            </button>
-          </div>
+          <MigrationsFilters
+            searchQuery={searchQuery}
+            statusFilter={statusFilter}
+            isLoading={isLoading}
+            onSearchChange={setSearchQuery}
+            onStatusFilterChange={setStatusFilter}
+            onRefresh={loadMigrations}
+          />
         </div>
       </div>
 
@@ -268,12 +327,15 @@ export default function MigrationsPage() {
           <div className="grid gap-4">
             {filteredMigrations.map((migration) => (
               <BranchMigrationCard
-                key={migration.branchId}
+                key={`${migration.branchId}-${migration.lastMigrationApplied}-${migration.lastAttemptAt}`}
                 migration={migration}
+                isExpanded={expandedBranches.has(migration.branchId)}
+                onToggleExpand={handleToggleExpand}
                 onApplyMigrations={handleApplyMigrations}
                 onViewHistory={handleViewHistory}
                 onViewPending={handleViewPending}
                 onValidate={handleValidate}
+                onRollback={handleRollback}
               />
             ))}
           </div>
@@ -307,6 +369,32 @@ export default function MigrationsPage() {
         branchName={selectedBranch?.name}
         isAllBranches={isApplyingToAll}
         branches={migrations.map((m) => ({ id: m.branchId, name: m.branchName }))}
+      />
+
+      {/* Rollback Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={rollbackConfirmation.isOpen}
+        onClose={rollbackConfirmation.close}
+        title="Rollback Migration"
+        message={`Are you sure you want to rollback the last migration for "${rollbackConfirmation.data?.branchName}"? This action cannot be undone.`}
+        variant="danger"
+        confirmLabel="Rollback"
+        cancelLabel="Cancel"
+        onConfirm={confirmRollback}
+        isProcessing={isRollingBack}
+      />
+
+      {/* Rollback All Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={rollbackAllConfirmation.isOpen}
+        onClose={rollbackAllConfirmation.close}
+        title="Rollback All Branches"
+        message="Are you sure you want to rollback the last migration for ALL active branches? This action cannot be undone and will affect all branches simultaneously."
+        variant="danger"
+        confirmLabel="Rollback All"
+        cancelLabel="Cancel"
+        onConfirm={confirmRollbackAll}
+        isProcessing={isRollingBackAll}
       />
     </div>
   );
