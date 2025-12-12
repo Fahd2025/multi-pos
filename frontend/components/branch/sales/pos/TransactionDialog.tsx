@@ -14,7 +14,12 @@ import {
 import styles from "./Pos2.module.css";
 import { ProductDto } from "@/types/api.types";
 import salesService from "@/services/sales.service";
+import invoiceTemplateService from "@/services/invoice-template.service";
+import branchInfoService from "@/services/branch-info.service";
+import { InvoiceSchema } from "@/types/invoice-template.types";
 import { useToast } from "../../../../hooks/useToast";
+import { renderInvoiceToHtml } from "@/lib/invoice-renderer";
+import { transformSaleToInvoiceData } from "@/lib/invoice-data-transformer";
 
 interface OrderItem extends ProductDto {
   quantity: number;
@@ -26,6 +31,38 @@ interface TransactionDialogProps {
   cart: OrderItem[];
   subtotal: number;
   onSuccess: () => void;
+}
+
+interface InvoiceData {
+  branchName?: string;
+  branchNameAr?: string;
+  logoUrl?: string;
+  vatNumber?: string;
+  commercialRegNumber?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  invoiceNumber: string;
+  invoiceDate: string;
+  cashierName?: string;
+  customerName?: string;
+  customerVatNumber?: string;
+  customerPhone?: string;
+  isSimplified: boolean;
+  items: Array<{
+    name: string;
+    barcode?: string;
+    unit?: string;
+    quantity: number;
+    unitPrice: number;
+    lineTotal: number;
+    notes?: string;
+  }>;
+  subtotal: number;
+  discount: number;
+  vatAmount: number;
+  total: number;
+  zatcaQrCode?: string;
 }
 
 interface CustomerDetails {
@@ -137,12 +174,19 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
     setError(null);
 
     try {
-      // Map order type to invoice type
-      const invoiceTypeMap: Record<OrderType, number> = {
-        delivery: 2,
-        "dine-in": 0,
-        takeaway: 1,
-      };
+      // Determine invoice type based on customer details
+      // Touch (0) = Simplified invoice (no customer details)
+      // Standard (1) = Formal invoice (with customer details)
+      let invoiceType = 0; // Default to Touch/Simplified
+
+      if (orderType === "delivery" && customer.name) {
+        // Delivery with customer details = Standard invoice
+        invoiceType = 1;
+      } else if (customer.name && customer.phone) {
+        // Any order with customer details = Standard invoice
+        invoiceType = 1;
+      }
+      // Otherwise: Touch/Simplified (0)
 
       // Map payment method to enum
       const paymentMethodMap: Record<PaymentMethod, number> = {
@@ -168,7 +212,7 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
 
       // Create sale DTO
       const saleData = {
-        invoiceType: invoiceTypeMap[orderType],
+        invoiceType: invoiceType,
         paymentMethod: paymentMethodMap[paymentMethod],
         lineItems: cart.map((item) => ({
           productId: item.id,
@@ -200,7 +244,88 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
         7000 // Show for 7 seconds
       );
 
-      // Reset form and close
+      // Automatically prepare and print invoice using active template
+      try {
+        console.log("Starting invoice preparation...");
+        // Load active template
+        const template = await invoiceTemplateService.getActiveTemplate();
+        console.log("Active template loaded:", template?.name);
+
+        if (!template) {
+          console.warn("No active template found");
+          toast.warning(
+            "No invoice template",
+            "Transaction completed but no active invoice template found. Please activate a template in Settings.",
+            6000
+          );
+        } else {
+          // Parse schema
+          const parsedSchema = JSON.parse(template.schema) as InvoiceSchema;
+          console.log("Schema parsed successfully");
+
+          // Load branch info
+          const branchInfo = await branchInfoService.getBranchInfo();
+          console.log("Branch info loaded:", branchInfo?.nameEn);
+
+          // Transform sale data to invoice data format using shared utility
+          const transformedData = transformSaleToInvoiceData(sale, branchInfo);
+
+          console.log("Generating invoice HTML...");
+          // Generate HTML from template and data
+          const invoiceHtml = renderInvoiceToHtml(parsedSchema, transformedData);
+          console.log("Invoice HTML generated, opening print window...");
+
+          // Open print window and write invoice HTML
+          const printWindow = window.open("", "_blank");
+          if (printWindow) {
+            printWindow.document.write(invoiceHtml);
+            printWindow.document.close();
+            printWindow.focus();
+
+            // Wait for content to load then print
+            printWindow.onload = () => {
+              console.log("Print window loaded, triggering print...");
+              printWindow.print();
+              console.log("Print dialog opened");
+
+              // Auto-close window after printing or when print dialog is closed
+              // Use a combination of onafterprint and blur events
+              printWindow.onafterprint = () => {
+                console.log("Print completed or cancelled, closing window...");
+                setTimeout(() => {
+                  printWindow.close();
+                }, 100);
+              };
+
+              // Fallback: close on window blur (when user closes print dialog)
+              printWindow.onblur = () => {
+                setTimeout(() => {
+                  if (!printWindow.closed) {
+                    printWindow.close();
+                  }
+                }, 500);
+              };
+            };
+          } else {
+            console.error("Failed to open print window - popup may be blocked");
+            toast.warning(
+              "Popup blocked",
+              "Please allow popups for this site to enable invoice printing.",
+              5000
+            );
+          }
+        }
+      } catch (printError: any) {
+        console.error("Failed to prepare invoice:", printError);
+        // Show warning but don't fail the transaction
+        toast.warning(
+          "Print preparation failed",
+          "Transaction completed but failed to prepare invoice. You can print it from the sales list.",
+          5000
+        );
+      }
+
+      // Reset form and close transaction dialog
       onSuccess();
       onClose();
 
@@ -225,7 +350,8 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className={styles.dialogBackdrop} onClick={onClose}>
+    <>
+      <div className={styles.dialogBackdrop} onClick={onClose}>
       <div className={styles.dialogContainer} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className={styles.dialogHeader}>
@@ -521,5 +647,6 @@ export const TransactionDialog: React.FC<TransactionDialogProps> = ({
         </div>
       </div>
     </div>
+    </>
   );
 };
