@@ -116,6 +116,7 @@ public class Branch
     public Guid CreatedBy { get; set; }
 
     // Navigation properties
+    [Obsolete("Use BranchUsers instead")]
     public ICollection<UserAssignment> UserAssignments { get; set; } = new List<UserAssignment>();
 }
 

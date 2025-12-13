@@ -66,6 +66,7 @@ public class SyncService : ISyncService
     public async Task<Sale> ProcessOfflineSaleAsync(
         CreateSaleDto saleData,
         string userId,
+        string branchId,
         DateTime clientTimestamp
     )
     {
@@ -74,25 +75,38 @@ public class SyncService : ISyncService
             throw new InvalidOperationException("Invalid user ID");
         }
 
-        // Get user's branch context
-        var user = await _headOfficeContext.Users.Include(u => u.UserAssignments)
-            .ThenInclude(bu => bu.Branch)
-            .FirstOrDefaultAsync(u => u.Id == cashierId);
-
-        if (user == null)
+        if (!Guid.TryParse(branchId, out var branchGuid))
         {
-            throw new InvalidOperationException("User not found");
+            throw new InvalidOperationException("Invalid branch ID");
         }
 
-        var branchUser = user.UserAssignments.FirstOrDefault(bu => bu.IsActive);
-        if (branchUser == null || branchUser.Branch == null)
+        // Validate branch existence
+        var branch = await _headOfficeContext.Branches.FindAsync(branchGuid);
+        if (branch == null)
         {
-            throw new InvalidOperationException("User has no active branch assignment");
+            throw new InvalidOperationException("Branch not found");
         }
 
-        var branchName = branchUser.Branch.Code;
+        // Validate user matches the branch
+        // Check BranchUser first
+        var isBranchUser = await _headOfficeContext.BranchUsers.AnyAsync(bu =>
+            bu.Id == cashierId && bu.BranchId == branchGuid && bu.IsActive);
 
-        using var context = _dbContextFactory.CreateBranchContext(branchUser.Branch);
+        if (!isBranchUser)
+        {
+            // Check if it's a Head Office Admin
+            var isHeadOfficeAdmin = await _headOfficeContext.Users.AnyAsync(u =>
+                u.Id == cashierId && u.IsHeadOfficeAdmin && u.IsActive);
+
+            if (!isHeadOfficeAdmin)
+            {
+                throw new InvalidOperationException("User not found or not authorized for this branch");
+            }
+        }
+
+        var branchName = branch.Code;
+
+        using var context = _dbContextFactory.CreateBranchContext(branch);
 
         // Validate products and check inventory
         var productIds = saleData.LineItems.Select(li => li.ProductId).ToList();
@@ -123,7 +137,7 @@ public class SyncService : ISyncService
             .FirstOrDefaultAsync();
         decimal taxRate = taxRateSetting != null
             ? decimal.Parse(taxRateSetting.Value ?? "0")
-            : branchUser.Branch.TaxRate;
+            : branch.TaxRate;
 
         // Create sale entity with client timestamp
         var sale = new Sale
@@ -146,7 +160,7 @@ public class SyncService : ISyncService
         {
             sale.InvoiceNumber = await Utilities.InvoiceNumberGenerator.GenerateInvoiceNumberAsync(
                 context,
-                branchUser.Branch.Code
+                branch.Code
             );
         }
 
@@ -286,7 +300,7 @@ public class SyncService : ISyncService
             throw new InvalidOperationException("Failed to deserialize sale data");
         }
 
-        var sale = await ProcessOfflineSaleAsync(saleData, userId, clientTimestamp);
+        var sale = await ProcessOfflineSaleAsync(saleData, userId, branchId, clientTimestamp);
         return sale.Id.ToString();
     }
 

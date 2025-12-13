@@ -38,6 +38,7 @@ public interface ISyncService
     Task<Sale> ProcessOfflineSaleAsync(
         CreateSaleDto saleData,
         string userId,
+        string branchId,
         DateTime clientTimestamp
     );
 

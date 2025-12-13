@@ -3,39 +3,74 @@ using System.ComponentModel.DataAnnotations;
 namespace Backend.Models.Entities.HeadOffice;
 
 /// <summary>
-/// UserAssignment - Links central HeadOffice users to branches
-/// This is different from Branch.User which represents branch-specific local users
+/// BranchUser - Branch-specific users stored in head office database
+/// This is the primary source of truth for branch user authentication
+/// Syncs bidirectionally with Branch.User in each branch database
 /// </summary>
-public class UserAssignment
+public class BranchUser
 {
     [Key]
     public Guid Id { get; set; }
 
     [Required]
-    public Guid UserId { get; set; }
-
-    [Required]
     public Guid BranchId { get; set; }
 
     [Required]
-    public UserRole Role { get; set; }
+    [MaxLength(100)]
+    public string Username { get; set; } = string.Empty;
+
+    [Required]
+    [MaxLength(500)]
+    public string PasswordHash { get; set; } = string.Empty;
+
+    [Required]
+    [MaxLength(255)]
+    public string Email { get; set; } = string.Empty;
+
+    [Required]
+    [MaxLength(200)]
+    public string FullNameEn { get; set; } = string.Empty;
+
+    [MaxLength(200)]
+    public string? FullNameAr { get; set; }
+
+    [MaxLength(50)]
+    public string? Phone { get; set; }
+
+    [Required]
+    [MaxLength(10)]
+    public string PreferredLanguage { get; set; } = "en"; // en, ar
+
+    /// <summary>
+    /// User role within this branch: Manager, Cashier
+    /// </summary>
+    [Required]
+    [MaxLength(50)]
+    public string Role { get; set; } = "Cashier";
 
     [Required]
     public bool IsActive { get; set; } = true;
 
-    [Required]
-    public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? LastLoginAt { get; set; }
 
-    public Guid AssignedBy { get; set; }
+    public DateTime? LastActivityAt { get; set; }
+
+    [Required]
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    [Required]
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Last time this record was synced with branch database
+    /// </summary>
+    public DateTime? SyncedAt { get; set; }
+
+    /// <summary>
+    /// User who created this branch user
+    /// </summary>
+    public Guid CreatedBy { get; set; }
 
     // Navigation properties
-    public User User { get; set; } = null!;
     public Branch Branch { get; set; } = null!;
-}
-
-public enum UserRole
-{
-    Cashier = 0,
-    Manager = 1,
-    Admin = 2,
 }

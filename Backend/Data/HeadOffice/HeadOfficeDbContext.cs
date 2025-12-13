@@ -11,6 +11,8 @@ public class HeadOfficeDbContext : DbContext
 
     public DbSet<BranchEntity> Branches { get; set; }
     public DbSet<User> Users { get; set; }
+    public DbSet<BranchUser> BranchUsers { get; set; }
+    [Obsolete("Use BranchUsers instead")]
     public DbSet<UserAssignment> UserAssignments { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<MainSetting> MainSettings { get; set; }
@@ -42,7 +44,23 @@ public class HeadOfficeDbContext : DbContext
             entity.Property(e => e.PasswordHash).IsRequired();
         });
 
-        // UserAssignment configuration
+        // BranchUser configuration
+        modelBuilder.Entity<BranchUser>(entity =>
+        {
+            entity.HasIndex(e => e.BranchId);
+            entity.HasIndex(e => e.Username);
+            entity.HasIndex(e => new { e.BranchId, e.Username }).IsUnique();
+            entity.HasIndex(e => e.Email);
+            entity.HasIndex(e => e.IsActive);
+
+            entity
+                .HasOne(e => e.Branch)
+                .WithMany()
+                .HasForeignKey(e => e.BranchId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // UserAssignment configuration (DEPRECATED - kept for backward compatibility)
         modelBuilder.Entity<UserAssignment>(entity =>
         {
             entity.HasIndex(e => e.UserId);

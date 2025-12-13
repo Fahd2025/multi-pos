@@ -69,31 +69,24 @@ public class BranchService : IBranchService
             .OrderBy(b => b.Code)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Include(b => b.UserAssignments)
             .ToListAsync();
 
         var branches = new List<BranchDto>();
         foreach (var branch in branchList)
         {
-            // Calculate total user count: head office users + branch database users
+            // Calculate user count from BranchUsers table in head office
             int userCount = 0;
 
-            // Count head office users assigned to this branch
-            int headOfficeUserCount = branch.UserAssignments.Count(bu => bu.IsActive);
-
-            // Count branch database users
-            int branchUserCount = 0;
+            // Count BranchUsers in head office database
             try
             {
-                var branchContext = _dbContextFactory.CreateBranchContext(branch);
-                branchUserCount = await branchContext.Users.CountAsync(bu => bu.IsActive);
+                userCount = await _headOfficeContext.BranchUsers
+                    .CountAsync(bu => bu.BranchId == branch.Id && bu.IsActive);
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Failed to get branch user count for branch {BranchId}", branch.Id);
             }
-
-            userCount = headOfficeUserCount + branchUserCount;
 
             branches.Add(new BranchDto
             {
@@ -153,33 +146,24 @@ public class BranchService : IBranchService
     public async Task<BranchDto?> GetBranchByIdAsync(Guid id)
     {
         var branch = await _headOfficeContext
-            .Branches.Include(b => b.UserAssignments)
-            .FirstOrDefaultAsync(b => b.Id == id);
+            .Branches.FirstOrDefaultAsync(b => b.Id == id);
 
         if (branch == null)
         {
             return null;
         }
 
-        // Calculate total user count: head office users + branch database users
+        // Calculate user count from BranchUsers table in head office
         int userCount = 0;
-
-        // Count head office users assigned to this branch
-        int headOfficeUserCount = branch.UserAssignments.Count(bu => bu.IsActive);
-
-        // Count branch database users
-        int branchUserCount = 0;
         try
         {
-            var branchContext = _dbContextFactory.CreateBranchContext(branch);
-            branchUserCount = await branchContext.Users.CountAsync(bu => bu.IsActive);
+            userCount = await _headOfficeContext.BranchUsers
+                .CountAsync(bu => bu.BranchId == id && bu.IsActive);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to get branch user count for branch {BranchId}", id);
         }
-
-        userCount = headOfficeUserCount + branchUserCount;
 
         return new BranchDto
         {
@@ -544,7 +528,7 @@ public class BranchService : IBranchService
         }
 
         var userCount = await _headOfficeContext
-            .UserAssignments.Where(bu => bu.BranchId == id && bu.IsActive)
+            .BranchUsers.Where(bu => bu.BranchId == id && bu.IsActive)
             .CountAsync();
 
         return new BranchDto
@@ -916,77 +900,99 @@ public class BranchService : IBranchService
 
     private async Task CreateDefaultBranchAdminAsync(Models.Entities.HeadOffice.Branch branch)
     {
-        // Check if an "admin" user already exists
-        var existingAdminUser = await _headOfficeContext.Users.FirstOrDefaultAsync(u =>
-            u.Username == "admin"
+        _logger.LogInformation(
+            "Creating default admin user for branch {BranchCode}",
+            branch.Code
         );
 
-        HeadOfficeUser user;
-        if (existingAdminUser != null)
+        // Check if admin user already exists for this branch
+        var existingBranchUser = await _headOfficeContext.BranchUsers
+            .FirstOrDefaultAsync(bu => bu.BranchId == branch.Id && bu.Username == "admin");
+
+        if (existingBranchUser != null)
         {
-            // Use existing admin user
-            user = existingAdminUser;
-
-            // Check if admin is already assigned to this branch
-            var existingAssignment = await _headOfficeContext.UserAssignments.AnyAsync(bu =>
-                bu.UserId == user.Id && bu.BranchId == branch.Id
-            );
-
-            if (existingAssignment)
-            {
-                _logger.LogInformation(
-                    "Admin user already assigned to branch {BranchCode}",
-                    branch.Code
-                );
-                return;
-            }
-
             _logger.LogInformation(
-                "Assigning existing admin user to branch {BranchCode}",
+                "Admin user already exists for branch {BranchCode}",
                 branch.Code
             );
-        }
-        else
-        {
-            // Create new admin user
-            _logger.LogInformation("Creating admin user for branch {BranchCode}", branch.Code);
-
-            user = new HeadOfficeUser
-            {
-                Id = Guid.NewGuid(),
-                Username = "admin",
-                PasswordHash = Utilities.PasswordHasher.HashPassword("123"),
-                FullNameEn = "Administrator",
-                FullNameAr = "مدير النظام",
-                Email = branch.Email ?? "admin@pos.local",
-                Phone = branch.Phone,
-                IsActive = true,
-                IsHeadOfficeAdmin = false, // Branch admin, not head office admin
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-            };
-
-            _headOfficeContext.Users.Add(user);
-            await _headOfficeContext.SaveChangesAsync(); // Save to get the user ID
+            return;
         }
 
-        // Create branch user assignment with Manager role (highest branch-level role)
-        var branchUser = new UserAssignment
+        // Generate a single GUID for the user (used in both databases)
+        var userId = Guid.NewGuid();
+        var passwordHash = Utilities.PasswordHasher.HashPassword("123");
+        var now = DateTime.UtcNow;
+
+        // Create BranchUser in head office database (PRIMARY)
+        var branchUser = new BranchUser
         {
-            Id = Guid.NewGuid(),
-            UserId = user.Id,
+            Id = userId,
             BranchId = branch.Id,
-            Role = UserRole.Manager, // Manager is the highest branch-level role
+            Username = "admin",
+            PasswordHash = passwordHash,
+            Email = branch.Email ?? "admin@pos.local",
+            FullNameEn = "Administrator",
+            FullNameAr = "مدير النظام",
+            Phone = branch.Phone,
+            PreferredLanguage = branch.Language,
+            Role = "Manager", // Manager is the highest branch-level role
             IsActive = true,
-            AssignedAt = DateTime.UtcNow,
-            AssignedBy = branch.CreatedBy,
+            CreatedAt = now,
+            UpdatedAt = now,
+            CreatedBy = branch.CreatedBy,
+            SyncedAt = now,
         };
 
-        _headOfficeContext.UserAssignments.Add(branchUser);
+        _headOfficeContext.BranchUsers.Add(branchUser);
         await _headOfficeContext.SaveChangesAsync();
 
         _logger.LogInformation(
-            "Admin user assigned to branch {BranchCode} with Manager role",
+            "Created BranchUser in head office for branch {BranchCode}",
+            branch.Code
+        );
+
+        // Create User in branch database (SECONDARY - synchronized)
+        try
+        {
+            var branchContext = _dbContextFactory.CreateBranchContext(branch);
+            
+            var branchDbUser = new Backend.Models.Entities.Branch.User
+            {
+                Id = userId, // Same ID for tracking
+                Username = "admin",
+                PasswordHash = passwordHash,
+                Email = branch.Email ?? "admin@pos.local",
+                FullNameEn = "Administrator",
+                FullNameAr = "مدير النظام",
+                Phone = branch.Phone,
+                PreferredLanguage = branch.Language,
+                Role = "Manager",
+                IsActive = true,
+                CreatedAt = now,
+                UpdatedAt = now,
+                CreatedBy = branch.CreatedBy,
+            };
+
+            branchContext.Users.Add(branchDbUser);
+            await branchContext.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Created User in branch database for branch {BranchCode}",
+                branch.Code
+            );
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to create admin user in branch database for {BranchCode}. User exists in head office but not in branch DB.",
+                branch.Code
+            );
+            // Don't throw - head office user is created, branch can be synced later
+        }
+
+        _logger.LogInformation(
+            "Successfully created default admin user (admin/123) for branch {BranchCode}",
             branch.Code
         );
     }

@@ -106,47 +106,6 @@ public static class HeadOfficeDbSeeder
             await context.SaveChangesAsync();
 
             Console.WriteLine("✓ Default branches created (B001, B002, B003)");
-
-            // Assign admin user to all branches
-            var adminUser = await context.Users.FirstAsync(u => u.Username == "admin");
-
-            var branchUser1 = new UserAssignment
-            {
-                Id = Guid.NewGuid(),
-                UserId = adminUser.Id,
-                BranchId = branch1.Id,
-                Role = UserRole.Manager,
-                IsActive = true,
-                AssignedAt = DateTime.UtcNow,
-                AssignedBy = adminUser.Id,
-            };
-
-            var branchUser2 = new UserAssignment
-            {
-                Id = Guid.NewGuid(),
-                UserId = adminUser.Id,
-                BranchId = branch2.Id,
-                Role = UserRole.Manager,
-                IsActive = true,
-                AssignedAt = DateTime.UtcNow,
-                AssignedBy = adminUser.Id,
-            };
-
-            var branchUser3 = new UserAssignment
-            {
-                Id = Guid.NewGuid(),
-                UserId = adminUser.Id,
-                BranchId = branch3.Id,
-                Role = UserRole.Manager,
-                IsActive = true,
-                AssignedAt = DateTime.UtcNow,
-                AssignedBy = adminUser.Id,
-            };
-
-            context.UserAssignments.AddRange(branchUser1, branchUser2, branchUser3);
-            await context.SaveChangesAsync();
-
-            Console.WriteLine("✓ Admin user assigned to all branches");
         }
 
         // Seed technical password setting

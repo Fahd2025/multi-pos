@@ -27,10 +27,7 @@ public class UserService : IUserService
         int page = 1,
         int pageSize = 50)
     {
-        var query = _context.Users
-            .Include(u => u.UserAssignments)
-            .ThenInclude(bu => bu.Branch)
-            .AsQueryable();
+        var query = _context.Users.AsQueryable();
 
         // Filter by active status
         if (!includeInactive)
@@ -38,17 +35,9 @@ public class UserService : IUserService
             query = query.Where(u => u.IsActive);
         }
 
-        // Filter by branch
-        if (branchId.HasValue)
-        {
-            query = query.Where(u => u.UserAssignments.Any(bu => bu.BranchId == branchId.Value && bu.IsActive));
-        }
-
-        // Filter by role
-        if (role.HasValue)
-        {
-            query = query.Where(u => u.UserAssignments.Any(bu => bu.Role == role.Value && bu.IsActive));
-        }
+        // BranchId filter is no longer relevant for HeadOffice users via UserAssignments.
+        // If we want to filter users who are admins of a branch, we can't do it easily
+        // since UserAssignments is removed. Ignoring branchId if passed.
 
         // Search by username, email, or full name
         if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -79,10 +68,7 @@ public class UserService : IUserService
 
     public async Task<UserDto?> GetUserByIdAsync(Guid userId)
     {
-        var user = await _context.Users
-            .Include(u => u.UserAssignments)
-            .ThenInclude(bu => bu.Branch)
-            .FirstOrDefaultAsync(u => u.Id == userId);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
         return user != null ? MapToDto(user) : null;
     }
@@ -119,40 +105,8 @@ public class UserService : IUserService
         };
 
         _context.Users.Add(user);
-
-        // Add branch assignments if provided
-        foreach (var assignment in createDto.BranchAssignments)
-        {
-            // Validate branch exists
-            var branchExists = await _context.Branches.AnyAsync(b => b.Id == assignment.BranchId);
-            if (!branchExists)
-            {
-                throw new InvalidOperationException($"Branch with ID '{assignment.BranchId}' does not exist");
-            }
-
-            // Parse role
-            if (!Enum.TryParse<UserRole>(assignment.Role, true, out var parsedRole))
-            {
-                throw new InvalidOperationException($"Invalid role: '{assignment.Role}'");
-            }
-
-            var branchUser = new UserAssignment
-            {
-                Id = Guid.NewGuid(),
-                UserId = user.Id,
-                BranchId = assignment.BranchId,
-                Role = parsedRole,
-                IsActive = true,
-                AssignedAt = DateTime.UtcNow,
-                AssignedBy = createdByUserId
-            };
-
-            _context.UserAssignments.Add(branchUser);
-        }
-
         await _context.SaveChangesAsync();
 
-        // Reload user with branch assignments
         return (await GetUserByIdAsync(user.Id))!;
     }
 
@@ -216,16 +170,6 @@ public class UserService : IUserService
         user.IsActive = false;
         user.UpdatedAt = DateTime.UtcNow;
 
-        // Deactivate all branch assignments
-        var branchUsers = await _context.UserAssignments
-            .Where(bu => bu.UserId == userId)
-            .ToListAsync();
-
-        foreach (var branchUser in branchUsers)
-        {
-            branchUser.IsActive = false;
-        }
-
         await _context.SaveChangesAsync();
     }
 
@@ -234,72 +178,17 @@ public class UserService : IUserService
         await DeleteUserAsync(userId, deactivatedByUserId);
     }
 
-    public async Task AssignBranchAsync(Guid userId, AssignBranchDto assignDto, Guid assignedByUserId)
+    public Task AssignBranchAsync(Guid userId, AssignBranchDto assignDto, Guid assignedByUserId)
     {
-        // Validate user exists
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null)
-        {
-            throw new InvalidOperationException($"User with ID '{userId}' not found");
-        }
-
-        // Validate branch exists
-        var branch = await _context.Branches.FindAsync(assignDto.BranchId);
-        if (branch == null)
-        {
-            throw new InvalidOperationException($"Branch with ID '{assignDto.BranchId}' not found");
-        }
-
-        // Parse role
-        if (!Enum.TryParse<UserRole>(assignDto.Role, true, out var parsedRole))
-        {
-            throw new InvalidOperationException($"Invalid role: '{assignDto.Role}'");
-        }
-
-        // Check if assignment already exists
-        var existingAssignment = await _context.UserAssignments
-            .FirstOrDefaultAsync(bu => bu.UserId == userId && bu.BranchId == assignDto.BranchId);
-
-        if (existingAssignment != null)
-        {
-            // Update existing assignment
-            existingAssignment.Role = parsedRole;
-            existingAssignment.IsActive = true;
-        }
-        else
-        {
-            // Create new assignment
-            var branchUser = new UserAssignment
-            {
-                Id = Guid.NewGuid(),
-                UserId = userId,
-                BranchId = assignDto.BranchId,
-                Role = parsedRole,
-                IsActive = true,
-                AssignedAt = DateTime.UtcNow,
-                AssignedBy = assignedByUserId
-            };
-
-            _context.UserAssignments.Add(branchUser);
-        }
-
-        await _context.SaveChangesAsync();
+        // Deprecated - No specific implementation since UserAssignment table is removed
+        // Throw exception to indicate this feature is no longer supported
+        return Task.FromException(new NotSupportedException("Assigning branches to Head Office users is deprecated. Use Branch User management instead."));
     }
 
-    public async Task RemoveBranchAssignmentAsync(Guid userId, Guid branchId, Guid removedByUserId)
+    public Task RemoveBranchAssignmentAsync(Guid userId, Guid branchId, Guid removedByUserId)
     {
-        var branchUser = await _context.UserAssignments
-            .FirstOrDefaultAsync(bu => bu.UserId == userId && bu.BranchId == branchId);
-
-        if (branchUser == null)
-        {
-            throw new InvalidOperationException($"Branch assignment not found for user '{userId}' and branch '{branchId}'");
-        }
-
-        // Soft delete - deactivate assignment
-        branchUser.IsActive = false;
-
-        await _context.SaveChangesAsync();
+        // Deprecated - No specific implementation since UserAssignment table is removed
+        return Task.FromException(new NotSupportedException("Branch assignments are deprecated."));
     }
 
     public async Task<List<UserActivityDto>> GetUserActivityAsync(Guid userId, int limit = 100)
@@ -343,22 +232,8 @@ public class UserService : IUserService
             LastActivityAt = user.LastActivityAt,
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt,
-            AssignedBranchIds = user.UserAssignments
-                .Where(bu => bu.IsActive)
-                .Select(bu => bu.BranchId)
-                .ToList(),
-            AssignedBranches = user.UserAssignments
-                .Where(bu => bu.IsActive)
-                .Select(bu => new UserBranchDto
-                {
-                    BranchId = bu.BranchId,
-                    BranchCode = bu.Branch.Code,
-                    BranchNameEn = bu.Branch.NameEn,
-                    BranchNameAr = bu.Branch.NameAr,
-                    Role = bu.Role.ToString(),
-                    AssignedAt = bu.AssignedAt
-                })
-                .ToList()
+            AssignedBranchIds = new List<Guid>(), // No longer supported
+            AssignedBranches = new List<UserBranchDto>() // No longer supported
         };
 
         return dto;

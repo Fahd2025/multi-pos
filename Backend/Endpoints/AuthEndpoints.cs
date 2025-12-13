@@ -198,49 +198,76 @@ public static class AuthEndpoints
                             return Results.Unauthorized();
                         }
 
-                        var user = await headOfficeDb
-                            .Users.Include(u => u.UserAssignments)
-                            .ThenInclude(bu => bu.Branch)
-                            .FirstOrDefaultAsync(u => u.Id == userId.Value);
+                        // 1. Try Head Office User
+                        var user = await headOfficeDb.Users.FirstOrDefaultAsync(u => u.Id == userId.Value);
 
-                        if (user == null)
+                        if (user != null)
                         {
-                            return Results.NotFound(
+                            return Results.Ok(
                                 new
                                 {
-                                    success = false,
-                                    error = new { code = "USER_NOT_FOUND", message = "User not found" },
+                                    success = true,
+                                    data = new
+                                    {
+                                        id = user.Id,
+                                        username = user.Username,
+                                        email = user.Email,
+                                        fullNameEn = user.FullNameEn,
+                                        fullNameAr = user.FullNameAr,
+                                        phone = user.Phone,
+                                        preferredLanguage = user.PreferredLanguage,
+                                        isHeadOfficeAdmin = user.IsHeadOfficeAdmin,
+                                        isActive = user.IsActive,
+                                        lastLoginAt = user.LastLoginAt,
+                                        branches = new List<object>() // HO Users don't have assignments anymore
+                                    },
                                 }
                             );
                         }
 
-                        return Results.Ok(
+                        // 2. Try Branch User
+                        var branchUser = await headOfficeDb.BranchUsers
+                            .Include(bu => bu.Branch)
+                            .FirstOrDefaultAsync(u => u.Id == userId.Value);
+
+                        if (branchUser != null)
+                        {
+                            return Results.Ok(
+                               new
+                               {
+                                   success = true,
+                                   data = new
+                                   {
+                                       id = branchUser.Id,
+                                       username = branchUser.Username,
+                                       email = branchUser.Email,
+                                       fullNameEn = branchUser.FullNameEn,
+                                       fullNameAr = branchUser.FullNameAr,
+                                       phone = branchUser.Phone,
+                                       preferredLanguage = branchUser.PreferredLanguage,
+                                       isHeadOfficeAdmin = false,
+                                       isActive = branchUser.IsActive,
+                                       lastLoginAt = branchUser.LastLoginAt,
+                                       branches = new List<object>
+                                       {
+                                            new {
+                                                branchId = branchUser.BranchId,
+                                                branchCode = branchUser.Branch?.Code,
+                                                branchNameEn = branchUser.Branch?.NameEn,
+                                                branchNameAr = branchUser.Branch?.NameAr,
+                                                role = branchUser.Role
+                                            }
+                                       }
+                                   },
+                               }
+                           );
+                        }
+
+                        return Results.NotFound(
                             new
                             {
-                                success = true,
-                                data = new
-                                {
-                                    id = user.Id,
-                                    username = user.Username,
-                                    email = user.Email,
-                                    fullNameEn = user.FullNameEn,
-                                    fullNameAr = user.FullNameAr,
-                                    phone = user.Phone,
-                                    preferredLanguage = user.PreferredLanguage,
-                                    isHeadOfficeAdmin = user.IsHeadOfficeAdmin,
-                                    isActive = user.IsActive,
-                                    lastLoginAt = user.LastLoginAt,
-                                    branches = user
-                                        .UserAssignments.Select(bu => new
-                                        {
-                                            branchId = bu.BranchId,
-                                            branchCode = bu.Branch?.Code,
-                                            branchNameEn = bu.Branch?.NameEn,
-                                            branchNameAr = bu.Branch?.NameAr,
-                                            role = bu.Role.ToString(),
-                                        })
-                                        .ToList(),
-                                },
+                                success = false,
+                                error = new { code = "USER_NOT_FOUND", message = "User not found" },
                             }
                         );
                     }

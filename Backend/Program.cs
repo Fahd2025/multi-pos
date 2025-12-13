@@ -61,6 +61,7 @@ builder.Services.AddScoped<Backend.Services.Shared.Migrations.IBranchMigrationMa
 
 // Background Service for automatic migrations
 builder.Services.AddHostedService<Backend.Services.Shared.Migrations.MigrationOrchestrator>();
+builder.Services.AddHostedService<Backend.Services.Background.BranchUserSyncService>();
 
 // Configure JWT Authentication
 var jwtSecretKey =
