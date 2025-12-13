@@ -15,8 +15,12 @@ interface UseAuthReturn {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  login: (credentials: LoginRequest, loginMode?: "branch" | "headoffice") => Promise<void>;
-  logout: () => Promise<void>;
+  login: (
+    credentials: LoginRequest,
+    loginMode?: "branch" | "headoffice",
+    showToast?: boolean
+  ) => Promise<void>;
+  logout: (showToast?: boolean) => Promise<void>;
   refreshUser: () => Promise<void>;
   isHeadOfficeAdmin: () => boolean;
   hasRole: (role: number) => boolean;
@@ -51,7 +55,11 @@ export function useAuth(): UseAuthReturn {
 
   // Login function
   const login = useCallback(
-    async (credentials: LoginRequest, loginMode: "branch" | "headoffice" = "branch") => {
+    async (
+      credentials: LoginRequest,
+      loginMode: "branch" | "headoffice" = "branch",
+      showToast: boolean = true
+    ) => {
       setIsLoading(true);
       setError(null);
 
@@ -71,6 +79,9 @@ export function useAuth(): UseAuthReturn {
           );
 
           setBranch(selectedBranch || null);
+          if (showToast) {
+            // We'll show toast in the component since we'll have access to the toast hook there
+          }
           router.push(`/${locale}/branch`);
         }
         // Handle head office login
@@ -79,10 +90,17 @@ export function useAuth(): UseAuthReturn {
 
           // Verify user is actually a head office admin
           if (!response.user.isHeadOfficeAdmin) {
-            setError("You don't have permission to access the head office dashboard.");
+            const errorMessage = "You don't have permission to access the head office dashboard.";
+            setError(errorMessage);
+            if (showToast) {
+              // The component will handle this error with toast
+            }
             throw new Error("Not authorized for head office access");
           }
 
+          if (showToast) {
+            // We'll show toast in the component since we'll have access to the toast hook there
+          }
           router.push(`/${locale}/head-office`);
         }
       } catch (err: any) {
@@ -98,28 +116,33 @@ export function useAuth(): UseAuthReturn {
   );
 
   // Logout function
-  const logout = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
+  const logout = useCallback(
+    async (showToast: boolean = true) => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      await authService.logout();
-      setUser(null);
-      setBranch(null);
+      try {
+        await authService.logout();
+      } catch (err: any) {
+        const errorMessage = err.response?.data?.message || "Logout failed.";
+        setError(errorMessage);
+        console.error("Logout error:", err);
+      } finally {
+        // Clear state and redirect regardless of API success
+        setUser(null);
+        setBranch(null);
 
-      // Get current locale from window location (default to 'en')
-      const pathSegments = window.location.pathname.split("/").filter(Boolean);
-      const locale = pathSegments[0] || "en";
+        // Get current locale from window location (default to 'en')
+        const pathSegments = window.location.pathname.split("/").filter(Boolean);
+        const locale = pathSegments[0] || "en";
 
-      router.push(`/${locale}`);
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || "Logout failed.";
-      setError(errorMessage);
-      console.error("Logout error:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [router]);
+        router.push(`/${locale}`);
+        router.refresh();
+        setIsLoading(false);
+      }
+    },
+    [router]
+  );
 
   // Refresh user profile from API
   const refreshUser = useCallback(async () => {

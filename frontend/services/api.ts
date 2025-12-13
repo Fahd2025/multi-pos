@@ -40,6 +40,11 @@ api.interceptors.response.use(
 
     // If error is 401 and we haven't retried yet, try to refresh token
     if (error.response?.status === HTTP_STATUS.UNAUTHORIZED && !originalRequest._retry) {
+      // Don't try to refresh token if the failed request was a login attempt
+      if (originalRequest.url?.includes("/auth/login")) {
+        return Promise.reject(error);
+      }
+
       originalRequest._retry = true;
 
       try {

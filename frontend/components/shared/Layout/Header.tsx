@@ -9,6 +9,8 @@
 import React from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeSwitcherCompact } from "@/components/shared/ThemeSwitcher";
+import { useConfirmation } from "@/hooks/useConfirmation";
+import { ConfirmationDialog } from "@/components/shared/ConfirmationDialog";
 
 export interface HeaderProps {
   onMobileMenuClick?: () => void; // Mobile drawer toggle
@@ -33,7 +35,14 @@ export const Header: React.FC<HeaderProps> = ({
   badge,
   extraControls,
 }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
+
+  const logoutConfirmation = useConfirmation();
+
+  const handleLogout = async () => {
+    await logout(true);
+    logoutConfirmation.close();
+  };
 
   return (
     <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
@@ -111,7 +120,7 @@ export const Header: React.FC<HeaderProps> = ({
                 {user?.fullNameEn || user?.username}
               </span>
               <button
-                onClick={logout}
+                onClick={() => logoutConfirmation.open()}
                 className="text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-medium"
                 aria-label="Logout"
               >
@@ -121,6 +130,18 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
       </div>
+
+      <ConfirmationDialog
+        isOpen={logoutConfirmation.isOpen}
+        onClose={logoutConfirmation.close}
+        onConfirm={handleLogout}
+        isProcessing={isLoading}
+        title="Confirm Logout"
+        message="Are you sure you want to logout from the system?"
+        confirmLabel="Logout"
+        cancelLabel="Cancel"
+        variant="danger"
+      />
     </header>
   );
 };

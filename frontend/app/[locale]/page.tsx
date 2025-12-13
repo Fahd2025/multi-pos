@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { Input, Select, Button, Icon, ErrorAlert } from "@/components/shared";
+import { useToast } from "@/hooks/useToast";
+import { Input, Select, Button, Icon } from "@/components/shared";
 import { ThemeSwitcherCompact } from "@/components/shared/ThemeSwitcher";
 import branchService, { BranchLookupDto } from "@/services/branch.service";
 
@@ -10,6 +11,7 @@ type LoginMode = "headoffice" | "branch";
 
 export default function LoginPage() {
   const { login, isLoading, error } = useAuth();
+  const toast = useToast();
   const [loginMode, setLoginMode] = useState<LoginMode>("branch");
   const [branches, setBranches] = useState<BranchLookupDto[]>([]);
   const [loadingBranches, setLoadingBranches] = useState(false);
@@ -28,13 +30,14 @@ export default function LoginPage() {
         setBranches(branchData);
       } catch (err) {
         console.error("Failed to fetch branches:", err);
+        toast.error("Failed to load branches", "Unable to fetch branch information. Please try again later.");
       } finally {
         setLoadingBranches(false);
       }
     };
 
     fetchBranches();
-  }, []);
+  }, [toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,10 +48,23 @@ export default function LoginPage() {
         ...formData,
         branchCode: loginMode === "headoffice" ? "" : formData.branchCode,
       };
-      await login(loginData, loginMode);
-    } catch (err) {
-      // Error is handled by useAuth hook
-      console.error("Login failed:", err);
+      await login(loginData, loginMode, false); // Don't show toast in hook, we'll manage it here
+
+      // Show success toast after successful login
+      if (loginMode === "branch") {
+        toast.success("Login successful", `Successfully logged in to ${formData.branchCode} branch`);
+      } else {
+        toast.success("Login successful", "Successfully logged in to head office");
+      }
+    } catch (err: any) {
+      // Show specific toast for head office access denied
+      if (err.message?.includes("Not authorized for head office access")) {
+        toast.error("Access denied", "You don't have permission to access the head office dashboard.");
+      } else {
+        // For other errors (like incorrect credentials), show the error directly
+        const errorMessage = err.response?.data?.message || "Login failed. Please check your credentials.";
+        toast.error("Login failed", errorMessage, 8000); // Show for 8 seconds to ensure visibility
+      }
     }
   };
 
@@ -149,9 +165,6 @@ export default function LoginPage() {
               autoComplete="current-password"
               leftIcon={<Icon name="lock" size="md" />}
             />
-
-            {/* Error Message */}
-            {error && <ErrorAlert message={error} />}
 
             {/* Submit Button */}
             <Button type="submit" variant="primary" size="lg" isFullWidth isLoading={isLoading}>
