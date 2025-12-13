@@ -25,6 +25,7 @@ import { RoleGuard, usePermission } from "@/components/auth/RoleGuard";
 import { UserRole } from "@/types/enums";
 import { Button } from "@/components/shared/Button";
 import { BRANCH_ROUTES } from "@/lib/routes";
+import { useToast } from "@/hooks/useToast";
 
 export default function BranchSettingsPage() {
   const params = useParams();
@@ -51,6 +52,8 @@ export default function BranchSettingsPage() {
     taxRate: 0,
     priceIncludesTax: false,
   });
+
+  const { error: showErrorToast, success: showSuccessToast } = useToast();
 
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -186,7 +189,10 @@ export default function BranchSettingsPage() {
           setImageError(false);
         } catch (err) {
           console.error("Invalid uploaded logo URL:", logoResult.logoUrl, err);
-          throw new Error("Invalid logo URL received from server");
+          const errorMsg = "Invalid logo URL received from server";
+          showErrorToast("Logo Upload Error", errorMsg);
+          setError(errorMsg);
+          return;
         }
       }
 

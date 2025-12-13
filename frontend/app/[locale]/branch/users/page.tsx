@@ -16,6 +16,7 @@ import { useModal } from "@/hooks/useModal";
 import { useConfirmation } from "@/hooks/useConfirmation";
 import { useApiError } from "@/hooks/useApiError";
 import { useApiOperation } from "@/hooks/useApiOperation";
+import { useToast } from "@/hooks/useToast";
 import {
   DataTableColumn,
   DataTableAction,
@@ -70,6 +71,9 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
   const viewModal = useModal<BranchUserDto>();
   const changePasswordModal = useModal<BranchUserDto>();
   const deleteConfirmation = useConfirmation();
+
+  // Toast
+  const { error: showErrorToast, success: showSuccessToast } = useToast();
 
   // DataTable hook
   const {
@@ -230,15 +234,17 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
       // Check username availability
       const isAvailable = await checkUsernameAvailability(data.username);
       if (!isAvailable) {
-        throw new Error("Username is already taken");
+        showErrorToast("Username Error", "Username is already taken");
+        return; // Don't close the modal, let user pick a different username
       }
 
       await createBranchUser(data);
+      showSuccessToast("User Created", `Successfully created user: ${data.username}`);
       await loadUsers();
       createModal.close();
     } catch (err: any) {
       setError(err);
-      throw err; // Re-throw to prevent modal from closing
+      showErrorToast("Creation Error", err.message || "Failed to create user");
     } finally {
       setIsSaving(false);
     }

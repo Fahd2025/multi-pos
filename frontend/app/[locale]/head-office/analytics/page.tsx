@@ -8,6 +8,7 @@ import reportService, {
   FinancialReport,
   ExportReportRequest,
 } from "@/services/report.service";
+import { useToast } from "@/hooks/useToast";
 
 type ReportType = "sales" | "inventory" | "financial";
 
@@ -18,6 +19,8 @@ export default function HeadOfficeAnalyticsPage() {
   >(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const { error: showErrorToast } = useToast();
 
   // Filter states
   const [selectedBranchId, setSelectedBranchId] = useState<string>("");
@@ -67,7 +70,10 @@ export default function HeadOfficeAnalyticsPage() {
           break;
 
         default:
-          throw new Error("Invalid report type");
+          const errorMsg = "Invalid report type";
+          showErrorToast("Report Error", errorMsg);
+          setError(errorMsg);
+          return;
       }
 
       setReportData(data);
