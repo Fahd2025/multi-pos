@@ -41,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   const handleLogout = async () => {
     await logout(true);
-    logoutConfirmation.close();
+    logoutConfirmation.cancel();
   };
 
   return (
@@ -120,7 +120,16 @@ export const Header: React.FC<HeaderProps> = ({
                 {user?.fullNameEn || user?.username}
               </span>
               <button
-                onClick={() => logoutConfirmation.open()}
+                onClick={() =>
+                  logoutConfirmation.ask(
+                    "Confirm Logout",
+                    "Are you sure you want to logout from the system?",
+                    async () => {
+                      await logout(true);
+                    },
+                    "danger"
+                  )
+                }
                 className="text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-medium"
                 aria-label="Logout"
               >
@@ -133,14 +142,14 @@ export const Header: React.FC<HeaderProps> = ({
 
       <ConfirmationDialog
         isOpen={logoutConfirmation.isOpen}
-        onClose={logoutConfirmation.close}
-        onConfirm={handleLogout}
-        isProcessing={isLoading}
-        title="Confirm Logout"
-        message="Are you sure you want to logout from the system?"
+        onClose={logoutConfirmation.cancel}
+        onConfirm={logoutConfirmation.confirm}
+        isProcessing={logoutConfirmation.isProcessing}
+        title={logoutConfirmation.title}
+        message={logoutConfirmation.message}
         confirmLabel="Logout"
         cancelLabel="Cancel"
-        variant="danger"
+        variant={logoutConfirmation.variant}
       />
     </header>
   );

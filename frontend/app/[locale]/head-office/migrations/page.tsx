@@ -44,8 +44,9 @@ export default function MigrationsPage() {
   const [expandedBranches, setExpandedBranches] = useState<Set<string>>(new Set());
 
   const toast = useToast();
-  const rollbackConfirmation = useConfirmation<BranchMigrationStatus>();
-  const rollbackAllConfirmation = useConfirmation<null>();
+  const rollbackConfirmation = useConfirmation();
+  const rollbackAllConfirmation = useConfirmation();
+  const [branchForRollback, setBranchForRollback] = useState<BranchMigrationStatus | null>(null);
 
   useEffect(() => {
     loadMigrations();
@@ -100,7 +101,9 @@ export default function MigrationsPage() {
 
   const checkAppliedMigrations = () => {
     // Check if any branch has applied migrations that can be rolled back
-    const hasApplied = migrations.some((m) => m.lastMigrationApplied && m.lastMigrationApplied !== "");
+    const hasApplied = migrations.some(
+      (m) => m.lastMigrationApplied && m.lastMigrationApplied !== ""
+    );
     setHasAppliedMigrations(hasApplied);
   };
 
@@ -164,10 +167,16 @@ export default function MigrationsPage() {
       if (result.isValid) {
         toast.success("Schema Valid", `Database schema for "${branch.branchName}" is valid`);
       } else {
-        toast.error("Schema Invalid", `Database schema for "${branch.branchName}" has integrity issues`);
+        toast.error(
+          "Schema Invalid",
+          `Database schema for "${branch.branchName}" has integrity issues`
+        );
       }
     } catch (err) {
-      toast.error("Validation Failed", `Failed to validate: ${err instanceof Error ? err.message : "Unknown error"}`);
+      toast.error(
+        "Validation Failed",
+        `Failed to validate: ${err instanceof Error ? err.message : "Unknown error"}`
+      );
     }
   };
 
@@ -175,54 +184,60 @@ export default function MigrationsPage() {
     const branch = migrations.find((m) => m.branchId === branchId);
     if (!branch) return;
 
-    // Open confirmation dialog
-    rollbackConfirmation.open(branch);
-  };
-
-  const confirmRollback = async () => {
-    if (!rollbackConfirmation.data) return;
-
-    setIsRollingBack(true);
-    const branch = rollbackConfirmation.data;
-
-    try {
-      const result = await rollbackLastMigration(branch.branchId);
-      if (result.success) {
-        toast.success("Rollback Successful", `Successfully rolled back migration for "${branch.branchName}"`);
-        loadMigrations();
-        rollbackConfirmation.close();
-      } else {
-        toast.error("Rollback Failed", result.errorMessage || "Unknown error");
-      }
-    } catch (err) {
-      toast.error("Rollback Failed", err instanceof Error ? err.message : "Unknown error");
-    } finally {
-      setIsRollingBack(false);
-    }
+    // Set branch data and open confirmation dialog
+    setBranchForRollback(branch);
+    rollbackConfirmation.ask(
+      "Rollback Migration",
+      `Are you sure you want to rollback the last migration for "${branch.branchName}"? This action cannot be undone.`,
+      async () => {
+        setIsRollingBack(true);
+        try {
+          const result = await rollbackLastMigration(branch.branchId);
+          if (result.success) {
+            toast.success(
+              "Rollback Successful",
+              `Successfully rolled back migration for "${branch.branchName}"`
+            );
+            loadMigrations();
+          } else {
+            toast.error("Rollback Failed", result.errorMessage || "Unknown error");
+          }
+        } catch (err) {
+          toast.error("Rollback Failed", err instanceof Error ? err.message : "Unknown error");
+        } finally {
+          setIsRollingBack(false);
+        }
+      },
+      "danger"
+    );
   };
 
   const handleRollbackAll = () => {
     // Open confirmation dialog
-    rollbackAllConfirmation.open(null);
-  };
-
-  const confirmRollbackAll = async () => {
-    setIsRollingBackAll(true);
-
-    try {
-      const result = await rollbackAllBranches();
-      if (result.success) {
-        toast.success("Rollback Successful", "Successfully rolled back migrations for all branches");
-        loadMigrations();
-        rollbackAllConfirmation.close();
-      } else {
-        toast.error("Rollback Failed", result.errorMessage || "Unknown error");
-      }
-    } catch (err) {
-      toast.error("Rollback Failed", err instanceof Error ? err.message : "Unknown error");
-    } finally {
-      setIsRollingBackAll(false);
-    }
+    rollbackAllConfirmation.ask(
+      "Rollback All Branches",
+      "Are you sure you want to rollback the last migration for ALL active branches? This action cannot be undone and will affect all branches simultaneously.",
+      async () => {
+        setIsRollingBackAll(true);
+        try {
+          const result = await rollbackAllBranches();
+          if (result.success) {
+            toast.success(
+              "Rollback Successful",
+              "Successfully rolled back migrations for all branches"
+            );
+            loadMigrations();
+          } else {
+            toast.error("Rollback Failed", result.errorMessage || "Unknown error");
+          }
+        } catch (err) {
+          toast.error("Rollback Failed", err instanceof Error ? err.message : "Unknown error");
+        } finally {
+          setIsRollingBackAll(false);
+        }
+      },
+      "danger"
+    );
   };
 
   const handleMigrationSuccess = () => {
@@ -374,27 +389,27 @@ export default function MigrationsPage() {
       {/* Rollback Confirmation Dialog */}
       <ConfirmationDialog
         isOpen={rollbackConfirmation.isOpen}
-        onClose={rollbackConfirmation.close}
-        title="Rollback Migration"
-        message={`Are you sure you want to rollback the last migration for "${rollbackConfirmation.data?.branchName}"? This action cannot be undone.`}
-        variant="danger"
+        onClose={rollbackConfirmation.cancel}
+        title={rollbackConfirmation.title}
+        message={rollbackConfirmation.message}
+        variant={rollbackConfirmation.variant}
         confirmLabel="Rollback"
         cancelLabel="Cancel"
-        onConfirm={confirmRollback}
-        isProcessing={isRollingBack}
+        onConfirm={rollbackConfirmation.confirm}
+        isProcessing={rollbackConfirmation.isProcessing}
       />
 
       {/* Rollback All Confirmation Dialog */}
       <ConfirmationDialog
         isOpen={rollbackAllConfirmation.isOpen}
-        onClose={rollbackAllConfirmation.close}
-        title="Rollback All Branches"
-        message="Are you sure you want to rollback the last migration for ALL active branches? This action cannot be undone and will affect all branches simultaneously."
-        variant="danger"
+        onClose={rollbackAllConfirmation.cancel}
+        title={rollbackAllConfirmation.title}
+        message={rollbackAllConfirmation.message}
+        variant={rollbackAllConfirmation.variant}
         confirmLabel="Rollback All"
         cancelLabel="Cancel"
-        onConfirm={confirmRollbackAll}
-        isProcessing={isRollingBackAll}
+        onConfirm={rollbackAllConfirmation.confirm}
+        isProcessing={rollbackAllConfirmation.isProcessing}
       />
     </div>
   );

@@ -13,7 +13,7 @@ import expenseService from "@/services/expense.service";
 import { ExpenseDto, ExpenseCategoryDto } from "@/types/api.types";
 import ExpenseFormModal from "@/components/branch/expenses/ExpenseFormModal";
 import { ConfirmationDialog } from "@/components/shared";
-import { useConfirmation } from "@/hooks/useModal";
+import { useConfirmation } from "@/hooks/useConfirmation";
 import { Button } from "@/components/shared/Button";
 import { StatusBadge, getApprovalStatusVariant } from "@/components/shared/StatusBadge";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
@@ -220,7 +220,7 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
         categoryId: undefined,
         approvalStatus: undefined,
         startDate: undefined,
-        endDate: undefined
+        endDate: undefined,
       });
       setAllExpenses(response.data || []);
     } catch (err: any) {
@@ -499,165 +499,189 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
         <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
           <div className="text-6xl">🔒</div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Access Denied</h2>
-          <p className="text-gray-600 dark:text-gray-400">You don't have permission to access this page.</p>
-          <p className="text-sm text-gray-500 dark:text-gray-500">Only Managers can access Expense Management.</p>
-          <Button onClick={() => router.push(`/${locale}/branch`)}>
-            Go to Dashboard
-          </Button>
+          <p className="text-gray-600 dark:text-gray-400">
+            You don't have permission to access this page.
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-500">
+            Only Managers can access Expense Management.
+          </p>
+          <Button onClick={() => router.push(`/${locale}/branch`)}>Go to Dashboard</Button>
         </div>
       }
     >
       <div className="space-y-6">
         {/* Page Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Expense Management
-          </h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Track and manage business expenses with approval workflow
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <Link href={`/${locale}/branch/expense-categories`}>
-            <Button variant="secondary" size="md">
-              📁 Manage Categories
-            </Button>
-          </Link>
-          <Button
-            variant="primary"
-            size="md"
-            onClick={() => {
-              if (!branch || !branch.branchCode) {
-                alert("Branch information is not available. Please refresh the page.");
-                return;
-              }
-              setSelectedExpense(undefined);
-              setIsModalOpen(true);
-            }}
-          >
-            ➕ Add Expense
-          </Button>
-        </div>
-      </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard
-          title="Total Expenses"
-          value={allExpenses.length}
-          icon="💸"
-          iconBgColor="bg-red-100 dark:bg-red-900/20"
-        />
-        <StatCard
-          title="Pending Approval"
-          value={allExpenses.filter((e) => e.approvalStatus === 0).length}
-          icon="⏳"
-          iconBgColor="bg-yellow-100 dark:bg-yellow-900/20"
-          valueColor="text-yellow-600 dark:text-yellow-500"
-        />
-        <StatCard
-          title="Approved"
-          value={allExpenses.filter((e) => e.approvalStatus === 1).length}
-          icon="✅"
-          iconBgColor="bg-green-100 dark:bg-green-900/20"
-          valueColor="text-green-600 dark:text-green-500"
-        />
-        <StatCard
-          title="Total Amount"
-          value={`$${allExpenses.reduce((sum, e) => sum + e.amount, 0).toFixed(2)}`}
-          icon="💰"
-          iconBgColor="bg-purple-100 dark:bg-purple-900/20"
-          valueColor="text-purple-600 dark:text-purple-500"
-        />
-      </div>
-
-      {/* Active Filters Display - Full Width */}
-      {!loading && !error && activeFilters.length > 0 && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-5 py-3 mb-6">
-          <div className="flex items-center flex-wrap gap-2">
-            <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
-              Active Filters:
-            </span>
-            {activeFilters.map((filter) => (
-              <span
-                key={filter.type}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100 rounded-full text-sm font-medium"
-              >
-                <span className="font-semibold">{filter.label}:</span>
-                <span>{filter.value}</span>
-                <button
-                  onClick={() => handleRemoveFilter(filter.type)}
-                  className="ml-1 hover:bg-blue-200 dark:hover:bg-blue-700 rounded-full p-0.5 transition-colors"
-                  title={`Remove ${filter.label} filter`}
-                >
-                  <svg
-                    className="w-3.5 h-3.5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </span>
-            ))}
-            <button
-              onClick={handleResetFilters}
-              className="ml-2 text-sm text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 font-medium underline"
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
+              Expense Management
+            </h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Track and manage business expenses with approval workflow
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Link href={`/${locale}/branch/expense-categories`}>
+              <Button variant="secondary" size="md">
+                📁 Manage Categories
+              </Button>
+            </Link>
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => {
+                if (!branch || !branch.branchCode) {
+                  alert("Branch information is not available. Please refresh the page.");
+                  return;
+                }
+                setSelectedExpense(undefined);
+                setIsModalOpen(true);
+              }}
             >
-              Clear All
-            </button>
+              ➕ Add Expense
+            </Button>
           </div>
         </div>
-      )}
 
-      {/* Error Message */}
-      {error && <ErrorAlert message={error} onDismiss={() => setError(null)} className="mb-4" />}
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <StatCard
+            title="Total Expenses"
+            value={allExpenses.length}
+            icon="💸"
+            iconBgColor="bg-red-100 dark:bg-red-900/20"
+          />
+          <StatCard
+            title="Pending Approval"
+            value={allExpenses.filter((e) => e.approvalStatus === 0).length}
+            icon="⏳"
+            iconBgColor="bg-yellow-100 dark:bg-yellow-900/20"
+            valueColor="text-yellow-600 dark:text-yellow-500"
+          />
+          <StatCard
+            title="Approved"
+            value={allExpenses.filter((e) => e.approvalStatus === 1).length}
+            icon="✅"
+            iconBgColor="bg-green-100 dark:bg-green-900/20"
+            valueColor="text-green-600 dark:text-green-500"
+          />
+          <StatCard
+            title="Total Amount"
+            value={`$${allExpenses.reduce((sum, e) => sum + e.amount, 0).toFixed(2)}`}
+            icon="💰"
+            iconBgColor="bg-purple-100 dark:bg-purple-900/20"
+            valueColor="text-purple-600 dark:text-purple-500"
+          />
+        </div>
 
-      {/* Loading State */}
-      {loading && <LoadingSpinner size="lg" text="Loading expenses..." className="py-8" />}
-
-      {/* Expenses DataTable */}
-      {!loading && (
-        <DataTable
-          data={displayData}
-          columns={columns}
-          actions={actions}
-          getRowKey={(row) => row.id}
-          loading={loading}
-          pagination
-          paginationConfig={{
-            currentPage: currentPage - 1, // Convert to 0-based for DataTable
-            totalPages,
-            pageSize,
-            totalItems,
-          }}
-          onPageChange={handlePageChangeWrapper}
-          sortable
-          sortConfig={sortConfig ?? undefined}
-          onSortChange={handleSortChange}
-          emptyMessage="No expenses found. Add your first expense to get started."
-          showRowNumbers
-          showFilterButton
-          activeFilterCount={activeFilterCount}
-          showResetButton={hasActiveFilters}
-          onResetFilters={handleResetFilters}
-          searchBar={
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg
-                    className="h-5 w-5 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+        {/* Active Filters Display - Full Width */}
+        {!loading && !error && activeFilters.length > 0 && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-5 py-3 mb-6">
+            <div className="flex items-center flex-wrap gap-2">
+              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                Active Filters:
+              </span>
+              {activeFilters.map((filter) => (
+                <span
+                  key={filter.type}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100 rounded-full text-sm font-medium"
+                >
+                  <span className="font-semibold">{filter.label}:</span>
+                  <span>{filter.value}</span>
+                  <button
+                    onClick={() => handleRemoveFilter(filter.type)}
+                    className="ml-1 hover:bg-blue-200 dark:hover:bg-blue-700 rounded-full p-0.5 transition-colors"
+                    title={`Remove ${filter.label} filter`}
                   >
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </span>
+              ))}
+              <button
+                onClick={handleResetFilters}
+                className="ml-2 text-sm text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 font-medium underline"
+              >
+                Clear All
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && <ErrorAlert message={error} onDismiss={() => setError(null)} className="mb-4" />}
+
+        {/* Loading State */}
+        {loading && <LoadingSpinner size="lg" text="Loading expenses..." className="py-8" />}
+
+        {/* Expenses DataTable */}
+        {!loading && (
+          <DataTable
+            data={displayData}
+            columns={columns}
+            actions={actions}
+            getRowKey={(row) => row.id}
+            loading={loading}
+            pagination
+            paginationConfig={{
+              currentPage: currentPage - 1, // Convert to 0-based for DataTable
+              totalPages,
+              pageSize,
+              totalItems,
+            }}
+            onPageChange={handlePageChangeWrapper}
+            sortable
+            sortConfig={sortConfig ?? undefined}
+            onSortChange={handleSortChange}
+            emptyMessage="No expenses found. Add your first expense to get started."
+            showRowNumbers
+            showFilterButton
+            activeFilterCount={activeFilterCount}
+            showResetButton={hasActiveFilters}
+            onResetFilters={handleResetFilters}
+            searchBar={
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg
+                      className="h-5 w-5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search expenses..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleApplyFilters()}
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
+                  />
+                </div>
+                <button
+                  onClick={handleApplyFilters}
+                  className="px-4 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors whitespace-nowrap"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -665,170 +689,150 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
                       d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                     />
                   </svg>
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search expenses..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleApplyFilters()}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
-                />
-              </div>
-              <button
-                onClick={handleApplyFilters}
-                className="px-4 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors whitespace-nowrap"
-              >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </button>
-            </div>
-          }
-          filterSection={
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Category Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Category
-                  </label>
-                  <select
-                    value={categoryFilter}
-                    onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
-                  >
-                    <option value="">All Categories</option>
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {locale === "ar" ? cat.nameAr : cat.nameEn}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Status Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Status
-                  </label>
-                  <select
-                    value={statusFilter ?? ""}
-                    onChange={(e) =>
-                      setStatusFilter(e.target.value ? Number(e.target.value) : undefined)
-                    }
-                    className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
-                  >
-                    <option value="">All Statuses</option>
-                    <option value="0">Pending</option>
-                    <option value="1">Approved</option>
-                    <option value="2">Rejected</option>
-                  </select>
-                </div>
-
-                {/* Start Date Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Start Date
-                  </label>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
-                  />
-                </div>
-
-                {/* End Date Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    End Date
-                  </label>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
-                  />
-                </div>
-              </div>
-
-              {/* Filter Actions */}
-              <div className="flex justify-end gap-2">
-                <button
-                  onClick={handleApplyFilters}
-                  className="px-6 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
-                >
-                  Apply Filters
                 </button>
               </div>
-            </div>
-          }
-          imageColumn={{
-            getImageUrl: (row) =>
-              row.receiptImagePath ? getExpenseImageUrl(row.receiptImagePath, row.id, "large") : "",
-            getAltText: (row) => `Receipt for ${row.descriptionEn}`,
-            onImageClick: (row, images) => {
-              if (images[0]) {
-                setSelectedExpenseImage(images[0]);
-                setIsImageCarouselOpen(true);
-              }
-            },
-            size: 64,
-            defaultIcon: "🧾",
-          }}
-        />
-      )}
+            }
+            filterSection={
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Category Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Category
+                    </label>
+                    <select
+                      value={categoryFilter}
+                      onChange={(e) => setCategoryFilter(e.target.value)}
+                      className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
+                    >
+                      <option value="">All Categories</option>
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {locale === "ar" ? cat.nameAr : cat.nameEn}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-      {/* Expense Form Modal */}
-      {isModalOpen && branch && branch.branchCode && (
-        <ExpenseFormModal
-          isOpen={isModalOpen}
-          expense={selectedExpense}
-          categories={categories}
-          branchName={branch.branchCode}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedExpense(undefined);
-          }}
-          onSuccess={() => {
-            setIsModalOpen(false);
-            setSelectedExpense(undefined);
-            loadExpenses();
-            loadAllExpenses(); // Update stats
-          }}
-        />
-      )}
+                  {/* Status Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Status
+                    </label>
+                    <select
+                      value={statusFilter ?? ""}
+                      onChange={(e) =>
+                        setStatusFilter(e.target.value ? Number(e.target.value) : undefined)
+                      }
+                      className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
+                    >
+                      <option value="">All Statuses</option>
+                      <option value="0">Pending</option>
+                      <option value="1">Approved</option>
+                      <option value="2">Rejected</option>
+                    </select>
+                  </div>
 
-      {/* Confirmation Dialog */}
-      <ConfirmationDialog
-        isOpen={confirmation.isOpen}
-        onClose={confirmation.cancel}
-        onConfirm={confirmation.confirm}
-        title={confirmation.title}
-        message={confirmation.message}
-        variant={confirmation.variant}
-        confirmLabel="Confirm"
-        cancelLabel="Cancel"
-        isProcessing={confirmation.isProcessing}
-      />
+                  {/* Start Date Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Start Date
+                    </label>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
+                    />
+                  </div>
 
-      {/* Image Carousel Modal */}
-      <Dialog open={isImageCarouselOpen} onOpenChange={setIsImageCarouselOpen}>
-        <DialogContent className="max-w-4xl p-0" showCloseButton={false}>
-          <DialogTitle className="sr-only">Expense Receipt</DialogTitle>
-          <ImageCarousel
-            images={[selectedExpenseImage]}
-            alt="Expense receipt"
-            className="w-full h-[600px]"
+                  {/* End Date Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      End Date
+                    </label>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
+                    />
+                  </div>
+                </div>
+
+                {/* Filter Actions */}
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={handleApplyFilters}
+                    className="px-6 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+                  >
+                    Apply Filters
+                  </button>
+                </div>
+              </div>
+            }
+            imageColumn={{
+              getImageUrl: (row) =>
+                row.receiptImagePath
+                  ? getExpenseImageUrl(row.receiptImagePath, row.id, "large")
+                  : "",
+              getAltText: (row) => `Receipt for ${row.descriptionEn}`,
+              onImageClick: (row, images) => {
+                if (images[0]) {
+                  setSelectedExpenseImage(images[0]);
+                  setIsImageCarouselOpen(true);
+                }
+              },
+              size: 64,
+              defaultIcon: "🧾",
+            }}
           />
-        </DialogContent>
-      </Dialog>
+        )}
+
+        {/* Expense Form Modal */}
+        {isModalOpen && branch && branch.branchCode && (
+          <ExpenseFormModal
+            isOpen={isModalOpen}
+            expense={selectedExpense}
+            categories={categories}
+            branchName={branch.branchCode}
+            onClose={() => {
+              setIsModalOpen(false);
+              setSelectedExpense(undefined);
+            }}
+            onSuccess={() => {
+              setIsModalOpen(false);
+              setSelectedExpense(undefined);
+              loadExpenses();
+              loadAllExpenses(); // Update stats
+            }}
+          />
+        )}
+
+        {/* Confirmation Dialog */}
+        <ConfirmationDialog
+          isOpen={confirmation.isOpen}
+          onClose={confirmation.cancel}
+          onConfirm={confirmation.confirm}
+          title={confirmation.title}
+          message={confirmation.message}
+          variant={confirmation.variant}
+          confirmLabel="Confirm"
+          cancelLabel="Cancel"
+          isProcessing={confirmation.isProcessing}
+        />
+
+        {/* Image Carousel Modal */}
+        <Dialog open={isImageCarouselOpen} onOpenChange={setIsImageCarouselOpen}>
+          <DialogContent className="max-w-4xl p-0" showCloseButton={false}>
+            <DialogTitle className="sr-only">Expense Receipt</DialogTitle>
+            <ImageCarousel
+              images={[selectedExpenseImage]}
+              alt="Expense receipt"
+              className="w-full h-[600px]"
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </RoleGuard>
   );

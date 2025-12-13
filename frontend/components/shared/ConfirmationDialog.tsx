@@ -164,7 +164,7 @@ export function ConfirmationDialog({
       >
         {/* Backdrop */}
         <div
-          className="fixed inset-0 bg-black bg-opacity-60 transition-opacity backdrop-blur-sm"
+          className="fixed inset-0 bg-black/75 backdrop-blur-sm"
           style={{ animation: "fadeIn 0.3s ease" }}
           onClick={!isProcessing ? onClose : undefined}
           aria-hidden="true"

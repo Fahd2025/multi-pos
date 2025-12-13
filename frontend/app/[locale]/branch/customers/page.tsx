@@ -14,7 +14,8 @@ import CustomerFormModal from "@/components/branch/customers/CustomerFormModal";
 import { DataTable } from "@/components/shared";
 import { ConfirmationDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
-import { useModal, useConfirmation } from "@/hooks/useModal";
+import { useModal } from "@/hooks/useModal";
+import { useConfirmation } from "@/hooks/useConfirmation";
 import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
 import { Button } from "@/components/shared/Button";
 import { StatusBadge } from "@/components/shared/StatusBadge";
@@ -438,9 +439,13 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
         />
         <StatCard
           title="Avg. Loyalty Points"
-          value={allCustomers.length > 0
-            ? Math.round(allCustomers.reduce((sum, c) => sum + (c.loyaltyPoints || 0), 0) / allCustomers.length)
-            : 0
+          value={
+            allCustomers.length > 0
+              ? Math.round(
+                  allCustomers.reduce((sum, c) => sum + (c.loyaltyPoints || 0), 0) /
+                    allCustomers.length
+                )
+              : 0
           }
           icon="⭐"
           iconBgColor="bg-yellow-100 dark:bg-yellow-900/20"

@@ -15,7 +15,7 @@ import CustomerFormModal from "@/components/branch/customers/CustomerFormModal";
 import { DataTable } from "@/components/shared";
 import { ConfirmationDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
-import { useConfirmation } from "@/hooks/useModal";
+import { useConfirmation } from "@/hooks/useConfirmation";
 import { DataTableColumn } from "@/types/data-table.types";
 import { Button } from "@/components/shared/Button";
 import { StatusBadge } from "@/components/shared/StatusBadge";

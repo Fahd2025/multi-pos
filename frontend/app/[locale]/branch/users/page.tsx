@@ -69,7 +69,7 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
   const editModal = useModal<BranchUserDto>();
   const viewModal = useModal<BranchUserDto>();
   const changePasswordModal = useModal<BranchUserDto>();
-  const deleteConfirmation = useConfirmation<BranchUserDto>();
+  const deleteConfirmation = useConfirmation();
 
   // DataTable hook
   const {
@@ -281,25 +281,6 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const handleDelete = async () => {
-    if (!deleteConfirmation.data) return;
-
-    setIsSaving(true);
-    clearError();
-
-    await execute({
-      operation: () => deleteBranchUser(deleteConfirmation.data!.id),
-      successMessage: "User deleted",
-      successDetail: `${deleteConfirmation.data!.username} has been removed successfully`,
-      onSuccess: async () => {
-        await loadUsers();
-        deleteConfirmation.close();
-      },
-    });
-
-    setIsSaving(false);
   };
 
   const handleSortChange = (config: {
@@ -557,7 +538,27 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
     },
     {
       label: "Delete",
-      onClick: (row) => deleteConfirmation.open(row),
+      onClick: (row) =>
+        deleteConfirmation.ask(
+          "Delete User",
+          `Are you sure you want to delete "${row.username}"? This action cannot be undone.`,
+          async () => {
+            setIsSaving(true);
+            clearError();
+
+            await execute({
+              operation: () => deleteBranchUser(row.id),
+              successMessage: "User deleted",
+              successDetail: `${row.username} has been removed successfully`,
+              onSuccess: async () => {
+                await loadUsers();
+              },
+            });
+
+            setIsSaving(false);
+          },
+          "danger"
+        ),
       variant: "danger",
     },
   ];
@@ -963,17 +964,13 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
       {/* Delete Confirmation */}
       <ConfirmationDialog
         isOpen={deleteConfirmation.isOpen}
-        onClose={deleteConfirmation.close}
-        onConfirm={handleDelete}
-        variant="danger"
-        title="Delete User"
-        message={
-          deleteConfirmation.data
-            ? `Are you sure you want to delete user "${deleteConfirmation.data.username}"? This will deactivate the user account.`
-            : ""
-        }
+        onClose={deleteConfirmation.cancel}
+        onConfirm={deleteConfirmation.confirm}
+        variant={deleteConfirmation.variant}
+        title={deleteConfirmation.title}
+        message={deleteConfirmation.message}
         confirmLabel="Delete"
-        isProcessing={isSaving}
+        isProcessing={deleteConfirmation.isProcessing}
       />
     </RoleGuard>
   );

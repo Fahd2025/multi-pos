@@ -1,93 +1,113 @@
 /**
  * useConfirmation Hook
  *
- * Custom hook for managing confirmation dialogs with data.
- * Provides a clean API for opening, closing, and managing confirmation state.
+ * Specialized hook for confirmation dialogs.
  *
  * @example
  * ```tsx
- * const confirmation = useConfirmation<Product>();
+ * const confirmation = useConfirmation();
  *
- * // Open confirmation with data
- * confirmation.open(product);
- *
- * // Close confirmation
- * confirmation.close();
- *
- * // Use in component
- * <ConfirmationDialog
- *   isOpen={confirmation.isOpen}
- *   onClose={confirmation.close}
- *   onConfirm={handleDelete}
- *   message={`Delete ${confirmation.data?.name}?`}
- * />
+ * const handleDelete = async (item) => {
+ *   confirmation.ask(
+ *     'Delete Item',
+ *     `Are you sure you want to delete ${item.name}?`,
+ *     async () => {
+ *       await deleteItem(item.id);
+ *     }
+ *   );
+ * };
  * ```
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 
-interface UseConfirmationState<T> {
-  /** Whether confirmation dialog is open */
+interface ConfirmationState {
   isOpen: boolean;
-  /** Current confirmation data */
-  data: T | null;
+  title: string;
+  message: string;
+  onConfirm: (() => Promise<void> | void) | null;
+  variant: "danger" | "warning" | "info" | "success";
 }
 
-interface UseConfirmationReturn<T> {
+interface UseConfirmationReturn {
   /** Whether confirmation dialog is open */
   isOpen: boolean;
-  /** Current confirmation data */
-  data: T | null;
-  /** Open confirmation with optional data */
-  open: (data?: T) => void;
-  /** Close confirmation and clear data */
-  close: () => void;
-  /** Update confirmation data without closing */
-  setData: (data: T | null) => void;
+  /** Confirmation title */
+  title: string;
+  /** Confirmation message */
+  message: string;
+  /** Confirmation variant */
+  variant: "danger" | "warning" | "info" | "success";
+  /** Ask for confirmation */
+  ask: (
+    title: string,
+    message: string,
+    onConfirm: () => Promise<void> | void,
+    variant?: "danger" | "warning" | "info" | "success"
+  ) => void;
+  /** Confirm and execute action */
+  confirm: () => Promise<void>;
+  /** Cancel and close */
+  cancel: () => void;
+  /** Whether action is processing */
+  isProcessing: boolean;
 }
 
-/**
- * Hook for managing confirmation dialog state
- */
-export function useConfirmation<T = any>(): UseConfirmationReturn<T> {
-  const [state, setState] = useState<UseConfirmationState<T>>({
+export function useConfirmation(): UseConfirmationReturn {
+  const [state, setState] = useState<ConfirmationState>({
     isOpen: false,
-    data: null,
+    title: "",
+    message: "",
+    onConfirm: null,
+    variant: "info",
   });
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const open = useCallback((data?: T) => {
-    setState({
-      isOpen: true,
-      data: data || null,
-    });
-  }, []);
+  const ask = useCallback(
+    (
+      title: string,
+      message: string,
+      onConfirm: () => Promise<void> | void,
+      variant: "danger" | "warning" | "info" | "success" = "info"
+    ) => {
+      setState({
+        isOpen: true,
+        title,
+        message,
+        onConfirm,
+        variant,
+      });
+    },
+    []
+  );
 
-  const close = useCallback(() => {
-    setState(prev => ({
-      ...prev,
-      isOpen: false,
-    }));
-    // Clear data after animation completes
-    setTimeout(() => {
-      setState(prev => ({
-        ...prev,
-        data: null,
-      }));
-    }, 300); // Match dialog animation duration
-  }, []);
+  const confirm = useCallback(async () => {
+    if (state.onConfirm) {
+      setIsProcessing(true);
+      try {
+        await state.onConfirm();
+        setState((prev) => ({ ...prev, isOpen: false }));
+      } catch (error) {
+        console.error("Confirmation action failed:", error);
+        // Keep dialog open on error
+      } finally {
+        setIsProcessing(false);
+      }
+    }
+  }, [state.onConfirm]);
 
-  const setData = useCallback((data: T | null) => {
-    setState(prev => ({
-      ...prev,
-      data,
-    }));
+  const cancel = useCallback(() => {
+    setState((prev) => ({ ...prev, isOpen: false }));
   }, []);
 
   return {
     isOpen: state.isOpen,
-    data: state.data,
-    open,
-    close,
-    setData,
+    title: state.title,
+    message: state.message,
+    variant: state.variant,
+    ask,
+    confirm,
+    cancel,
+    isProcessing,
   };
 }

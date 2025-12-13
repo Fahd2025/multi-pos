@@ -155,7 +155,7 @@ A modal dialog for confirming user actions.
 
 ```tsx
 import { ConfirmationDialog } from "@/components/modals";
-import { useConfirmation } from "@/hooks/useModal";
+import { useConfirmation } from "@/hooks/useConfirmation";
 
 const MyPage = () => {
   const confirmation = useConfirmation();

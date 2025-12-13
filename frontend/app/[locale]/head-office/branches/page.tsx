@@ -13,7 +13,7 @@ import { BranchFormModal } from "@/components/head-office/BranchFormModal";
 import { DataTable } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
-import { useConfirmation } from "@/hooks/useModal";
+import { useConfirmation } from "@/hooks/useConfirmation";
 import { ConfirmationDialog } from "@/components/shared";
 import { useApiOperation } from "@/hooks/useApiOperation";
 import { ImageCarousel } from "@/components/shared/image-carousel";
@@ -122,9 +122,9 @@ export default function BranchesManagementPage({
     size: "thumb" | "medium" | "large" | "original" = "thumb"
   ) => {
     // Check if logoPath is already a URL path (starts with /api/v1/)
-    if (logoPathOrId.startsWith('/api/v1/')) {
+    if (logoPathOrId.startsWith("/api/v1/")) {
       // It's already a URL path, convert size if needed
-      const basePath = logoPathOrId.replace(/\/(thumb|medium|large|original)$/, '');
+      const basePath = logoPathOrId.replace(/\/(thumb|medium|large|original)$/, "");
       return `${API_BASE_URL}${basePath}/${size}`;
     }
 
@@ -338,14 +338,14 @@ export default function BranchesManagementPage({
           imageColumn={{
             getImageUrl: (row) => {
               // Only construct URL if logoPath exists and is valid
-              if (!row.logoPath || row.logoPath.trim() === '') {
-                return '';
+              if (!row.logoPath || row.logoPath.trim() === "") {
+                return "";
               }
               try {
                 return getBranchImageUrl(row.logoPath, row.code, "large");
               } catch (error) {
-                console.error('Error constructing logo URL for branch:', row.code, error);
-                return '';
+                console.error("Error constructing logo URL for branch:", row.code, error);
+                return "";
               }
             },
             getAltText: (row) => row.nameEn,

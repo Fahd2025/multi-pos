@@ -9,7 +9,8 @@ import React, { useState, useEffect } from "react";
 import { DataTable } from "@/components/shared";
 import { FeaturedDialog, ConfirmationDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
-import { useModal, useConfirmation } from "@/hooks/useModal";
+import { useModal } from "@/hooks/useModal";
+import { useConfirmation } from "@/hooks/useConfirmation";
 import {
   DataTableColumn,
   DataTableAction,

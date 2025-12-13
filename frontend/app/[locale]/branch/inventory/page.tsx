@@ -14,7 +14,7 @@ import StockAdjustmentModal from "@/components/branch/inventory/StockAdjustmentM
 import { DataTable } from "@/components/shared";
 import { ConfirmationDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
-import { useConfirmation } from "@/hooks/useModal";
+import { useConfirmation } from "@/hooks/useConfirmation";
 import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
 import {
   Button,

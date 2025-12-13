@@ -14,7 +14,7 @@ import PurchaseFormModal from "@/components/branch/inventory/PurchaseFormModal";
 import { DataTable } from "@/components/shared";
 import { ConfirmationDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
-import { useConfirmation } from "@/hooks/useModal";
+import { useConfirmation } from "@/hooks/useConfirmation";
 import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
 import { Button } from "@/components/shared/Button";
 import { StatusBadge } from "@/components/shared/StatusBadge";
@@ -38,7 +38,7 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
   // Modal states
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
   const [selectedPurchase, setSelectedPurchase] = useState<PurchaseDto | undefined>(undefined);
-  const [purchaseMode, setPurchaseMode] = useState<'create' | 'edit' | 'view'>('create');
+  const [purchaseMode, setPurchaseMode] = useState<"create" | "edit" | "view">("create");
 
   // Filter states (input values)
   const [searchQuery, setSearchQuery] = useState("");
@@ -479,7 +479,7 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
    */
   const handleEditPurchase = (purchase: PurchaseDto) => {
     setSelectedPurchase(purchase);
-    setPurchaseMode('edit');
+    setPurchaseMode("edit");
     setIsPurchaseModalOpen(true);
   };
 
@@ -529,7 +529,7 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
       label: "👁️ View",
       onClick: (row) => {
         setSelectedPurchase(row);
-        setPurchaseMode('view');
+        setPurchaseMode("view");
         setIsPurchaseModalOpen(true);
       },
       variant: "secondary",
@@ -569,7 +569,7 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
             size="md"
             onClick={() => {
               setSelectedPurchase(undefined);
-              setPurchaseMode('create');
+              setPurchaseMode("create");
               setIsPurchaseModalOpen(true);
             }}
           >
@@ -845,7 +845,7 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
           onClose={() => {
             setIsPurchaseModalOpen(false);
             setSelectedPurchase(undefined);
-            setPurchaseMode('create');
+            setPurchaseMode("create");
           }}
           onSuccess={() => {
             fetchPurchases();

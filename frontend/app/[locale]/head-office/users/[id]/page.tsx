@@ -16,7 +16,8 @@ import Link from "next/link";
 import { DataTable } from "@/components/shared";
 import { ConfirmationDialog, FeaturedDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
-import { useModal, useConfirmation } from "@/hooks/useModal";
+import { useModal } from "@/hooks/useModal";
+import { useConfirmation } from "@/hooks/useConfirmation";
 import { DataTableColumn, FormField } from "@/types/data-table.types";
 import {
   UserDto,

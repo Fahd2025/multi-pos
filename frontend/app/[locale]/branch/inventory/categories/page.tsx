@@ -15,7 +15,7 @@ import CategoryFormModal from "@/components/branch/inventory/CategoryFormModal";
 import { DataTable } from "@/components/shared";
 import { ConfirmationDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
-import { useConfirmation } from "@/hooks/useModal";
+import { useConfirmation } from "@/hooks/useConfirmation";
 import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
 import { Button } from "@/components/shared/Button";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
@@ -227,171 +227,175 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
         <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
           <div className="text-6xl">🔒</div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Access Denied</h2>
-          <p className="text-gray-600 dark:text-gray-400">You don't have permission to access this page.</p>
-          <p className="text-sm text-gray-500 dark:text-gray-500">Only Managers can access Category Management.</p>
-          <Button onClick={() => router.push(`/${locale}/branch`)}>
-            Go to Dashboard
-          </Button>
+          <p className="text-gray-600 dark:text-gray-400">
+            You don't have permission to access this page.
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-500">
+            Only Managers can access Category Management.
+          </p>
+          <Button onClick={() => router.push(`/${locale}/branch`)}>Go to Dashboard</Button>
         </div>
       }
     >
       <div className="space-y-6">
         {/* Page Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Category Management
-          </h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Organize products into categories and subcategories
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <Link href={`/${locale}/branch/inventory`}>
-            <Button variant="secondary" size="md">
-              ← Back to Inventory
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
+              Category Management
+            </h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Organize products into categories and subcategories
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Link href={`/${locale}/branch/inventory`}>
+              <Button variant="secondary" size="md">
+                ← Back to Inventory
+              </Button>
+            </Link>
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => {
+                setSelectedCategory(undefined);
+                setIsCategoryModalOpen(true);
+              }}
+            >
+              ➕ Add Category
             </Button>
-          </Link>
-          <Button
-            variant="primary"
-            size="md"
-            onClick={() => {
-              setSelectedCategory(undefined);
-              setIsCategoryModalOpen(true);
+          </div>
+        </div>
+
+        {/* Error Message */}
+        {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
+
+        {/* Loading State */}
+        {loading && <LoadingSpinner size="lg" text="Loading categories..." />}
+
+        {/* Categories DataTable */}
+        {!loading && (
+          <DataTable
+            data={displayData}
+            columns={columns}
+            actions={actions}
+            getRowKey={(row) => row.id}
+            pagination
+            paginationConfig={paginationConfig}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+            sortable
+            sortConfig={sortConfig ?? undefined}
+            onSortChange={handleSortChange}
+            emptyMessage="No categories found. Click 'Add Category' to create one."
+            showRowNumbers
+            imageColumn={{
+              getImageUrl: (row) =>
+                row.imagePath ? getCategoryImageUrl(row.imagePath, row.id, "large") : "",
+              getAltText: (row) => row.nameEn,
+              onImageClick: (row, images) => {
+                if (images[0]) {
+                  setSelectedCategoryImage(images[0]);
+                  setIsImageCarouselOpen(true);
+                }
+              },
+              size: 64,
+              defaultIcon: "📁",
             }}
-          >
-            ➕ Add Category
-          </Button>
-        </div>
-      </div>
-
-      {/* Error Message */}
-      {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
-
-      {/* Loading State */}
-      {loading && <LoadingSpinner size="lg" text="Loading categories..." />}
-
-      {/* Categories DataTable */}
-      {!loading && (
-        <DataTable
-          data={displayData}
-          columns={columns}
-          actions={actions}
-          getRowKey={(row) => row.id}
-          pagination
-          paginationConfig={paginationConfig}
-          onPageChange={handlePageChange}
-          onPageSizeChange={handlePageSizeChange}
-          sortable
-          sortConfig={sortConfig ?? undefined}
-          onSortChange={handleSortChange}
-          emptyMessage="No categories found. Click 'Add Category' to create one."
-          showRowNumbers
-          imageColumn={{
-            getImageUrl: (row) =>
-              row.imagePath ? getCategoryImageUrl(row.imagePath, row.id, "large") : "",
-            getAltText: (row) => row.nameEn,
-            onImageClick: (row, images) => {
-              if (images[0]) {
-                setSelectedCategoryImage(images[0]);
-                setIsImageCarouselOpen(true);
-              }
-            },
-            size: 64,
-            defaultIcon: "📁",
-          }}
-        />
-      )}
-
-      {/* Category Structure View */}
-      {!loading && categories.length > 0 && (
-        <div className="bg-white dark:bg-gray-800  rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-            Category Hierarchy
-          </h2>
-          <div className="space-y-2">
-            {getRootCategories().map((root) => (
-              <div key={root.id} className="space-y-1">
-                <div className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    📁 {root.nameEn}
-                  </span>
-                  <span className="text-xs text-gray-500">({root.code})</span>
-                </div>
-                {getChildCategories(root.id).map((child) => (
-                  <div
-                    key={child.id}
-                    className="flex items-center gap-2 p-2 pl-8 bg-gray-50 rounded ml-6"
-                  >
-                    <span className="text-sm text-gray-700">📄 {child.nameEn}</span>
-                    <span className="text-xs text-gray-500">({child.code})</span>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="text-sm text-gray-600">Total Categories</div>
-          <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
-            {categories.length}
-          </div>
-        </div>
-        <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="text-sm text-gray-600">Root Categories</div>
-          <div className="text-2xl font-bold text-blue-600 mt-1">{getRootCategories().length}</div>
-        </div>
-        <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="text-sm text-gray-600">Subcategories</div>
-          <div className="text-2xl font-bold text-green-600 mt-1">
-            {categories.filter((c) => c.parentCategoryId).length}
-          </div>
-        </div>
-      </div>
-
-      {/* Category Form Modal */}
-      <CategoryFormModal
-        isOpen={isCategoryModalOpen}
-        onClose={() => {
-          setIsCategoryModalOpen(false);
-          setSelectedCategory(undefined);
-        }}
-        onSuccess={() => {
-          loadCategories();
-        }}
-        category={selectedCategory}
-        categories={categories}
-        branchName={branch?.branchCode || ""}
-      />
-
-      {/* Confirmation Dialog */}
-      <ConfirmationDialog
-        isOpen={confirmation.isOpen}
-        onClose={confirmation.cancel}
-        onConfirm={confirmation.confirm}
-        title={confirmation.title}
-        message={confirmation.message}
-        variant={confirmation.variant}
-        confirmLabel="Confirm"
-        cancelLabel="Cancel"
-        isProcessing={confirmation.isProcessing}
-      />
-
-      {/* Image Carousel Modal */}
-      <Dialog open={isImageCarouselOpen} onOpenChange={setIsImageCarouselOpen}>
-        <DialogContent className="max-w-4xl p-0" showCloseButton={false}>
-          <DialogTitle className="sr-only">Category Image</DialogTitle>
-          <ImageCarousel
-            images={[selectedCategoryImage]}
-            alt="Category image"
-            className="w-full h-[600px]"
           />
-        </DialogContent>
-      </Dialog>
+        )}
+
+        {/* Category Structure View */}
+        {!loading && categories.length > 0 && (
+          <div className="bg-white dark:bg-gray-800  rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              Category Hierarchy
+            </h2>
+            <div className="space-y-2">
+              {getRootCategories().map((root) => (
+                <div key={root.id} className="space-y-1">
+                  <div className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      📁 {root.nameEn}
+                    </span>
+                    <span className="text-xs text-gray-500">({root.code})</span>
+                  </div>
+                  {getChildCategories(root.id).map((child) => (
+                    <div
+                      key={child.id}
+                      className="flex items-center gap-2 p-2 pl-8 bg-gray-50 rounded ml-6"
+                    >
+                      <span className="text-sm text-gray-700">📄 {child.nameEn}</span>
+                      <span className="text-xs text-gray-500">({child.code})</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200">
+            <div className="text-sm text-gray-600">Total Categories</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
+              {categories.length}
+            </div>
+          </div>
+          <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200">
+            <div className="text-sm text-gray-600">Root Categories</div>
+            <div className="text-2xl font-bold text-blue-600 mt-1">
+              {getRootCategories().length}
+            </div>
+          </div>
+          <div className="bg-white dark:bg-gray-800  p-4 rounded-lg shadow-sm border border-gray-200">
+            <div className="text-sm text-gray-600">Subcategories</div>
+            <div className="text-2xl font-bold text-green-600 mt-1">
+              {categories.filter((c) => c.parentCategoryId).length}
+            </div>
+          </div>
+        </div>
+
+        {/* Category Form Modal */}
+        <CategoryFormModal
+          isOpen={isCategoryModalOpen}
+          onClose={() => {
+            setIsCategoryModalOpen(false);
+            setSelectedCategory(undefined);
+          }}
+          onSuccess={() => {
+            loadCategories();
+          }}
+          category={selectedCategory}
+          categories={categories}
+          branchName={branch?.branchCode || ""}
+        />
+
+        {/* Confirmation Dialog */}
+        <ConfirmationDialog
+          isOpen={confirmation.isOpen}
+          onClose={confirmation.cancel}
+          onConfirm={confirmation.confirm}
+          title={confirmation.title}
+          message={confirmation.message}
+          variant={confirmation.variant}
+          confirmLabel="Confirm"
+          cancelLabel="Cancel"
+          isProcessing={confirmation.isProcessing}
+        />
+
+        {/* Image Carousel Modal */}
+        <Dialog open={isImageCarouselOpen} onOpenChange={setIsImageCarouselOpen}>
+          <DialogContent className="max-w-4xl p-0" showCloseButton={false}>
+            <DialogTitle className="sr-only">Category Image</DialogTitle>
+            <ImageCarousel
+              images={[selectedCategoryImage]}
+              alt="Category image"
+              className="w-full h-[600px]"
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </RoleGuard>
   );

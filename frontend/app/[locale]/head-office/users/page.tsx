@@ -13,7 +13,8 @@ import { use } from "react";
 import { DataTable } from "@/components/shared";
 import { FeaturedDialog, ConfirmationDialog } from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
-import { useModal, useConfirmation } from "@/hooks/useModal";
+import { useModal } from "@/hooks/useModal";
+import { useConfirmation } from "@/hooks/useConfirmation";
 import {
   DataTableColumn,
   DataTableAction,
@@ -379,8 +380,12 @@ export default function UsersManagementPage({ params }: { params: Promise<{ loca
 
     await execute({
       operation,
-      successMessage: `User ${createEditModal.mode === "create" ? "created" : "updated"} successfully`,
-      successDetail: `${(data as any).fullNameEn || (data as any).username} has been ${createEditModal.mode === "create" ? "added" : "updated"}`,
+      successMessage: `User ${
+        createEditModal.mode === "create" ? "created" : "updated"
+      } successfully`,
+      successDetail: `${(data as any).fullNameEn || (data as any).username} has been ${
+        createEditModal.mode === "create" ? "added" : "updated"
+      }`,
       onSuccess: async () => {
         await loadUsers();
         createEditModal.close();
