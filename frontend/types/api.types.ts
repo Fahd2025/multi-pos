@@ -192,6 +192,11 @@ export interface CreateSaleDto {
   paymentMethod: number;
   paymentReference?: string;
   notes?: string;
+  // Delivery-related fields
+  deliveryAddress?: string;
+  deliveryFee?: number;
+  specialInstructions?: string;
+  isDelivery?: boolean; // Indicates if this is a delivery order
 }
 
 export interface SaleLineItemDto {
@@ -225,6 +230,16 @@ export interface SaleDto {
   voidReason?: string;
   lineItems: SaleLineItemDetailDto[];
   createdAt: string;
+  // Delivery-related fields
+  deliveryAddress?: string;
+  deliveryFee?: number;
+  specialInstructions?: string;
+  isDelivery?: boolean;
+  deliveryStatus?: DeliveryStatus;
+  estimatedDeliveryTime?: string;
+  actualDeliveryTime?: string;
+  driverId?: string;
+  driverName?: string;
 }
 
 export interface SaleLineItemDetailDto {
@@ -241,6 +256,136 @@ export interface SaleLineItemDetailDto {
   discountedUnitPrice: number;
   lineTotal: number;
   notes?: string;
+}
+
+// ============================================================================
+// Delivery Types
+// ============================================================================
+
+/**
+ * Delivery order status enum
+ */
+export enum DeliveryStatus {
+  Pending = 0,
+  Assigned = 1,
+  OutForDelivery = 2,
+  Delivered = 3,
+  Failed = 4
+}
+
+/**
+ * Delivery priority enum
+ */
+export enum DeliveryPriority {
+  Low = 0,
+  Normal = 1,
+  High = 2,
+  Urgent = 3
+}
+
+/**
+ * Driver DTOs
+ */
+export interface CreateDriverDto {
+  code: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email?: string;
+  licenseNumber?: string;
+  vehicleNumber?: string;
+  isActive: boolean;
+}
+
+export interface UpdateDriverDto {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  email?: string;
+  licenseNumber?: string;
+  vehicleNumber?: string;
+  isActive?: boolean;
+}
+
+export interface DriverDto {
+  id: string;
+  code: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  phone: string;
+  email?: string;
+  licenseNumber?: string;
+  vehicleNumber?: string;
+  isActive: boolean;
+  isAvailable: boolean;
+  activeDeliveryCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Delivery order DTOs
+ */
+export interface CreateDeliveryOrderDto {
+  orderId: string; // References the Sale ID
+  customerId?: string;
+  driverId?: string;
+  pickupAddress: string;
+  deliveryAddress: string;
+  deliveryLocation?: string; // JSON field for GPS coordinates or detailed location info
+  estimatedDeliveryTime?: string;
+  priority: DeliveryPriority;
+  specialInstructions?: string;
+  deliveryFee?: number;
+  estimatedDeliveryMinutes?: number; // Estimated delivery time in minutes
+}
+
+export interface UpdateDeliveryOrderDto {
+  driverId?: string;
+  pickupAddress?: string;
+  deliveryAddress?: string;
+  estimatedDeliveryTime?: string;
+  deliveryStatus?: DeliveryStatus;
+  priority?: DeliveryPriority;
+  specialInstructions?: string;
+  deliveryFee?: number;
+}
+
+export interface DeliveryOrderDto {
+  id: string;
+  orderId: string; // References the Sale ID
+  customerId?: string;
+  driverId?: string;
+  driverName?: string;
+  pickupAddress: string;
+  deliveryAddress: string;
+  deliveryLocation?: string; // JSON field for GPS coordinates
+  estimatedDeliveryTime?: string;
+  actualDeliveryTime?: string;
+  deliveryStatus: DeliveryStatus;
+  priority: DeliveryPriority;
+  specialInstructions?: string;
+  estimatedDeliveryMinutes?: number; // Estimated delivery time in minutes
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  sale?: SaleDto;
+  customer?: CustomerDto;
+  driver?: DriverDto;
+}
+
+/**
+ * Query parameters for getting delivery orders
+ */
+export interface GetDeliveryOrdersParams extends PaginationParams {
+  status?: DeliveryStatus;
+  driverId?: string;
+  orderId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  search?: string;
+  priority?: DeliveryPriority;
 }
 
 export interface VoidSaleDto {

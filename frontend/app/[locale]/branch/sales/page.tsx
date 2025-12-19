@@ -36,12 +36,12 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
   };
 
   const handleGoToPOS = () => {
-    router.push("/branch/sales/pos");
+    router.push("/pos");
   };
 
   const handleProductSelect = (product: ProductDto) => {
     // When product is selected from grid, go to POS with the product
-    router.push("/branch/sales/pos");
+    router.push("/pos");
   };
 
   const handleDateFilterChange = () => {

@@ -74,6 +74,27 @@ export enum ApprovalStatus {
 }
 
 /**
+ * Delivery order status enum
+ */
+export enum DeliveryStatus {
+  Pending = 0,
+  Assigned = 1,
+  OutForDelivery = 2,
+  Delivered = 3,
+  Failed = 4
+}
+
+/**
+ * Delivery priority enum
+ */
+export enum DeliveryPriority {
+  Low = 0,
+  Normal = 1,
+  High = 2,
+  Urgent = 3
+}
+
+/**
  * Helper function to get display name for DatabaseProvider
  */
 export const getDatabaseProviderName = (provider: DatabaseProvider): string => {
@@ -136,6 +157,44 @@ export const getInvoiceTypeName = (type: InvoiceType): string => {
       return "Touch Invoice";
     case InvoiceType.Standard:
       return "Standard Invoice";
+    default:
+      return "Unknown";
+  }
+};
+
+/**
+ * Helper function to get display name for DeliveryStatus
+ */
+export const getDeliveryStatusName = (status: DeliveryStatus): string => {
+  switch (status) {
+    case DeliveryStatus.Pending:
+      return "Pending";
+    case DeliveryStatus.Assigned:
+      return "Assigned";
+    case DeliveryStatus.OutForDelivery:
+      return "Out for Delivery";
+    case DeliveryStatus.Delivered:
+      return "Delivered";
+    case DeliveryStatus.Failed:
+      return "Failed";
+    default:
+      return "Unknown";
+  }
+};
+
+/**
+ * Helper function to get display name for DeliveryPriority
+ */
+export const getDeliveryPriorityName = (priority: DeliveryPriority): string => {
+  switch (priority) {
+    case DeliveryPriority.Low:
+      return "Low";
+    case DeliveryPriority.Normal:
+      return "Normal";
+    case DeliveryPriority.High:
+      return "High";
+    case DeliveryPriority.Urgent:
+      return "Urgent";
     default:
       return "Unknown";
   }

@@ -37,7 +37,7 @@
 
 ## Phase 4: Polish & Testing
 
-- [ ] Implement animations for modal opening and list updates using `framer-motion` (or CSS).
+- [ ] Implement animations for modal opening and list updates using CSS.
 - [ ] Responsive design checks (Tablet/Desktop).
 - [ ] Verify "Print Invoice" includes new delivery details.
 - [ ] Manual test: End-to-end delivery flow.

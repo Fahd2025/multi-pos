@@ -68,3 +68,21 @@ export const getApprovalStatusVariant = (
     default: return 'neutral';
   }
 };
+
+/**
+ * Helper function to get delivery status badge variant
+ */
+export const getDeliveryStatusVariant = (
+  status: number
+): 'success' | 'warning' | 'info' | 'danger' | 'neutral' => {
+  switch (status) {
+    case 0: return 'neutral';  // Pending
+    case 1: return 'info';     // Assigned
+    case 2: return 'warning';  // PickedUp
+    case 3: return 'warning';  // OutForDelivery
+    case 4: return 'success';  // Delivered
+    case 5: return 'danger';   // Failed
+    case 6: return 'danger';   // Cancelled
+    default: return 'neutral';
+  }
+};

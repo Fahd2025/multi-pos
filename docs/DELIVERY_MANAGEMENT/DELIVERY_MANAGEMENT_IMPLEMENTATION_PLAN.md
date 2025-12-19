@@ -9,7 +9,7 @@ To integrate a comprehensive Delivery Management System into the existing Next.j
 The following questions (based on your request) have been analyzed. I have provided **Proposed Specifications** for the initial implementation plan. Please review and confirm these assumptions.
 
 1.  **What specific order statuses should be included?**
-    - _Proposed Spec_: `Pending`, `Preparing`, `Ready`, `Out for Delivery`, `Delivered`, `Canceled`.
+    - _Proposed Spec_: `Pending`, `Preparing`, `Ready`, `Out for Delivery`, `Delivered`, `Failed`.
 2.  **How do you envision the process for assigning a driver? Automated or manual?**
     - _Proposed Spec_: Manual assignment via a dropdown/modal in the Delivery Manager. Future iterations can include auto-assignment logic.
 3.  **What types of delivery time calculations are required?**
@@ -30,6 +30,7 @@ The following questions (based on your request) have been analyzed. I have provi
       - `Ready`: Green
       - `Out for Delivery`: Orange/Purple
       - `Delivered`: Success Green
+      - `Failed`: Red
     - Icons: Use `lucide-react` (Truck, MapPin, User, CheckCircle).
 7.  **What devices should the POS system be optimized for?**
     - _Proposed Spec_: Responsive web design focusing on Tablets (iPad) and Desktop monitors. Mobile support for simple status checks.

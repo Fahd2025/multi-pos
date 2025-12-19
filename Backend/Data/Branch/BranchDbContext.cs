@@ -26,6 +26,7 @@ public class BranchDbContext : DbContext
     public DbSet<InvoiceTemplate> InvoiceTemplates { get; set; }
     public DbSet<Driver> Drivers { get; set; }
     public DbSet<Unit> Units { get; set; }
+    public DbSet<DeliveryOrder> DeliveryOrders { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -110,6 +111,12 @@ public class BranchDbContext : DbContext
             entity.HasIndex(e => e.IsActive);
 
             entity.Property(e => e.TotalPurchases).HasPrecision(18, 2);
+
+            // Define the relationship to DeliveryOrders
+            entity.HasMany(c => c.DeliveryOrders)
+                  .WithOne(d => d.Customer)
+                  .HasForeignKey(d => d.CustomerId)
+                  .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Supplier configuration
@@ -129,6 +136,7 @@ public class BranchDbContext : DbContext
             entity.HasIndex(e => e.CashierId);
             entity.HasIndex(e => e.SaleDate);
             entity.HasIndex(e => e.IsVoided);
+            entity.HasIndex(e => e.OrderType); // Index for OrderType to improve queries for delivery orders
 
             entity.Property(e => e.Subtotal).HasPrecision(18, 2);
             entity.Property(e => e.TaxAmount).HasPrecision(18, 2);
@@ -142,6 +150,12 @@ public class BranchDbContext : DbContext
                 .WithMany(c => c.Sales)
                 .HasForeignKey(e => e.CustomerId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // Define the relationship to DeliveryOrder (one-to-one)
+            entity.HasOne(s => s.DeliveryOrder)
+                  .WithOne(d => d.Sale)
+                  .HasForeignKey<DeliveryOrder>(d => d.OrderId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
 
         // SaleLineItem configuration
@@ -266,6 +280,12 @@ public class BranchDbContext : DbContext
             entity.HasIndex(e => e.IsAvailable);
 
             entity.Property(e => e.AverageRating).HasPrecision(3, 2);
+
+            // Define the relationship to DeliveryOrders
+            entity.HasMany(d => d.DeliveryOrders)
+                  .WithOne(d => d.Driver)
+                  .HasForeignKey(d => d.DriverId)
+                  .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Unit configuration
@@ -284,6 +304,32 @@ public class BranchDbContext : DbContext
                 .WithMany(u => u.DerivedUnits)
                 .HasForeignKey(e => e.BaseUnitId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // DeliveryOrder configuration
+        modelBuilder.Entity<DeliveryOrder>(entity =>
+        {
+            entity.HasIndex(e => e.OrderId).IsUnique(false); // Multiple delivery orders could theoretically reference the same sale
+            entity.HasIndex(e => e.CustomerId);
+            entity.HasIndex(e => e.DriverId);
+            entity.HasIndex(e => e.DeliveryStatus);
+            entity.HasIndex(e => e.EstimatedDeliveryTime);
+            entity.HasIndex(e => e.CreatedAt);
+            entity.HasIndex(e => e.Priority);
+
+            entity
+                .HasOne(e => e.Customer)
+                .WithMany(c => c.DeliveryOrders) // A customer can have multiple delivery orders
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity
+                .HasOne(e => e.Driver)
+                .WithMany(d => d.DeliveryOrders) // A driver can handle multiple delivery orders
+                .HasForeignKey(e => e.DriverId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.Property(e => e.EstimatedDeliveryMinutes);
         });
     }
 }

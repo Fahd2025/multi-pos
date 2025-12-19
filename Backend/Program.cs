@@ -151,6 +151,14 @@ builder.Services.AddScoped<
     Backend.Services.Branch.IInvoiceTemplateService,
     Backend.Services.Branch.InvoiceTemplateService
 >();
+builder.Services.AddScoped<
+    Backend.Services.Branch.Drivers.IDriverService,
+    Backend.Services.Branch.Drivers.DriverService
+>();
+builder.Services.AddScoped<
+    Backend.Services.Branch.DeliveryOrders.IDeliveryOrderService,
+    Backend.Services.Branch.DeliveryOrders.DeliveryOrderService
+>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<BranchDbContext>(provider =>
@@ -379,6 +387,12 @@ app.MapInvoiceTemplateEndpoints();
 
 // Branch Info
 app.MapBranchInfoEndpoints();
+
+// Drivers
+app.MapDriversEndpoints();
+
+// Delivery Orders
+app.MapDeliveryOrdersEndpoints();
 
 app.Run();
 

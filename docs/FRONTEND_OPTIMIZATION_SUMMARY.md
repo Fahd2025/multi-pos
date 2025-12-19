@@ -121,7 +121,7 @@ Created `loading.tsx` files that automatically wrap pages in Suspense boundaries
 4. ✅ `app/[locale]/branch/expenses/loading.tsx`
 5. ✅ `app/[locale]/branch/users/loading.tsx`
 6. ✅ `app/[locale]/branch/dashboard/loading.tsx`
-7. ✅ `app/[locale]/branch/sales/pos3/loading.tsx`
+7. ✅ `app/[locale]/branch/sales/pos2/loading.tsx`
 
 ### How It Works
 
@@ -197,9 +197,9 @@ import { LazyDataTable } from "@/components/lazy";
 ### Duplicates Removed
 
 1. ✅ **badge2.tsx** - Unused duplicate badge component deleted
-2. ⚠️ **POS implementations** - Two versions exist (pos/ and pos3/)
+2. ⚠️ **POS implementations** - Two versions exist (pos/ and pos2/)
    - `pos/` - Legacy implementation with CSS modules
-   - `pos3/` - Modern implementation with Tailwind (actively used)
+   - `pos2/` - Modern implementation with Tailwind (actively used)
    - **Recommendation:** Keep both for now as they serve different routes
 
 ### Error Handling Components
@@ -332,7 +332,7 @@ components/
 ### Medium Priority
 
 - [ ] Consider consolidating POS implementations
-  - Evaluate if both `pos/` and `pos3/` are needed
+  - Evaluate if both `pos/` and `pos2/` are needed
   - Document the differences if keeping both
 
 - [ ] Optimize images
@@ -458,7 +458,7 @@ export default function Loading() {
 6. `frontend/app/[locale]/branch/expenses/loading.tsx`
 7. `frontend/app/[locale]/branch/users/loading.tsx`
 8. `frontend/app/[locale]/branch/dashboard/loading.tsx`
-9. `frontend/app/[locale]/branch/sales/pos3/loading.tsx`
+9. `frontend/app/[locale]/branch/sales/pos2/loading.tsx`
 
 **Lazy Loading:**
 10. `frontend/components/lazy/index.ts`

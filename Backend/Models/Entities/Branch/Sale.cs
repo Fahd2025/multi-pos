@@ -72,6 +72,7 @@ public class Sale
     // Navigation properties
     public Customer? Customer { get; set; }
     public ICollection<SaleLineItem> LineItems { get; set; } = new List<SaleLineItem>();
+    public DeliveryOrder? DeliveryOrder { get; set; }
 }
 
 public enum InvoiceType

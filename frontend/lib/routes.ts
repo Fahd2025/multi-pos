@@ -61,8 +61,8 @@ export const BRANCH_ROUTES = {
   // Sales
   SALES: (locale: string) => `/${locale}/branch/sales`,
   SALE_DETAIL: (locale: string, id: string) => `/${locale}/branch/sales/${id}`,
-  POS: (locale: string) => `/${locale}/branch/sales/pos`,
-  POS2: (locale: string) => `/${locale}/branch/sales/pos`,
+  POS: (locale: string) => `/${locale}/pos`,
+  POS2: (locale: string) => `/${locale}/pos/pos2`,
 
   // Inventory
   INVENTORY: (locale: string) => `/${locale}/branch/inventory`,

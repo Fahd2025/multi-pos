@@ -91,6 +91,6 @@ public class Driver
     [Required]
     public Guid CreatedBy { get; set; }
 
-    // TODO: Add navigation properties when DeliveryOrder entity is created
-    // public ICollection<DeliveryOrder> DeliveryOrders { get; set; } = new List<DeliveryOrder>();
+    // Navigation properties
+    public ICollection<DeliveryOrder> DeliveryOrders { get; set; } = new List<DeliveryOrder>();
 }

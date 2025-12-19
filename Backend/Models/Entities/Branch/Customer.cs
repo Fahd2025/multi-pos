@@ -80,4 +80,5 @@ public class Customer
 
     // Navigation properties
     public ICollection<Sale> Sales { get; set; } = new List<Sale>();
+    public ICollection<DeliveryOrder> DeliveryOrders { get; set; } = new List<DeliveryOrder>();
 }

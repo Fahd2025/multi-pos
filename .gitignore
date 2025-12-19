@@ -161,3 +161,5 @@ Upload/
 !/Backend/Upload/**/.gitkeep
 !/Backend/Upload/**/README.md
 !/Backend/Upload/README.md
+
+/old/
