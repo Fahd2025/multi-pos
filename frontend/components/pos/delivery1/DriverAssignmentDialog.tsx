@@ -61,7 +61,7 @@ export function DriverAssignmentDialog({
 
     try {
       setAssigning(true);
-      await onAssign(selectedDriver, `${driver.firstName} ${driver.lastName}`);
+      await onAssign(selectedDriver, driver.nameEn);
       onOpenChange(false);
       setSelectedDriver(null);
     } catch (error) {
@@ -110,7 +110,7 @@ export function DriverAssignmentDialog({
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-gray-400" />
                     <p className="font-semibold">
-                      {driver.firstName} {driver.lastName}
+                      {driver.nameEn}
                     </p>
                   </div>
 

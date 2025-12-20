@@ -135,6 +135,8 @@ export {
 // Modal Components (previously in modals folder)
 export { FeaturedDialog } from "./FeaturedDialog";
 export { ConfirmationDialog } from "./ConfirmationDialog";
+export { SidebarDialog } from "./SidebarDialog";
+export type { SidebarDialogProps } from "./SidebarDialog";
 
 // Data Table Components (previously in data-table folder)
 export { DataTable } from "./DataTable";

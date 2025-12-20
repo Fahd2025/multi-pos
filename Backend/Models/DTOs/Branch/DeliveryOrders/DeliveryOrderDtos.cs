@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Backend.Models.Entities.Branch;
+using Backend.Models.DTOs.Branch.Sales;
 
 namespace Backend.Models.DTOs.Branch.DeliveryOrders;
 
@@ -59,15 +60,15 @@ public class DeliveryOrderDto
     public Guid Id { get; set; }
 
     public Guid OrderId { get; set; }
-    
+
     public string OrderTransactionId { get; set; } = string.Empty; // From the related Sale
 
     public Guid? CustomerId { get; set; }
-    
+
     public string? CustomerName { get; set; }
 
     public Guid? DriverId { get; set; }
-    
+
     public string? DriverName { get; set; }
 
     public string PickupAddress { get; set; } = string.Empty;
@@ -77,9 +78,9 @@ public class DeliveryOrderDto
     public string? DeliveryLocation { get; set; } // JSON field for coordinates
 
     public DateTime? EstimatedDeliveryTime { get; set; }
-    
+
     public DateTime? ActualDeliveryTime { get; set; }
-    
+
     public DeliveryStatus DeliveryStatus { get; set; }
 
     public DeliveryPriority Priority { get; set; }
@@ -89,6 +90,8 @@ public class DeliveryOrderDto
     public int ItemsCount { get; set; } // Number of items in the order
 
     public decimal OrderTotal { get; set; } // Total amount of the order
+
+    public SaleDto? Sale { get; set; } // Related sale with line items
 
     public DateTime CreatedAt { get; set; }
 

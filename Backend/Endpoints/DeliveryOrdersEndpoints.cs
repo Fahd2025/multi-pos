@@ -93,7 +93,9 @@ public static class DeliveryOrdersEndpoints
                     int? status = null,
                     Guid? driverId = null,
                     Guid? orderId = null,
-                    string? search = null
+                    string? search = null,
+                    DateTime? dateFrom = null,
+                    DateTime? dateTo = null
                 ) =>
                 {
                     try
@@ -134,6 +136,17 @@ public static class DeliveryOrdersEndpoints
                                 (!string.IsNullOrEmpty(d.DriverName) && d.DriverName.ToLower().Contains(searchLower)) ||
                                 d.DeliveryAddress.ToLower().Contains(searchLower)
                             );
+                        }
+
+                        // Apply date filters if provided
+                        if (dateFrom.HasValue)
+                        {
+                            deliveryOrders = deliveryOrders.Where(d => d.CreatedAt >= dateFrom.Value);
+                        }
+
+                        if (dateTo.HasValue)
+                        {
+                            deliveryOrders = deliveryOrders.Where(d => d.CreatedAt <= dateTo.Value);
                         }
 
                         var deliveryOrdersList = deliveryOrders.ToList();

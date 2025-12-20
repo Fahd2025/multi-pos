@@ -3,7 +3,7 @@
  * A full-page component for managing delivery orders
  */
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   X,
@@ -30,6 +30,9 @@ import salesService from "@/services/sales.service";
 import branchInfoService from "@/services/branch-info.service";
 import invoiceTemplateService from "@/services/invoice-template.service";
 import { transformSaleToInvoiceData } from "@/lib/invoice-data-transformer";
+import { InvoiceSchema } from "@/types/invoice-template.types";
+import InvoicePreview from "@/components/invoice/InvoicePreview";
+import { useReactToPrint } from "react-to-print";
 import { OrderCard } from "../OrderCard";
 import { DeliveryFilters } from "./DeliveryFilters";
 import { DeliveryDetailView } from "./DeliveryDetailView";
@@ -58,6 +61,11 @@ export const DeliveryManagerPage: React.FC = () => {
   const [pageSize, setPageSize] = useState(20);
   const [totalPages, setTotalPages] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
+
+  // Invoice printing state
+  const invoiceRef = useRef<HTMLDivElement>(null);
+  const [invoiceSchema, setInvoiceSchema] = useState<InvoiceSchema | null>(null);
+  const [invoiceData, setInvoiceData] = useState<any>(null);
 
   // Helper functions to get date ranges
   const getDateRangeStart = (range: string): string => {
@@ -241,115 +249,85 @@ export const DeliveryManagerPage: React.FC = () => {
 
   const handlePrintInvoice = async (orderId: string) => {
     try {
-      // The orderId parameter here is the delivery order ID, but we need to get the associated sale
-      // Find the delivery order in our current list to get the sale ID
+      console.log("Starting invoice preparation for delivery order:", orderId);
+
+      // Find the delivery order in our current list
       const deliveryOrder = deliveryOrders.find(order => order.id === orderId);
 
-      if (!deliveryOrder || !deliveryOrder.orderId) {
-        console.error("Delivery order not found or missing associated sale ID");
+      if (!deliveryOrder) {
+        console.error("Delivery order not found");
+        setError("Delivery order not found");
         return;
       }
 
-      // Get the sale using the sale ID from the delivery order
-      const sale = await salesService.getSaleById(deliveryOrder.orderId);
+      // Check if we already have sale data in the delivery order
+      let sale = deliveryOrder.sale;
 
-      // Get branch info for the invoice
-      const branchInfo = await branchInfoService.getBranchInfo();
+      // If no sale data, fetch it
+      if (!sale && deliveryOrder.orderId) {
+        console.log("Fetching sale data for order:", deliveryOrder.orderId);
+        sale = await salesService.getSaleById(deliveryOrder.orderId);
+      }
 
-      // Transform sale data to invoice format
-      const invoiceData = transformSaleToInvoiceData(sale, branchInfo);
+      if (!sale) {
+        console.error("Sale data not found");
+        setError("Cannot print invoice without sale data");
+        return;
+      }
 
-      // Get active invoice template
+      // Load active template
       const template = await invoiceTemplateService.getActiveTemplate();
+      console.log("Active template loaded:", template?.name);
+
       if (!template) {
-        console.error("No active invoice template found");
+        console.warn("No active template found");
+        setError("No active invoice template found. Please activate a template in Settings.");
         return;
       }
 
-      const invoiceSchema = JSON.parse(template.schema);
+      // Parse schema
+      const parsedSchema = JSON.parse(template.schema) as InvoiceSchema;
+      console.log("Schema parsed successfully");
 
-      // Create temporary window for printing
-      const printWindow = window.open("", "_blank");
-      if (printWindow) {
-        printWindow.document.write(`
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <title>Delivery Invoice #${sale.invoiceNumber || sale.transactionId}</title>
-              <style>
-                body { font-family: Arial, sans-serif; margin: 20px; }
-                .header { text-align: center; margin-bottom: 20px; }
-                .details { margin-bottom: 20px; }
-                .items { width: 100%; border-collapse: collapse; }
-                .items th, .items td { border: 1px solid #ddd; padding: 8px; }
-                .items th { background-color: #f2f2f2; }
-                .total { margin-top: 20px; text-align: right; }
-              </style>
-            </head>
-            <body>
-              <div class="header">
-                <h2>${branchInfo?.nameEn || "Delivery Order"}</h2>
-                <p>${branchInfo?.addressEn || ""}</p>
-                <h3>Delivery Invoice</h3>
-                <p>Order #${sale.invoiceNumber || sale.transactionId}</p>
-              </div>
-              <div class="details">
-                <p><strong>Customer:</strong> ${sale.customerName || "Walk-in"}</p>
-                <p><strong>Date:</strong> ${new Date(sale.saleDate).toLocaleString()}</p>
-                <p><strong>Payment Method:</strong> ${getPaymentMethodName(sale.paymentMethod)}</p>
-                ${
-                  sale.deliveryAddress
-                    ? `<p><strong>Delivery Address:</strong> ${sale.deliveryAddress}</p>`
-                    : ""
-                }
-                ${sale.driverName ? `<p><strong>Driver:</strong> ${sale.driverName}</p>` : ""}
-              </div>
-              <table class="items">
-                <thead>
-                  <tr>
-                    <th>Item</th>
-                    <th>Qty</th>
-                    <th>Price</th>
-                    <th>Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${sale.lineItems
-                    .map(
-                      (item) => `
-                    <tr>
-                      <td>${item.productName}</td>
-                      <td>${item.quantity}</td>
-                      <td>$${item.unitPrice.toFixed(2)}</td>
-                      <td>$${item.lineTotal.toFixed(2)}</td>
-                    </tr>
-                  `
-                    )
-                    .join("")}
-                </tbody>
-              </table>
-              <div class="total">
-                <p><strong>Subtotal:</strong> $${sale.subtotal.toFixed(2)}</p>
-                <p><strong>Tax:</strong> $${sale.taxAmount.toFixed(2)}</p>
-                <p><strong>Total:</strong> $${sale.total.toFixed(2)}</p>
-              </div>
-            </body>
-          </html>
-        `);
-        printWindow.document.close();
+      // Load branch info
+      const branchInfo = await branchInfoService.getBranchInfo();
+      console.log("Branch info loaded:", branchInfo?.nameEn);
 
-        // Wait for content to load before printing
-        printWindow.onload = () => {
-          printWindow.focus();
-          printWindow.print();
-        };
-      } else {
-        console.error("Failed to open print window. Please check popup blocker settings.");
-      }
+      // Transform sale data to invoice data format
+      const transformedData = transformSaleToInvoiceData(sale, branchInfo);
+
+      // Set invoice data and trigger print
+      setInvoiceSchema(parsedSchema);
+      setInvoiceData(transformedData);
+
+      // Trigger print after a short delay to ensure rendering
+      setTimeout(() => {
+        console.log("Attempting to print, invoiceRef.current:", invoiceRef.current);
+        if (invoiceRef.current && handlePrint) {
+          console.log("Triggering print...");
+          try {
+            handlePrint();
+            setSuccess("Invoice sent to printer");
+          } catch (printErr) {
+            console.error("Error calling handlePrint:", printErr);
+            setError("Failed to trigger print");
+          }
+        } else {
+          console.error("Cannot print - invoiceRef.current:", invoiceRef.current);
+          setError("Invoice component not ready");
+        }
+      }, 500);
     } catch (error) {
       console.error("Error printing invoice:", error);
+      setError("Failed to prepare invoice for printing");
     }
   };
+
+  // Set up print handler using react-to-print
+  const handlePrint = useReactToPrint({
+    contentRef: invoiceRef,
+    documentTitle: `Invoice-${invoiceData?.invoiceNumber || "Delivery"}`,
+  });
 
   const handleRefresh = () => {
     setCurrentPage(1); // Reset to first page when refreshing
@@ -544,6 +522,13 @@ export const DeliveryManagerPage: React.FC = () => {
         <div className={styles.loadingOverlay}>
           <div className={styles.spinner}></div>
           <p>Loading application...</p>
+        </div>
+      )}
+
+      {/* Hidden invoice for printing */}
+      {invoiceSchema && invoiceData && (
+        <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+          <InvoicePreview ref={invoiceRef} schema={invoiceSchema} data={invoiceData} />
         </div>
       )}
     </div>

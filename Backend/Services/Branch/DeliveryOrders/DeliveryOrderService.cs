@@ -1,5 +1,6 @@
 using Backend.Data.Branch;
 using Backend.Models.DTOs.Branch.DeliveryOrders;
+using Backend.Models.DTOs.Branch.Sales;
 using Backend.Models.Entities.Branch;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +21,9 @@ public class DeliveryOrderService : IDeliveryOrderService
             .Where(d => d.Id == id)
             .Include(d => d.Sale)
                 .ThenInclude(s => s.Customer)
+            .Include(d => d.Sale)
+                .ThenInclude(s => s.LineItems)
+                    .ThenInclude(li => li.Product)
             .Include(d => d.Driver)
             .Select(d => new DeliveryOrderDto
             {
@@ -40,6 +44,47 @@ public class DeliveryOrderService : IDeliveryOrderService
                 SpecialInstructions = d.SpecialInstructions,
                 ItemsCount = d.Sale != null ? d.Sale.LineItems.Count : 0,
                 OrderTotal = d.Sale != null ? d.Sale.Total : 0,
+                Sale = d.Sale != null ? new SaleDto
+                {
+                    Id = d.Sale.Id,
+                    TransactionId = d.Sale.TransactionId,
+                    InvoiceNumber = d.Sale.InvoiceNumber,
+                    OrderNumber = d.Sale.OrderNumber,
+                    InvoiceType = d.Sale.InvoiceType,
+                    OrderType = d.Sale.OrderType,
+                    CustomerId = d.Sale.CustomerId,
+                    CustomerName = d.Sale.Customer != null ? d.Sale.Customer.NameEn : null,
+                    CashierId = d.Sale.CashierId,
+                    SaleDate = d.Sale.SaleDate,
+                    Subtotal = d.Sale.Subtotal,
+                    TaxAmount = d.Sale.TaxAmount,
+                    TotalDiscount = d.Sale.TotalDiscount,
+                    Total = d.Sale.Total,
+                    AmountPaid = d.Sale.AmountPaid,
+                    ChangeReturned = d.Sale.ChangeReturned,
+                    PaymentMethod = d.Sale.PaymentMethod,
+                    Notes = d.Sale.Notes,
+                    IsVoided = d.Sale.IsVoided,
+                    VoidedAt = d.Sale.VoidedAt,
+                    VoidedBy = d.Sale.VoidedBy,
+                    VoidReason = d.Sale.VoidReason,
+                    CreatedAt = d.Sale.CreatedAt,
+                    LineItems = d.Sale.LineItems.Select(li => new SaleLineItemDto
+                    {
+                        Id = li.Id,
+                        ProductId = li.ProductId,
+                        ProductName = li.Product != null ? li.Product.NameEn : string.Empty,
+                        Barcode = li.Barcode,
+                        Unit = li.Unit,
+                        Quantity = li.Quantity,
+                        UnitPrice = li.UnitPrice,
+                        DiscountType = li.DiscountType,
+                        DiscountValue = li.DiscountValue,
+                        DiscountedUnitPrice = li.DiscountedUnitPrice,
+                        LineTotal = li.LineTotal,
+                        Notes = li.Notes
+                    }).ToList()
+                } : null,
                 CreatedAt = d.CreatedAt,
                 UpdatedAt = d.UpdatedAt
             })
@@ -54,6 +99,9 @@ public class DeliveryOrderService : IDeliveryOrderService
         var query = _context.DeliveryOrders
             .Include(d => d.Sale)
                 .ThenInclude(s => s.Customer)
+            .Include(d => d.Sale)
+                .ThenInclude(s => s.LineItems)
+                    .ThenInclude(li => li.Product)
             .Include(d => d.Driver)
             .AsQueryable();
 
@@ -94,6 +142,47 @@ public class DeliveryOrderService : IDeliveryOrderService
                 SpecialInstructions = deliveryOrder.SpecialInstructions,
                 ItemsCount = deliveryOrder.Sale != null ? deliveryOrder.Sale.LineItems.Count : 0,
                 OrderTotal = deliveryOrder.Sale != null ? deliveryOrder.Sale.Total : 0,
+                Sale = deliveryOrder.Sale != null ? new SaleDto
+                {
+                    Id = deliveryOrder.Sale.Id,
+                    TransactionId = deliveryOrder.Sale.TransactionId,
+                    InvoiceNumber = deliveryOrder.Sale.InvoiceNumber,
+                    OrderNumber = deliveryOrder.Sale.OrderNumber,
+                    InvoiceType = deliveryOrder.Sale.InvoiceType,
+                    OrderType = deliveryOrder.Sale.OrderType,
+                    CustomerId = deliveryOrder.Sale.CustomerId,
+                    CustomerName = deliveryOrder.Sale.Customer != null ? deliveryOrder.Sale.Customer.NameEn : null,
+                    CashierId = deliveryOrder.Sale.CashierId,
+                    SaleDate = deliveryOrder.Sale.SaleDate,
+                    Subtotal = deliveryOrder.Sale.Subtotal,
+                    TaxAmount = deliveryOrder.Sale.TaxAmount,
+                    TotalDiscount = deliveryOrder.Sale.TotalDiscount,
+                    Total = deliveryOrder.Sale.Total,
+                    AmountPaid = deliveryOrder.Sale.AmountPaid,
+                    ChangeReturned = deliveryOrder.Sale.ChangeReturned,
+                    PaymentMethod = deliveryOrder.Sale.PaymentMethod,
+                    Notes = deliveryOrder.Sale.Notes,
+                    IsVoided = deliveryOrder.Sale.IsVoided,
+                    VoidedAt = deliveryOrder.Sale.VoidedAt,
+                    VoidedBy = deliveryOrder.Sale.VoidedBy,
+                    VoidReason = deliveryOrder.Sale.VoidReason,
+                    CreatedAt = deliveryOrder.Sale.CreatedAt,
+                    LineItems = deliveryOrder.Sale.LineItems.Select(li => new SaleLineItemDto
+                    {
+                        Id = li.Id,
+                        ProductId = li.ProductId,
+                        ProductName = li.Product != null ? li.Product.NameEn : string.Empty,
+                        Barcode = li.Barcode,
+                        Unit = li.Unit,
+                        Quantity = li.Quantity,
+                        UnitPrice = li.UnitPrice,
+                        DiscountType = li.DiscountType,
+                        DiscountValue = li.DiscountValue,
+                        DiscountedUnitPrice = li.DiscountedUnitPrice,
+                        LineTotal = li.LineTotal,
+                        Notes = li.Notes
+                    }).ToList()
+                } : null,
                 CreatedAt = deliveryOrder.CreatedAt,
                 UpdatedAt = deliveryOrder.UpdatedAt
             })

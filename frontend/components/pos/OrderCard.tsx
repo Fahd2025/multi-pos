@@ -226,7 +226,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({
               <option value="">Select Driver</option>
               {drivers.map(driver => (
                 <option key={driver.id} value={driver.id}>
-                  {driver.firstName} {driver.lastName}
+                  {driver.nameEn}
                 </option>
               ))}
             </select>

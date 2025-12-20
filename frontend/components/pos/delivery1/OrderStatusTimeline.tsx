@@ -48,8 +48,11 @@ export function OrderStatusTimeline({
     },
   ];
 
+  // Check if order failed
   const failedStatus = statusHistory.find((h) => h.status === "Failed");
-  if (failedStatus) {
+  const isFailed = currentStatus === DeliveryStatus.Failed;
+
+  if (failedStatus || isFailed) {
     return (
       <div className="space-y-3">
         <div className="flex items-start gap-3 rounded-lg border-2 border-red-200 bg-red-50 p-4">
@@ -59,22 +62,39 @@ export function OrderStatusTimeline({
           <div className="flex-1">
             <p className="font-semibold text-red-900">Delivery Failed</p>
             <p className="text-sm text-red-700">
-              {failedStatus.notes || "Delivery could not be completed"}
+              {failedStatus?.notes || "Delivery could not be completed"}
             </p>
-            <p className="mt-1 text-xs text-red-600">
-              {new Date(failedStatus.createdAt).toLocaleString()}
-            </p>
+            {failedStatus && (
+              <p className="mt-1 text-xs text-red-600">
+                {new Date(failedStatus.createdAt).toLocaleString()}
+              </p>
+            )}
           </div>
         </div>
       </div>
     );
   }
 
+  // Helper function to determine if a status has been reached
+  const getStatusOrder = (status: DeliveryStatus): number => {
+    const order = {
+      [DeliveryStatus.Pending]: 1,
+      [DeliveryStatus.Assigned]: 2,
+      [DeliveryStatus.OutForDelivery]: 3,
+      [DeliveryStatus.Delivered]: 4,
+      [DeliveryStatus.Failed]: 5,
+    };
+    return order[status] || 0;
+  };
+
+  const currentStatusOrder = getStatusOrder(currentStatus);
+
   return (
     <div className="space-y-1">
       {statusConfig.map((statusItem, index) => {
         const historyItem = statusHistory.find((h) => h.status === statusItem.key.toString());
-        const isCompleted = !!historyItem;
+        const statusOrder = getStatusOrder(statusItem.key);
+        const isCompleted = statusOrder < currentStatusOrder || !!historyItem;
         const isCurrent = currentStatus === statusItem.key;
         const Icon = statusItem.icon;
 
@@ -147,6 +167,10 @@ export function OrderStatusTimeline({
                       {new Date(historyItem.createdAt).toLocaleString()}
                     </p>
                   </div>
+                )}
+
+                {!historyItem && isCompleted && (
+                  <p className="mt-1 text-xs text-green-600">Completed</p>
                 )}
 
                 {!isCompleted && !isCurrent && (

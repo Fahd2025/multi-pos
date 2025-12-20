@@ -310,16 +310,26 @@ export interface UpdateDriverDto {
 export interface DriverDto {
   id: string;
   code: string;
-  firstName: string;
-  lastName: string;
-  fullName: string;
+  nameEn: string;
+  nameAr?: string;
   phone: string;
   email?: string;
-  licenseNumber?: string;
+  addressEn?: string;
+  addressAr?: string;
+  licenseNumber: string;
+  licenseExpiryDate: string;
   vehicleNumber?: string;
+  vehicleType?: string;
+  vehicleColor?: string;
+  profileImagePath?: string;
+  licenseImagePath?: string;
+  vehicleImagePath?: string;
   isActive: boolean;
   isAvailable: boolean;
-  activeDeliveryCount: number;
+  totalDeliveries: number;
+  averageRating?: number;
+  notes?: string;
+  activeDeliveryOrdersCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -355,7 +365,9 @@ export interface UpdateDeliveryOrderDto {
 export interface DeliveryOrderDto {
   id: string;
   orderId: string; // References the Sale ID
+  orderTransactionId?: string; // Transaction ID from the related Sale
   customerId?: string;
+  customerName?: string; // Customer name from the related Sale
   driverId?: string;
   driverName?: string;
   pickupAddress: string;
@@ -366,6 +378,8 @@ export interface DeliveryOrderDto {
   deliveryStatus: DeliveryStatus;
   priority: DeliveryPriority;
   specialInstructions?: string;
+  itemsCount?: number; // Number of items in the order
+  orderTotal?: number; // Total amount of the order
   estimatedDeliveryMinutes?: number; // Estimated delivery time in minutes
   createdAt: string;
   updatedAt: string;

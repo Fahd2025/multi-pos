@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { X, Truck, MapPin, Clock, User, Printer, ArrowLeft, Check, ChevronDown } from 'lucide-react';
+import { Truck, MapPin, Clock, User, Printer, Check, ChevronDown } from 'lucide-react';
 import {
   DeliveryOrderDto,
   DeliveryStatus,
@@ -12,6 +12,7 @@ import {
   SaleDto
 } from '@/types/api.types';
 import { getDeliveryStatusName } from '@/types/enums';
+import { SidebarDialog } from '@/components/shared';
 import styles from '../Pos2.module.css'; // Using existing POS styles
 
 interface DeliveryDetailViewProps {
@@ -34,6 +35,41 @@ export const DeliveryDetailView: React.FC<DeliveryDetailViewProps> = ({
   const [isAssigningDriver, setIsAssigningDriver] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState(order.driverId || '');
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+
+  // Parse special instructions to extract customer info if needed
+  const parseSpecialInstructions = (instructions?: string) => {
+    if (!instructions) return { name: "", phone: "" };
+
+    // Try to parse format: "Customer: name | Phone: phone"
+    const customerMatch = instructions.match(/Customer:\s*([^|]+)/i);
+    const phoneMatch = instructions.match(/Phone:\s*(.+)/i);
+
+    return {
+      name: customerMatch ? customerMatch[1].trim() : "",
+      phone: phoneMatch ? phoneMatch[1].trim() : ""
+    };
+  };
+
+  const parsedInstructions = parseSpecialInstructions(order.specialInstructions);
+
+  // Get customer info - prioritize DTO level properties, then parse special instructions
+  const customerName =
+    order.customerName ||
+    order.sale?.customerName ||
+    order.customer?.nameEn ||
+    parsedInstructions.name ||
+    "";
+
+  const customerPhone =
+    order.customer?.phone ||
+    parsedInstructions.phone ||
+    "";
+
+  // Filter out customer info from special instructions display
+  const cleanSpecialInstructions = order.specialInstructions &&
+    (parsedInstructions.name || parsedInstructions.phone)
+    ? null // Don't show special instructions if it only contains customer info
+    : order.specialInstructions;
 
   // Format time for display
   const formatTime = (dateString?: string) => {
@@ -82,39 +118,44 @@ export const DeliveryDetailView: React.FC<DeliveryDetailViewProps> = ({
     }
   };
 
+  const getPreviousStatus = (currentStatus: DeliveryStatus): DeliveryStatus | null => {
+    const previousStatusMap: Record<DeliveryStatus, DeliveryStatus | null> = {
+      [DeliveryStatus.Pending]: null,
+      [DeliveryStatus.Assigned]: DeliveryStatus.Pending,
+      [DeliveryStatus.OutForDelivery]: DeliveryStatus.Assigned,
+      [DeliveryStatus.Delivered]: DeliveryStatus.OutForDelivery,
+      [DeliveryStatus.Failed]: null,
+    };
+    return previousStatusMap[currentStatus];
+  };
+
   const nextStatusOptions = getNextStatusOptions();
+  const previousStatus = getPreviousStatus(order.deliveryStatus);
 
   return (
-    <div className={styles.deliveryDetailView}>
-      <div className={styles.detailViewHeader}>
-        <button className={styles.backBtn} onClick={onClose}>
-          <ArrowLeft size={20} />
+    <SidebarDialog
+      isOpen={true}
+      onClose={onClose}
+      title={`Order #${order.orderId?.substring(0, 8) || order.id.substring(0, 8)}`}
+      titleBadge={
+        <span className={`status-badge ${getStatusVariant(order.deliveryStatus)}`}>
+          {getDeliveryStatusName(order.deliveryStatus)}
+        </span>
+      }
+      width="lg"
+      showBackButton={true}
+      headerActions={
+        <button
+          className={styles.printBtn}
+          onClick={() => onPrintInvoice(order.id)}
+          title="Print Invoice"
+        >
+          <Printer size={18} />
         </button>
-        <h2>Order Details</h2>
-        <div className={styles.detailViewActions}>
-          <button 
-            className={styles.printBtn} 
-            onClick={() => onPrintInvoice(order.id)}
-            title="Print Invoice"
-          >
-            <Printer size={18} />
-          </button>
-          <button className={styles.closeBtn} onClick={onClose}>
-            <X size={20} />
-          </button>
-        </div>
-      </div>
-
-      <div className={styles.detailViewContent}>
-        {/* Order Header */}
+      }
+    >
+        {/* Order Timestamps */}
         <div className={styles.orderDetailHeader}>
-          <div className={styles.orderDetailId}>
-            <h3>Order #{order.orderId?.substring(0, 8) || order.id.substring(0, 8)}</h3>
-            <div className={`status-badge ${getStatusVariant(order.deliveryStatus)}`}>
-              {getDeliveryStatusName(order.deliveryStatus)}
-            </div>
-          </div>
-          
           <div className={styles.orderDetailStats}>
             <div className={styles.statItem}>
               <Clock size={16} />
@@ -140,14 +181,14 @@ export const DeliveryDetailView: React.FC<DeliveryDetailViewProps> = ({
             <User size={16} />
             <span className={styles.detailLabel}>Name:</span>
             <span className={styles.detailValue}>
-              {order.sale?.customerName || order.customer?.nameEn || 'N/A'}
+              {customerName || 'Walk-in Customer'}
             </span>
           </div>
           <div className={styles.detailRow}>
             <User size={16} />
             <span className={styles.detailLabel}>Phone:</span>
             <span className={styles.detailValue}>
-              {order.customer?.phone || 'N/A'}
+              {customerPhone || 'N/A'}
             </span>
           </div>
         </div>
@@ -162,12 +203,12 @@ export const DeliveryDetailView: React.FC<DeliveryDetailViewProps> = ({
               {order.deliveryAddress || 'N/A'}
             </span>
           </div>
-          {order.specialInstructions && (
+          {cleanSpecialInstructions && (
             <div className={styles.detailRow}>
               <User size={16} />
               <span className={styles.detailLabel}>Special Instructions:</span>
               <span className={styles.detailValue}>
-                {order.specialInstructions}
+                {cleanSpecialInstructions}
               </span>
             </div>
           )}
@@ -197,7 +238,7 @@ export const DeliveryDetailView: React.FC<DeliveryDetailViewProps> = ({
                 <option value="">Select Driver</option>
                 {drivers.map(driver => (
                   <option key={driver.id} value={driver.id}>
-                    {driver.firstName} {driver.lastName}
+                    {driver.nameEn}
                   </option>
                 ))}
               </select>
@@ -310,34 +351,44 @@ export const DeliveryDetailView: React.FC<DeliveryDetailViewProps> = ({
         <div className={styles.detailSection}>
           <div className={styles.sectionHeader}>
             <h4>Status Management</h4>
-            <div className={styles.statusDropdown}>
-              <button 
-                className={styles.statusBtn}
-                onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-              >
-                Change Status
-                <ChevronDown size={16} />
-              </button>
-              
-              {showStatusDropdown && (
-                <div className={styles.dropdownMenu}>
-                  {nextStatusOptions.map(option => (
-                    <button
-                      key={option.value}
-                      className={styles.dropdownItem}
-                      onClick={() => handleStatusChange(option.value)}
-                    >
-                      <Check size={14} />
-                      <span>{option.label}</span>
-                    </button>
-                  ))}
-                </div>
+            <div className="flex items-center gap-2">
+              {previousStatus !== null && (
+                <button
+                  className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                  onClick={() => handleStatusChange(previousStatus)}
+                  title={`Revert to ${getDeliveryStatusName(previousStatus)}`}
+                >
+                  Revert to {getDeliveryStatusName(previousStatus)}
+                </button>
               )}
+              <div className={styles.statusDropdown}>
+                <button
+                  className={styles.statusBtn}
+                  onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                >
+                  Change Status
+                  <ChevronDown size={16} />
+                </button>
+
+                {showStatusDropdown && (
+                  <div className={styles.dropdownMenu}>
+                    {nextStatusOptions.map(option => (
+                      <button
+                        key={option.value}
+                        className={styles.dropdownItem}
+                        onClick={() => handleStatusChange(option.value)}
+                      >
+                        <Check size={14} />
+                        <span>{option.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+    </SidebarDialog>
   );
 };
 
