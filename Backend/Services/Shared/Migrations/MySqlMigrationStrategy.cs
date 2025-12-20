@@ -57,6 +57,10 @@ public class MySqlMigrationStrategy : BaseMigrationStrategy
             "ExpenseCategories",
             "Settings",
             "SyncQueue",
+            "InvoiceTemplates",
+            "Drivers",
+            "Units",
+            "DeliveryOrders",
             "__EFMigrationsHistory"
         };
 

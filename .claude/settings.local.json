@@ -71,7 +71,8 @@
       "Bash(ls:*)",
       "Bash(xargs:*)",
       "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjVjZjE1NmRkLWY0MzItNGQzOC05Y2EzLTE3NTRlOGY1MjI0MSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImFkbWluQG11bHRpcG9zLmNvbSIsInByZWZlcnJlZF9sYW5ndWFnZSI6ImVuIiwiaXNfaGVhZF9vZmZpY2VfYWRtaW4iOiJ0cnVlIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQWRtaW4iLCJleHAiOjE3NjU0MDA3MzAsImlzcyI6Ik11bHRpUG9TLkJhY2tlbmQiLCJhdWQiOiJNdWx0aVBvUy5Gcm9udGVuZCJ9.NlKyNdGbwdXq2KRsv1P9fjObcNRj82kPnTcOXLqnnE8\")",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(chmod:*)"
     ],
     "deny": [],
     "ask": []

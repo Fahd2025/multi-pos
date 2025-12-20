@@ -70,6 +70,10 @@ public class SqliteMigrationStrategy : BaseMigrationStrategy
             "ExpenseCategories",
             "Settings",
             "SyncQueue",
+            "InvoiceTemplates",
+            "Drivers",
+            "Units",
+            "DeliveryOrders",
             "__EFMigrationsHistory"
         };
 

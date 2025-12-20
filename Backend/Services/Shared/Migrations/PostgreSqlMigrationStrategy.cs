@@ -57,6 +57,10 @@ public class PostgreSqlMigrationStrategy : BaseMigrationStrategy
             "ExpenseCategories",
             "Settings",
             "SyncQueue",
+            "InvoiceTemplates",
+            "Drivers",
+            "Units",
+            "DeliveryOrders",
             "__EFMigrationsHistory"
         };
 
@@ -67,6 +71,8 @@ public class PostgreSqlMigrationStrategy : BaseMigrationStrategy
                 FROM information_schema.tables
                 WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
             ";
+            // PostgreSQL stores table names in lowercase by default
+            // Convert to lowercase for case-insensitive comparison
             var tables = await ctx.Database.SqlQueryRaw<string>(sql).ToListAsync();
             return tables;
         });

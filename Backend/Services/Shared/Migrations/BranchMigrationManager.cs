@@ -648,4 +648,192 @@ public class BranchMigrationManager : IBranchMigrationManager
             state.RetryCount
         );
     }
+
+    public async Task<MigrationResult> ForceRemoveMigrationAsync(
+        Guid branchId,
+        string migrationId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var result = new MigrationResult();
+
+        try
+        {
+            _logger.LogWarning(
+                "Force removing migration {MigrationId} from branch {BranchId} without running Down() method",
+                migrationId,
+                branchId
+            );
+
+            // 1. Load branch
+            var branch = await _headOfficeContext.Branches
+                .FirstOrDefaultAsync(b => b.Id == branchId, cancellationToken);
+
+            if (branch == null)
+            {
+                result.ErrorMessage = "Branch not found";
+                return result;
+            }
+
+            // 2. Acquire lock
+            if (!await AcquireMigrationLockAsync(branchId, cancellationToken))
+            {
+                result.ErrorMessage = "Could not acquire migration lock (another migration in progress)";
+                return result;
+            }
+
+            try
+            {
+                // 3. Update state to InProgress
+                await UpdateMigrationStateAsync(
+                    branchId,
+                    MigrationStatus.InProgress,
+                    null,
+                    cancellationToken
+                );
+
+                // 4. Get branch context
+                using var branchContext = _dbContextFactory.CreateBranchContext(branch);
+
+                // 5. Verify migration exists in history
+                var appliedMigrations = await branchContext.Database
+                    .SqlQueryRaw<string>($"SELECT MigrationId FROM __EFMigrationsHistory")
+                    .ToListAsync(cancellationToken);
+
+                if (!appliedMigrations.Contains(migrationId))
+                {
+                    result.ErrorMessage = $"Migration {migrationId} not found in history";
+                    result.BranchesProcessed = 1;
+                    result.BranchesFailed = 1;
+                    return result;
+                }
+
+                // 6. Force delete migration record from __EFMigrationsHistory
+                _logger.LogWarning("Deleting migration record {MigrationId} from __EFMigrationsHistory", migrationId);
+
+                await branchContext.Database.ExecuteSqlRawAsync(
+                    "DELETE FROM __EFMigrationsHistory WHERE MigrationId = {0}",
+                    migrationId
+                );
+
+                // 7. Get new last migration
+                var updatedAppliedMigrations = await branchContext.Database
+                    .SqlQueryRaw<string>("SELECT MigrationId FROM __EFMigrationsHistory ORDER BY MigrationId")
+                    .ToListAsync(cancellationToken);
+
+                var lastMigration = updatedAppliedMigrations.LastOrDefault() ?? string.Empty;
+
+                // 8. Update state to Completed
+                await UpdateMigrationStateAsync(
+                    branchId,
+                    MigrationStatus.Completed,
+                    lastMigration,
+                    cancellationToken
+                );
+
+                result.Success = true;
+                result.AppliedMigrations = new List<string> { $"Force removed: {migrationId}" };
+                result.BranchesProcessed = 1;
+                result.BranchesSucceeded = 1;
+
+                _logger.LogWarning(
+                    "Successfully force removed migration {MigrationId} from branch {BranchCode}",
+                    migrationId,
+                    branch.Code
+                );
+            }
+            finally
+            {
+                // 9. Release lock
+                await ReleaseMigrationLockAsync(branchId, cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error force removing migration {MigrationId} from branch {BranchId}", migrationId, branchId);
+
+            await UpdateMigrationStateAsync(
+                branchId,
+                MigrationStatus.Failed,
+                null,
+                cancellationToken,
+                ex.Message
+            );
+
+            result.ErrorMessage = ex.Message;
+            result.BranchesProcessed = 1;
+            result.BranchesFailed = 1;
+        }
+        finally
+        {
+            stopwatch.Stop();
+            result.Duration = stopwatch.Elapsed;
+        }
+
+        return result;
+    }
+
+    public async Task<MigrationResult> ForceRemoveMigrationFromAllBranchesAsync(
+        string migrationId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var result = new MigrationResult { Success = true };
+
+        _logger.LogWarning("Force removing migration {MigrationId} from all active branches", migrationId);
+
+        var branches = await _headOfficeContext.Branches
+            .Where(b => b.IsActive)
+            .ToListAsync(cancellationToken);
+
+        _logger.LogInformation("Found {Count} active branches to process", branches.Count);
+
+        foreach (var branch in branches)
+        {
+            var branchResult = await ForceRemoveMigrationAsync(branch.Id, migrationId, cancellationToken);
+
+            result.BranchesProcessed++;
+
+            if (branchResult.Success)
+            {
+                result.BranchesSucceeded++;
+                result.AppliedMigrations.AddRange(
+                    branchResult.AppliedMigrations.Select(m => $"[{branch.Code}] {m}")
+                );
+            }
+            else
+            {
+                result.BranchesFailed++;
+                // Don't mark overall as failed if migration doesn't exist (already removed)
+                if (!branchResult.ErrorMessage.Contains("not found in history"))
+                {
+                    result.Success = false;
+                }
+
+                if (string.IsNullOrEmpty(result.ErrorMessage))
+                {
+                    result.ErrorMessage = $"Failed/Not Found: {branch.Code}";
+                }
+                else
+                {
+                    result.ErrorMessage += $", {branch.Code}";
+                }
+            }
+        }
+
+        stopwatch.Stop();
+        result.Duration = stopwatch.Elapsed;
+
+        _logger.LogWarning(
+            "Completed force remove of migration {MigrationId}: {Succeeded}/{Total} succeeded in {Duration}",
+            migrationId,
+            result.BranchesSucceeded,
+            result.BranchesProcessed,
+            result.Duration
+        );
+
+        return result;
+    }
 }

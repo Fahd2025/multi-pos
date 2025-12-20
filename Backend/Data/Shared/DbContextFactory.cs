@@ -189,6 +189,10 @@ public class DbContextFactory
         };
         parts.Add($"SSL Mode={sslMode}");
 
+        // Fix for caching_sha2_password authentication method
+        // Allows retrieval of public key from server when not using SSL
+        parts.Add("AllowPublicKeyRetrieval=True");
+
         if (!string.IsNullOrEmpty(branch.DbAdditionalParams))
         {
             parts.Add(branch.DbAdditionalParams);

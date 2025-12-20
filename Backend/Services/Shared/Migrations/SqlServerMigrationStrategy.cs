@@ -85,6 +85,9 @@ public class SqlServerMigrationStrategy : BaseMigrationStrategy
             "Settings",
             "SyncQueue",
             "InvoiceTemplates",
+            "Drivers",
+            "Units",
+            "DeliveryOrders",
             "__EFMigrationsHistory"
         };
 

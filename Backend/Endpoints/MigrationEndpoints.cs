@@ -138,5 +138,38 @@ public static class MigrationEndpoints
         .WithName("GetAllMigrationStatus")
         .WithSummary("Get migration status for all branches")
         .Produces(200);
+
+        // Force remove a specific migration from a branch (Admin only)
+        group.MapDelete("/branches/{branchId:guid}/force-remove/{migrationId}", async (
+            Guid branchId,
+            string migrationId,
+            IBranchMigrationManager migrationManager,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await migrationManager.ForceRemoveMigrationAsync(branchId, migrationId, cancellationToken);
+            return result.Success ? Results.Ok(result) : Results.BadRequest(result);
+        })
+        .RequireAuthorization(policy => policy.RequireRole("Admin"))
+        .WithName("ForceRemoveMigration")
+        .WithSummary("Force remove a migration from branch history without running Down() method")
+        .WithDescription("WARNING: This bypasses normal rollback. Use only for cleaning up deleted/broken migrations.")
+        .Produces<Models.DTOs.Shared.Migrations.MigrationResult>(200)
+        .Produces<Models.DTOs.Shared.Migrations.MigrationResult>(400);
+
+        // Force remove a specific migration from all branches (Admin only)
+        group.MapDelete("/branches/force-remove-all/{migrationId}", async (
+            string migrationId,
+            IBranchMigrationManager migrationManager,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await migrationManager.ForceRemoveMigrationFromAllBranchesAsync(migrationId, cancellationToken);
+            return result.Success ? Results.Ok(result) : Results.BadRequest(result);
+        })
+        .RequireAuthorization(policy => policy.RequireRole("Admin"))
+        .WithName("ForceRemoveAllMigrations")
+        .WithSummary("Force remove a migration from all branch databases")
+        .WithDescription("WARNING: This bypasses normal rollback. Use only for cleaning up deleted/broken migrations.")
+        .Produces<Models.DTOs.Shared.Migrations.MigrationResult>(200)
+        .Produces<Models.DTOs.Shared.Migrations.MigrationResult>(400);
     }
 }

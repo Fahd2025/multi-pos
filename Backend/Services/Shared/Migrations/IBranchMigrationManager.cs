@@ -47,4 +47,22 @@ public interface IBranchMigrationManager
     /// Rollback the last applied migration for all active branches
     /// </summary>
     Task<MigrationResult> RollbackAllBranchesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Force remove a specific migration from history without running Down() method
+    /// Use this for cleaning up deleted/broken migrations
+    /// </summary>
+    Task<MigrationResult> ForceRemoveMigrationAsync(
+        Guid branchId,
+        string migrationId,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Force remove a specific migration from all branch databases
+    /// </summary>
+    Task<MigrationResult> ForceRemoveMigrationFromAllBranchesAsync(
+        string migrationId,
+        CancellationToken cancellationToken = default
+    );
 }
