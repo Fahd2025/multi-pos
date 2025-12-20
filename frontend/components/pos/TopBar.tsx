@@ -24,7 +24,7 @@ import styles from "./Pos2.module.css";
 import { FloatingSearchPanel } from "./FloatingSearchPanel";
 import { ProductDto } from "@/types/api.types";
 import { useDebounce } from "@/hooks/useDebounce";
-import inventoryService from "@/services/inventory.service";
+import { useProductSearch } from "@/hooks/useInventory";
 import { playErrorBeep, playSuccessBeep } from "@/lib/utils";
 import { getCurrentUser } from "@/lib/auth";
 import { SaleDto } from "@/types/api.types";
@@ -64,8 +64,6 @@ export const TopBar: React.FC<TopBarProps> = ({
 }) => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<ProductDto[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
   const [isSearchPanelVisible, setIsSearchPanelVisible] = useState(false);
   const [scanSuccess, setScanSuccess] = useState(false);
   const [notFoundMessage, setNotFoundMessage] = useState<string | null>(null);
@@ -75,6 +73,12 @@ export const TopBar: React.FC<TopBarProps> = ({
   const isBarcodeScan = useRef<boolean>(false);
   const [isCartAnimating, setIsCartAnimating] = useState(false);
   const prevCartItemCount = useRef(cartItemCount);
+
+  // Debounce search query (only for manual typing, not barcode scans)
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  // Use SWR hook for product search
+  const { searchResults, isSearching } = useProductSearch(debouncedSearchQuery);
 
   // New state for navigation menu and date/time
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -143,41 +147,11 @@ export const TopBar: React.FC<TopBarProps> = ({
     }
   }, [cartItemCount]);
 
-  // Debounce search query (only for manual typing, not barcode scans)
-  const debouncedSearchQuery = useDebounce(searchQuery, 300);
-
-  // Perform search when debounced query changes
+  // Auto-hide search panel when search is empty
   useEffect(() => {
-    const performSearch = async () => {
-      const trimmedQuery = debouncedSearchQuery.trim();
-
-      // If search is empty, hide panel and clear results
-      if (!trimmedQuery) {
-        setSearchResults([]);
-        setIsSearching(false);
-        setIsSearchPanelVisible(false);
-        return;
-      }
-
-      setIsSearching(true);
-
-      try {
-        const response = await inventoryService.getProducts({
-          search: trimmedQuery,
-          isActive: true,
-          pageSize: 50,
-        });
-
-        setSearchResults(response.data);
-      } catch (error) {
-        console.error("Search error:", error);
-        setSearchResults([]);
-      } finally {
-        setIsSearching(false);
-      }
-    };
-
-    performSearch();
+    if (!debouncedSearchQuery.trim()) {
+      setIsSearchPanelVisible(false);
+    }
   }, [debouncedSearchQuery]);
 
   // Handle search input change
@@ -220,73 +194,54 @@ export const TopBar: React.FC<TopBarProps> = ({
   };
 
   // Handle Enter key press (barcode scanner or manual search)
-  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const trimmedQuery = searchQuery.trim();
 
-    if (e.key === "Enter" && trimmedQuery) {
+    if (e.key === "Enter" && trimmedQuery && searchResults) {
       e.preventDefault();
 
       // Close search panel if it's open
       setIsSearchPanelVisible(false);
 
-      // Perform immediate search
-      setIsSearching(true);
+      // Use the current search results from SWR
+      const products = searchResults;
 
-      try {
-        const response = await inventoryService.getProducts({
-          search: trimmedQuery,
-          isActive: true,
-          pageSize: 10,
-        });
+      if (products.length === 1) {
+        // Exactly one product found - add to cart automatically
+        const product = products[0];
 
-        const products = response.data;
+        // Check if product is in stock
+        if (product.stockLevel > 0) {
+          onAddToCart(product);
 
-        if (products.length === 1) {
-          // Exactly one product found - add to cart automatically
-          const product = products[0];
+          // Show success feedback
+          setScanSuccess(true);
+          setTimeout(() => setScanSuccess(false), 2000);
 
-          // Check if product is in stock
-          if (product.stockLevel > 0) {
-            onAddToCart(product);
+          // Clear search
+          setSearchQuery("");
 
-            // Show success feedback
-            setScanSuccess(true);
-            setTimeout(() => setScanSuccess(false), 2000);
-
-            // Clear search
-            setSearchQuery("");
-            setSearchResults([]);
-
-            // Play success beep (optional)
-            playSuccessBeep();
-          } else {
-            // Product out of stock
-            playErrorBeep();
-            setNotFoundMessage(`Product "${product.nameEn}" is out of stock!`);
-            setTimeout(() => setNotFoundMessage(null), 3000);
-            setSearchQuery("");
-          }
-        } else if (products.length > 1) {
-          // Multiple products found - show search panel for user to choose
-          setSearchResults(products);
-          setIsSearchPanelVisible(true);
+          // Play success beep (optional)
+          playSuccessBeep();
         } else {
-          // No products found
+          // Product out of stock
           playErrorBeep();
-          setNotFoundMessage(`No product found with barcode: "${trimmedQuery}"`);
+          setNotFoundMessage(`Product "${product.nameEn}" is out of stock!`);
           setTimeout(() => setNotFoundMessage(null), 3000);
           setSearchQuery("");
         }
-      } catch (error) {
-        console.error("Barcode search error:", error);
+      } else if (products.length > 1) {
+        // Multiple products found - show search panel for user to choose
+        setIsSearchPanelVisible(true);
+      } else {
+        // No products found
         playErrorBeep();
-        setNotFoundMessage("Error searching for product. Please try again.");
+        setNotFoundMessage(`No product found with barcode: "${trimmedQuery}"`);
         setTimeout(() => setNotFoundMessage(null), 3000);
         setSearchQuery("");
-      } finally {
-        setIsSearching(false);
-        isBarcodeScan.current = false;
       }
+
+      isBarcodeScan.current = false;
     }
   };
 
@@ -303,7 +258,6 @@ export const TopBar: React.FC<TopBarProps> = ({
 
     setIsSearchPanelVisible(false);
     setSearchQuery("");
-    setSearchResults([]);
   };
 
   // Close search panel
@@ -698,7 +652,7 @@ export const TopBar: React.FC<TopBarProps> = ({
       <FloatingSearchPanel
         isVisible={isSearchPanelVisible}
         searchQuery={searchQuery}
-        products={searchResults}
+        products={searchResults ?? []}
         isLoading={isSearching}
         onClose={handleCloseSearch}
         onSelectProduct={handleSelectProduct}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import {
   MapPin,
   Phone,
@@ -11,7 +11,13 @@ import {
 } from "lucide-react";
 import { DeliveryOrderDto, DeliveryStatus } from "@/types/api.types";
 import { getDeliveryStatusName } from "@/types/enums";
-import { DeliveryDetailSidebar } from "./DeliveryDetailSidebar";
+
+// Lazy load the DeliveryDetailSidebar for better performance
+const DeliveryDetailSidebar = lazy(() =>
+  import("./DeliveryDetailSidebar").then(module => ({
+    default: module.DeliveryDetailSidebar
+  }))
+);
 
 interface DeliveryCardProps {
   delivery: DeliveryOrderDto;
@@ -163,12 +169,23 @@ export function DeliveryCard({ delivery, onStatusUpdate }: DeliveryCardProps) {
         </div>
       </div>
 
-      {/* Delivery Detail Sidebar */}
-      <DeliveryDetailSidebar
-        delivery={selectedDelivery}
-        onClose={() => setSelectedDelivery(null)}
-        onStatusUpdate={onStatusUpdate}
-      />
+      {/* Delivery Detail Sidebar - Lazy loaded with Suspense */}
+      {selectedDelivery && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 shadow-xl">
+            <div className="flex items-center gap-3">
+              <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-emerald-600 border-r-transparent"></div>
+              <p className="text-gray-700">Loading details...</p>
+            </div>
+          </div>
+        </div>}>
+          <DeliveryDetailSidebar
+            delivery={selectedDelivery}
+            onClose={() => setSelectedDelivery(null)}
+            onStatusUpdate={onStatusUpdate}
+          />
+        </Suspense>
+      )}
     </>
   );
 }

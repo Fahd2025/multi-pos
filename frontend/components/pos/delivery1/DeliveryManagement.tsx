@@ -4,16 +4,14 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, ArrowLeft, Filter, Truck, Search, X, Calendar } from "lucide-react";
 import { DeliveryOrderDto, DeliveryStatus, DriverDto } from "@/types/api.types";
-import deliveryService from "@/services/delivery.service";
 import { DeliveryCard } from "./DeliveryCard";
 import { DeliveryForm } from "./DeliveryForm";
 import { Select, Input } from "@/components/shared";
 import styles from "../Pos2.module.css";
+import { useDeliveries, useDrivers } from "@/hooks/useDelivery";
 
 export function DeliveryManagement() {
   const router = useRouter();
-  const [deliveries, setDeliveries] = useState<DeliveryOrderDto[]>([]);
-  const [loading, setLoading] = useState(true);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<DeliveryStatus | null>(null);
 
@@ -23,8 +21,20 @@ export function DeliveryManagement() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [dateRangePreset, setDateRangePreset] = useState<string>("today");
-  const [drivers, setDrivers] = useState<DriverDto[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+
+  // Use SWR hooks for data fetching
+  const { deliveries, isLoading: loadingDeliveries, mutate: mutateDeliveries } = useDeliveries({
+    status: statusFilter,
+    search: searchQuery,
+    driverId: driverFilter,
+    dateFrom,
+    dateTo,
+  });
+
+  const { drivers, isLoading: loadingDrivers } = useDrivers({
+    isActive: true,
+  });
 
   // Date range presets
   const dateRangePresets = [
@@ -37,62 +47,6 @@ export function DeliveryManagement() {
     { value: "custom", label: "Custom Range" },
   ];
 
-  const fetchDeliveries = async (signal?: AbortSignal) => {
-    try {
-      setLoading(true);
-      const params: any = {
-        status: statusFilter ?? undefined,
-        search: searchQuery || undefined,
-        driverId: driverFilter || undefined,
-      };
-
-      // Add date range if specified
-      if (dateFrom) {
-        const fromDate = new Date(dateFrom);
-        fromDate.setHours(0, 0, 0, 0);
-        params.dateFrom = fromDate.toISOString();
-      }
-      if (dateTo) {
-        const toDate = new Date(dateTo);
-        toDate.setHours(23, 59, 59, 999);
-        params.dateTo = toDate.toISOString();
-      }
-
-      const response = await deliveryService.getDeliveryOrders(params);
-
-      // Don't update state if request was aborted
-      if (!signal?.aborted) {
-        setDeliveries(response.data);
-      }
-    } catch (error) {
-      // Ignore abort errors
-      if (error instanceof Error && error.name !== 'AbortError') {
-        console.error("Failed to fetch deliveries:", error);
-      }
-    } finally {
-      if (!signal?.aborted) {
-        setLoading(false);
-      }
-    }
-  };
-
-  const fetchDrivers = async (signal?: AbortSignal) => {
-    try {
-      const response = await deliveryService.getDrivers({
-        isActive: true,
-      });
-
-      // Don't update state if request was aborted
-      if (!signal?.aborted) {
-        setDrivers(response.data);
-      }
-    } catch (error) {
-      // Ignore abort errors
-      if (error instanceof Error && error.name !== 'AbortError') {
-        console.error("Failed to fetch drivers:", error);
-      }
-    }
-  };
 
   // Calculate date range based on preset
   const calculateDateRange = (preset: string) => {
@@ -155,26 +109,11 @@ export function DeliveryManagement() {
 
   // Initialize with today's date on mount
   useEffect(() => {
-    const abortController = new AbortController();
-    fetchDrivers(abortController.signal);
     calculateDateRange("today"); // Set today as default
-
-    return () => {
-      abortController.abort();
-    };
   }, []);
 
-  useEffect(() => {
-    const abortController = new AbortController();
-    fetchDeliveries(abortController.signal);
-
-    return () => {
-      abortController.abort();
-    };
-  }, [statusFilter, searchQuery, driverFilter, dateFrom, dateTo]);
-
   const handleStatusUpdate = () => {
-    fetchDeliveries();
+    mutateDeliveries(); // Revalidate deliveries data
   };
 
   const resetFiltersToDefaults = () => {
@@ -213,22 +152,24 @@ export function DeliveryManagement() {
     setDateRangePreset("custom");
   };
 
+  const deliveriesData = deliveries ?? [];
+
   const filteredDeliveries =
     statusFilter === null
-      ? deliveries
-      : deliveries.filter((d) => d.deliveryStatus === statusFilter);
+      ? deliveriesData
+      : deliveriesData.filter((d) => d.deliveryStatus === statusFilter);
 
-  const pendingCount = deliveries.filter((d) => d.deliveryStatus === DeliveryStatus.Pending).length;
-  const assignedCount = deliveries.filter(
+  const pendingCount = deliveriesData.filter((d) => d.deliveryStatus === DeliveryStatus.Pending).length;
+  const assignedCount = deliveriesData.filter(
     (d) => d.deliveryStatus === DeliveryStatus.Assigned
   ).length;
-  const outForDeliveryCount = deliveries.filter(
+  const outForDeliveryCount = deliveriesData.filter(
     (d) => d.deliveryStatus === DeliveryStatus.OutForDelivery
   ).length;
-  const deliveredCount = deliveries.filter(
+  const deliveredCount = deliveriesData.filter(
     (d) => d.deliveryStatus === DeliveryStatus.Delivered
   ).length;
-  const failedCount = deliveries.filter((d) => d.deliveryStatus === DeliveryStatus.Failed).length;
+  const failedCount = deliveriesData.filter((d) => d.deliveryStatus === DeliveryStatus.Failed).length;
 
   // Calculate total for filtered deliveries
   const totalAmount = filteredDeliveries.reduce((sum, delivery) => {
@@ -240,7 +181,8 @@ export function DeliveryManagement() {
 
   // Prepare driver options for Select component
   const driverOptions = useMemo(() => {
-    const options = drivers.map((driver) => ({
+    const driversData = drivers ?? [];
+    const options = driversData.map((driver) => ({
       value: driver.id,
       label: driver.nameEn,
     }));
@@ -398,7 +340,7 @@ export function DeliveryManagement() {
               }`}
               onClick={() => setStatusFilter(null)}
             >
-              All ({deliveries.length})
+              All ({deliveriesData.length})
             </button>
             <button
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -456,9 +398,12 @@ export function DeliveryManagement() {
 
       {/* Deliveries Grid */}
       <div className="flex-1 overflow-auto p-6 pb-20">
-        {loading ? (
+        {loadingDeliveries ? (
           <div className="flex h-full items-center justify-center">
-            <p className="text-gray-500">Loading...</p>
+            <div className="text-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-emerald-600 border-r-transparent"></div>
+              <p className="mt-4 text-gray-600">Loading deliveries...</p>
+            </div>
           </div>
         ) : filteredDeliveries.length === 0 ? (
           <div className="flex h-full items-center justify-center">
@@ -487,7 +432,7 @@ export function DeliveryManagement() {
             </div>
             {hasActiveFilters && (
               <span className="text-xs text-gray-500">
-                (filtered from {deliveries.length} total)
+                (filtered from {deliveriesData.length} total)
               </span>
             )}
           </div>
@@ -503,7 +448,7 @@ export function DeliveryManagement() {
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
         onSuccess={() => {
-          fetchDeliveries();
+          mutateDeliveries();
           setAddDialogOpen(false);
         }}
       />

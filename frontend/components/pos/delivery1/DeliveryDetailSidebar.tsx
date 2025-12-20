@@ -30,6 +30,7 @@ import { transformSaleToInvoiceData } from "@/lib/invoice-data-transformer";
 import InvoicePreview from "@/components/invoice/InvoicePreview";
 import { useReactToPrint } from "react-to-print";
 import { useToast } from "@/hooks/useToast";
+import { useDrivers, useDeliveryStatusHistory } from "@/hooks/useDelivery";
 
 interface StatusHistoryItem {
   id: string;
@@ -56,14 +57,17 @@ export function DeliveryDetailSidebar({
   const [showFailureForm, setShowFailureForm] = useState(false);
   const [failureReason, setFailureReason] = useState("");
   const [selectedQuickReason, setSelectedQuickReason] = useState<string | null>(null);
-  const [statusHistory, setStatusHistory] = useState<StatusHistoryItem[]>([]);
   const [updating, setUpdating] = useState(false);
-  const [loadingHistory, setLoadingHistory] = useState(false);
   const [printing, setPrinting] = useState(false);
   const [showDriverSelection, setShowDriverSelection] = useState(false);
   const [selectedDriverId, setSelectedDriverId] = useState("");
-  const [drivers, setDrivers] = useState<any[]>([]);
-  const [loadingDrivers, setLoadingDrivers] = useState(false);
+
+  // Use SWR hooks for data fetching
+  const { drivers, isLoading: loadingDrivers } = useDrivers({
+    isActive: true,
+    isAvailable: true,
+  });
+  const { statusHistory, isLoading: loadingHistory, mutate: mutateStatusHistory } = useDeliveryStatusHistory(delivery?.id ?? null);
 
   // Predefined failure reasons
   const quickFailureReasons = [
@@ -80,41 +84,6 @@ export function DeliveryDetailSidebar({
   const [invoiceSchema, setInvoiceSchema] = useState<InvoiceSchema | null>(null);
   const [invoiceData, setInvoiceData] = useState<any>(null);
 
-  useEffect(() => {
-    if (delivery) {
-      fetchStatusHistory();
-      fetchDrivers();
-    }
-  }, [delivery?.id]);
-
-  const fetchStatusHistory = async () => {
-    try {
-      setLoadingHistory(true);
-      // This would need an API endpoint on the backend to get status history
-      // For now, we'll use an empty array
-      setStatusHistory([]);
-    } catch (error) {
-      console.error("Failed to fetch status history:", error);
-    } finally {
-      setLoadingHistory(false);
-    }
-  };
-
-  const fetchDrivers = async () => {
-    try {
-      setLoadingDrivers(true);
-      const response = await deliveryService.getDrivers({
-        isActive: true,
-        isAvailable: true,
-      });
-      setDrivers(response.data);
-    } catch (error) {
-      console.error("Failed to fetch drivers:", error);
-    } finally {
-      setLoadingDrivers(false);
-    }
-  };
-
   // Set up print handler using react-to-print (must be before early return)
   const handlePrint = useReactToPrint({
     contentRef: invoiceRef,
@@ -122,6 +91,10 @@ export function DeliveryDetailSidebar({
   });
 
   if (!delivery) return null;
+
+  // Provide fallbacks for SWR data
+  const driversData = drivers ?? [];
+  const statusHistoryData = statusHistory ?? [];
 
   const getStatusColor = (status: DeliveryStatus) => {
     switch (status) {
@@ -179,7 +152,7 @@ export function DeliveryDetailSidebar({
       setShowDriverSelection(false);
       setSelectedDriverId("");
       onStatusUpdate();
-      fetchStatusHistory();
+      mutateStatusHistory();
     } catch (error) {
       console.error("Failed to assign driver:", error);
       alert("Failed to assign driver");
@@ -208,7 +181,7 @@ export function DeliveryDetailSidebar({
       setUpdating(true);
       await deliveryService.updateDeliveryStatus(delivery.id, newStatus);
       onStatusUpdate();
-      fetchStatusHistory();
+      mutateStatusHistory();
     } catch (error) {
       console.error("Failed to update status:", error);
       alert("Failed to update status");
@@ -226,7 +199,7 @@ export function DeliveryDetailSidebar({
       await deliveryService.assignDriverToDeliveryOrder(delivery.id, driverId);
       await deliveryService.updateDeliveryStatus(delivery.id, DeliveryStatus.Assigned);
       onStatusUpdate();
-      fetchStatusHistory();
+      mutateStatusHistory();
     } finally {
       setUpdating(false);
     }
@@ -239,7 +212,7 @@ export function DeliveryDetailSidebar({
       setUpdating(true);
       await deliveryService.updateDeliveryStatus(delivery.id, DeliveryStatus.Delivered);
       onStatusUpdate();
-      fetchStatusHistory();
+      mutateStatusHistory();
     } finally {
       setUpdating(false);
     }
@@ -494,7 +467,7 @@ export function DeliveryDetailSidebar({
                     <option value="">
                       {loadingDrivers ? "Loading drivers..." : "Select Driver"}
                     </option>
-                    {drivers.map((driver) => (
+                    {driversData.map((driver) => (
                       <option key={driver.id} value={driver.id}>
                         {driver.nameEn}
                       </option>
@@ -752,7 +725,7 @@ export function DeliveryDetailSidebar({
               <div className="text-center py-4 text-gray-500">Loading...</div>
             ) : (
               <OrderStatusTimeline
-                statusHistory={statusHistory}
+                statusHistory={statusHistoryData}
                 currentStatus={delivery.deliveryStatus}
               />
             )}

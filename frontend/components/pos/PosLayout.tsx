@@ -7,10 +7,9 @@ import { TopBar } from "./TopBar";
 import {ProductGrid} from "./ProductGrid";
 import { OrderPanel } from "./OrderPanel";
 import { useToast } from "@/hooks/useToast";
-import inventoryService from "@/services/inventory.service";
-import { CategoryDto, ProductDto, SaleDto } from "@/types/api.types";
+import { ProductDto, SaleDto } from "@/types/api.types";
 import { playErrorBeep, playSuccessBeep } from "@/lib/utils";
-import { useApiError } from "@/hooks/useApiError";
+import { useCategories, useProducts } from "@/hooks/useInventory";
 import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
 
 interface CartItem extends ProductDto {
@@ -21,13 +20,20 @@ function PosLayoutContent() {
   const toast = useToast();
   const [activeCategory, setActiveCategory] = useState<string /*| null*/>("all");
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [categories, setCategories] = useState<CategoryDto[]>([]);
-  const [products, setProducts] = useState<ProductDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { error, isError, executeWithErrorHandling } = useApiError();
   const [isCartVisible, setIsCartVisible] = useState(true); // Default true for desktop
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [lastSale, setLastSale] = useState<SaleDto | null>(null); // Track last completed sale
+
+  // Use SWR hooks for data fetching
+  const { categories, isLoading: loadingCategories, error: categoriesError } = useCategories();
+  const { products, isLoading: loadingProducts, error: productsError } = useProducts({
+    isActive: true,
+    pageSize: 1000
+  });
+
+  const loading = loadingCategories || loadingProducts;
+  const error = categoriesError || productsError;
+  const isError = !!error;
 
   // Set initial cart visibility and sidebar state based on screen size (only once on mount)
   useEffect(() => {
@@ -45,32 +51,6 @@ function PosLayoutContent() {
       setIsSidebarCollapsed(isMobile);
     }
   }, []);
-
-  // Fetch categories and products on mount
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    setLoading(true);
-
-    const result = await executeWithErrorHandling(async () => {
-      // Fetch categories and products in parallel
-      const [categoriesData, productsResponse] = await Promise.all([
-        inventoryService.getCategories(),
-        inventoryService.getProducts({ isActive: true, pageSize: 1000 }),
-      ]);
-
-      return { categoriesData, productsResponse };
-    });
-
-    if (result) {
-      setCategories(result.categoriesData);
-      setProducts(result.productsResponse.data);
-    }
-
-    setLoading(false);
-  };
 
   // Get branch code from localStorage
   const getBranchCode = () => {
@@ -123,9 +103,11 @@ function PosLayoutContent() {
     setCart((prev) => prev.map((item) => (item.id === id ? { ...item, quantity } : item)));
   };
 
-  // Filter products by category
+  // Filter products by category with fallback for undefined
+  const productsData = products ?? [];
+  const categoriesData = categories ?? [];
   const filteredProducts =
-    activeCategory === "all" ? products : products.filter((p) => p.categoryId === activeCategory);
+    activeCategory === "all" ? productsData : productsData.filter((p) => p.categoryId === activeCategory);
 
   // Calculate cart item count
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -171,7 +153,15 @@ function PosLayoutContent() {
             padding: "2rem",
           }}
         >
-          <ApiErrorAlert error={error} onRetry={fetchData} />
+          <div className="text-center">
+            <p className="text-red-600 mb-4">Failed to load POS data</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+            >
+              Retry
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -200,7 +190,7 @@ function PosLayoutContent() {
       {/* Desktop Sidebar - shown on left side on large screens */}
       <div className={styles.desktopSidebarWrapper}>
         <CategorySidebar
-          categories={categories}
+          categories={categoriesData}
           activeCategory={activeCategory}
           onSelectCategory={setActiveCategory}
           isCollapsed={isSidebarCollapsed}
@@ -233,7 +223,7 @@ function PosLayoutContent() {
                 {/* Mobile Categories Bar - shown between nav and search on mobile */}
           <div className={styles.mobileCategoriesWrapper}>
             <CategorySidebar
-              categories={categories}
+              categories={categoriesData}
               activeCategory={activeCategory}
               onSelectCategory={setActiveCategory}
               isCollapsed={isSidebarCollapsed}
