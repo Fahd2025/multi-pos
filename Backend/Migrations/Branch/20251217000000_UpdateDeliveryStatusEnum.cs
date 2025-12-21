@@ -20,35 +20,112 @@ namespace Backend.Migrations.Branch
             // - Failed (5) -> Failed (4) [need to update]
             // - Cancelled (6) -> Failed (4) [consolidate into Failed]
 
-            // Update in reverse order to avoid conflicts
-            // First, convert Cancelled (6) to a temporary value to avoid conflicts
-            migrationBuilder.Sql("UPDATE DeliveryOrders SET DeliveryStatus = 100 WHERE DeliveryStatus = 6");
+            var provider = migrationBuilder.ActiveProvider;
 
-            // Convert old Failed (5) to a temporary value
-            migrationBuilder.Sql("UPDATE DeliveryOrders SET DeliveryStatus = 101 WHERE DeliveryStatus = 5");
-
-            // Convert old Delivered (4) to new Delivered (3)
-            migrationBuilder.Sql("UPDATE DeliveryOrders SET DeliveryStatus = 3 WHERE DeliveryStatus = 4");
-
-            // Convert old OutForDelivery (3) to new OutForDelivery (2)
-            // Note: Old PickedUp (2) is already at value 2, which is correct for new OutForDelivery
-            migrationBuilder.Sql("UPDATE DeliveryOrders SET DeliveryStatus = 2 WHERE DeliveryStatus = 3");
-
-            // Now convert the temporary values to new Failed (4)
-            migrationBuilder.Sql("UPDATE DeliveryOrders SET DeliveryStatus = 4 WHERE DeliveryStatus = 100");
-            migrationBuilder.Sql("UPDATE DeliveryOrders SET DeliveryStatus = 4 WHERE DeliveryStatus = 101");
+            if (provider != null && provider.Contains("PostgreSQL", StringComparison.OrdinalIgnoreCase))
+            {
+                // PostgreSQL-specific with table existence check
+                migrationBuilder.Sql(@"
+                    DO $$
+                    BEGIN
+                        IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'DeliveryOrders') THEN
+                            UPDATE ""DeliveryOrders"" SET ""DeliveryStatus"" = 100 WHERE ""DeliveryStatus"" = 6;
+                            UPDATE ""DeliveryOrders"" SET ""DeliveryStatus"" = 101 WHERE ""DeliveryStatus"" = 5;
+                            UPDATE ""DeliveryOrders"" SET ""DeliveryStatus"" = 3 WHERE ""DeliveryStatus"" = 4;
+                            UPDATE ""DeliveryOrders"" SET ""DeliveryStatus"" = 2 WHERE ""DeliveryStatus"" = 3;
+                            UPDATE ""DeliveryOrders"" SET ""DeliveryStatus"" = 4 WHERE ""DeliveryStatus"" = 100;
+                            UPDATE ""DeliveryOrders"" SET ""DeliveryStatus"" = 4 WHERE ""DeliveryStatus"" = 101;
+                        END IF;
+                    END $$;
+                ");
+            }
+            else if (provider != null && provider.Contains("SqlServer", StringComparison.OrdinalIgnoreCase))
+            {
+                // SQL Server-specific with table existence check
+                migrationBuilder.Sql(@"
+                    IF OBJECT_ID('DeliveryOrders', 'U') IS NOT NULL
+                    BEGIN
+                        UPDATE [DeliveryOrders] SET [DeliveryStatus] = 100 WHERE [DeliveryStatus] = 6;
+                        UPDATE [DeliveryOrders] SET [DeliveryStatus] = 101 WHERE [DeliveryStatus] = 5;
+                        UPDATE [DeliveryOrders] SET [DeliveryStatus] = 3 WHERE [DeliveryStatus] = 4;
+                        UPDATE [DeliveryOrders] SET [DeliveryStatus] = 2 WHERE [DeliveryStatus] = 3;
+                        UPDATE [DeliveryOrders] SET [DeliveryStatus] = 4 WHERE [DeliveryStatus] = 100;
+                        UPDATE [DeliveryOrders] SET [DeliveryStatus] = 4 WHERE [DeliveryStatus] = 101;
+                    END
+                ");
+            }
+            else if (provider != null && provider.Contains("MySql", StringComparison.OrdinalIgnoreCase))
+            {
+                // MySQL-specific - just run updates, MySQL is more forgiving
+                migrationBuilder.Sql(@"
+                    UPDATE `DeliveryOrders` SET `DeliveryStatus` = 100 WHERE `DeliveryStatus` = 6;
+                    UPDATE `DeliveryOrders` SET `DeliveryStatus` = 101 WHERE `DeliveryStatus` = 5;
+                    UPDATE `DeliveryOrders` SET `DeliveryStatus` = 3 WHERE `DeliveryStatus` = 4;
+                    UPDATE `DeliveryOrders` SET `DeliveryStatus` = 2 WHERE `DeliveryStatus` = 3;
+                    UPDATE `DeliveryOrders` SET `DeliveryStatus` = 4 WHERE `DeliveryStatus` = 100;
+                    UPDATE `DeliveryOrders` SET `DeliveryStatus` = 4 WHERE `DeliveryStatus` = 101;
+                ");
+            }
+            else
+            {
+                // SQLite and others - use double quotes (ANSI SQL standard)
+                migrationBuilder.Sql("UPDATE \"DeliveryOrders\" SET \"DeliveryStatus\" = 100 WHERE \"DeliveryStatus\" = 6");
+                migrationBuilder.Sql("UPDATE \"DeliveryOrders\" SET \"DeliveryStatus\" = 101 WHERE \"DeliveryStatus\" = 5");
+                migrationBuilder.Sql("UPDATE \"DeliveryOrders\" SET \"DeliveryStatus\" = 3 WHERE \"DeliveryStatus\" = 4");
+                migrationBuilder.Sql("UPDATE \"DeliveryOrders\" SET \"DeliveryStatus\" = 2 WHERE \"DeliveryStatus\" = 3");
+                migrationBuilder.Sql("UPDATE \"DeliveryOrders\" SET \"DeliveryStatus\" = 4 WHERE \"DeliveryStatus\" = 100");
+                migrationBuilder.Sql("UPDATE \"DeliveryOrders\" SET \"DeliveryStatus\" = 4 WHERE \"DeliveryStatus\" = 101");
+            }
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Downgrade is not supported because we've consolidated Cancelled into Failed
-            // and removed the distinction between PickedUp and OutForDelivery
-            // If you need to rollback, you'll need to manually handle data migration
-            throw new NotSupportedException(
-                "Downgrade migration is not supported for DeliveryStatus enum changes. " +
-                "The PickedUp and Cancelled statuses have been removed and consolidated."
-            );
+            // Best-effort rollback to restore old enum values
+            var provider = migrationBuilder.ActiveProvider;
+
+            if (provider != null && provider.Contains("PostgreSQL", StringComparison.OrdinalIgnoreCase))
+            {
+                // PostgreSQL-specific with table existence check
+                migrationBuilder.Sql(@"
+                    DO $$
+                    BEGIN
+                        IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'DeliveryOrders') THEN
+                            UPDATE ""DeliveryOrders"" SET ""DeliveryStatus"" = 5 WHERE ""DeliveryStatus"" = 4;
+                            UPDATE ""DeliveryOrders"" SET ""DeliveryStatus"" = 4 WHERE ""DeliveryStatus"" = 3;
+                            UPDATE ""DeliveryOrders"" SET ""DeliveryStatus"" = 3 WHERE ""DeliveryStatus"" = 2;
+                        END IF;
+                    END $$;
+                ");
+            }
+            else if (provider != null && provider.Contains("SqlServer", StringComparison.OrdinalIgnoreCase))
+            {
+                // SQL Server-specific with table existence check
+                migrationBuilder.Sql(@"
+                    IF OBJECT_ID('DeliveryOrders', 'U') IS NOT NULL
+                    BEGIN
+                        UPDATE [DeliveryOrders] SET [DeliveryStatus] = 5 WHERE [DeliveryStatus] = 4;
+                        UPDATE [DeliveryOrders] SET [DeliveryStatus] = 4 WHERE [DeliveryStatus] = 3;
+                        UPDATE [DeliveryOrders] SET [DeliveryStatus] = 3 WHERE [DeliveryStatus] = 2;
+                    END
+                ");
+            }
+            else if (provider != null && provider.Contains("MySql", StringComparison.OrdinalIgnoreCase))
+            {
+                // MySQL-specific
+                migrationBuilder.Sql(@"
+                    UPDATE `DeliveryOrders` SET `DeliveryStatus` = 5 WHERE `DeliveryStatus` = 4;
+                    UPDATE `DeliveryOrders` SET `DeliveryStatus` = 4 WHERE `DeliveryStatus` = 3;
+                    UPDATE `DeliveryOrders` SET `DeliveryStatus` = 3 WHERE `DeliveryStatus` = 2;
+                ");
+            }
+            else
+            {
+                // SQLite and others - use double quotes (ANSI SQL standard)
+                migrationBuilder.Sql("UPDATE \"DeliveryOrders\" SET \"DeliveryStatus\" = 5 WHERE \"DeliveryStatus\" = 4");
+                migrationBuilder.Sql("UPDATE \"DeliveryOrders\" SET \"DeliveryStatus\" = 4 WHERE \"DeliveryStatus\" = 3");
+                migrationBuilder.Sql("UPDATE \"DeliveryOrders\" SET \"DeliveryStatus\" = 3 WHERE \"DeliveryStatus\" = 2");
+            }
         }
     }
 }
