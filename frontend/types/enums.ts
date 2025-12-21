@@ -26,6 +26,15 @@ export enum InvoiceType {
 }
 
 /**
+ * Order types for sales transactions
+ */
+export enum OrderType {
+  DineIn = 0,
+  Takeout = 1,
+  Delivery = 2,
+}
+
+/**
  * Payment methods for transactions
  */
 export enum PaymentMethod {

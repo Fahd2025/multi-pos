@@ -122,6 +122,8 @@ export interface BranchDto {
   timeZone: string;
   dateFormat: string;
   taxRate: number;
+  allowNegativeStock?: boolean;
+  negativeStockLimit?: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -188,9 +190,16 @@ export interface UpdateBranchDto {
 export interface CreateSaleDto {
   customerId?: string;
   invoiceType: number;
+  orderNumber?: string;
+  orderType?: number; // OrderType enum
   lineItems: SaleLineItemDto[];
   paymentMethod: number;
   paymentReference?: string;
+  amountPaid?: number;
+  changeReturned?: number;
+  // Invoice-level discount
+  invoiceDiscountType?: number; // DiscountType enum
+  invoiceDiscountValue?: number;
   notes?: string;
   // Delivery-related fields
   deliveryAddress?: string;

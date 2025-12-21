@@ -172,13 +172,42 @@ public class SalesService : ISalesService
             product.UpdatedAt = DateTime.UtcNow;
         }
 
-        // Calculate tax and total
-        decimal taxAmount = subtotal * (taxRate / 100);
-        decimal total = subtotal + taxAmount;
+        // Apply invoice-level discount
+        decimal invoiceDiscount = 0;
+        if (createSaleDto.InvoiceDiscountType != DiscountType.None)
+        {
+            switch (createSaleDto.InvoiceDiscountType)
+            {
+                case DiscountType.Percentage:
+                    if (createSaleDto.InvoiceDiscountValue < 0 || createSaleDto.InvoiceDiscountValue > 100)
+                    {
+                        throw new InvalidOperationException(
+                            "Invoice percentage discount must be between 0 and 100"
+                        );
+                    }
+                    invoiceDiscount = subtotal * (createSaleDto.InvoiceDiscountValue / 100);
+                    break;
+
+                case DiscountType.FixedAmount:
+                    if (createSaleDto.InvoiceDiscountValue > subtotal)
+                    {
+                        throw new InvalidOperationException(
+                            "Invoice fixed discount cannot exceed subtotal"
+                        );
+                    }
+                    invoiceDiscount = createSaleDto.InvoiceDiscountValue;
+                    break;
+            }
+        }
+
+        // Calculate tax on discounted subtotal
+        decimal discountedSubtotal = subtotal - invoiceDiscount;
+        decimal taxAmount = discountedSubtotal * (taxRate / 100);
+        decimal total = discountedSubtotal + taxAmount;
 
         sale.Subtotal = subtotal;
         sale.TaxAmount = taxAmount;
-        sale.TotalDiscount = totalDiscount;
+        sale.TotalDiscount = totalDiscount + invoiceDiscount; // Line-item + invoice-level discounts
         sale.Total = total;
         sale.LineItems = lineItems;
 

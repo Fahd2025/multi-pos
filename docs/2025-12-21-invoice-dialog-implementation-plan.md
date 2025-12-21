@@ -1,14 +1,26 @@
 # Implementation Plan - InvoiceDialog Replacement
 
+**Status:** 🟡 Phase 1 Complete - Backend & Frontend Infrastructure Ready
+**Updated:** 2025-12-21
+
 The goal is to replace the current simplified `NewInvoiceModal` with a comprehensive `InvoiceDialog` that matches the feature set of the legacy `old/src/components/branch/sales/InvoiceDialog.tsx`.
 
-## User Review Required
+## ✅ Phase 1 Complete (Backend & Frontend Infrastructure)
 
-> [!IMPORTANT]
-> The "Negative Stock" logic relies on settings that may not be available in the current frontend context. I will assume default behavior (block negative stock) or mock the settings for now unless `branchService` provides them.
+All backend and frontend infrastructure changes have been completed and verified:
+- ✅ Backend DTOs extended to support invoice-level discounts, amount paid, order types
+- ✅ Branch settings extended with inventory stock configuration
+- ✅ Database migration created for new fields
+- ✅ Frontend types updated
+- ✅ Customer service created
+- ✅ Backend build successful (0 errors)
+
+See [Full Implementation Summary](./2025-12-21-invoice-dialog-implementation-summary.md) for complete details.
+
+## 🔄 Phase 2 Pending (Component Implementation)
 
 > [!NOTE]
-> I will be creating a NEW component `InvoiceDialog.tsx` and updating the Sales Page to use it. `NewInvoiceModal.tsx` will be left unused (or can be deleted later).
+> Creating a NEW component `InvoiceDialog.tsx` to replace `NewInvoiceModal`. The old modal will remain for backward compatibility.
 
 ## Proposed Changes
 

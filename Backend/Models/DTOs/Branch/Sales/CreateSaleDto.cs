@@ -31,6 +31,12 @@ public class CreateSaleDto
     [Range(0, double.MaxValue, ErrorMessage = "Change returned cannot be negative")]
     public decimal? ChangeReturned { get; set; }
 
+    // Invoice-level discount (applied to entire invoice)
+    public DiscountType InvoiceDiscountType { get; set; } = DiscountType.None;
+
+    [Range(0, double.MaxValue, ErrorMessage = "Discount value cannot be negative")]
+    public decimal InvoiceDiscountValue { get; set; } = 0;
+
     [MaxLength(1000)]
     public string? Notes { get; set; }
 }

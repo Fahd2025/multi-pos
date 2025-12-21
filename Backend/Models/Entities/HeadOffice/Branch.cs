@@ -104,6 +104,13 @@ public class Branch
     [Required]
     public bool PriceIncludesTax { get; set; } = false;
 
+    // Inventory Settings
+    [Required]
+    public bool AllowNegativeStock { get; set; } = false;
+
+    [Required]
+    public int NegativeStockLimit { get; set; } = 0;
+
     [Required]
     public bool IsActive { get; set; } = true;
 

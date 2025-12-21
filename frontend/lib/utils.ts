@@ -56,3 +56,21 @@ export const playErrorBeep = () => {
     console.log("Audio not supported");
   }
 };
+
+/**
+ * Format currency with symbol and locale
+ * @param amount - The numeric amount to format
+ * @param currency - Currency code (e.g., "USD", "SAR", "EUR")
+ * @param locale - Locale code (e.g., "en-US", "ar-SA")
+ * @returns Formatted currency string
+ */
+export function formatCurrency(
+  amount: number,
+  currency: string = "USD",
+  locale: string = "en-US"
+): string {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: currency,
+  }).format(amount);
+}

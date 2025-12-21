@@ -32,6 +32,10 @@ public class BranchSettingsDto
     public decimal TaxRate { get; set; }
     public bool PriceIncludesTax { get; set; }
 
+    // Inventory Settings
+    public bool AllowNegativeStock { get; set; } = false;
+    public int NegativeStockLimit { get; set; } = 0;
+
     // Metadata
     public bool IsActive { get; set; }
     public DateTime UpdatedAt { get; set; }

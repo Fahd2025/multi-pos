@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import SalesStatistics from "@/components/branch/sales/SalesStatistics";
 import SalesTable from "@/components/branch/sales/SalesTable";
+import InvoiceDialog from "@/components/branch/sales/InvoiceDialog";
 import NewInvoiceModal from "@/components/branch/sales/NewInvoiceModal";
 import CreateSalesInvoiceForm from "@/components/branch/sales/CreateSalesInvoiceForm";
 import ProductGridModal from "@/components/branch/sales/ProductGridModal";
@@ -18,9 +19,9 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
   const [viewMode, setViewMode] = useState<"dashboard" | "create-invoice">("dashboard");
 
   // Modal states
+  const [showInvoiceDialog, setShowInvoiceDialog] = useState(false);
   const [showProductGridModal, setShowProductGridModal] = useState(false);
-  // Keeping NewInvoiceModal state just in case, or we can remove it if we fully replace it.
-  // The user requested a "detailed sales invoice form", implying replacement of the simple modal for the main action.
+  // Keeping NewInvoiceModal for backward compatibility
   const [showNewInvoiceModal, setShowNewInvoiceModal] = useState(false);
 
   // Date filter states
@@ -76,7 +77,7 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
                 Go to Point of Sale
               </Button>
               <Button
-                onClick={() => setViewMode("create-invoice")}
+                onClick={() => setShowInvoiceDialog(true)}
                 variant="primary"
                 size="lg"
                 className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
@@ -151,7 +152,7 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
             icon="⚡"
             layout="vertical"
             hoverBorderColor="border-green-500"
-            onClick={() => setViewMode("create-invoice")}
+            onClick={() => setShowInvoiceDialog(true)}
           />
 
           <ActionCard
@@ -209,7 +210,17 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
       </div>
 
       {/* Modals */}
-      {/* Kept wrapper for backward compatibility if needed, but primary path is now full page form */}
+      {/* Primary invoice dialog with full features */}
+      <InvoiceDialog
+        isOpen={showInvoiceDialog}
+        onClose={() => setShowInvoiceDialog(false)}
+        onSuccess={(sale) => {
+          setShowInvoiceDialog(false);
+          setRefreshTrigger((prev) => prev + 1);
+        }}
+      />
+
+      {/* Legacy modals kept for backward compatibility */}
       <NewInvoiceModal
         isOpen={showNewInvoiceModal}
         onClose={() => setShowNewInvoiceModal(false)}

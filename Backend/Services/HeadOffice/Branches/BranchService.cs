@@ -640,6 +640,8 @@ public class BranchService : IBranchService
             EnableTax = branch.EnableTax,
             TaxRate = branch.TaxRate,
             PriceIncludesTax = branch.PriceIncludesTax,
+            AllowNegativeStock = branch.AllowNegativeStock,
+            NegativeStockLimit = branch.NegativeStockLimit,
             IsActive = branch.IsActive,
             UpdatedAt = branch.UpdatedAt
         };
@@ -679,6 +681,10 @@ public class BranchService : IBranchService
         branch.EnableTax = settingsDto.EnableTax;
         branch.TaxRate = settingsDto.TaxRate;
         branch.PriceIncludesTax = settingsDto.PriceIncludesTax;
+
+        // Update inventory settings
+        branch.AllowNegativeStock = settingsDto.AllowNegativeStock;
+        branch.NegativeStockLimit = settingsDto.NegativeStockLimit;
 
         // Update metadata
         branch.UpdatedAt = DateTime.UtcNow;
