@@ -12,6 +12,7 @@ import {
   XCircle,
   AlertTriangle,
   ArrowLeft,
+  CheckCircle,
 } from "lucide-react";
 import { DeliveryOrderDto, DeliveryStatus } from "@/types/api.types";
 import { getDeliveryStatusName } from "@/types/enums";
@@ -52,9 +53,12 @@ export function DeliveryDetailSidebar({
   onStatusUpdate,
 }: DeliveryDetailSidebarProps) {
   const toast = useToast();
+  // Internal state to track current delivery data (updates after status changes)
+  const [currentDelivery, setCurrentDelivery] = useState<DeliveryOrderDto | null>(delivery);
   const [driverDialogOpen, setDriverDialogOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [showFailureForm, setShowFailureForm] = useState(false);
+  const [showConfirmationForm, setShowConfirmationForm] = useState(false);
   const [failureReason, setFailureReason] = useState("");
   const [selectedQuickReason, setSelectedQuickReason] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
@@ -62,12 +66,21 @@ export function DeliveryDetailSidebar({
   const [showDriverSelection, setShowDriverSelection] = useState(false);
   const [selectedDriverId, setSelectedDriverId] = useState("");
 
+  // Delivery confirmation form state
+  const [recipientName, setRecipientName] = useState("");
+  const [deliveryNotes, setDeliveryNotes] = useState("");
+
+  // Update internal state when delivery prop changes (e.g., when opening sidebar for different order)
+  useEffect(() => {
+    setCurrentDelivery(delivery);
+  }, [delivery]);
+
   // Use SWR hooks for data fetching
   const { drivers, isLoading: loadingDrivers } = useDrivers({
     isActive: true,
     isAvailable: true,
   });
-  const { statusHistory, isLoading: loadingHistory, mutate: mutateStatusHistory } = useDeliveryStatusHistory(delivery?.id ?? null);
+  const { statusHistory, isLoading: loadingHistory, mutate: mutateStatusHistory } = useDeliveryStatusHistory(currentDelivery?.id ?? null);
 
   // Predefined failure reasons
   const quickFailureReasons = [
@@ -87,10 +100,10 @@ export function DeliveryDetailSidebar({
   // Set up print handler using react-to-print (must be before early return)
   const handlePrint = useReactToPrint({
     contentRef: invoiceRef,
-    documentTitle: `Invoice-${invoiceData?.invoiceNumber || delivery?.orderId || "Delivery"}`,
+    documentTitle: `Invoice-${invoiceData?.invoiceNumber || currentDelivery?.orderId || "Delivery"}`,
   });
 
-  if (!delivery) return null;
+  if (!currentDelivery) return null;
 
   // Provide fallbacks for SWR data
   const driversData = drivers ?? [];
@@ -132,7 +145,7 @@ export function DeliveryDetailSidebar({
       [DeliveryStatus.OutForDelivery]: {
         status: DeliveryStatus.Delivered,
         label: "Confirm Delivery",
-        action: () => setConfirmDialogOpen(true),
+        action: () => setShowConfirmationForm(true),
       },
       [DeliveryStatus.Delivered]: null,
       [DeliveryStatus.Failed]: null,
@@ -147,8 +160,20 @@ export function DeliveryDetailSidebar({
     }
     try {
       setUpdating(true);
-      await deliveryService.assignDriverToDeliveryOrder(delivery.id, selectedDriverId);
-      await deliveryService.updateDeliveryStatus(delivery.id, DeliveryStatus.Assigned);
+      await deliveryService.assignDriverToDeliveryOrder(currentDelivery.id, selectedDriverId);
+      await deliveryService.updateDeliveryStatus(currentDelivery.id, DeliveryStatus.Assigned);
+
+      // Find driver name
+      const assignedDriver = driversData.find(d => d.id === selectedDriverId);
+
+      // Update internal state to reflect changes immediately
+      setCurrentDelivery({
+        ...currentDelivery,
+        deliveryStatus: DeliveryStatus.Assigned,
+        driverId: selectedDriverId,
+        driverName: assignedDriver?.nameEn || "",
+      });
+
       setShowDriverSelection(false);
       setSelectedDriverId("");
       onStatusUpdate();
@@ -179,7 +204,14 @@ export function DeliveryDetailSidebar({
   ) => {
     try {
       setUpdating(true);
-      await deliveryService.updateDeliveryStatus(delivery.id, newStatus);
+      await deliveryService.updateDeliveryStatus(currentDelivery.id, newStatus);
+
+      // Update internal state to reflect changes immediately
+      setCurrentDelivery({
+        ...currentDelivery,
+        deliveryStatus: newStatus,
+      });
+
       onStatusUpdate();
       mutateStatusHistory();
     } catch (error) {
@@ -196,8 +228,17 @@ export function DeliveryDetailSidebar({
   ) => {
     try {
       setUpdating(true);
-      await deliveryService.assignDriverToDeliveryOrder(delivery.id, driverId);
-      await deliveryService.updateDeliveryStatus(delivery.id, DeliveryStatus.Assigned);
+      await deliveryService.assignDriverToDeliveryOrder(currentDelivery.id, driverId);
+      await deliveryService.updateDeliveryStatus(currentDelivery.id, DeliveryStatus.Assigned);
+
+      // Update internal state to reflect changes immediately
+      setCurrentDelivery({
+        ...currentDelivery,
+        deliveryStatus: DeliveryStatus.Assigned,
+        driverId: driverId,
+        driverName: driverName,
+      });
+
       onStatusUpdate();
       mutateStatusHistory();
     } finally {
@@ -210,12 +251,59 @@ export function DeliveryDetailSidebar({
   ) => {
     try {
       setUpdating(true);
-      await deliveryService.updateDeliveryStatus(delivery.id, DeliveryStatus.Delivered);
+      await deliveryService.updateDeliveryStatus(currentDelivery.id, DeliveryStatus.Delivered);
+
+      // Update internal state to reflect changes immediately
+      setCurrentDelivery({
+        ...currentDelivery,
+        deliveryStatus: DeliveryStatus.Delivered,
+        actualDeliveryTime: new Date().toISOString(), // Set current time as actual delivery time
+      });
+
       onStatusUpdate();
       mutateStatusHistory();
     } finally {
       setUpdating(false);
     }
+  };
+
+  const handleConfirmDelivery = async () => {
+    if (!recipientName.trim()) {
+      toast.error("Recipient required", "Please enter the recipient's name");
+      return;
+    }
+
+    try {
+      setUpdating(true);
+      await deliveryService.updateDeliveryStatus(currentDelivery.id, DeliveryStatus.Delivered);
+
+      // Update internal state to reflect changes immediately
+      setCurrentDelivery({
+        ...currentDelivery,
+        deliveryStatus: DeliveryStatus.Delivered,
+        actualDeliveryTime: new Date().toISOString(),
+      });
+
+      // Reset form
+      setShowConfirmationForm(false);
+      setRecipientName("");
+      setDeliveryNotes("");
+
+      onStatusUpdate();
+      mutateStatusHistory();
+      toast.success("Delivery confirmed", "The order has been marked as delivered");
+    } catch (error) {
+      console.error("Failed to confirm delivery:", error);
+      toast.error("Failed to confirm", "Could not mark delivery as confirmed");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleCancelConfirmation = () => {
+    setShowConfirmationForm(false);
+    setRecipientName("");
+    setDeliveryNotes("");
   };
 
   const handleQuickReasonSelect = (quickReason: typeof quickFailureReasons[0]) => {
@@ -256,7 +344,7 @@ export function DeliveryDetailSidebar({
   };
 
   const handlePrintInvoice = async () => {
-    if (!delivery?.sale) {
+    if (!currentDelivery?.sale) {
       toast.error("No sale data", "Cannot print invoice without sale data");
       return;
     }
@@ -288,7 +376,7 @@ export function DeliveryDetailSidebar({
       console.log("Branch info loaded:", branchInfo?.nameEn);
 
       // Transform sale data to invoice data format using shared utility
-      const transformedData = transformSaleToInvoiceData(delivery.sale, branchInfo);
+      const transformedData = transformSaleToInvoiceData(currentDelivery.sale, branchInfo);
 
       // Set invoice data and trigger print
       setInvoiceSchema(parsedSchema);
@@ -343,61 +431,63 @@ export function DeliveryDetailSidebar({
     };
   };
 
-  const parsedInstructions = parseSpecialInstructions(delivery.specialInstructions);
+  const parsedInstructions = parseSpecialInstructions(currentDelivery.specialInstructions);
 
   // Get customer info - prioritize DTO level properties, then parse special instructions
   const customerName =
-    delivery.customerName ||
-    delivery.sale?.customerName ||
-    delivery.customer?.nameEn ||
+    currentDelivery.customerName ||
+    currentDelivery.sale?.customerName ||
+    currentDelivery.customer?.nameEn ||
     parsedInstructions.name ||
     "";
 
   const customerPhone =
-    delivery.customer?.phone ||
+    currentDelivery.customer?.phone ||
     parsedInstructions.phone ||
     "";
 
-  const deliveryAddress = delivery.deliveryAddress || "";
+  const deliveryAddress = currentDelivery.deliveryAddress || "";
 
   // Filter out customer info from special instructions display
-  const cleanSpecialInstructions = delivery.specialInstructions &&
+  const cleanSpecialInstructions = currentDelivery.specialInstructions &&
     (parsedInstructions.name || parsedInstructions.phone)
     ? null // Don't show special instructions if it only contains customer info
-    : delivery.specialInstructions;
+    : currentDelivery.specialInstructions;
 
   // Only show customer section if we have customer data
   const hasCustomerInfo = customerName || customerPhone;
 
   // Calculate next action and previous status dynamically
-  const nextAction = getNextAction(delivery.deliveryStatus);
-  const previousStatus = getPreviousStatus(delivery.deliveryStatus);
+  const nextAction = getNextAction(currentDelivery.deliveryStatus);
+  const previousStatus = getPreviousStatus(currentDelivery.deliveryStatus);
 
   return (
     <>
       <SidebarDialog
         isOpen={true}
-        onClose={showFailureForm ? handleCancelFailure : onClose}
+        onClose={showFailureForm ? handleCancelFailure : showConfirmationForm ? handleCancelConfirmation : onClose}
         title={
           showFailureForm
             ? "Mark Delivery as Failed"
-            : `Order #${delivery.orderId?.substring(0, 8) || delivery.id.substring(0, 8)}`
+            : showConfirmationForm
+            ? "Confirm Delivery"
+            : `Order #${currentDelivery.orderId?.substring(0, 8) || currentDelivery.id.substring(0, 8)}`
         }
         titleBadge={
-          !showFailureForm && (
+          !showFailureForm && !showConfirmationForm && (
             <span
               className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${getStatusColor(
-                delivery.deliveryStatus
+                currentDelivery.deliveryStatus
               )}`}
             >
-              {getDeliveryStatusName(delivery.deliveryStatus)}
+              {getDeliveryStatusName(currentDelivery.deliveryStatus)}
             </span>
           )
         }
         width="lg"
-        showBackButton={showFailureForm}
+        showBackButton={showFailureForm || showConfirmationForm}
         headerActions={
-          !showFailureForm && (
+          !showFailureForm && !showConfirmationForm && (
             <button
               className="px-3 py-2 border rounded-lg hover:bg-gray-100 transition-colors"
               onClick={handlePrintInvoice}
@@ -409,7 +499,26 @@ export function DeliveryDetailSidebar({
           )
         }
         footer={
-          showFailureForm ? (
+          showConfirmationForm ? (
+            <div className="flex gap-2 justify-end">
+              <button
+                type="button"
+                className="px-4 py-2 border rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
+                onClick={handleCancelConfirmation}
+                disabled={updating}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                onClick={handleConfirmDelivery}
+                disabled={!recipientName.trim() || updating}
+              >
+                {updating ? "Confirming..." : "Confirm Delivery"}
+              </button>
+            </div>
+          ) : showFailureForm ? (
             <div className="flex gap-2 justify-end">
               <button
                 type="button"
@@ -428,7 +537,7 @@ export function DeliveryDetailSidebar({
                 {updating ? "Marking as Failed..." : "Confirm Failed"}
               </button>
             </div>
-          ) : delivery.deliveryStatus === DeliveryStatus.Failed ? (
+          ) : currentDelivery.deliveryStatus === DeliveryStatus.Failed ? (
             // Failed orders can be reverted
             <div className="flex gap-2 flex-wrap">
               <button
@@ -448,10 +557,10 @@ export function DeliveryDetailSidebar({
                 Revert to Pending
               </button>
             </div>
-          ) : delivery.deliveryStatus === DeliveryStatus.Delivered ? (
+          ) : currentDelivery.deliveryStatus === DeliveryStatus.Delivered ? (
             // Delivered orders are final - no actions available
             <div className="text-center py-2 text-gray-500">
-              Order is in final status: {getDeliveryStatusName(delivery.deliveryStatus)}
+              Order is in final status: {getDeliveryStatusName(currentDelivery.deliveryStatus)}
             </div>
           ) : (
             // Active orders (Pending, Assigned, OutForDelivery)
@@ -527,14 +636,112 @@ export function DeliveryDetailSidebar({
           )
         }
       >
-        {showFailureForm ? (
+        {showConfirmationForm ? (
+          /* Confirmation Form Content */
+          <div className="space-y-4">
+            {/* Order Info */}
+            <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
+              <p className="text-sm text-gray-500">Order Number</p>
+              <p className="font-mono font-semibold">
+                #{currentDelivery.orderId?.substring(0, 8) || currentDelivery.id.substring(0, 8)}
+              </p>
+            </div>
+
+            {/* Success Message */}
+            <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 flex gap-2">
+              <CheckCircle className="h-5 w-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-emerald-900">Confirm Successful Delivery</p>
+                <p className="text-xs text-emerald-800 mt-1">
+                  Please verify the delivery details below before confirming.
+                </p>
+              </div>
+            </div>
+
+            {/* Order Summary */}
+            <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Package className="h-5 w-5 text-emerald-600" />
+                <h3 className="font-semibold text-emerald-900">Order Summary</h3>
+              </div>
+              <div className="space-y-1 text-sm text-emerald-800">
+                <p><span className="font-medium">Customer:</span> {customerName || "Walk-in Customer"}</p>
+                <p><span className="font-medium">Address:</span> {deliveryAddress || "N/A"}</p>
+                <p><span className="font-medium">Total:</span> {formatCurrency(currentDelivery.sale?.total || 0)}</p>
+              </div>
+            </div>
+
+            {/* Recipient Name */}
+            <div>
+              <label className="text-sm font-semibold block mb-2">
+                Recipient Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={recipientName}
+                onChange={(e) => setRecipientName(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                placeholder="Who received the order?"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Enter the name of the person who received the delivery
+              </p>
+            </div>
+
+            {/* Delivery Notes */}
+            <div>
+              <label className="text-sm font-semibold block mb-2">
+                Delivery Notes (Optional)
+              </label>
+              <textarea
+                value={deliveryNotes}
+                onChange={(e) => setDeliveryNotes(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                rows={3}
+                placeholder="Any additional notes about the delivery..."
+              />
+            </div>
+          </div>
+        ) : showFailureForm ? (
           /* Failure Form Content */
           <div className="space-y-4">
             {/* Order Info */}
             <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
               <p className="text-sm text-gray-500">Order Number</p>
               <p className="font-mono font-semibold">
-                #{delivery.orderId?.substring(0, 8) || delivery.id.substring(0, 8)}
+                #{currentDelivery.orderId?.substring(0, 8) || currentDelivery.id.substring(0, 8)}
+              </p>
+            </div>
+
+            {/* Current Status Timeline */}
+            <div>
+              <h3 className="font-semibold mb-3 text-lg">Order Progress (Before Failure)</h3>
+              <div className="rounded-lg border border-gray-200 p-4 bg-gray-50">
+                {loadingHistory ? (
+                  <div className="text-center py-4 text-gray-500">Loading...</div>
+                ) : (
+                  <OrderStatusTimeline
+                    statusHistory={statusHistoryData}
+                    currentStatus={currentDelivery.deliveryStatus}
+                    delivery={{
+                      driverId: currentDelivery.driverId,
+                      driverName: currentDelivery.driverName,
+                      actualDeliveryTime: currentDelivery.actualDeliveryTime,
+                    }}
+                  />
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                {currentDelivery.driverName ? (
+                  <>
+                    The order was assigned to <span className="font-semibold text-gray-700">{currentDelivery.driverName}</span> and failed during delivery.
+                  </>
+                ) : (
+                  <>
+                    The order failed before a driver could be assigned.
+                  </>
+                )}
               </p>
             </div>
 
@@ -544,7 +751,7 @@ export function DeliveryDetailSidebar({
               <div>
                 <p className="text-sm font-semibold text-yellow-900">Important</p>
                 <p className="text-xs text-yellow-800 mt-1">
-                  This action cannot be undone. The order status will be permanently marked as failed.
+                  This action will mark the order as failed. You can retry the delivery later by reverting the status.
                 </p>
               </div>
             </div>
@@ -644,13 +851,13 @@ export function DeliveryDetailSidebar({
           </div>
 
           {/* Driver Info (only show if status is Assigned or later and driver is assigned) */}
-          {delivery.driverName && delivery.deliveryStatus !== DeliveryStatus.Pending && (
+          {currentDelivery.driverName && currentDelivery.deliveryStatus !== DeliveryStatus.Pending && (
             <div>
               <h3 className="font-semibold mb-3 text-lg">Driver Information</h3>
               <div className="flex items-center gap-2 text-sm bg-purple-50 rounded-lg p-4 border border-purple-100">
                 <Truck className="h-5 w-5 text-purple-600" />
                 <span className="font-medium text-purple-900">
-                  {delivery.driverName}
+                  {currentDelivery.driverName}
                 </span>
               </div>
             </div>
@@ -660,9 +867,9 @@ export function DeliveryDetailSidebar({
           <div>
             <h3 className="font-semibold mb-3 text-lg">Order Items</h3>
             <div className="space-y-2 rounded-lg border p-4">
-              {delivery.sale?.lineItems && delivery.sale.lineItems.length > 0 ? (
+              {currentDelivery.sale?.lineItems && currentDelivery.sale.lineItems.length > 0 ? (
                 <>
-                  {delivery.sale.lineItems.map((item, index) => (
+                  {currentDelivery.sale.lineItems.map((item, index) => (
                     <div
                       key={index}
                       className="flex items-center justify-between py-2 border-b last:border-0"
@@ -682,7 +889,7 @@ export function DeliveryDetailSidebar({
                   <div className="border-t pt-3 flex justify-between text-lg font-bold">
                     <span>Total</span>
                     <span className="text-green-600">
-                      {formatCurrency(delivery.sale.total)}
+                      {formatCurrency(currentDelivery.sale.total)}
                     </span>
                   </div>
                 </>
@@ -699,19 +906,19 @@ export function DeliveryDetailSidebar({
               <div className="flex items-center gap-2 text-sm">
                 <Clock className="h-4 w-4 text-gray-500" />
                 <span className="text-gray-600">Created:</span>
-                <span className="font-medium">{formatTime(delivery.createdAt)}</span>
+                <span className="font-medium">{formatTime(currentDelivery.createdAt)}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Clock className="h-4 w-4 text-gray-500" />
                 <span className="text-gray-600">Estimated:</span>
-                <span className="font-medium">{formatTime(delivery.estimatedDeliveryTime)}</span>
+                <span className="font-medium">{formatTime(currentDelivery.estimatedDeliveryTime)}</span>
               </div>
-              {delivery.actualDeliveryTime && (
+              {currentDelivery.actualDeliveryTime && (
                 <div className="flex items-center gap-2 text-sm">
                   <Clock className="h-4 w-4 text-green-600" />
                   <span className="text-gray-600">Delivered:</span>
                   <span className="font-medium text-green-700">
-                    {formatTime(delivery.actualDeliveryTime)}
+                    {formatTime(currentDelivery.actualDeliveryTime)}
                   </span>
                 </div>
               )}
@@ -726,7 +933,12 @@ export function DeliveryDetailSidebar({
             ) : (
               <OrderStatusTimeline
                 statusHistory={statusHistoryData}
-                currentStatus={delivery.deliveryStatus}
+                currentStatus={currentDelivery.deliveryStatus}
+                delivery={{
+                  driverId: currentDelivery.driverId,
+                  driverName: currentDelivery.driverName,
+                  actualDeliveryTime: currentDelivery.actualDeliveryTime,
+                }}
               />
             )}
           </div>
@@ -738,8 +950,8 @@ export function DeliveryDetailSidebar({
       <DriverAssignmentDialog
         open={driverDialogOpen}
         onOpenChange={setDriverDialogOpen}
-        orderId={delivery.id}
-        orderNumber={delivery.orderId || delivery.id}
+        orderId={currentDelivery.id}
+        orderNumber={currentDelivery.orderId || currentDelivery.id}
         onAssign={handleDriverAssignment}
       />
 
@@ -747,9 +959,9 @@ export function DeliveryDetailSidebar({
       <DeliveryConfirmationDialog
         open={confirmDialogOpen}
         onOpenChange={setConfirmDialogOpen}
-        orderId={delivery.id}
-        orderNumber={delivery.orderId || delivery.id}
-        orderTotal={delivery.sale?.total || 0}
+        orderId={currentDelivery.id}
+        orderNumber={currentDelivery.orderId || currentDelivery.id}
+        orderTotal={currentDelivery.sale?.total || 0}
         onConfirm={handleDeliveryConfirmation}
       />
 

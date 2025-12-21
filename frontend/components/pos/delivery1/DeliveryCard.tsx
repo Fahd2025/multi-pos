@@ -124,7 +124,7 @@ export function DeliveryCard({ delivery, onStatusUpdate }: DeliveryCardProps) {
           </div>
 
           {/* Driver Info (if assigned) */}
-          {delivery.driverName && (
+          {delivery.driverName && delivery.deliveryStatus !== DeliveryStatus.Pending && (
             <div className="flex items-center gap-2 text-sm bg-purple-50 rounded-lg p-2">
               <Truck className="h-4 w-4 text-purple-600" />
               <span className="font-medium text-purple-900">
