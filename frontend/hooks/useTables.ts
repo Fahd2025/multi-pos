@@ -20,7 +20,7 @@ export function useTables(zoneId?: number) {
       revalidateOnFocus: false,
       revalidateOnReconnect: true,
       dedupingInterval: 30000, // Tables change infrequently
-      suspense: true, // Enable Suspense integration
+      fallbackData: [], // Provide fallback for SSR
     }
   );
 
@@ -50,7 +50,7 @@ export function useTablesWithStatus(zoneId?: number) {
       revalidateOnReconnect: true,
       refreshInterval: 10000, // Auto-refresh every 10 seconds for real-time status
       dedupingInterval: 5000,
-      suspense: true, // Enable Suspense integration
+      fallbackData: [], // Provide fallback for SSR
     }
   );
 
@@ -129,7 +129,7 @@ export function useAvailableTables(zoneId?: number) {
       revalidateOnReconnect: true,
       refreshInterval: 10000, // Auto-refresh every 10 seconds
       dedupingInterval: 5000,
-      suspense: true,
+      fallbackData: [], // Provide fallback for SSR
     }
   );
 
@@ -158,7 +158,7 @@ export function useOccupiedTables(zoneId?: number) {
       revalidateOnReconnect: true,
       refreshInterval: 10000, // Auto-refresh every 10 seconds
       dedupingInterval: 5000,
-      suspense: true,
+      fallbackData: [], // Provide fallback for SSR
     }
   );
 

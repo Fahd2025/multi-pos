@@ -18,7 +18,7 @@ export function useZones() {
       revalidateOnFocus: false,
       revalidateOnReconnect: true,
       dedupingInterval: 30000, // Zones change infrequently
-      suspense: true, // Enable Suspense integration
+      fallbackData: [], // Provide fallback for SSR
     }
   );
 
