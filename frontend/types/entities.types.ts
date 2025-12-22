@@ -605,6 +605,127 @@ export interface ProductFilter {
   maxPrice?: number;
 }
 
+// ============================================================================
+// Table Management Entities
+// ============================================================================
+
+/**
+ * Zone entity - represents a physical area in the restaurant
+ */
+export interface Zone {
+  id: number;
+  name: string;
+  description?: string;
+  displayOrder: number;
+  isActive: boolean;
+  tableCount?: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Table position information
+ */
+export interface TablePosition {
+  x: number;
+  y: number;
+  rotation: number;
+}
+
+/**
+ * Table dimensions and appearance
+ */
+export interface TableDimensions {
+  width: number;
+  height: number;
+  shape: "Rectangle" | "Circle" | "Square";
+}
+
+/**
+ * Table entity - represents a dining table
+ */
+export interface Table {
+  id: number;
+  number: number;
+  name: string;
+  capacity: number;
+  position: TablePosition;
+  dimensions: TableDimensions;
+  zoneId?: number;
+  zoneName?: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Table with current occupancy status
+ */
+export interface TableWithStatus extends Table {
+  status: "available" | "occupied" | "reserved";
+  saleId?: string;
+  invoiceNumber?: string;
+  guestCount?: number;
+  orderTime?: string;
+  orderTotal?: number;
+}
+
+/**
+ * Create zone request
+ */
+export interface CreateZoneRequest {
+  name: string;
+  description?: string;
+  displayOrder: number;
+}
+
+/**
+ * Update zone request
+ */
+export interface UpdateZoneRequest extends CreateZoneRequest {
+  isActive: boolean;
+}
+
+/**
+ * Create table request
+ */
+export interface CreateTableRequest {
+  number: number;
+  name: string;
+  capacity: number;
+  position: TablePosition;
+  dimensions?: TableDimensions;
+  zoneId?: number;
+}
+
+/**
+ * Update table request
+ */
+export interface UpdateTableRequest extends CreateTableRequest {
+  isActive: boolean;
+}
+
+/**
+ * Transfer order between tables request
+ */
+export interface TransferTableRequest {
+  saleId: string;
+  fromTableNumber: number;
+  toTableNumber: number;
+}
+
+/**
+ * Assign table to sale request
+ */
+export interface AssignTableRequest {
+  tableNumber: number;
+  guestCount: number;
+}
+
+// ============================================================================
+// Filter Criteria
+// ============================================================================
+
 /**
  * Sale filter criteria
  */

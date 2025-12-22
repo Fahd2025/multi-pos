@@ -69,10 +69,27 @@ public class Sale
     [Required]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    // Table Management Properties
+    public int? TableId { get; set; }
+
+    [Range(1, int.MaxValue, ErrorMessage = "Table number must be positive")]
+    public int? TableNumber { get; set; }
+
+    [Range(1, 100, ErrorMessage = "Guest count must be between 1 and 100")]
+    public int? GuestCount { get; set; }
+
+    // Order Status
+    [Required]
+    [MaxLength(20)]
+    public string Status { get; set; } = "open"; // open, completed, cancelled
+
+    public DateTime? CompletedAt { get; set; }
+
     // Navigation properties
     public Customer? Customer { get; set; }
     public ICollection<SaleLineItem> LineItems { get; set; } = new List<SaleLineItem>();
     public DeliveryOrder? DeliveryOrder { get; set; }
+    public Table? Table { get; set; }
 }
 
 public enum InvoiceType

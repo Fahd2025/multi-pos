@@ -123,6 +123,23 @@ export const API_ROUTES = {
     USER: (userId: string) => `/api/${API_VERSION}/audit/user/${userId}`,
   },
 
+  // Zones
+  ZONES: {
+    BASE: `/api/${API_VERSION}/zones`,
+    BY_ID: (id: number) => `/api/${API_VERSION}/zones/${id}`,
+  },
+
+  // Tables
+  TABLES: {
+    BASE: `/api/${API_VERSION}/tables`,
+    STATUS: `/api/${API_VERSION}/tables/status`,
+    BY_ID: (id: number) => `/api/${API_VERSION}/tables/${id}`,
+    BY_NUMBER: (number: number) => `/api/${API_VERSION}/tables/number/${number}`,
+    TRANSFER: `/api/${API_VERSION}/tables/transfer`,
+    CLEAR: (number: number) => `/api/${API_VERSION}/tables/${number}/clear`,
+    ASSIGN: (saleId: string) => `/api/${API_VERSION}/tables/assign/${saleId}`,
+  },
+
   // Health
   HEALTH: "/health",
 };

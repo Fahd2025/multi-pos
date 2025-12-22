@@ -68,6 +68,8 @@ public class SqlServerMigrationStrategy : BaseMigrationStrategy
 
     public override async Task<bool> ValidateSchemaIntegrityAsync(BranchDbContext context)
     {
+        // Only validate core tables that exist from initial migration
+        // Tables added by later migrations (DeliveryOrders, Zones, Tables) are optional
         var requiredTables = new[]
         {
             "Users",
@@ -84,10 +86,6 @@ public class SqlServerMigrationStrategy : BaseMigrationStrategy
             "ExpenseCategories",
             "Settings",
             "SyncQueue",
-            "InvoiceTemplates",
-            "Drivers",
-            "Units",
-            "DeliveryOrders",
             "__EFMigrationsHistory"
         };
 

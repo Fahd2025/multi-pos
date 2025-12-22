@@ -27,6 +27,8 @@ public class BranchDbContext : DbContext
     public DbSet<Driver> Drivers { get; set; }
     public DbSet<Unit> Units { get; set; }
     public DbSet<DeliveryOrder> DeliveryOrders { get; set; }
+    public DbSet<Zone> Zones { get; set; }
+    public DbSet<Table> Tables { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -137,6 +139,8 @@ public class BranchDbContext : DbContext
             entity.HasIndex(e => e.SaleDate);
             entity.HasIndex(e => e.IsVoided);
             entity.HasIndex(e => e.OrderType); // Index for OrderType to improve queries for delivery orders
+            entity.HasIndex(e => e.TableId); // Index for table queries
+            entity.HasIndex(e => e.Status); // Index for status filtering
 
             entity.Property(e => e.Subtotal).HasPrecision(18, 2);
             entity.Property(e => e.TaxAmount).HasPrecision(18, 2);
@@ -156,6 +160,13 @@ public class BranchDbContext : DbContext
                   .WithOne(d => d.Sale)
                   .HasForeignKey<DeliveryOrder>(d => d.OrderId)
                   .OnDelete(DeleteBehavior.Cascade);
+
+            // Define the relationship to Table
+            entity
+                .HasOne(e => e.Table)
+                .WithMany(t => t.Sales)
+                .HasForeignKey(e => e.TableId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // SaleLineItem configuration
@@ -330,6 +341,41 @@ public class BranchDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull);
 
             entity.Property(e => e.EstimatedDeliveryMinutes);
+        });
+
+        // Zone configuration
+        modelBuilder.Entity<Zone>(entity =>
+        {
+            entity.HasKey(z => z.Id);
+            entity.HasIndex(z => z.DisplayOrder);
+            entity.HasIndex(z => z.IsActive);
+            entity.Property(z => z.Name).IsRequired().HasMaxLength(50);
+        });
+
+        // Table configuration
+        modelBuilder.Entity<Table>(entity =>
+        {
+            entity.HasKey(t => t.Id);
+
+            // Unique table number per branch (since each branch has separate DB)
+            entity.HasIndex(t => t.Number).IsUnique();
+            entity.HasIndex(t => t.ZoneId);
+            entity.HasIndex(t => t.IsActive);
+
+            // Precision for positioning (0.00 to 100.00)
+            entity.Property(t => t.PositionX).HasPrecision(5, 2);
+            entity.Property(t => t.PositionY).HasPrecision(5, 2);
+            entity.Property(t => t.Width).HasPrecision(5, 2);
+            entity.Property(t => t.Height).HasPrecision(5, 2);
+
+            // Zone relationship
+            entity
+                .HasOne(t => t.Zone)
+                .WithMany(z => z.Tables)
+                .HasForeignKey(t => t.ZoneId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Sales relationship (already defined in Sale entity)
         });
     }
 }

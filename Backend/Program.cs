@@ -159,6 +159,14 @@ builder.Services.AddScoped<
     Backend.Services.Branch.DeliveryOrders.IDeliveryOrderService,
     Backend.Services.Branch.DeliveryOrders.DeliveryOrderService
 >();
+builder.Services.AddScoped<
+    Backend.Services.Branch.Tables.IZoneService,
+    Backend.Services.Branch.Tables.ZoneService
+>();
+builder.Services.AddScoped<
+    Backend.Services.Branch.Tables.ITableService,
+    Backend.Services.Branch.Tables.TableService
+>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<BranchDbContext>(provider =>
@@ -393,6 +401,9 @@ app.MapDriversEndpoints();
 
 // Delivery Orders
 app.MapDeliveryOrdersEndpoints();
+
+// Table Management Endpoints
+app.MapTableEndpoints();
 
 app.Run();
 

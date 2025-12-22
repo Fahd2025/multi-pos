@@ -820,6 +820,99 @@ export interface AuditLogDto {
 }
 
 // ============================================================================
+// Table Management Types
+// ============================================================================
+
+export interface ZoneDto {
+  id: number;
+  name: string;
+  description?: string;
+  displayOrder: number;
+  isActive: boolean;
+  tableCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateZoneDto {
+  name: string;
+  description?: string;
+  displayOrder: number;
+}
+
+export interface UpdateZoneDto {
+  name: string;
+  description?: string;
+  displayOrder: number;
+  isActive: boolean;
+}
+
+export interface PositionDto {
+  x: number;
+  y: number;
+  rotation: number;
+}
+
+export interface DimensionDto {
+  width: number;
+  height: number;
+  shape: "Rectangle" | "Circle" | "Square";
+}
+
+export interface TableDto {
+  id: number;
+  number: number;
+  name: string;
+  capacity: number;
+  position: PositionDto;
+  dimensions: DimensionDto;
+  zoneId?: number;
+  zoneName?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TableWithStatusDto extends TableDto {
+  status: "available" | "occupied" | "reserved";
+  saleId?: string;
+  invoiceNumber?: string;
+  guestCount?: number;
+  orderTime?: string;
+  orderTotal?: number;
+}
+
+export interface CreateTableDto {
+  number: number;
+  name: string;
+  capacity: number;
+  position: PositionDto;
+  dimensions: DimensionDto;
+  zoneId?: number;
+}
+
+export interface UpdateTableDto {
+  number: number;
+  name: string;
+  capacity: number;
+  position: PositionDto;
+  dimensions: DimensionDto;
+  zoneId?: number;
+  isActive: boolean;
+}
+
+export interface TransferTableDto {
+  saleId: string;
+  fromTableNumber: number;
+  toTableNumber: number;
+}
+
+export interface AssignTableDto {
+  tableNumber: number;
+  guestCount: number;
+}
+
+// ============================================================================
 // Image Upload Types
 // ============================================================================
 

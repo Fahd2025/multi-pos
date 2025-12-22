@@ -96,6 +96,10 @@ export const BRANCH_ROUTES = {
   SETTINGS_INVOICE_BUILDER: (locale: string) => `/${locale}/branch/settings/invoice-builder`,
   SETTINGS_INVOICE_BUILDER_EDIT: (locale: string, id: string) =>
     `/${locale}/branch/settings/invoice-builder/${id}`,
+
+  // Table Management
+  TABLES: (locale: string) => `/${locale}/branch/tables`,
+  ZONES: (locale: string) => `/${locale}/branch/tables/zones`,
 };
 
 /**
@@ -127,6 +131,7 @@ export const getBranchNavigation = (locale: string) => [
   { name: "Purchases", href: BRANCH_ROUTES.PURCHASES(locale), icon: "📥" },
   { name: "Expenses", href: BRANCH_ROUTES.EXPENSES(locale), icon: "💸" },
   { name: "Reports", href: BRANCH_ROUTES.REPORTS(locale), icon: "📈" },
+  { name: "Tables", href: BRANCH_ROUTES.TABLES(locale), icon: "🍽️" },
   { name: "Users", href: BRANCH_ROUTES.USERS(locale), icon: "👥" },
   { name: "Settings", href: BRANCH_ROUTES.SETTINGS(locale), icon: "⚙️" },
 ];
