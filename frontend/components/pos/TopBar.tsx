@@ -322,8 +322,7 @@ export const TopBar: React.FC<TopBarProps> = ({
 
   const handleTableManagement = () => {
     handleButtonPress("tables", () => {
-      // TODO: Implement table management functionality
-      console.log("Table Management clicked");
+      router.push("/pos/tables");
     });
   };
 

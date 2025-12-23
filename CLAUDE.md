@@ -132,6 +132,25 @@ Current endpoints:
   - `GET /api/v1/purchases` - List purchase orders
   - `POST /api/v1/purchases` - Create purchase order
   - `POST /api/v1/purchases/{id}/receive` - Mark purchase as received and update inventory
+- **Table Management Endpoints** (NEW):
+  - **Zone Endpoints**:
+    - `GET /api/v1/zones` - Get all zones
+    - `GET /api/v1/zones/{id}` - Get zone by ID
+    - `POST /api/v1/zones` - Create zone (Manager/Admin only)
+    - `PUT /api/v1/zones/{id}` - Update zone (Manager/Admin only)
+    - `DELETE /api/v1/zones/{id}` - Delete zone (Manager/Admin only)
+  - **Table Endpoints**:
+    - `GET /api/v1/tables` - Get all tables (with optional zone filter)
+    - `GET /api/v1/tables/status` - Get tables with current order status
+    - `GET /api/v1/tables/{id}` - Get table by ID
+    - `GET /api/v1/tables/number/{number}` - Get table by number
+    - `POST /api/v1/tables` - Create table (Manager/Admin only)
+    - `PUT /api/v1/tables/{id}` - Update table (Manager/Admin only)
+    - `DELETE /api/v1/tables/{id}` - Delete table (Manager/Admin only)
+  - **Table Operations**:
+    - `POST /api/v1/tables/transfer` - Transfer order between tables
+    - `POST /api/v1/tables/{tableNumber}/clear` - Clear/complete table
+    - `POST /api/v1/tables/assign/{saleId}` - Assign table to sale
 
 ### Project Conventions
 
@@ -307,6 +326,19 @@ After completing any implementation tasks, you MUST follow these procedures:
 - ✅ Frontend services and UI (T128-T137)
 - ✅ Integration and validation tests (T138-T143)
 
+**Phase 5: Table Management System** - ✅ Completed
+- ✅ Zone and Table entities with positioning system
+- ✅ Zone management service and API (5 endpoints)
+- ✅ Table management service and API (10 endpoints)
+- ✅ Frontend components with drag-and-drop positioning
+- ✅ Real-time table status monitoring
+- ✅ Order assignment, transfer, and clearing operations
+- ✅ Admin interface (/branch/tables) with dual-tab layout
+- ✅ Cashier interface (/pos/tables) for table selection
+- ✅ Integration with Sales entity (TableId, TableNumber, GuestCount, Status)
+- ✅ Navigation links in branch menu
+- ⚠️ POS auto-population from URL parameters (pending enhancement)
+
 ### Key Features Implemented
 
 - **Multi-branch architecture** with separate databases per branch
@@ -325,6 +357,19 @@ After completing any implementation tasks, you MUST follow these procedures:
   - Purchase order management
   - Automatic inventory updates on purchase receipt
   - Supplier management integration
+- **Table management** (NEW):
+  - Zone-based table organization (Main Hall, Patio, Bar, etc.)
+  - Visual floor plan with drag-and-drop positioning
+  - Real-time table status monitoring (Available/Occupied/Reserved)
+  - Guest count tracking per table
+  - Order assignment to tables
+  - Table transfer operations
+  - Table clearing with sale completion
+  - Admin management interface (/branch/tables)
+  - Cashier selection interface (/pos/tables)
+  - Dual-mode positioning: Drag-and-drop OR manual coordinates
+  - Auto-refresh status updates (10-second polling)
+  - Integration with POS order flow (dine-in order type)
 - **Offline sync** with IndexedDB queue and automatic synchronization
 - **Comprehensive testing**: 44 automated tests (27 unit + 17 integration) + 59 manual validation tests
 
