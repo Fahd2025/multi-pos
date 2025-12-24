@@ -7,21 +7,14 @@
 
 import React, { useState, useEffect } from "react";
 import { X, Search, UserPlus, Phone, Mail, MapPin } from "lucide-react";
-import styles from "./Pos2.module.css";
-
-interface Customer {
-  id: string;
-  name: string;
-  phone: string;
-  email: string;
-  address: string;
-  isActive: boolean;
-}
+import styles from "../pos/Pos2.module.css";
+import customerService from "@/services/customer.service";
+import { CustomerDto } from "@/types/api.types";
 
 interface CustomerSearchDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectCustomer: (customer: Customer) => void;
+  onSelectCustomer: (customer: CustomerDto) => void;
   onCreateNew: () => void;
 }
 
@@ -32,7 +25,7 @@ const CustomerSearchDialog: React.FC<CustomerSearchDialogProps> = ({
   onCreateNew,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customers, setCustomers] = useState<CustomerDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,14 +56,8 @@ const CustomerSearchDialog: React.FC<CustomerSearchDialogProps> = ({
     setError(null);
 
     try {
-      const response = await fetch("/api/v1/customers?page=1&pageSize=10");
-      const result = await response.json();
-
-      if (result.success) {
-        setCustomers(result.data || []);
-      } else {
-        setError("Failed to load customers");
-      }
+      const result = await customerService.getCustomers({ page: 1, pageSize: 10 });
+      setCustomers(result.data || []);
     } catch (err) {
       console.error("Error loading customers:", err);
       setError("Failed to load customers");
@@ -84,16 +71,8 @@ const CustomerSearchDialog: React.FC<CustomerSearchDialogProps> = ({
     setError(null);
 
     try {
-      const response = await fetch(
-        `/api/v1/customers?search=${encodeURIComponent(query)}&page=1&pageSize=20`
-      );
-      const result = await response.json();
-
-      if (result.success) {
-        setCustomers(result.data || []);
-      } else {
-        setError("Search failed");
-      }
+      const result = await customerService.getCustomers({ search: query, page: 1, pageSize: 20 });
+      setCustomers(result.data || []);
     } catch (err) {
       console.error("Error searching customers:", err);
       setError("Search failed");
@@ -102,7 +81,7 @@ const CustomerSearchDialog: React.FC<CustomerSearchDialogProps> = ({
     }
   };
 
-  const handleSelectCustomer = (customer: Customer) => {
+  const handleSelectCustomer = (customer: CustomerDto) => {
     onSelectCustomer(customer);
     setSearchQuery("");
   };
@@ -258,7 +237,7 @@ const CustomerSearchDialog: React.FC<CustomerSearchDialogProps> = ({
                           flexShrink: 0,
                         }}
                       >
-                        {customer.name.charAt(0).toUpperCase()}
+                        {customer.nameEn.charAt(0).toUpperCase()}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p
@@ -271,7 +250,7 @@ const CustomerSearchDialog: React.FC<CustomerSearchDialogProps> = ({
                             whiteSpace: "nowrap",
                           }}
                         >
-                          {customer.name}
+                          {customer.nameEn}
                         </p>
                         <div
                           style={{
@@ -317,7 +296,7 @@ const CustomerSearchDialog: React.FC<CustomerSearchDialogProps> = ({
                               </span>
                             </div>
                           )}
-                          {customer.address && (
+                          {customer.addressEn && (
                             <div
                               style={{
                                 display: "flex",
@@ -335,7 +314,7 @@ const CustomerSearchDialog: React.FC<CustomerSearchDialogProps> = ({
                                   whiteSpace: "nowrap",
                                 }}
                               >
-                                {customer.address}
+                                {customer.addressEn}
                               </span>
                             </div>
                           )}

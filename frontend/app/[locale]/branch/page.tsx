@@ -53,7 +53,7 @@ export default function BranchHomePage({ params }: { params: Promise<{ locale: s
       const dateFrom = firstDayOfMonth.toISOString().split("T")[0];
       const dateTo = today.toISOString().split("T")[0];
 
-      console.log("Requesting stats with dates:", { dateFrom, dateTo });
+      //console.log("Requesting stats with dates:", { dateFrom, dateTo });
 
       // Load sales stats
       const statsData = await salesService.getSalesStats({

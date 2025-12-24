@@ -7,7 +7,8 @@
 
 import React, { useState, useEffect } from "react";
 import { X, UtensilsCrossed, Users, Search } from "lucide-react";
-import styles from "./Pos2.module.css";
+import styles from "../pos/Pos2.module.css";
+import tableService from "@/services/table.service";
 
 interface Table {
   id: number;
@@ -51,14 +52,8 @@ const TableSelectorDialog: React.FC<TableSelectorDialogProps> = ({
     setError(null);
 
     try {
-      const response = await fetch("/api/v1/tables/status");
-      const result = await response.json();
-
-      if (result.success) {
-        setTables(result.data || []);
-      } else {
-        setError("Failed to load tables");
-      }
+      const result = await tableService.getTablesWithStatus();
+      setTables(result || []);
     } catch (err) {
       console.error("Error loading tables:", err);
       setError("Failed to load tables");

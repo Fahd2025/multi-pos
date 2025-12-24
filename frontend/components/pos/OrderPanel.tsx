@@ -13,6 +13,7 @@ import { buildProductImageUrl } from "@/lib/image-utils";
 import { TransactionDialog } from "./TransactionDialog";
 import { useToast } from "@/hooks/useToast";
 import { DeliveryOrderForm } from "./delivery2/DeliveryOrderForm";
+import { TransactionDialogV2 } from "../pos-v2/TransactionDialogV2";
 
 interface OrderItem extends ProductDto {
   quantity: number;
@@ -594,7 +595,7 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
       )} */}
 
       {/* Transaction Dialog */}
-      <TransactionDialog
+      <TransactionDialogV2
         isOpen={showTransactionDialog}
         onClose={() => setShowTransactionDialog(false)}
         cart={cart}
