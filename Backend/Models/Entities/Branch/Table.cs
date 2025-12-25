@@ -40,6 +40,14 @@ public class Table
 
     public bool IsActive { get; set; } = true;
 
+    // Status and current order tracking
+    [MaxLength(20)]
+    public string Status { get; set; } = "Available"; // Available, Occupied, Reserved
+
+    public Guid? CurrentSaleId { get; set; }
+    public int? CurrentGuestCount { get; set; }
+    public DateTime? OccupiedAt { get; set; }
+
     // Audit fields
     [Required]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

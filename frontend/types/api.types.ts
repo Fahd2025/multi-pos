@@ -239,6 +239,10 @@ export interface SaleDto {
   voidReason?: string;
   lineItems: SaleLineItemDetailDto[];
   createdAt: string;
+  // Table-related fields
+  tableId?: number;
+  tableNumber?: number;
+  guestCount?: number;
   // Delivery-related fields
   deliveryAddress?: string;
   deliveryFee?: number;

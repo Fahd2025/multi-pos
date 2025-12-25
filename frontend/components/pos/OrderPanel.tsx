@@ -26,6 +26,8 @@ interface OrderPanelProps {
   onUpdateQuantity: (id: string, quantity: number) => void;
   onClose?: () => void;
   onTransactionComplete?: (sale: SaleDto) => void;
+  initialTableNumber?: string;
+  initialGuestCount?: number;
 }
 
 export const OrderPanel: React.FC<OrderPanelProps> = ({
@@ -35,6 +37,8 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
   onUpdateQuantity,
   onClose,
   onTransactionComplete,
+  initialTableNumber,
+  initialGuestCount,
 }) => {
   const toast = useToast();
   const [showTransactionDialog, setShowTransactionDialog] = useState(false);
@@ -601,6 +605,8 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
         cart={cart}
         subtotal={subtotal}
         onSuccess={(sale) => handleTransactionSuccess(sale)}
+        initialTableNumber={initialTableNumber}
+        initialGuestCount={initialGuestCount}
         // initialOrderType={orderType}
         // initialCustomerDetails={
         //   orderType === "delivery"

@@ -70,6 +70,28 @@ public class SalesService : ISalesService
             .FirstOrDefaultAsync();
         decimal taxRate = taxRateSetting != null ? decimal.Parse(taxRateSetting.Value ?? "0") : branch.TaxRate;
 
+        // Validate and update table if provided
+        Table? table = null;
+        if (createSaleDto.TableId.HasValue)
+        {
+            table = await context.Tables.FindAsync(createSaleDto.TableId.Value);
+            if (table == null)
+            {
+                throw new InvalidOperationException("Table not found");
+            }
+        }
+        else if (createSaleDto.TableNumber.HasValue)
+        {
+            // Look up table by table number if ID not provided
+            table = await context.Tables.FirstOrDefaultAsync(t => t.Number == createSaleDto.TableNumber.Value);
+            if (table == null)
+            {
+                throw new InvalidOperationException($"Table #{createSaleDto.TableNumber.Value} not found");
+            }
+            // Set the TableId for the sale record
+            createSaleDto.TableId = table.Id;
+        }
+
         // Create sale entity
         var sale = new Sale
         {
@@ -88,6 +110,10 @@ public class SalesService : ISalesService
             Notes = createSaleDto.Notes,
             IsVoided = false,
             CreatedAt = DateTime.UtcNow,
+            // Table information
+            TableId = createSaleDto.TableId,
+            TableNumber = createSaleDto.TableNumber,
+            GuestCount = createSaleDto.GuestCount,
         };
 
         // Generate invoice number for Standard invoices
@@ -218,6 +244,16 @@ public class SalesService : ISalesService
             customer.VisitCount += 1;
             customer.LastVisitAt = DateTime.UtcNow;
             customer.UpdatedAt = DateTime.UtcNow;
+        }
+
+        // Update table status to occupied if table is assigned
+        if (table != null)
+        {
+            table.Status = "Occupied";
+            table.CurrentSaleId = sale.Id;
+            table.CurrentGuestCount = createSaleDto.GuestCount;
+            table.OccupiedAt = DateTime.UtcNow;
+            table.UpdatedAt = DateTime.UtcNow;
         }
 
         // Save to database
@@ -393,6 +429,20 @@ public class SalesService : ISalesService
             sale.Customer.TotalPurchases -= sale.Total;
             sale.Customer.VisitCount = Math.Max(0, sale.Customer.VisitCount - 1);
             sale.Customer.UpdatedAt = DateTime.UtcNow;
+        }
+
+        // Clear table if one was assigned
+        if (sale.TableId.HasValue)
+        {
+            var table = await context.Tables.FindAsync(sale.TableId.Value);
+            if (table != null && table.CurrentSaleId == sale.Id)
+            {
+                table.Status = "Available";
+                table.CurrentSaleId = null;
+                table.CurrentGuestCount = null;
+                table.OccupiedAt = null;
+                table.UpdatedAt = DateTime.UtcNow;
+            }
         }
 
         await context.SaveChangesAsync();
@@ -579,5 +629,75 @@ public class SalesService : ISalesService
             VoidReason = sale.VoidReason,
             CreatedAt = sale.CreatedAt,
         };
+    }
+
+    /// <summary>
+    /// Update payment information for an existing sale
+    /// </summary>
+    public async Task<SaleDto> UpdateSalePaymentAsync(
+        Guid saleId,
+        UpdateSalePaymentDto updatePaymentDto,
+        string branchName
+    )
+    {
+        // Get branch information
+        var branch = await _headOfficeContext.Branches.FirstOrDefaultAsync(b =>
+            b.Code == branchName && b.IsActive
+        );
+
+        if (branch == null)
+        {
+            throw new InvalidOperationException("Branch not found");
+        }
+
+        using var context = _dbContextFactory.CreateBranchContext(branch);
+
+        // Find the sale
+        var sale = await context.Sales.FirstOrDefaultAsync(s => s.Id == saleId);
+
+        if (sale == null)
+        {
+            throw new KeyNotFoundException($"Sale with ID '{saleId}' not found");
+        }
+
+        // Check if sale is voided
+        if (sale.IsVoided)
+        {
+            throw new InvalidOperationException("Cannot update payment for a voided sale");
+        }
+
+        // Update payment information
+        sale.PaymentMethod = (PaymentMethod)updatePaymentDto.PaymentMethod;
+        sale.AmountPaid = updatePaymentDto.AmountPaid;
+        sale.ChangeReturned = updatePaymentDto.ChangeReturned ?? 0;
+
+        // Apply additional discount if provided
+        if (updatePaymentDto.DiscountType.HasValue && updatePaymentDto.DiscountValue.HasValue && updatePaymentDto.DiscountValue.Value > 0)
+        {
+            var discountAmount = 0m;
+
+            if (updatePaymentDto.DiscountType.Value == 1) // Percentage
+            {
+                discountAmount = sale.Subtotal * (updatePaymentDto.DiscountValue.Value / 100);
+            }
+            else if (updatePaymentDto.DiscountType.Value == 2) // Amount
+            {
+                discountAmount = updatePaymentDto.DiscountValue.Value;
+            }
+
+            // Recalculate totals with new discount
+            var newSubtotal = sale.Subtotal - discountAmount;
+            var newTax = newSubtotal * 0.15m; // 15% tax rate
+            var newTotal = newSubtotal + newTax;
+
+            sale.TotalDiscount = sale.TotalDiscount + discountAmount;
+            sale.TaxAmount = newTax;
+            sale.Total = newTotal;
+        }
+
+        await context.SaveChangesAsync();
+
+        // Return updated sale DTO
+        return await GetSaleByIdAsync(saleId, branchName) ?? throw new InvalidOperationException("Failed to retrieve updated sale");
     }
 }

@@ -39,6 +39,32 @@ public class CreateSaleDto
 
     [MaxLength(1000)]
     public string? Notes { get; set; }
+
+    // Table information (for dine-in orders)
+    public int? TableId { get; set; }
+    public int? TableNumber { get; set; }
+    public int? GuestCount { get; set; }
+
+    // Delivery information (for delivery orders)
+    public CreateDeliveryDto? DeliveryInfo { get; set; }
+}
+
+public class CreateDeliveryDto
+{
+    public Guid? CustomerId { get; set; }
+
+    [MaxLength(500)]
+    public string? DeliveryAddress { get; set; }
+
+    [MaxLength(500)]
+    public string? PickupAddress { get; set; }
+
+    [MaxLength(1000)]
+    public string? SpecialInstructions { get; set; }
+
+    public int? EstimatedDeliveryMinutes { get; set; }
+
+    public int Priority { get; set; } = 1; // 1 = Normal, 2 = High, 3 = Urgent
 }
 
 public class CreateSaleLineItemDto

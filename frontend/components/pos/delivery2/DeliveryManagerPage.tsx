@@ -527,7 +527,18 @@ export const DeliveryManagerPage: React.FC = () => {
 
       {/* Hidden invoice for printing */}
       {invoiceSchema && invoiceData && (
-        <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+        <div style={{
+          position: "absolute",
+          left: "-9999px",
+          top: 0,
+          width: invoiceSchema.paperSize === "Thermal80mm" ? "80mm" :
+                 invoiceSchema.paperSize === "Thermal58mm" ? "58mm" :
+                 invoiceSchema.paperSize === "A4" ? "210mm" : "80mm",
+          maxWidth: invoiceSchema.paperSize === "Thermal80mm" ? "80mm" :
+                    invoiceSchema.paperSize === "Thermal58mm" ? "58mm" :
+                    invoiceSchema.paperSize === "A4" ? "210mm" : "80mm",
+          overflow: "hidden"
+        }}>
           <InvoicePreview ref={invoiceRef} schema={invoiceSchema} data={invoiceData} />
         </div>
       )}

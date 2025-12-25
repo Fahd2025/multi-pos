@@ -230,6 +230,31 @@ class SalesService {
       throw new Error(`Failed to print invoice: ${errorMessage}`);
     }
   }
+
+  /**
+   * Update payment for an existing sale
+   * @param saleId - Sale ID
+   * @param paymentData - Payment update data
+   * @returns Updated sale
+   */
+  async updateSalePayment(saleId: string, paymentData: {
+    paymentMethod: number;
+    amountPaid: number;
+    changeReturned?: number;
+    discountType?: number;
+    discountValue?: number;
+  }): Promise<SaleDto> {
+    try {
+      const response = await api.put<ApiResponse<SaleDto>>(
+        `${this.basePath}/${saleId}/payment`,
+        paymentData
+      );
+      return response.data.data!;
+    } catch (error) {
+      const errorMessage = apiHelpers.getErrorMessage(error);
+      throw new Error(`Failed to update payment: ${errorMessage}`);
+    }
+  }
 }
 
 // Export singleton instance

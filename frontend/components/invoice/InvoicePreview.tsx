@@ -82,7 +82,7 @@ interface InvoicePreviewProps {
 const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema, data }, ref) => {
   // RTL Detection: Check if Arabic content is present
   const hasArabicContent = (text?: string): boolean => {
-    if (!text || text.trim() === '') return false;
+    if (!text || text.trim() === "") return false;
     const arabicRegex = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
     return arabicRegex.test(text);
   };
@@ -96,7 +96,7 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema
 
   // Format address from JSON string or plain text
   const formatAddress = (address?: string): string => {
-    if (!address || address.trim() === '') return '';
+    if (!address || address.trim() === "") return "";
 
     // Try to parse as JSON object
     try {
@@ -113,7 +113,7 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema
 
       // If we have components, use them
       if (parts.length > 0) {
-        return parts.join(', ');
+        return parts.join(", ");
       }
 
       // Otherwise, fall back to ShortAddress
@@ -121,7 +121,7 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema
         return addressObj.ShortAddress || addressObj.shortAddress;
       }
 
-      return '';
+      return "";
     } catch {
       // If parsing fails, it's a plain string - return as-is
       return address;
@@ -135,10 +135,10 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema
     // Ensure the logo URL is absolute if it's a relative path
     const getAbsoluteLogoUrl = (logoUrl: string) => {
       if (!logoUrl) return logoUrl;
-      if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) {
+      if (logoUrl.startsWith("http://") || logoUrl.startsWith("https://")) {
         return logoUrl;
       }
-      if (logoUrl.startsWith('/')) {
+      if (logoUrl.startsWith("/")) {
         return `${API_BASE_URL}${logoUrl}`;
       }
       return logoUrl;
@@ -150,7 +150,11 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema
       <div className="invoice-header text-center mb-4 pb-4 border-b border-gray-300">
         {config.showLogo && absoluteLogoUrl && (
           <div className="mb-3">
-            <img src={absoluteLogoUrl} alt="Branch Logo" className="mx-auto max-h-16 object-contain" />
+            <img
+              src={absoluteLogoUrl}
+              alt="Branch Logo"
+              className="mx-auto max-h-16 object-contain"
+            />
           </div>
         )}
         {(config.showBranchName || config.showBranchName) && data.branchName && (
@@ -211,7 +215,7 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema
     if (!section.visible) return null;
 
     // Hide the ENTIRE customer section if phone is blank
-    if (!data.customerPhone || data.customerPhone.trim() === '') {
+    if (!data.customerPhone || data.customerPhone.trim() === "") {
       return null;
     }
 
@@ -317,7 +321,10 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema
                 {/* Main item row */}
                 <tr className="border-b border-gray-200">
                   {visibleColumns.map((column: any, colIndex: number) => (
-                    <td key={colIndex} className={`${isRTL ? "text-right" : "text-left"} py-2 px-1`}>
+                    <td
+                      key={colIndex}
+                      className={`${isRTL ? "text-right" : "text-left"} py-2 px-1`}
+                    >
                       {columnMap[column.key]?.(item) || "-"}
                     </td>
                   ))}
@@ -489,51 +496,62 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema
   };
 
   const paperWidth = getPaperWidth(schema.paperSize);
+  //console.log(schema);
 
   return (
-    <div
-      ref={ref}
-      className="invoice-preview bg-white p-6 max-w-3xl mx-auto"
-      dir={isRTL ? "rtl" : "ltr"}
-    >
+    <div ref={ref} className="invoice-preview bg-white p-6 mx-auto" dir={isRTL ? "rtl" : "ltr"}>
       <style jsx>{`
+        /* Define page size for printing */
         @page {
           size: ${paperWidth} auto;
-          margin: 5mm;
+          margin: 0;
         }
 
+        /* Base invoice preview styles */
         .invoice-preview {
           max-width: ${paperWidth};
+          box-sizing: border-box;
         }
 
+        /* Print-specific styles */
         @media print {
+          /* Reset body for print - top-left alignment for thermal printers */
+          html,
           body {
-            margin: 0;
-            padding: 0;
+            margin: 0 !important;
+            padding: 0 !important;
           }
 
+          /* Force invoice to exact width with top-left alignment */
           .invoice-preview {
-            width: ${paperWidth};
-            max-width: ${paperWidth};
-            padding: 0;
-            margin: 0;
+            width: ${paperWidth} !important;
+            max-width: ${paperWidth} !important;
+            min-width: ${paperWidth} !important;
+            padding: 5mm !important;
+            margin: 0 !important;
             page-break-inside: avoid;
+            box-shadow: none !important;
+            background: white !important;
           }
 
-          @page {
-            margin: 0;
+          /* Override any global print styles */
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
           }
         }
 
+        /* Screen preview styles */
         @media screen {
           .invoice-preview {
-            max-width: 48rem; /* 768px for preview on screen */
+            max-width: ${paperWidth};
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
           }
         }
       `}</style>
       {sortedSections.map((section) => (
-        <React.Fragment key={section.id}>{renderSection(section)}</React.Fragment>
+        <React.Fragment key={section.id}> {renderSection(section)}</React.Fragment>
       ))}
     </div>
   );

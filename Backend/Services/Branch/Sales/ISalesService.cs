@@ -26,4 +26,9 @@ public interface ISalesService
         DateTime dateTo,
         string? branchName = null
     );
+    Task<SaleDto> UpdateSalePaymentAsync(
+        Guid saleId,
+        UpdateSalePaymentDto updatePaymentDto,
+        string branchName
+    );
 }

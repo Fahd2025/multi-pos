@@ -5,7 +5,7 @@
 
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   X,
   CreditCard,
@@ -52,6 +52,7 @@ interface TransactionDialogV2Props {
   initialOrderType?: OrderType;
   initialCustomerDetails?: Partial<CustomerDetails>;
   initialTableNumber?: string;
+  initialGuestCount?: number;
 }
 
 interface CustomerDetails {
@@ -82,6 +83,7 @@ export const TransactionDialogV2: React.FC<TransactionDialogV2Props> = ({
   initialOrderType = "takeaway",
   initialCustomerDetails,
   initialTableNumber,
+  initialGuestCount,
 }) => {
   const toast = useToast();
 
@@ -117,6 +119,7 @@ export const TransactionDialogV2: React.FC<TransactionDialogV2Props> = ({
   const invoiceRef = useRef<HTMLDivElement>(null);
   const [invoiceSchema, setInvoiceSchema] = useState<InvoiceSchema | null>(null);
   const [invoiceData, setInvoiceData] = useState<any>(null);
+  const [shouldPrint, setShouldPrint] = useState(false);
 
   // Customer Details
   const [customer, setCustomer] = useState<CustomerDetails>({
@@ -131,8 +134,8 @@ export const TransactionDialogV2: React.FC<TransactionDialogV2Props> = ({
   const [table, setTable] = useState<TableDetails>({
     tableId: undefined,
     tableNumber: initialTableNumber || "",
-    tableName: "",
-    guestCount: 1,
+    tableName: initialTableNumber ? `Table ${initialTableNumber}` : "",
+    guestCount: initialGuestCount || 1,
   });
 
   // Calculate totals - Tax is applied AFTER discount
@@ -147,7 +150,8 @@ export const TransactionDialogV2: React.FC<TransactionDialogV2Props> = ({
   // Reset form when dialog opens/closes
   useEffect(() => {
     if (isOpen) {
-      setOrderType(initialOrderType);
+      // Auto-set order type to dine-in if table is provided
+      setOrderType(initialTableNumber ? "dine-in" : initialOrderType);
       setPaymentMethod("cash");
       setDiscountValue(0);
       setAmountPaid(0);
@@ -160,6 +164,9 @@ export const TransactionDialogV2: React.FC<TransactionDialogV2Props> = ({
       setTableSearchQuery("");
       setTableFilterStatus("all");
       setTables([]);
+      setInvoiceSchema(null);
+      setInvoiceData(null);
+      setShouldPrint(false);
 
       if (initialCustomerDetails) {
         setCustomer({
@@ -175,12 +182,12 @@ export const TransactionDialogV2: React.FC<TransactionDialogV2Props> = ({
         setTable({
           tableId: undefined,
           tableNumber: initialTableNumber,
-          tableName: "",
-          guestCount: 1,
+          tableName: `Table ${initialTableNumber}`,
+          guestCount: initialGuestCount || 1,
         });
       }
     }
-  }, [isOpen, initialOrderType, initialCustomerDetails, initialTableNumber]);
+  }, [isOpen, initialOrderType, initialCustomerDetails, initialTableNumber, initialGuestCount]);
 
   // Debounced customer search
   useEffect(() => {
@@ -445,7 +452,7 @@ export const TransactionDialogV2: React.FC<TransactionDialogV2Props> = ({
   };
 
   // Validation
-  const validateTransaction = (): string | null => {
+  const validateTransaction = (skipPaymentCheck = false): string | null => {
     if (cart.length === 0) {
       return "Cart is empty";
     }
@@ -465,28 +472,25 @@ export const TransactionDialogV2: React.FC<TransactionDialogV2Props> = ({
       }
     }
 
-    if (paymentMethod === "cash" && amountPaid < total) {
-      return `Insufficient payment. Amount paid ($${amountPaid.toFixed(
-        2
-      )}) is less than total ($${total.toFixed(2)})`;
+    // Only validate payment if not skipping payment check
+    if (!skipPaymentCheck) {
+      if (paymentMethod === "cash" && amountPaid < total) {
+        return `Insufficient payment. Amount paid ($${amountPaid.toFixed(
+          2
+        )}) is less than total ($${total.toFixed(2)})`;
+      }
+    }
+
+    // Check for negative amounts
+    if (amountPaid < 0) {
+      return "Amount paid cannot be negative";
     }
 
     return null;
   };
 
-  // Process Transaction
-  const handleProcessTransaction = async () => {
-    // Validation
-    const validationError = validateTransaction();
-    if (validationError) {
-      setError(validationError);
-      toast.warning("Validation Error", validationError);
-      return;
-    }
-
-    setProcessing(true);
-    setError(null);
-
+  // Core transaction processing (extracted for reuse)
+  const processTransactionCore = async (paidAmount: number, skipInvoicePrint = false) => {
     try {
       // Determine invoice type
       let invoiceType = 0; // Touch/Simplified
@@ -517,8 +521,8 @@ export const TransactionDialogV2: React.FC<TransactionDialogV2Props> = ({
         invoiceType: invoiceType,
         orderType: orderTypeMap[orderType],
         paymentMethod: paymentMethodMap[paymentMethod],
-        amountPaid: paymentMethod === "cash" ? amountPaid : total,
-        changeReturned: paymentMethod === "cash" ? Math.max(0, change) : 0,
+        amountPaid: paidAmount,
+        changeReturned: paidAmount > 0 && paymentMethod === "cash" ? Math.max(0, paidAmount - total) : 0,
         lineItems: cart.map((item) => ({
           productId: item.id,
           barcode: item.barcode,
@@ -553,19 +557,27 @@ export const TransactionDialogV2: React.FC<TransactionDialogV2Props> = ({
       const sale = await salesService.createSale(saleData);
 
       // Success notification
-      const successDetails =
-        paymentMethod === "cash"
-          ? `Invoice #${sale.invoiceNumber} | Total: $${total.toFixed(
-              2
-            )} | Paid: $${amountPaid.toFixed(2)} | Change: $${change.toFixed(2)}`
-          : `Invoice #${sale.invoiceNumber} | Total: $${total.toFixed(2)} | Payment: ${paymentMethod
-              .replace("-", " ")
-              .toUpperCase()}`;
+      let successTitle = "Transaction completed successfully!";
+      let successDetails = "";
 
-      toast.success("Transaction completed successfully!", successDetails, 7000);
+      if (paidAmount === 0) {
+        successTitle = "Order saved without payment";
+        successDetails = `Invoice #${sale.invoiceNumber} | Total: $${total.toFixed(2)} | Status: Unpaid`;
+      } else if (paidAmount < total) {
+        successTitle = "Partial payment received";
+        successDetails = `Invoice #${sale.invoiceNumber} | Total: $${total.toFixed(2)} | Paid: $${paidAmount.toFixed(2)} | Balance: $${(total - paidAmount).toFixed(2)}`;
+      } else if (paymentMethod === "cash") {
+        successDetails = `Invoice #${sale.invoiceNumber} | Total: $${total.toFixed(2)} | Paid: $${paidAmount.toFixed(2)} | Change: $${(paidAmount - total).toFixed(2)}`;
+      } else {
+        successDetails = `Invoice #${sale.invoiceNumber} | Total: $${total.toFixed(2)} | Payment: ${paymentMethod.replace("-", " ").toUpperCase()}`;
+      }
 
-      // Prepare and print invoice
-      await prepareAndPrintInvoice(sale);
+      toast.success(successTitle, successDetails, 7000);
+
+      // Prepare and print invoice (skip if saving without payment)
+      if (!skipInvoicePrint) {
+        await prepareAndPrintInvoice(sale);
+      }
 
       // Close dialog and clear cart
       setTimeout(() => {
@@ -573,11 +585,56 @@ export const TransactionDialogV2: React.FC<TransactionDialogV2Props> = ({
         onClose();
         resetForm();
       }, 1000);
+
+      return sale;
     } catch (err: any) {
       console.error("Error processing transaction:", err);
       const errorMessage = err.message || "Failed to process transaction";
       toast.error("Transaction failed", errorMessage, 8000);
       setError(errorMessage);
+      throw err;
+    }
+  };
+
+  // Save Without Payment (for dine-in orders)
+  const handleSaveWithoutPayment = async () => {
+    // Validation (skip payment check)
+    const validationError = validateTransaction(true);
+    if (validationError) {
+      setError(validationError);
+      toast.warning("Validation Error", validationError);
+      return;
+    }
+
+    setProcessing(true);
+    setError(null);
+
+    try {
+      await processTransactionCore(0, false); // Amount paid = 0, but still print invoice/order ticket
+    } catch (error) {
+      // Error already handled in processTransactionCore
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  // Process Transaction with Payment
+  const handleProcessTransaction = async () => {
+    // Validation
+    const validationError = validateTransaction();
+    if (validationError) {
+      setError(validationError);
+      toast.warning("Validation Error", validationError);
+      return;
+    }
+
+    setProcessing(true);
+    setError(null);
+
+    try {
+      await processTransactionCore(paymentMethod === "cash" ? amountPaid : total, false);
+    } catch (error) {
+      // Error already handled in processTransactionCore
     } finally {
       setProcessing(false);
     }
@@ -608,7 +665,7 @@ export const TransactionDialogV2: React.FC<TransactionDialogV2Props> = ({
     try {
       console.log("Starting invoice preparation...");
       const template = await invoiceTemplateService.getActiveTemplate();
-      console.log("Active template loaded:", template?.name);
+      console.log("Active template loaded:", template?.name, "Paper size:", template?.schema ? JSON.parse(template.schema).paperSize : "unknown");
 
       if (!template) {
         console.warn("No active template found");
@@ -621,19 +678,15 @@ export const TransactionDialogV2: React.FC<TransactionDialogV2Props> = ({
       }
 
       const parsedSchema = JSON.parse(template.schema) as InvoiceSchema;
+      console.log("Parsed schema paper size:", parsedSchema.paperSize);
+
       const branchInfo = await branchInfoService.getBranchInfo();
       const transformedData = transformSaleToInvoiceData(sale, branchInfo);
 
+      // Set schema and data, then trigger print via useEffect
       setInvoiceSchema(parsedSchema);
       setInvoiceData(transformedData);
-
-      // Trigger print
-      setTimeout(() => {
-        if (invoiceRef.current && handlePrint) {
-          console.log("Triggering print...");
-          handlePrint();
-        }
-      }, 500);
+      setShouldPrint(true); // This will trigger the print in the useEffect
     } catch (printError: any) {
       console.error("Failed to prepare invoice:", printError);
       toast.warning(
@@ -654,21 +707,110 @@ export const TransactionDialogV2: React.FC<TransactionDialogV2Props> = ({
     setTable({ tableId: undefined, tableNumber: "", tableName: "", guestCount: 1 });
     setIsExistingCustomer(false);
     setError(null);
+    setInvoiceSchema(null);
+    setInvoiceData(null);
+    setShouldPrint(false);
   };
 
-  // Set up print handler
-  const handlePrint = useReactToPrint({
+  // Calculate paper width based on invoice schema
+  const paperWidth = useMemo(() => {
+    if (!invoiceSchema) return "80mm";
+    switch (invoiceSchema.paperSize) {
+      case "Thermal58mm":
+        return "58mm";
+      case "Thermal80mm":
+        return "80mm";
+      case "A4":
+        return "210mm";
+      default:
+        return "80mm";
+    }
+  }, [invoiceSchema]);
+
+  // Memoize page style to update when paper width changes
+  const pageStyle = useMemo(() => `
+    @page {
+      size: ${paperWidth} auto;
+      margin: 0 !important;
+    }
+
+    @media print {
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: ${paperWidth} !important;
+        max-width: ${paperWidth} !important;
+      }
+    }
+  `, [paperWidth]);
+
+  // Set up print handler - recreate when pageStyle changes
+  const printConfig = useMemo(() => ({
     contentRef: invoiceRef,
     documentTitle: `Invoice-${invoiceData?.invoiceNumber || "POS"}`,
-  });
+    pageStyle: pageStyle,
+  }), [pageStyle, invoiceData?.invoiceNumber]);
+
+  const handlePrint = useReactToPrint(printConfig);
+
+  // Auto-trigger print when invoice is ready and shouldPrint is true
+  useEffect(() => {
+    if (shouldPrint && invoiceSchema && invoiceData && invoiceRef.current && handlePrint) {
+      console.log("Auto-printing with paper size:", invoiceSchema.paperSize, "paperWidth:", paperWidth);
+      // Small delay to ensure DOM is updated
+      const timer = setTimeout(() => {
+        handlePrint();
+        setShouldPrint(false); // Reset flag
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldPrint, invoiceSchema, invoiceData, handlePrint, paperWidth]);
 
   if (!isOpen) return null;
 
   return (
     <>
+      {/* Global print stylesheet for invoice */}
+      {invoiceSchema && invoiceData && (
+        <style key={`global-print-${paperWidth}`} dangerouslySetInnerHTML={{__html: `
+          @media print {
+            @page {
+              size: ${paperWidth} auto;
+              margin: 0;
+            }
+          }
+        `}} />
+      )}
+
       {/* Hidden invoice for printing */}
       {invoiceSchema && invoiceData && (
-        <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+        <div
+          key={`invoice-wrapper-${paperWidth}`}
+          className="invoice-print-wrapper"
+          style={{
+            position: "fixed",
+            left: "-9999px",
+            top: 0,
+            width: paperWidth,
+            maxWidth: paperWidth,
+          }}
+        >
+          <style key={`wrapper-print-${paperWidth}`}>{`
+            @media print {
+              .invoice-print-wrapper {
+                position: static !important;
+                left: 0 !important;
+                width: ${paperWidth} !important;
+                max-width: ${paperWidth} !important;
+              }
+            }
+          `}</style>
           <InvoicePreview ref={invoiceRef} schema={invoiceSchema} data={invoiceData} />
         </div>
       )}
@@ -687,8 +829,8 @@ export const TransactionDialogV2: React.FC<TransactionDialogV2Props> = ({
           <div className={styles.dialogContent}>
             {/* Two-Column Layout */}
             <div className={styles.dialogTwoColumnLayout}>
-              {/* LEFT COLUMN */}
-              <div className={styles.dialogLeftColumn}>
+              {/* ORDER TYPE SECTION - Shows first on mobile */}
+              <div className={styles.dialogOrderTypeSection}>
                 {/* Order Type Selection */}
                 <div className={styles.formSection}>
                   <label className={styles.formLabel}>Order Type</label>
@@ -722,7 +864,10 @@ export const TransactionDialogV2: React.FC<TransactionDialogV2Props> = ({
                     </button>
                   </div>
                 </div>
+              </div>
 
+              {/* LEFT COLUMN REMAINDER - Shows third on mobile */}
+              <div className={styles.dialogLeftColumn}>
                 {/* Payment Method */}
                 <div className={styles.formSection}>
                   <label className={styles.formLabel}>Payment Method</label>
@@ -834,7 +979,7 @@ export const TransactionDialogV2: React.FC<TransactionDialogV2Props> = ({
                 )}
               </div>
 
-              {/* RIGHT COLUMN */}
+              {/* RIGHT COLUMN - Shows second on mobile (after order type) */}
               <div className={styles.dialogRightColumn}>
                 {/* Customer Section for Delivery - Accordion */}
                 {orderType === "delivery" && (
@@ -1767,12 +1912,25 @@ export const TransactionDialogV2: React.FC<TransactionDialogV2Props> = ({
             <button className={styles.cancelBtn} onClick={onClose} disabled={processing}>
               Cancel
             </button>
+
+            {/* Show "Save Without Payment" option for dine-in orders */}
+            {orderType === "dine-in" && (
+              <button
+                className={styles.saveWithoutPaymentBtn}
+                onClick={handleSaveWithoutPayment}
+                disabled={processing || cart.length === 0}
+                title="Save order without payment - complete payment later from tables page"
+              >
+                {processing ? "Saving..." : "Save Without Payment"}
+              </button>
+            )}
+
             <button
               className={styles.confirmBtn}
               onClick={handleProcessTransaction}
               disabled={processing || cart.length === 0}
             >
-              {processing ? "Processing..." : `Confirm Payment - $${total.toFixed(2)}`}
+              {processing ? "Processing..." : `Complete Payment - $${total.toFixed(2)}`}
             </button>
           </div>
         </div>

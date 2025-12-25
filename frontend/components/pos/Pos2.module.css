@@ -1240,16 +1240,26 @@
   align-items: start;
 }
 
+.dialogOrderTypeSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  grid-column: 1;
+}
+
 .dialogLeftColumn {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  grid-column: 1;
 }
 
 .dialogRightColumn {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  grid-column: 2;
+  grid-row: 1 / span 2;
   position: sticky;
   top: 0;
 }
@@ -1277,8 +1287,22 @@
     gap: 1.5rem;
   }
 
+  /* Reorder sections on mobile: Order Type → Customer/Table → Payment/Summary */
+  .dialogOrderTypeSection {
+    order: 1;
+    grid-column: 1;
+  }
+
   .dialogRightColumn {
+    order: 2;
+    grid-column: 1;
+    grid-row: auto;
     position: static;
+  }
+
+  .dialogLeftColumn {
+    order: 3;
+    grid-column: 1;
   }
 
   .dialogContainer {
@@ -1565,6 +1589,27 @@
 }
 
 .confirmBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.saveWithoutPaymentBtn {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 1rem;
+  background-color: #f59e0b; /* Amber/Orange for "save" action */
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.saveWithoutPaymentBtn:hover {
+  background-color: #d97706; /* Darker amber on hover */
+}
+
+.saveWithoutPaymentBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }

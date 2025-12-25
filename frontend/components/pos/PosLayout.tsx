@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import styles from "./Pos2.module.css";
 import { CategorySidebar } from "./CategorySidebar";
 import { TopBar } from "./TopBar";
@@ -11,6 +12,7 @@ import { ProductDto, SaleDto } from "@/types/api.types";
 import { playErrorBeep, playSuccessBeep } from "@/lib/utils";
 import { useCategories, useProducts } from "@/hooks/useInventory";
 import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
+import salesService from "@/services/sales.service";
 
 interface CartItem extends ProductDto {
   quantity: number;
@@ -18,11 +20,22 @@ interface CartItem extends ProductDto {
 
 function PosLayoutContent() {
   const toast = useToast();
+  const searchParams = useSearchParams();
   const [activeCategory, setActiveCategory] = useState<string /*| null*/>("all");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartVisible, setIsCartVisible] = useState(true); // Default true for desktop
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [lastSale, setLastSale] = useState<SaleDto | null>(null); // Track last completed sale
+
+  // Read URL parameters for table integration
+  const tableNumber = searchParams.get("tableNumber");
+  const guestCount = searchParams.get("guestCount");
+  const saleId = searchParams.get("saleId");
+
+  // Track if sale is being loaded
+  const [loadingSale, setLoadingSale] = useState(false);
+  const [loadedSaleId, setLoadedSaleId] = useState<string | null>(null);
+  const [loadedSaleTableInfo, setLoadedSaleTableInfo] = useState<{ tableNumber?: string; guestCount?: number } | null>(null);
 
   // Use SWR hooks for data fetching
   const { categories, isLoading: loadingCategories, error: categoriesError } = useCategories();
@@ -31,7 +44,7 @@ function PosLayoutContent() {
     pageSize: 1000
   });
 
-  const loading = loadingCategories || loadingProducts;
+  const loading = loadingCategories || loadingProducts || loadingSale;
   const error = categoriesError || productsError;
   const isError = !!error;
 
@@ -51,6 +64,65 @@ function PosLayoutContent() {
       setIsSidebarCollapsed(isMobile);
     }
   }, []);
+
+  // Load existing sale when saleId is provided in URL
+  useEffect(() => {
+    if (!saleId || loadedSaleId === saleId) return;
+
+    const loadSale = async () => {
+      setLoadingSale(true);
+      try {
+        const sale = await salesService.getSaleById(saleId);
+
+        if (sale.isVoided) {
+          toast.error("Cannot edit voided sale", "This sale has been voided and cannot be modified.");
+          return;
+        }
+
+        // Transform sale line items to cart items
+        const cartItems: CartItem[] = sale.lineItems.map(item => ({
+          // Map from SaleLineItemDetailDto to ProductDto + quantity
+          id: item.productId,
+          nameEn: item.productName,
+          nameAr: item.productName,
+          sku: item.productSku,
+          barcode: item.barcode || "",
+          categoryId: "", // Not available in sale data
+          sellingPrice: item.unitPrice,
+          costPrice: 0, // Not available
+          stockLevel: 0, // Not relevant for existing sale
+          minStockThreshold: 0,
+          hasInventoryDiscrepancy: false,
+          isActive: true,
+          images: [], // Not available in sale data
+          createdAt: "",
+          updatedAt: "",
+          createdBy: "",
+          quantity: item.quantity,
+        }));
+
+        setCart(cartItems);
+        setLoadedSaleId(saleId);
+
+        // Extract table information from the loaded sale
+        if (sale.tableNumber) {
+          setLoadedSaleTableInfo({
+            tableNumber: sale.tableNumber.toString(),
+            guestCount: sale.guestCount || 1,
+          });
+        }
+
+        toast.success("Sale loaded", `Loaded ${sale.invoiceNumber || sale.transactionId}`);
+      } catch (error: any) {
+        console.error("Error loading sale:", error);
+        toast.error("Failed to load sale", error.message || "Could not load the sale data");
+      } finally {
+        setLoadingSale(false);
+      }
+    };
+
+    loadSale();
+  }, [saleId, loadedSaleId, toast]);
 
   // Get branch code from localStorage
   const getBranchCode = () => {
@@ -252,6 +324,8 @@ function PosLayoutContent() {
           onUpdateQuantity={handleUpdateQuantity}
           onClose={handleToggleCart}
           onTransactionComplete={(sale) => setLastSale(sale)}
+          initialTableNumber={loadedSaleTableInfo?.tableNumber || tableNumber || undefined}
+          initialGuestCount={loadedSaleTableInfo?.guestCount || (guestCount ? parseInt(guestCount) : undefined)}
         />
       </div>
     </div>

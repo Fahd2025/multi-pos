@@ -28,7 +28,6 @@ export function useCategories() {
       revalidateOnFocus: false,
       revalidateOnReconnect: true,
       dedupingInterval: 30000, // Categories change infrequently
-      suspense: true, // Enable Suspense integration
     }
   );
 
@@ -56,7 +55,6 @@ export function useProducts(params: ProductParams = {}) {
       revalidateOnFocus: false,
       revalidateOnReconnect: true,
       dedupingInterval: 10000,
-      suspense: true, // Enable Suspense integration
     }
   );
 

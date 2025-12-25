@@ -651,6 +651,95 @@ public static class SalesEndpoints
             .WithName("GetSalesStats")
             .WithOpenApi();
 
+        // PUT /api/v1/sales/:id/payment - Update payment for an existing sale
+        salesGroup
+            .MapPut(
+                "/{id:guid}/payment",
+                async (
+                    Guid id,
+                    [FromBody] UpdateSalePaymentDto updatePaymentDto,
+                    HttpContext httpContext,
+                    ISalesService salesService
+                ) =>
+                {
+                    try
+                    {
+                        // Get user ID from context
+                        var userId = httpContext.Items["UserId"] as Guid?;
+                        if (!userId.HasValue)
+                        {
+                            return Results.Unauthorized();
+                        }
+
+                        // Get branch from context
+                        var branch =
+                            httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                        if (branch == null)
+                        {
+                            return Results.BadRequest(
+                                new
+                                {
+                                    success = false,
+                                    error = new
+                                    {
+                                        code = "BRANCH_NOT_FOUND",
+                                        message = "Branch context not found",
+                                    },
+                                }
+                            );
+                        }
+
+                        var sale = await salesService.UpdateSalePaymentAsync(
+                            id,
+                            updatePaymentDto,
+                            branch.Code
+                        );
+
+                        return Results.Ok(
+                            new
+                            {
+                                success = true,
+                                data = sale,
+                                message = "Payment updated successfully",
+                            }
+                        );
+                    }
+                    catch (KeyNotFoundException ex)
+                    {
+                        return Results.NotFound(
+                            new
+                            {
+                                success = false,
+                                error = new
+                                {
+                                    code = "SALE_NOT_FOUND",
+                                    message = ex.Message,
+                                },
+                            }
+                        );
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        return Results.BadRequest(
+                            new
+                            {
+                                success = false,
+                                error = new { code = "INVALID_OPERATION", message = ex.Message },
+                            }
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(
+                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                        );
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("UpdateSalePayment")
+            .WithOpenApi();
+
         return app;
     }
 }
