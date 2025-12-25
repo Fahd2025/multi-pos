@@ -2,10 +2,12 @@ using Backend.Data.Branch;
 using Backend.Data.HeadOffice;
 using Backend.Data.Shared;
 using Backend.Models.DTOs.Branch.Sales;
+using Backend.Models.DTOs.Branch.DeliveryOrders;
 using Backend.Models.Entities.Branch;
 using BranchEntity = Backend.Models.Entities.HeadOffice.Branch;
 using Backend.Models.Entities.HeadOffice;
 using Backend.Utilities;
+using Backend.Services.Branch.DeliveryOrders;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services.Branch.Sales;
@@ -14,11 +16,13 @@ public class SalesService : ISalesService
 {
     private readonly DbContextFactory _dbContextFactory;
     private readonly HeadOfficeDbContext _headOfficeContext;
+    private readonly IDeliveryOrderService _deliveryOrderService;
 
-    public SalesService(DbContextFactory dbContextFactory, HeadOfficeDbContext headOfficeContext)
+    public SalesService(DbContextFactory dbContextFactory, HeadOfficeDbContext headOfficeContext, IDeliveryOrderService deliveryOrderService)
     {
         _dbContextFactory = dbContextFactory;
         _headOfficeContext = headOfficeContext;
+        _deliveryOrderService = deliveryOrderService;
     }
 
     public async Task<SaleDto> CreateSaleAsync(
@@ -259,6 +263,38 @@ public class SalesService : ISalesService
         // Save to database
         context.Sales.Add(sale);
         await context.SaveChangesAsync();
+
+        // Create delivery order if delivery info is provided
+        if (createSaleDto.DeliveryInfo != null)
+        {
+            try
+            {
+                var createDeliveryOrderDto = new CreateDeliveryOrderDto
+                {
+                    OrderId = sale.Id,
+                    DeliveryAddress = createSaleDto.DeliveryInfo.DeliveryAddress ?? "",
+                    PickupAddress = createSaleDto.DeliveryInfo.PickupAddress,
+                    SpecialInstructions = createSaleDto.DeliveryInfo.SpecialInstructions,
+                    EstimatedDeliveryMinutes = createSaleDto.DeliveryInfo.EstimatedDeliveryMinutes,
+                    Priority = (DeliveryPriority)createSaleDto.DeliveryInfo.Priority,
+                    EstimatedDeliveryTime = createSaleDto.DeliveryInfo.EstimatedDeliveryMinutes.HasValue
+                        ? DateTime.UtcNow.AddMinutes(createSaleDto.DeliveryInfo.EstimatedDeliveryMinutes.Value)
+                        : null,
+                };
+
+                await _deliveryOrderService.CreateDeliveryOrderAsync(
+                    createDeliveryOrderDto,
+                    cashierId,
+                    branch.Code
+                );
+            }
+            catch (Exception ex)
+            {
+                // Log the error but don't fail the entire transaction
+                // The sale has already been created successfully
+                Console.WriteLine($"Warning: Failed to create delivery order for sale {sale.Id}: {ex.Message}");
+            }
+        }
 
         // Return DTO
         return await MapToSaleDto(sale, context, branch);
