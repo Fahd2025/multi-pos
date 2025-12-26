@@ -19,10 +19,10 @@ export function usePendingOrders(params: GetPendingOrdersParams = {}) {
   const { data, error, isLoading, mutate } = useSWR(
     key,
     async () => {
-      console.log("🔄 Fetching pending orders with params:", params);
+      //console.log("🔄 Fetching pending orders with params:", params);
       const response = await pendingOrdersService.getPendingOrders(params);
-      console.log("✅ Pending orders response:", response);
-      console.log("📦 Pending orders data array:", response.data);
+      //console.log("✅ Pending orders response:", response);
+      //console.log("📦 Pending orders data array:", response.data);
       return response;
     },
     {
@@ -33,12 +33,12 @@ export function usePendingOrders(params: GetPendingOrdersParams = {}) {
     }
   );
 
-  console.log("🎯 usePendingOrders hook result:", {
-    hasData: !!data,
-    pendingOrdersCount: (data?.data as any)?.items?.length,
-    isLoading,
-    hasError: !!error,
-  });
+  // console.log("🎯 usePendingOrders hook result:", {
+  //   hasData: !!data,
+  //   pendingOrdersCount: (data?.data as any)?.items?.length,
+  //   isLoading,
+  //   hasError: !!error,
+  // });
 
   // Extract items array from paginated response
   const items = (data?.data as any)?.items as PendingOrderDto[] | undefined;

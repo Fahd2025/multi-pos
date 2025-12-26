@@ -50,7 +50,7 @@ interface OrderItem extends ProductDto {
 export interface SaveOrderData {
   customerName?: string;
   customerPhone?: string;
-  tableNumber?: string;
+  tableNumber?: number;
   guestCount?: number;
   orderType: number;
   status: PendingOrderStatus;
@@ -78,7 +78,7 @@ interface CustomerDetails {
 
 interface TableDetails {
   tableId?: number;
-  tableNumber: string;
+  tableNumber?: number;
   tableName: string;
   guestCount: number;
 }
@@ -122,7 +122,7 @@ export const TransactionDialogV3: React.FC<TransactionDialogV3Props> = ({
 
   // Table state for payment
   const [tableDetails, setTableDetails] = useState<TableDetails>({
-    tableNumber: initialTableNumber || "",
+    tableNumber: initialTableNumber ? parseInt(initialTableNumber) : undefined,
     tableName: "",
     guestCount: initialGuestCount || 1,
   });
@@ -132,9 +132,9 @@ export const TransactionDialogV3: React.FC<TransactionDialogV3Props> = ({
   const [tableFilterStatus, setTableFilterStatus] = useState("all");
   const [tablesError, setTablesError] = useState<string | null>(null);
 
-  // Accordion state
-  const [customerSectionExpanded, setCustomerSectionExpanded] = useState(true);
-  const [tableSectionExpanded, setTableSectionExpanded] = useState(true);
+  // Accordion state - collapsed by default for compact view
+  const [customerSectionExpanded, setCustomerSectionExpanded] = useState(false);
+  const [tableSectionExpanded, setTableSectionExpanded] = useState(false);
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [newCustomerForm, setNewCustomerForm] = useState({
@@ -233,6 +233,38 @@ export const TransactionDialogV3: React.FC<TransactionDialogV3Props> = ({
     loadTables();
   }, [orderType, tableSectionExpanded]);
 
+  // Fetch table details when dialog opens with initialTableNumber from URL
+  useEffect(() => {
+    const fetchTableDetails = async () => {
+      if (!isOpen || !initialTableNumber) return;
+
+      try {
+        // Fetch all tables to find the one matching the table number
+        const tables = await tableService.getTablesWithStatus();
+        const matchingTable = tables?.find(
+          (t: any) => t.number?.toString() === initialTableNumber
+        );
+
+        if (matchingTable) {
+          setTableDetails({
+            tableId: matchingTable.id,
+            tableNumber: matchingTable.number,
+            tableName: matchingTable.name || `Table ${matchingTable.number}`,
+            guestCount: initialGuestCount || 1,
+          });
+          // Automatically set order type to "dine-in" when table is selected
+          setOrderType("dine-in");
+        } else {
+          console.warn("⚠️ Table not found for number:", initialTableNumber);
+        }
+      } catch (error: any) {
+        console.error("❌ Error fetching table details:", error);
+      }
+    };
+
+    fetchTableDetails();
+  }, [isOpen, initialTableNumber, initialGuestCount]);
+
   // Customer handlers
   const handleSelectCustomer = (customer: any) => {
     setCustomerDetails({
@@ -240,7 +272,7 @@ export const TransactionDialogV3: React.FC<TransactionDialogV3Props> = ({
       name: customer.nameEn,
       phone: customer.phone || "",
       email: customer.email || "",
-      address: customer.address || "",
+      address: customer.addressEn || "",
     });
     setSearchQuery("");
     setSearchResults([]);
@@ -277,15 +309,16 @@ export const TransactionDialogV3: React.FC<TransactionDialogV3Props> = ({
   const handleSelectTable = (table: any) => {
     setTableDetails({
       tableId: table.id,
-      tableNumber: table.tableNumber || table.number,
-      tableName: table.name || `Table ${table.tableNumber || table.number}`,
+      tableNumber: table.number,
+      tableName: table.name || `Table ${table.number}`,
       guestCount: table.capacity || 1,
     });
   };
 
   const handleClearTable = () => {
     setTableDetails({
-      tableNumber: "",
+      tableId: undefined,
+      tableNumber: undefined,
       tableName: "",
       guestCount: 1,
     });
@@ -397,7 +430,7 @@ export const TransactionDialogV3: React.FC<TransactionDialogV3Props> = ({
         customerName: customerDetails.name || undefined,
         customerPhone: customerDetails.phone || undefined,
         customerEmail: customerDetails.email || undefined,
-        orderType: orderType === "delivery" ? 2 : orderType === "dine-in" ? 0 : 1,
+        orderType: orderType === "takeaway" ? 0 : orderType === "dine-in" ? 1 : 2,
         paymentMethod:
           paymentMethod === "cash"
             ? 0
@@ -411,6 +444,15 @@ export const TransactionDialogV3: React.FC<TransactionDialogV3Props> = ({
         tableNumber: orderType === "dine-in" ? tableDetails.tableNumber : undefined,
         guestCount: orderType === "dine-in" ? tableDetails.guestCount : undefined,
         deliveryAddress: orderType === "delivery" ? customerDetails.address : undefined,
+        // Add DeliveryInfo object for delivery orders
+        deliveryInfo: orderType === "delivery" ? {
+          customerId: customerDetails.id || undefined,
+          deliveryAddress: customerDetails.address || "",
+          pickupAddress: undefined,
+          specialInstructions: undefined,
+          estimatedDeliveryMinutes: 30, // Default 30 minutes
+          priority: 1, // 1 = Normal
+        } : undefined,
         lineItems: cart.map((item) => ({
           productId: item.id,
           quantity: item.quantity,
@@ -493,13 +535,22 @@ export const TransactionDialogV3: React.FC<TransactionDialogV3Props> = ({
         customerName: customerDetails.name || undefined,
         customerPhone: customerDetails.phone || undefined,
         customerEmail: customerDetails.email || undefined,
-        orderType: orderType === "delivery" ? 2 : orderType === "dine-in" ? 0 : 1,
+        orderType: orderType === "takeaway" ? 0 : orderType === "dine-in" ? 1 : 2,
         paymentMethod: 0, // Cash (but amount paid is 0)
         invoiceType: 0, // 0 = Standard invoice
         tableId: orderType === "dine-in" ? tableDetails.tableId : undefined,
         tableNumber: orderType === "dine-in" ? tableDetails.tableNumber : undefined,
         guestCount: orderType === "dine-in" ? tableDetails.guestCount : undefined,
         deliveryAddress: orderType === "delivery" ? customerDetails.address : undefined,
+        // Add DeliveryInfo object for delivery orders
+        deliveryInfo: orderType === "delivery" ? {
+          customerId: customerDetails.id || undefined,
+          deliveryAddress: customerDetails.address || "",
+          pickupAddress: undefined,
+          specialInstructions: undefined,
+          estimatedDeliveryMinutes: 30, // Default 30 minutes
+          priority: 1, // 1 = Normal
+        } : undefined,
         lineItems: cart.map((item) => ({
           productId: item.id,
           quantity: item.quantity,
@@ -659,7 +710,7 @@ export const TransactionDialogV3: React.FC<TransactionDialogV3Props> = ({
         }
         .dialog-content-area {
           overflow-y: auto;
-          max-height: calc(95vh - 140px);
+          max-height: calc(95vh - 200px);
         }
         @media (max-width: 640px) {
           .dialog-container {
@@ -669,7 +720,7 @@ export const TransactionDialogV3: React.FC<TransactionDialogV3Props> = ({
             margin: 0 !important;
           }
           .dialog-content-area {
-            max-height: calc(100vh - 120px);
+            max-height: calc(100vh - 180px);
           }
         }
         @media (min-width: 480px) {
@@ -697,8 +748,8 @@ export const TransactionDialogV3: React.FC<TransactionDialogV3Props> = ({
             style={{ animation: "slideUp 0.3s ease-out" }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header with Tabs */}
-            <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 dark:from-emerald-700 dark:to-emerald-800 px-3 sm:px-6 py-3 sm:py-4 flex-shrink-0">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 dark:from-emerald-700 dark:to-emerald-800 px-3 sm:px-6 py-2 sm:py-3 flex-shrink-0">
               <div className="flex items-center justify-between ">
                 <h2 className="text-lg sm:text-2xl font-bold text-white flex items-center gap-2">
                   <span className="hidden sm:inline">Complete Order</span>
@@ -715,7 +766,7 @@ export const TransactionDialogV3: React.FC<TransactionDialogV3Props> = ({
             </div>
 
             {/* Content */}
-            <div className="dialog-content-area flex-1 px-3 sm:px-6 py-4">
+            <div className="dialog-content-area flex-1 px-3 sm:px-6 py-2 sm:py-3">
               <div className={styles.dialogContent}>
                 {/* Two-Column Layout */}
                 <div className={styles.dialogTwoColumnLayout}>
@@ -1202,12 +1253,12 @@ export const TransactionDialogV3: React.FC<TransactionDialogV3Props> = ({
                           {/* Manual Input Form */}
                           <div className={styles.formGrid}>
                             <input
-                              type="text"
+                              type="number"
                               placeholder="Table Number *"
                               className={styles.formInput}
-                              value={tableDetails.tableNumber}
+                              value={tableDetails.tableNumber || ""}
                               onChange={(e) =>
-                                setTableDetails({ ...tableDetails, tableNumber: e.target.value })
+                                setTableDetails({ ...tableDetails, tableNumber: e.target.value ? parseInt(e.target.value) : undefined })
                               }
                             />
                             <input
@@ -1597,45 +1648,47 @@ export const TransactionDialogV3: React.FC<TransactionDialogV3Props> = ({
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
 
-                {/* Action Buttons */}
-                <div className="flex flex-wrap gap-3 pt-4 mt-6">
-                  <button
-                    onClick={onClose}
-                    className="flex items-center gap-2 px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    <X size={18} />
-                    <span>Cancel</span>
-                  </button>
-                  <button
-                    onClick={handleSaveOrder}
-                    disabled={saving || cart.length === 0}
-                    className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <Save size={18} />
-                    <span>{saving ? "Saving..." : "Save Order"}</span>
-                  </button>
-                  <button
-                    onClick={handleCompleteWithoutPayment}
-                    disabled={processing || cart.length === 0}
-                    className="flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <FileText size={18} />
-                    <span>{processing ? "Processing..." : "Complete (No Payment)"}</span>
-                  </button>
-                  <button
-                    onClick={handleProcessTransaction}
-                    disabled={
-                      processing ||
-                      cart.length === 0 ||
-                      (paymentMethod === "cash" && amountPaid < total)
-                    }
-                    className="flex items-center gap-2 flex-1 px-6 py-3 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <CheckCircle size={18} />
-                    <span>{processing ? "Processing..." : `Pay $${total.toFixed(2)}`}</span>
-                  </button>
-                </div>
+            {/* Fixed Action Buttons Footer */}
+            <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 sm:px-6 py-3 sm:py-4 flex-shrink-0">
+              <div className="flex flex-wrap gap-2 sm:gap-3">
+                <button
+                  onClick={onClose}
+                  className="flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm sm:text-base"
+                >
+                  <X size={16} className="sm:w-[18px] sm:h-[18px]" />
+                  <span>Cancel</span>
+                </button>
+                <button
+                  onClick={handleSaveOrder}
+                  disabled={saving || cart.length === 0}
+                  className="flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm sm:text-base"
+                >
+                  <Save size={16} className="sm:w-[18px] sm:h-[18px]" />
+                  <span>{saving ? "Saving..." : "Save Order"}</span>
+                </button>
+                <button
+                  onClick={handleCompleteWithoutPayment}
+                  disabled={processing || cart.length === 0}
+                  className="flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm sm:text-base"
+                >
+                  <FileText size={16} className="sm:w-[18px] sm:h-[18px]" />
+                  <span>{processing ? "Processing..." : "Complete (No Payment)"}</span>
+                </button>
+                <button
+                  onClick={handleProcessTransaction}
+                  disabled={
+                    processing ||
+                    cart.length === 0 ||
+                    (paymentMethod === "cash" && amountPaid < total)
+                  }
+                  className="flex items-center gap-2 flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm sm:text-base"
+                >
+                  <CheckCircle size={16} className="sm:w-[18px] sm:h-[18px]" />
+                  <span>{processing ? "Processing..." : `Pay $${total.toFixed(2)}`}</span>
+                </button>
               </div>
             </div>
           </div>

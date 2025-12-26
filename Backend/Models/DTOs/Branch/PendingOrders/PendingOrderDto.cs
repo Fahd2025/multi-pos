@@ -22,7 +22,7 @@ public class PendingOrderDto
     // Table Information
     public Guid? TableId { get; set; }
 
-    public string? TableNumber { get; set; }
+    public int? TableNumber { get; set; }
 
     public int? GuestCount { get; set; }
 

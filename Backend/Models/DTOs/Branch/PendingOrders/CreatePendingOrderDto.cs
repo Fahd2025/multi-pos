@@ -22,8 +22,7 @@ public class CreatePendingOrderDto
     // Table Information (Optional - for dine-in orders)
     public Guid? TableId { get; set; }
 
-    [MaxLength(20)]
-    public string? TableNumber { get; set; }
+    public int? TableNumber { get; set; }
 
     [Range(1, 100, ErrorMessage = "Guest count must be between 1 and 100")]
     public int? GuestCount { get; set; }

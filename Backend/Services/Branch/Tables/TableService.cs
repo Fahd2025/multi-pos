@@ -446,8 +446,17 @@ public class TableService : ITableService
         if (sale == null)
             return false; // Table already clear
 
+        // Mark sale as completed
         sale.Status = "completed";
         sale.CompletedAt = DateTime.UtcNow;
+
+        // Clear table status and occupancy information
+        table.Status = "available";
+        table.CurrentSaleId = null;
+        table.CurrentGuestCount = null;
+        table.OccupiedAt = null;
+        table.UpdatedAt = DateTime.UtcNow;
+
         await _context.SaveChangesAsync();
 
         _logger.LogInformation(

@@ -595,9 +595,8 @@ namespace Backend.Migrations.Branch
                     b.Property<Guid?>("TableId")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("TableNumber")
-                        .HasMaxLength(20)
-                        .HasColumnType("TEXT");
+                    b.Property<int?>("TableNumber")
+                        .HasColumnType("INTEGER");
 
                     b.Property<decimal>("TaxAmount")
                         .HasPrecision(18, 2)

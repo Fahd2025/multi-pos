@@ -258,6 +258,9 @@ public class SalesService : ISalesService
             table.CurrentGuestCount = createSaleDto.GuestCount;
             table.OccupiedAt = DateTime.UtcNow;
             table.UpdatedAt = DateTime.UtcNow;
+
+            // Explicitly mark as modified to ensure EF tracks the change
+            context.Entry(table).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
         }
 
         // Save to database
@@ -288,11 +291,11 @@ public class SalesService : ISalesService
                     branch.Code
                 );
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Log the error but don't fail the entire transaction
                 // The sale has already been created successfully
-                Console.WriteLine($"Warning: Failed to create delivery order for sale {sale.Id}: {ex.Message}");
+                // TODO: Add proper logging framework
             }
         }
 

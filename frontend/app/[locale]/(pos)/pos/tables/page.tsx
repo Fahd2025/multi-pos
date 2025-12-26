@@ -84,9 +84,21 @@ export default function POSTablesPage() {
         if (table.status === "occupied" && table.saleId) {
           try {
             const sale = await salesService.getSaleById(table.saleId);
+
+            // Debug logging
+            console.log(`[Payment Status Check] Table ${table.number}:`, {
+              saleId: sale.id,
+              total: sale.total,
+              amountPaid: sale.amountPaid,
+              changeReturned: sale.changeReturned,
+              hasAmountPaid: sale.amountPaid !== undefined && sale.amountPaid !== null,
+            });
+
             // Check if paid: amountPaid >= total
-            const isPaid = sale.total > 0 && (sale as any).amountPaid && (sale as any).amountPaid >= sale.total;
+            const isPaid = sale.total > 0 && sale.amountPaid !== undefined && sale.amountPaid !== null && sale.amountPaid >= sale.total;
             statusMap[table.saleId] = isPaid;
+
+            console.log(`[Payment Status] Table ${table.number}: ${isPaid ? 'PAID' : 'UNPAID'}`);
           } catch (error) {
             console.error(`Failed to check payment status for sale ${table.saleId}:`, error);
             // Default to unpaid if we can't determine
@@ -284,8 +296,20 @@ export default function POSTablesPage() {
         discountValue: discountValue,
       };
 
+      // Debug logging
+      console.log('[Process Payment] Payment data being sent:', {
+        saleId: selectedSale.id,
+        paymentMethod: paymentMethod,
+        paymentMethodEnum: paymentMethodMap[paymentMethod],
+        amountPaidState: amountPaid,
+        calculatedTotal: paymentCalculations.total,
+        updateData: updateData,
+      });
+
       // Call API to update payment
-      await salesService.updateSalePayment(selectedSale.id, updateData);
+      const result = await salesService.updateSalePayment(selectedSale.id, updateData);
+
+      console.log('[Process Payment] API Response:', result);
 
       toast.success(
         "Payment completed!",
@@ -293,17 +317,15 @@ export default function POSTablesPage() {
         7000
       );
 
-      // Auto-clear the table after payment
-      if (selectedTable) {
-        try {
-          await tableService.clearTable(selectedTable.number);
-          toast.success("Table cleared", `Table #${selectedTable.number} is now available`);
-          await mutate();
-        } catch (error: any) {
-          console.error("Failed to auto-clear table:", error);
-          toast.error("Clear failed", error.message || "Could not clear the table after payment");
-        }
-      }
+      // Refresh table data to show updated payment status
+      await mutate();
+
+      // Reset payment form
+      setShowPaymentMode(false);
+      setPaymentMethod("cash");
+      setAmountPaid(0);
+      setDiscountType("percentage");
+      setDiscountValue(0);
 
       // Close sidebar
       handleCloseSidebar();

@@ -44,7 +44,7 @@ function PosLayoutContent() {
   // Track if sale is being loaded
   const [loadingSale, setLoadingSale] = useState(false);
   const [loadedSaleId, setLoadedSaleId] = useState<string | null>(null);
-  const [loadedSaleTableInfo, setLoadedSaleTableInfo] = useState<{ tableNumber?: string; guestCount?: number } | null>(null);
+  const [loadedSaleTableInfo, setLoadedSaleTableInfo] = useState<{ tableNumber?: number; guestCount?: number } | null>(null);
 
   // Use SWR hooks for data fetching
   const { categories, isLoading: loadingCategories, error: categoriesError } = useCategories();
@@ -116,7 +116,7 @@ function PosLayoutContent() {
         // Extract table information from the loaded sale
         if (sale.tableNumber) {
           setLoadedSaleTableInfo({
-            tableNumber: sale.tableNumber.toString(),
+            tableNumber: sale.tableNumber,
             guestCount: sale.guestCount || 1,
           });
         }
@@ -468,7 +468,7 @@ function PosLayoutContent() {
           onUpdateQuantity={handleUpdateQuantity}
           onClose={handleToggleCart}
           onTransactionComplete={(sale) => setLastSale(sale)}
-          initialTableNumber={loadedSaleTableInfo?.tableNumber || tableNumber || undefined}
+          initialTableNumber={loadedSaleTableInfo?.tableNumber?.toString() || tableNumber || undefined}
           initialGuestCount={loadedSaleTableInfo?.guestCount || (guestCount ? parseInt(guestCount) : undefined)}
           onSaveOrder={handleSavePendingOrder}
           onOpenPendingOrders={() => setIsPendingOrdersPanelOpen(true)}

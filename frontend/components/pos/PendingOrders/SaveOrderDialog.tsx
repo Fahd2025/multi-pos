@@ -6,7 +6,7 @@ import { PendingOrderStatus } from "@/types/api.types";
 export interface SaveOrderData {
   customerName?: string;
   customerPhone?: string;
-  tableNumber?: string;
+  tableNumber?: number;
   guestCount?: number;
   orderType: number;
   status: PendingOrderStatus;
@@ -19,7 +19,7 @@ interface SaveOrderDialogProps {
   onSave: (data: SaveOrderData) => Promise<void>;
   itemCount: number;
   totalAmount: number;
-  currentTableNumber?: string;
+  currentTableNumber?: number;
   currentGuestCount?: number;
 }
 
@@ -35,7 +35,7 @@ export function SaveOrderDialog({
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [orderType, setOrderType] = useState<number>(0); // 0 = Touch (Dine In)
-  const [tableNumber, setTableNumber] = useState(currentTableNumber || "");
+  const [tableNumber, setTableNumber] = useState<number | undefined>(currentTableNumber);
   const [guestCount, setGuestCount] = useState(currentGuestCount || 1);
   const [status, setStatus] = useState<PendingOrderStatus>(PendingOrderStatus.Parked);
   const [notes, setNotes] = useState("");
@@ -211,10 +211,10 @@ export function SaveOrderDialog({
                   </h3>
                   <div className="flex gap-3">
                     <input
-                      type="text"
+                      type="number"
                       placeholder="Table number"
-                      value={tableNumber}
-                      onChange={(e) => setTableNumber(e.target.value)}
+                      value={tableNumber || ""}
+                      onChange={(e) => setTableNumber(e.target.value ? parseInt(e.target.value) : undefined)}
                       className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     />
                     <input

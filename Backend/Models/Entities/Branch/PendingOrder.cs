@@ -30,8 +30,7 @@ public class PendingOrder
     // Table Information (Optional - for dine-in orders)
     public Guid? TableId { get; set; }
 
-    [MaxLength(20)]
-    public string? TableNumber { get; set; }
+    public int? TableNumber { get; set; }
 
     public int? GuestCount { get; set; }
 

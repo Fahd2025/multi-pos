@@ -189,6 +189,9 @@ export interface UpdateBranchDto {
 
 export interface CreateSaleDto {
   customerId?: string;
+  customerName?: string;
+  customerPhone?: string;
+  customerEmail?: string;
   invoiceType: number;
   orderNumber?: string;
   orderType?: number; // OrderType enum
@@ -201,11 +204,29 @@ export interface CreateSaleDto {
   invoiceDiscountType?: number; // DiscountType enum
   invoiceDiscountValue?: number;
   notes?: string;
+  // Table information (for dine-in orders)
+  tableId?: number;
+  tableNumber?: number;
+  guestCount?: number;
   // Delivery-related fields
   deliveryAddress?: string;
   deliveryFee?: number;
   specialInstructions?: string;
   isDelivery?: boolean; // Indicates if this is a delivery order
+  deliveryInfo?: {
+    customerId?: string;
+    deliveryAddress?: string;
+    pickupAddress?: string;
+    specialInstructions?: string;
+    estimatedDeliveryMinutes?: number;
+    priority?: number;
+  };
+  // Calculated fields
+  subtotal?: number;
+  taxAmount?: number;
+  discountAmount?: number;
+  totalAmount?: number;
+  changeGiven?: number;
 }
 
 export interface SaleLineItemDto {
@@ -230,6 +251,8 @@ export interface SaleDto {
   taxAmount: number;
   totalDiscount: number;
   total: number;
+  amountPaid?: number;
+  changeReturned?: number;
   paymentMethod: number;
   paymentReference?: string;
   notes?: string;
@@ -308,7 +331,7 @@ export interface CreatePendingOrderDto {
   customerPhone?: string;
   customerId?: string;
   tableId?: string;
-  tableNumber?: string;
+  tableNumber?: number;
   guestCount?: number;
   items: PendingOrderItemDto[];
   subtotal: number;
