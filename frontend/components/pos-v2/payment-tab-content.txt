@@ -1,0 +1,154 @@
+                // PAYMENT TAB CONTENT - Two-Column Layout
+                <div className={styles.dialogContent}>
+                  <div className={styles.dialogTwoColumnLayout}>
+                    {/* ORDER TYPE SECTION - Full width, shows first on mobile */}
+                    <div className={styles.dialogOrderTypeSection}>
+                      <div className={styles.formSection}>
+                        <label className={styles.formLabel}>Order Type</label>
+                        <div className={styles.orderTypeGrid}>
+                          <button
+                            className={`${styles.orderTypeBtn} ${
+                              orderType === "delivery" ? styles.active : ""
+                            }`}
+                            onClick={() => setOrderType("delivery")}
+                          >
+                            <Truck size={24} />
+                            <span>Delivery</span>
+                          </button>
+                          <button
+                            className={`${styles.orderTypeBtn} ${
+                              orderType === "dine-in" ? styles.active : ""
+                            }`}
+                            onClick={() => setOrderType("dine-in")}
+                          >
+                            <UtensilsCrossed size={24} />
+                            <span>Dine-in</span>
+                          </button>
+                          <button
+                            className={`${styles.orderTypeBtn} ${
+                              orderType === "takeaway" ? styles.active : ""
+                            }`}
+                            onClick={() => setOrderType("takeaway")}
+                          >
+                            <ShoppingBag size={24} />
+                            <span>Takeaway</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* LEFT COLUMN - Shows third on mobile */}
+                    <div className={styles.dialogLeftColumn}>
+                      {/* Payment Method */}
+                      <div className={styles.formSection}>
+                        <label className={styles.formLabel}>Payment Method</label>
+                        <div className={styles.paymentMethodGrid}>
+                          <button
+                            className={`${styles.paymentMethodBtn} ${
+                              paymentMethod === "cash" ? styles.active : ""
+                            }`}
+                            onClick={() => setPaymentMethod("cash")}
+                          >
+                            <Banknote size={20} />
+                            <span>Cash</span>
+                          </button>
+                          <button
+                            className={`${styles.paymentMethodBtn} ${
+                              paymentMethod === "credit-card" ? styles.active : ""
+                            }`}
+                            onClick={() => setPaymentMethod("credit-card")}
+                          >
+                            <CreditCard size={20} />
+                            <span>Credit Card</span>
+                          </button>
+                          <button
+                            className={`${styles.paymentMethodBtn} ${
+                              paymentMethod === "debit-card" ? styles.active : ""
+                            }`}
+                            onClick={() => setPaymentMethod("debit-card")}
+                          >
+                            <CreditCard size={20} />
+                            <span>Debit Card</span>
+                          </button>
+                          <button
+                            className={`${styles.paymentMethodBtn} ${
+                              paymentMethod === "mobile-payment" ? styles.active : ""
+                            }`}
+                            onClick={() => setPaymentMethod("mobile-payment")}
+                          >
+                            <CreditCard size={20} />
+                            <span>Mobile Pay</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Discount */}
+                      <div className={styles.formSection}>
+                        <label className={styles.formLabel}>
+                          <Percent size={18} />
+                          Discount
+                        </label>
+                        <div className={styles.discountGrid}>
+                          <select
+                            className={styles.formSelect}
+                            value={discountType}
+                            onChange={(e) => setDiscountType(e.target.value as DiscountType)}
+                          >
+                            <option value="percentage">Percentage (%)</option>
+                            <option value="amount">Amount ($)</option>
+                          </select>
+                          <input
+                            type="number"
+                            placeholder="0"
+                            className={styles.formInput}
+                            value={discountValue || ""}
+                            onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)}
+                            min="0"
+                            step="0.01"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Transaction Summary */}
+                      <div className={styles.transactionSummary}>
+                        <h3 className={styles.summaryTitle}>Transaction Summary</h3>
+                        <div className={styles.summaryGrid}>
+                          <div className={styles.summaryRow}>
+                            <span>Subtotal:</span>
+                            <span>${subtotal.toFixed(2)}</span>
+                          </div>
+                          {discountAmount > 0 && (
+                            <>
+                              <div className={styles.summaryRow}>
+                                <span>Discount:</span>
+                                <span className={styles.discountText}>-${discountAmount.toFixed(2)}</span>
+                              </div>
+                              <div className={styles.summaryRow}>
+                                <span>After Discount:</span>
+                                <span>${subtotalAfterDiscount.toFixed(2)}</span>
+                              </div>
+                            </>
+                          )}
+                          <div className={styles.summaryRow}>
+                            <span>Tax (15%):</span>
+                            <span>${taxAmount.toFixed(2)}</span>
+                          </div>
+                          <div className={`${styles.summaryRow} ${styles.totalRow}`}>
+                            <span>Total:</span>
+                            <span>${total.toFixed(2)}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Cash Calculator */}
+                      {paymentMethod === "cash" && (
+                        <CashCalculator
+                          total={total}
+                          amountPaid={amountPaid}
+                          onAmountChange={setAmountPaid}
+                        />
+                      )}
+                    </div>
+
+                    {/* RIGHT COLUMN - Shows second on mobile (after order type) */}
+                    <div className={styles.dialogRightColumn}>

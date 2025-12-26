@@ -13,6 +13,11 @@ import { playErrorBeep, playSuccessBeep } from "@/lib/utils";
 import { useCategories, useProducts } from "@/hooks/useInventory";
 import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
 import salesService from "@/services/sales.service";
+import { PendingOrdersPanel } from "./PendingOrders/PendingOrdersPanel";
+import { SaveOrderDialog, SaveOrderData } from "./PendingOrders/SaveOrderDialog";
+import pendingOrdersService from "@/services/pending-orders.service";
+import { usePendingOrdersCount } from "@/hooks/usePendingOrders";
+import { PendingOrderDto, PendingOrderStatus, CreatePendingOrderDto } from "@/types/api.types";
 
 interface CartItem extends ProductDto {
   quantity: number;
@@ -26,6 +31,10 @@ function PosLayoutContent() {
   const [isCartVisible, setIsCartVisible] = useState(true); // Default true for desktop
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [lastSale, setLastSale] = useState<SaleDto | null>(null); // Track last completed sale
+
+  // Pending Orders state
+  const [isPendingOrdersPanelOpen, setIsPendingOrdersPanelOpen] = useState(false);
+  const { count: pendingOrdersCount, mutate: mutatePendingOrdersCount } = usePendingOrdersCount();
 
   // Read URL parameters for table integration
   const tableNumber = searchParams.get("tableNumber");
@@ -175,6 +184,139 @@ function PosLayoutContent() {
     setCart((prev) => prev.map((item) => (item.id === id ? { ...item, quantity } : item)));
   };
 
+  // Pending Orders handlers
+  const handleSavePendingOrder = async (data: SaveOrderData) => {
+    if (cart.length === 0) {
+      toast.error("Cannot save empty order", "Please add items to the cart first");
+      return;
+    }
+
+    try {
+      // Calculate totals
+      const subtotal = cart.reduce((sum, item) => sum + item.sellingPrice * item.quantity, 0);
+      const taxAmount = subtotal * 0.15; // Using 15% tax rate
+      const totalAmount = subtotal + taxAmount;
+
+      // Create pending order DTO
+      const pendingOrder: CreatePendingOrderDto = {
+        customerName: data.customerName,
+        customerPhone: data.customerPhone,
+        tableNumber: data.tableNumber,
+        guestCount: data.guestCount,
+        orderType: data.orderType,
+        status: data.status,
+        notes: data.notes,
+        items: cart.map((item) => ({
+          productId: item.id,
+          productName: item.nameEn,
+          productSku: item.sku,
+          unitPrice: item.sellingPrice,
+          quantity: item.quantity,
+          discount: 0,
+          totalPrice: item.sellingPrice * item.quantity,
+        })),
+        subtotal,
+        taxAmount,
+        discountAmount: 0,
+        totalAmount,
+      };
+
+      console.log("💾 Saving pending order:", pendingOrder);
+      const savedOrder = await pendingOrdersService.createPendingOrder(pendingOrder);
+      console.log("✅ Pending order saved successfully:", savedOrder);
+      toast.success("Order saved", `Pending order ${savedOrder.orderNumber} saved successfully`);
+
+      // Clear cart after saving
+      setCart([]);
+      console.log("🔄 Refreshing pending orders count...");
+      mutatePendingOrdersCount(); // Refresh pending orders count
+      playSuccessBeep();
+    } catch (error: any) {
+      console.error("❌ Failed to save pending order:", error);
+      toast.error("Save failed", error.message || "Could not save the pending order");
+      playErrorBeep();
+      throw error;
+    }
+  };
+
+  const handleRetrievePendingOrder = async (order: PendingOrderDto, mode: "replace" | "merge") => {
+    console.log("🔄 Retrieving pending order:", order);
+    console.log("📦 Order items:", order.items);
+    console.log("🎯 Retrieval mode:", mode);
+
+    try {
+      // Mark order as retrieved
+      console.log("✅ Marking order as retrieved...");
+      await pendingOrdersService.retrievePendingOrder(order.id);
+      console.log("✅ Order marked as retrieved");
+
+      // Convert pending order items to cart items
+      const retrievedItems: CartItem[] = order.items.map((item) => {
+        console.log("🔄 Converting item:", item);
+        return {
+          id: item.productId,
+          nameEn: item.productName,
+          nameAr: item.productName,
+          sku: item.productSku || "",
+          barcode: "",
+          categoryId: "",
+          sellingPrice: item.unitPrice,
+          costPrice: 0,
+          stockLevel: 0,
+          minStockThreshold: 0,
+          hasInventoryDiscrepancy: false,
+          isActive: true,
+          images: [],
+          createdAt: "",
+          updatedAt: "",
+          createdBy: "",
+          quantity: item.quantity,
+        };
+      });
+
+      console.log("✅ Retrieved items converted:", retrievedItems);
+      console.log("📊 Retrieved items count:", retrievedItems.length);
+
+      if (mode === "replace") {
+        // Replace current cart
+        console.log("🔄 Replacing cart with retrieved items...");
+        setCart(retrievedItems);
+        console.log("✅ Cart replaced");
+        toast.success("Order retrieved", `Loaded ${order.orderNumber} into cart`);
+      } else {
+        // Merge with current cart
+        console.log("🔄 Merging with current cart...");
+        setCart((prev) => {
+          console.log("📦 Current cart:", prev);
+          const merged = [...prev];
+          retrievedItems.forEach((newItem) => {
+            const existingIndex = merged.findIndex((item) => item.id === newItem.id);
+            if (existingIndex >= 0) {
+              merged[existingIndex] = {
+                ...merged[existingIndex],
+                quantity: merged[existingIndex].quantity + newItem.quantity,
+              };
+            } else {
+              merged.push(newItem);
+            }
+          });
+          console.log("✅ Merged cart:", merged);
+          return merged;
+        });
+        toast.success("Order merged", `Merged ${order.orderNumber} with current cart`);
+      }
+
+      mutatePendingOrdersCount(); // Refresh pending orders count
+      playSuccessBeep();
+      console.log("✅ Retrieval complete!");
+    } catch (error: any) {
+      console.error("❌ Failed to retrieve pending order:", error);
+      toast.error("Retrieve failed", error.message || "Could not retrieve the pending order");
+      playErrorBeep();
+      throw error; // Re-throw to keep dialog open
+    }
+  };
+
   // Filter products by category with fallback for undefined
   const productsData = products ?? [];
   const categoriesData = categories ?? [];
@@ -281,6 +423,8 @@ function PosLayoutContent() {
           onToggleSidebar={handleToggleSidebar}
           lastSale={lastSale}
           onToast={handleToast}
+          onOpenPendingOrders={() => setIsPendingOrdersPanelOpen(true)}
+          pendingOrdersCount={pendingOrdersCount || 0}
         />
 
         {/* Mobile Categories Bar - shown between nav and search on mobile */}
@@ -326,8 +470,20 @@ function PosLayoutContent() {
           onTransactionComplete={(sale) => setLastSale(sale)}
           initialTableNumber={loadedSaleTableInfo?.tableNumber || tableNumber || undefined}
           initialGuestCount={loadedSaleTableInfo?.guestCount || (guestCount ? parseInt(guestCount) : undefined)}
+          onSaveOrder={handleSavePendingOrder}
+          onOpenPendingOrders={() => setIsPendingOrdersPanelOpen(true)}
+          pendingOrdersCount={pendingOrdersCount || 0}
         />
       </div>
+
+      {/* Pending Orders Panel */}
+      <PendingOrdersPanel
+        isOpen={isPendingOrdersPanelOpen}
+        onClose={() => setIsPendingOrdersPanelOpen(false)}
+        onRetrieve={handleRetrievePendingOrder}
+        hasItemsInCart={cart.length > 0}
+        onCountUpdate={mutatePendingOrdersCount}
+      />
     </div>
   );
 }

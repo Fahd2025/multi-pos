@@ -72,6 +72,13 @@ interface InvoiceData {
 
   // ZATCA QR
   zatcaQrCode?: string;
+
+  // Pending Order Fields (optional)
+  isPendingOrder?: boolean;
+  pendingOrderStatus?: string;
+  tableNumber?: string;
+  guestCount?: number;
+  notes?: string;
 }
 
 interface InvoicePreviewProps {
@@ -261,6 +268,9 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema
       date: data.invoiceDate,
       cashier: data.cashierName,
       priceVATLabel: schema.priceIncludesVat ? "Price includes VAT (15%)" : "Price excludes VAT",
+      status: data.pendingOrderStatus,
+      orderType: data.orderType,
+      tableNumber: data.tableNumber ? `${data.tableNumber}${data.guestCount ? ` • ${data.guestCount} guest${data.guestCount > 1 ? 's' : ''}` : ''}` : undefined,
     };
 
     const visibleFields = fields.filter((f: any) => f.visible && fieldMap[f.key]);
@@ -269,6 +279,17 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema
 
     return (
       <div className="invoice-metadata mb-4 pb-3 border-b border-gray-200">
+        {/* Pending Order Header */}
+        {data.isPendingOrder && (
+          <div className="text-center mb-3 pb-3 border-b-2 border-dashed border-gray-400">
+            <div className="text-lg font-bold uppercase tracking-wide">PENDING ORDER</div>
+            {data.pendingOrderStatus && (
+              <div className="text-sm mt-1 px-3 py-1 inline-block border border-gray-500 rounded">
+                Status: {data.pendingOrderStatus}
+              </div>
+            )}
+          </div>
+        )}
         {visibleFields.map((field: any, index: number) => (
           <div key={index} className="flex justify-between text-sm mb-1">
             <span className="text-gray-600">{field.label}:</span>
@@ -451,6 +472,21 @@ const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(({ schema
               <p className="text-xs font-semibold text-gray-700 mb-1">{config.notesLabel}</p>
             )}
             <p className="text-sm text-gray-600">{config.notesText}</p>
+          </div>
+        )}
+        {/* Pending Order Notes */}
+        {data.isPendingOrder && data.notes && (
+          <div className="mb-3 p-2 bg-gray-100 border border-gray-300 rounded">
+            <p className="text-xs font-semibold text-gray-700 mb-1">Order Notes:</p>
+            <p className="text-sm text-gray-600">{data.notes}</p>
+          </div>
+        )}
+        {/* Pending Order Disclaimer */}
+        {data.isPendingOrder && (
+          <div className="mt-4 pt-3 border-t-2 border-dashed border-gray-400">
+            <p className="text-xs font-bold text-gray-700 uppercase">⚠️ PENDING ORDER SLIP</p>
+            <p className="text-xs text-gray-600 mt-1">Not a valid receipt for payment</p>
+            <p className="text-xs text-gray-500 mt-2">Printed: {new Date().toLocaleString()}</p>
           </div>
         )}
       </div>

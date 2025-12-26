@@ -272,6 +272,128 @@ export interface SaleLineItemDetailDto {
 }
 
 // ============================================================================
+// Pending Orders Types
+// ============================================================================
+
+/**
+ * Pending order status enum
+ */
+export enum PendingOrderStatus {
+  Draft = 0,
+  Parked = 1,
+  OnHold = 2,
+  Retrieved = 3,
+}
+
+/**
+ * Pending order item DTO
+ */
+export interface PendingOrderItemDto {
+  id?: string;
+  productId: string;
+  productName: string;
+  productSku?: string;
+  unitPrice: number;
+  quantity: number;
+  discount: number;
+  totalPrice: number;
+  notes?: string;
+}
+
+/**
+ * Create pending order request DTO
+ */
+export interface CreatePendingOrderDto {
+  customerName?: string;
+  customerPhone?: string;
+  customerId?: string;
+  tableId?: string;
+  tableNumber?: string;
+  guestCount?: number;
+  items: PendingOrderItemDto[];
+  subtotal: number;
+  taxAmount: number;
+  discountAmount: number;
+  totalAmount: number;
+  notes?: string;
+  orderType: number;
+  status: PendingOrderStatus;
+}
+
+/**
+ * Update pending order request DTO
+ */
+export interface UpdatePendingOrderDto {
+  customerName?: string;
+  customerPhone?: string;
+  customerId?: string;
+  tableId?: string;
+  tableNumber?: string;
+  guestCount?: number;
+  items?: PendingOrderItemDto[];
+  subtotal?: number;
+  taxAmount?: number;
+  discountAmount?: number;
+  totalAmount?: number;
+  notes?: string;
+  orderType?: number;
+  status?: PendingOrderStatus;
+}
+
+/**
+ * Pending order DTO (response)
+ */
+export interface PendingOrderDto {
+  id: string;
+  orderNumber: string;
+  customerName?: string;
+  customerPhone?: string;
+  customerId?: string;
+  tableId?: string;
+  tableNumber?: string;
+  guestCount?: number;
+  items: PendingOrderItemDto[];
+  subtotal: number;
+  taxAmount: number;
+  discountAmount: number;
+  totalAmount: number;
+  notes?: string;
+  orderType: number;
+  status: PendingOrderStatus;
+  createdAt: string;
+  updatedAt?: string;
+  createdByUserId: string;
+  createdByUsername: string;
+  retrievedAt?: string;
+  expiresAt: string;
+}
+
+/**
+ * Retrieve pending order response DTO
+ */
+export interface RetrievePendingOrderDto {
+  order: PendingOrderDto;
+  message?: string;
+}
+
+/**
+ * Pending orders statistics DTO
+ */
+export interface PendingOrderStatsDto {
+  totalPending: number;
+  totalParked: number;
+  totalOnHold: number;
+  totalRetrieved: number;
+  byUser: Array<{
+    userId: string;
+    username: string;
+    count: number;
+  }>;
+  oldestPendingDate?: string;
+  averageItemsPerOrder: number;
+}
+
+// ============================================================================
 // Delivery Types
 // ============================================================================
 

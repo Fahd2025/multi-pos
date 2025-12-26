@@ -13,7 +13,8 @@ import { buildProductImageUrl } from "@/lib/image-utils";
 import { TransactionDialog } from "./TransactionDialog";
 import { useToast } from "@/hooks/useToast";
 import { DeliveryOrderForm } from "./delivery2/DeliveryOrderForm";
-import { TransactionDialogV2 } from "../pos-v2/TransactionDialogV2";
+import { TransactionDialogV3 } from "../pos-v2/TransactionDialogV3";
+import { SaveOrderData } from "./PendingOrders/SaveOrderDialog";
 
 interface OrderItem extends ProductDto {
   quantity: number;
@@ -28,6 +29,9 @@ interface OrderPanelProps {
   onTransactionComplete?: (sale: SaleDto) => void;
   initialTableNumber?: string;
   initialGuestCount?: number;
+  onSaveOrder?: (data: SaveOrderData) => Promise<void>;
+  onOpenPendingOrders?: () => void;
+  pendingOrdersCount?: number;
 }
 
 export const OrderPanel: React.FC<OrderPanelProps> = ({
@@ -39,6 +43,9 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
   onTransactionComplete,
   initialTableNumber,
   initialGuestCount,
+  onSaveOrder,
+  onOpenPendingOrders,
+  pendingOrdersCount = 0,
 }) => {
   const toast = useToast();
   const [showTransactionDialog, setShowTransactionDialog] = useState(false);
@@ -578,12 +585,13 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
             <span>Total</span>
             <span>${(subtotal * 1.15).toFixed(2)}</span>
           </div>
+
           <button
             className={styles.processBtn}
             onClick={handleOpenTransactionDialog}
             disabled={cart.length === 0}
           >
-            Process Transaction
+            Complete Order
           </button>
         </div>
       )}
@@ -598,26 +606,19 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
         />
       )} */}
 
-      {/* Transaction Dialog */}
-      <TransactionDialogV2
-        isOpen={showTransactionDialog}
-        onClose={() => setShowTransactionDialog(false)}
-        cart={cart}
-        subtotal={subtotal}
-        onSuccess={(sale) => handleTransactionSuccess(sale)}
-        initialTableNumber={initialTableNumber}
-        initialGuestCount={initialGuestCount}
-        // initialOrderType={orderType}
-        // initialCustomerDetails={
-        //   orderType === "delivery"
-        //     ? {
-        //         name: deliveryForm.customerName,
-        //         phone: deliveryForm.phone,
-        //         address: deliveryForm.address,
-        //       }
-        //     : undefined
-        // }
-      />
+      {/* Unified Transaction Dialog V3 - Combines payment and save order */}
+      {showTransactionDialog && onSaveOrder && (
+        <TransactionDialogV3
+          isOpen={showTransactionDialog}
+          onClose={() => setShowTransactionDialog(false)}
+          cart={cart}
+          subtotal={subtotal}
+          onTransactionSuccess={(sale) => handleTransactionSuccess(sale)}
+          onSaveOrder={onSaveOrder}
+          initialTableNumber={initialTableNumber}
+          initialGuestCount={initialGuestCount}
+        />
+      )}
     </>
   );
 };

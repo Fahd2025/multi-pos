@@ -49,6 +49,8 @@ interface TopBarProps {
     title: string,
     message?: string
   ) => void;
+  onOpenPendingOrders?: () => void;
+  pendingOrdersCount?: number;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
@@ -61,6 +63,8 @@ export const TopBar: React.FC<TopBarProps> = ({
   onToggleSidebar,
   lastSale,
   onToast,
+  onOpenPendingOrders,
+  pendingOrdersCount = 0,
 }) => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
@@ -306,10 +310,9 @@ export const TopBar: React.FC<TopBarProps> = ({
     });
   };
 
-  const handlePendingInvoices = () => {
+  const handlePendingOrders = () => {
     handleButtonPress("pending", () => {
-      // TODO: Implement pending invoices functionality
-      console.log("Pending Invoices clicked");
+      onOpenPendingOrders?.();
     });
   };
 
@@ -519,12 +522,38 @@ export const TopBar: React.FC<TopBarProps> = ({
                 className={`${styles.navBtn} ${styles.btnInfo} ${
                   activeButton === "pending" ? styles.btnActive : ""
                 } ${expandedButton === "pending" ? styles.btnExpanded : ""}`}
-                onClick={handlePendingInvoices}
-                aria-label="Pending invoices"
-                title="Pending invoices"
+                onClick={handlePendingOrders}
+                aria-label="Pending orders"
+                title="Pending orders"
+                style={{ position: "relative" }}
               >
                 <Clock size={20} />
                 <span className={styles.btnLabel}>Pending</span>
+                {pendingOrdersCount > 0 && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: "-4px",
+                      right: "-4px",
+                      backgroundColor: "#ef4444",
+                      color: "white",
+                      borderRadius: "9999px",
+                      padding: "2px 6px",
+                      fontSize: "11px",
+                      fontWeight: "600",
+                      minWidth: "18px",
+                      height: "18px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      lineHeight: "1",
+                      border: "2px solid white",
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                    }}
+                  >
+                    {pendingOrdersCount}
+                  </span>
+                )}
               </button>
             </div>
 
@@ -609,10 +638,33 @@ export const TopBar: React.FC<TopBarProps> = ({
               </button>
               <button
                 className={`${styles.mobileMenuItem} ${styles.btnInfo}`}
-                onClick={handlePendingInvoices}
+                onClick={handlePendingOrders}
+                style={{ position: "relative" }}
               >
                 <Clock size={20} />
-                <span>Pending Invoices</span>
+                <span>Pending Orders</span>
+                {pendingOrdersCount > 0 && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: "8px",
+                      right: "8px",
+                      backgroundColor: "#ef4444",
+                      color: "white",
+                      borderRadius: "9999px",
+                      padding: "2px 6px",
+                      fontSize: "11px",
+                      fontWeight: "600",
+                      minWidth: "18px",
+                      height: "18px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {pendingOrdersCount}
+                  </span>
+                )}
               </button>
 
               <button
