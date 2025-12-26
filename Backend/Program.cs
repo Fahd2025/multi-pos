@@ -167,6 +167,10 @@ builder.Services.AddScoped<
     Backend.Services.Branch.Tables.ITableService,
     Backend.Services.Branch.Tables.TableService
 >();
+builder.Services.AddScoped<
+    Backend.Services.Branch.PendingOrders.IPendingOrdersService,
+    Backend.Services.Branch.PendingOrders.PendingOrdersService
+>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<BranchDbContext>(provider =>
@@ -404,6 +408,9 @@ app.MapDeliveryOrdersEndpoints();
 
 // Table Management Endpoints
 app.MapTableEndpoints();
+
+// Pending Orders Endpoints
+app.MapPendingOrdersEndpoints();
 
 app.Run();
 

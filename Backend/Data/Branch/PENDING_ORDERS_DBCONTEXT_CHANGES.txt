@@ -1,0 +1,75 @@
+═══════════════════════════════════════════════════════════════════════════════
+PENDING ORDERS - BRANCHDBCONTEXT CHANGES
+═══════════════════════════════════════════════════════════════════════════════
+
+File: Backend/Data/Branch/BranchDbContext.cs
+
+═══════════════════════════════════════════════════════════════════════════════
+STEP 1: Add DbSets (after line 31, after "public DbSet<Table> Tables { get; set; }")
+═══════════════════════════════════════════════════════════════════════════════
+
+    public DbSet<PendingOrder> PendingOrders { get; set; }
+    public DbSet<PendingOrderItem> PendingOrderItems { get; set; }
+
+═══════════════════════════════════════════════════════════════════════════════
+STEP 2: Add Configuration (at end of OnModelCreating method, before closing brace)
+═══════════════════════════════════════════════════════════════════════════════
+
+        // PendingOrder configuration
+        modelBuilder.Entity<PendingOrder>(entity =>
+        {
+            entity.HasIndex(e => e.OrderNumber).IsUnique();
+            entity.HasIndex(e => e.CreatedByUserId);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.OrderType);
+            entity.HasIndex(e => e.CreatedAt);
+            entity.HasIndex(e => e.ExpiresAt);
+            entity.HasIndex(e => e.CustomerName);
+            entity.HasIndex(e => e.TableNumber);
+
+            entity.Property(e => e.Subtotal).HasPrecision(18, 2);
+            entity.Property(e => e.TaxAmount).HasPrecision(18, 2);
+            entity.Property(e => e.DiscountAmount).HasPrecision(18, 2);
+            entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
+        });
+
+        // PendingOrderItem configuration
+        modelBuilder.Entity<PendingOrderItem>(entity =>
+        {
+            entity.HasIndex(e => e.PendingOrderId);
+            entity.HasIndex(e => e.ProductId);
+
+            entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
+            entity.Property(e => e.Discount).HasPrecision(18, 2);
+            entity.Property(e => e.TotalPrice).HasPrecision(18, 2);
+
+            entity
+                .HasOne(e => e.PendingOrder)
+                .WithMany(p => p.Items)
+                .HasForeignKey(e => e.PendingOrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+═══════════════════════════════════════════════════════════════════════════════
+STEP 3: Create Migration
+═══════════════════════════════════════════════════════════════════════════════
+
+cd Backend
+dotnet ef migrations add AddPendingOrders --context BranchDbContext
+
+═══════════════════════════════════════════════════════════════════════════════
+STEP 4: Apply Migration
+═══════════════════════════════════════════════════════════════════════════════
+
+dotnet ef database update --context BranchDbContext
+
+═══════════════════════════════════════════════════════════════════════════════
+STEP 5: Verify Tests Pass
+═══════════════════════════════════════════════════════════════════════════════
+
+cd Backend.UnitTests
+dotnet test --filter "PendingOrdersServiceTests"
+
+Expected: 11/11 tests pass ✅
+
+═══════════════════════════════════════════════════════════════════════════════

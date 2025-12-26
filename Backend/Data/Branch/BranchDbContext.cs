@@ -29,6 +29,8 @@ public class BranchDbContext : DbContext
     public DbSet<DeliveryOrder> DeliveryOrders { get; set; }
     public DbSet<Zone> Zones { get; set; }
     public DbSet<Table> Tables { get; set; }
+    public DbSet<PendingOrder> PendingOrders { get; set; }
+    public DbSet<PendingOrderItem> PendingOrderItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -377,5 +379,40 @@ public class BranchDbContext : DbContext
 
             // Sales relationship (already defined in Sale entity)
         });
-    }
+        // PendingOrder configuration
+        modelBuilder.Entity<PendingOrder>(entity =>
+        {
+            entity.HasIndex(e => e.OrderNumber).IsUnique();
+            entity.HasIndex(e => e.CreatedByUserId);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.OrderType);
+            entity.HasIndex(e => e.CreatedAt);
+            entity.HasIndex(e => e.ExpiresAt);
+            entity.HasIndex(e => e.CustomerName);
+            entity.HasIndex(e => e.TableNumber);
+
+            entity.Property(e => e.Subtotal).HasPrecision(18, 2);
+            entity.Property(e => e.TaxAmount).HasPrecision(18, 2);
+            entity.Property(e => e.DiscountAmount).HasPrecision(18, 2);
+            entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
+        });
+
+        // PendingOrderItem configuration
+        modelBuilder.Entity<PendingOrderItem>(entity =>
+        {
+            entity.HasIndex(e => e.PendingOrderId);
+            entity.HasIndex(e => e.ProductId);
+
+            entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
+            entity.Property(e => e.Discount).HasPrecision(18, 2);
+            entity.Property(e => e.TotalPrice).HasPrecision(18, 2);
+
+            entity
+                .HasOne(e => e.PendingOrder)
+                .WithMany(p => p.Items)
+                .HasForeignKey(e => e.PendingOrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        }
 }
