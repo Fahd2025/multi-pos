@@ -10,10 +10,8 @@ import { X, ShoppingBag } from "lucide-react";
 import styles from "./Pos2.module.css";
 import { ProductDto, SaleDto } from "@/types/api.types";
 import { buildProductImageUrl } from "@/lib/image-utils";
-import { TransactionDialog } from "./TransactionDialog";
 import { useToast } from "@/hooks/useToast";
-import { DeliveryOrderForm } from "./delivery2/DeliveryOrderForm";
-import { TransactionDialogV3 } from "../pos-v2/TransactionDialogV3";
+import { TransactionDialogV3 } from "./pos-v2/TransactionDialogV3";
 import { SaveOrderData } from "./PendingOrders/SaveOrderDialog";
 
 interface OrderItem extends ProductDto {

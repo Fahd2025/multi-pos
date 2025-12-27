@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from "react";
 import { X, Search, UserPlus, Phone, Mail, MapPin } from "lucide-react";
-import styles from "../pos/Pos2.module.css";
+import styles from "../Pos2.module.css";
 import customerService from "@/services/customer.service";
 import { CustomerDto } from "@/types/api.types";
 

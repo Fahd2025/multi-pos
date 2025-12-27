@@ -19,6 +19,7 @@ import {
   Calendar,
   MoreVertical,
   Printer,
+  UtensilsCrossed,
 } from "lucide-react";
 import styles from "./Pos2.module.css";
 import { FloatingSearchPanel } from "./FloatingSearchPanel";
@@ -519,7 +520,7 @@ export const TopBar: React.FC<TopBarProps> = ({
               </button>
 
               <button
-                className={`${styles.navBtn} ${styles.btnInfo} ${
+                className={`${styles.navBtn} ${styles.btnSecondary} ${
                   activeButton === "pending" ? styles.btnActive : ""
                 } ${expandedButton === "pending" ? styles.btnExpanded : ""}`}
                 onClick={handlePendingOrders}
@@ -572,14 +573,14 @@ export const TopBar: React.FC<TopBarProps> = ({
               </button>
 
               <button
-                className={`${styles.navBtn} ${styles.btnSecondary} ${
+                className={`${styles.navBtn} ${styles.btnInfo} ${
                   activeButton === "tables" ? styles.btnActive : ""
                 } ${expandedButton === "tables" ? styles.btnExpanded : ""}`}
                 onClick={handleTableManagement}
                 aria-label="Table management"
                 title="Table management"
               >
-                <Table2 size={20} />
+                <UtensilsCrossed size={20} />
                 <span className={styles.btnLabel}>Tables</span>
               </button>
 

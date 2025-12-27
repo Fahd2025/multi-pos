@@ -278,7 +278,7 @@ export function PendingOrdersPanel({
   const getStatusColor = (status: PendingOrderStatus) => {
     switch (status) {
       case PendingOrderStatus.Parked:
-        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400";
       case PendingOrderStatus.OnHold:
         return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400";
       case PendingOrderStatus.Draft:

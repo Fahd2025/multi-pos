@@ -16,7 +16,7 @@ import {
 import { SaleDto } from "@/types/api.types";
 import salesService from "@/services/sales.service";
 import { useToast } from "@/hooks/useToast";
-import CashCalculator from "../pos-v2/CashCalculator";
+import CashCalculator from "./pos-v2/CashCalculator";
 
 interface PaymentDialogProps {
   isOpen: boolean;

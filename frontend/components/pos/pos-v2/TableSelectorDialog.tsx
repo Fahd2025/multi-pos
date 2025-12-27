@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from "react";
 import { X, UtensilsCrossed, Users, Search } from "lucide-react";
-import styles from "../pos/Pos2.module.css";
+import styles from "../Pos2.module.css";
 import tableService from "@/services/table.service";
 
 interface Table {

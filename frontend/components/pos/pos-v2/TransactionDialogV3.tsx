@@ -28,12 +28,11 @@ import {
   FileText,
   CheckCircle,
 } from "lucide-react";
-import styles from "../pos/Pos2.module.css";
+import styles from "../Pos2.module.css";
 import { ProductDto, SaleDto, PendingOrderStatus } from "@/types/api.types";
 import salesService from "@/services/sales.service";
 import invoiceTemplateService from "@/services/invoice-template.service";
 import branchInfoService from "@/services/branch-info.service";
-import deliveryService from "@/services/delivery.service";
 import customerService from "@/services/customer.service";
 import tableService from "@/services/table.service";
 import { InvoiceSchema } from "@/types/invoice-template.types";
@@ -600,8 +599,8 @@ export const TransactionDialogV3: React.FC<TransactionDialogV3Props> = ({
     }
   };
 
-  // Handle save order - uses payment tab fields
-  const handleSaveOrder = async () => {
+  // Handle save order as parked
+  const handleSaveOrderParked = async () => {
     setSaving(true);
     try {
       // Map orderType to number: 0=Dine-in, 1=Takeaway, 2=Delivery
@@ -621,7 +620,34 @@ export const TransactionDialogV3: React.FC<TransactionDialogV3Props> = ({
       onClose();
     } catch (error) {
       console.error("Error saving order:", error);
-      toast.error("Error", "Failed to save order");
+      toast.error("Error", "Failed to save order as parked");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Handle save order as on hold
+  const handleSaveOrderOnHold = async () => {
+    setSaving(true);
+    try {
+      // Map orderType to number: 0=Dine-in, 1=Takeaway, 2=Delivery
+      const orderTypeNumber = orderType === "dine-in" ? 0 : orderType === "takeaway" ? 1 : 2;
+
+      await onSaveOrder({
+        customerName: customerDetails.name || undefined,
+        customerPhone: customerDetails.phone || undefined,
+        tableNumber: orderType === "dine-in" ? tableDetails.tableNumber || undefined : undefined,
+        guestCount: orderType === "dine-in" ? tableDetails.guestCount : undefined,
+        orderType: orderTypeNumber,
+        status: PendingOrderStatus.OnHold,
+        notes: undefined,
+      });
+
+      toast.success("Success", "Order saved as on hold");
+      onClose();
+    } catch (error) {
+      console.error("Error saving order:", error);
+      toast.error("Error", "Failed to save order as on hold");
     } finally {
       setSaving(false);
     }
@@ -1662,20 +1688,31 @@ export const TransactionDialogV3: React.FC<TransactionDialogV3Props> = ({
                   <span>Cancel</span>
                 </button>
                 <button
-                  onClick={handleSaveOrder}
+                  onClick={handleSaveOrderParked}
                   disabled={saving || cart.length === 0}
-                  className="flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm sm:text-base"
+                  className="flex items-center gap-2 px-3 sm:px-5 py-2.5 sm:py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm sm:text-base"
                 >
                   <Save size={16} className="sm:w-[18px] sm:h-[18px]" />
-                  <span>{saving ? "Saving..." : "Save Order"}</span>
+                  <span className="hidden xs:inline">{saving ? "Saving..." : "Save (Parked)"}</span>
+                  <span className="xs:hidden">{saving ? "..." : "Parked"}</span>
+                </button>
+                <button
+                  onClick={handleSaveOrderOnHold}
+                  disabled={saving || cart.length === 0}
+                  className="flex items-center gap-2 px-3 sm:px-5 py-2.5 sm:py-3 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm sm:text-base"
+                >
+                  <Save size={16} className="sm:w-[18px] sm:h-[18px]" />
+                  <span className="hidden xs:inline">{saving ? "Saving..." : "Save (On Hold)"}</span>
+                  <span className="xs:hidden">{saving ? "..." : "On Hold"}</span>
                 </button>
                 <button
                   onClick={handleCompleteWithoutPayment}
                   disabled={processing || cart.length === 0}
-                  className="flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm sm:text-base"
+                  className="flex items-center gap-2 px-3 sm:px-5 py-2.5 sm:py-3 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm sm:text-base"
                 >
                   <FileText size={16} className="sm:w-[18px] sm:h-[18px]" />
-                  <span>{processing ? "Processing..." : "Complete (No Payment)"}</span>
+                  <span className="hidden xs:inline">{processing ? "Processing..." : "Complete (No Payment)"}</span>
+                  <span className="xs:hidden">{processing ? "..." : "No Pay"}</span>
                 </button>
                 <button
                   onClick={handleProcessTransaction}
@@ -1684,7 +1721,7 @@ export const TransactionDialogV3: React.FC<TransactionDialogV3Props> = ({
                     cart.length === 0 ||
                     (paymentMethod === "cash" && amountPaid < total)
                   }
-                  className="flex items-center gap-2 flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm sm:text-base"
+                  className="flex items-center gap-2 flex-1 px-3 sm:px-5 py-2.5 sm:py-3 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm sm:text-base"
                 >
                   <CheckCircle size={16} className="sm:w-[18px] sm:h-[18px]" />
                   <span>{processing ? "Processing..." : `Pay $${total.toFixed(2)}`}</span>

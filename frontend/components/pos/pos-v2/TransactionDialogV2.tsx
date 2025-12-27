@@ -24,12 +24,11 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import styles from "../pos/Pos2.module.css";
+import styles from "../Pos2.module.css";
 import { ProductDto, SaleDto } from "@/types/api.types";
 import salesService from "@/services/sales.service";
 import invoiceTemplateService from "@/services/invoice-template.service";
 import branchInfoService from "@/services/branch-info.service";
-import deliveryService from "@/services/delivery.service";
 import customerService from "@/services/customer.service";
 import tableService from "@/services/table.service";
 import { InvoiceSchema } from "@/types/invoice-template.types";

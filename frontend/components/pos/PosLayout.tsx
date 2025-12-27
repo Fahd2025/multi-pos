@@ -221,14 +221,14 @@ function PosLayoutContent() {
         totalAmount,
       };
 
-      console.log("💾 Saving pending order:", pendingOrder);
+      //console.log("💾 Saving pending order:", pendingOrder);
       const savedOrder = await pendingOrdersService.createPendingOrder(pendingOrder);
-      console.log("✅ Pending order saved successfully:", savedOrder);
+      //console.log("✅ Pending order saved successfully:", savedOrder);
       toast.success("Order saved", `Pending order ${savedOrder.orderNumber} saved successfully`);
 
       // Clear cart after saving
       setCart([]);
-      console.log("🔄 Refreshing pending orders count...");
+      //console.log("🔄 Refreshing pending orders count...");
       mutatePendingOrdersCount(); // Refresh pending orders count
       playSuccessBeep();
     } catch (error: any) {
@@ -240,19 +240,19 @@ function PosLayoutContent() {
   };
 
   const handleRetrievePendingOrder = async (order: PendingOrderDto, mode: "replace" | "merge") => {
-    console.log("🔄 Retrieving pending order:", order);
-    console.log("📦 Order items:", order.items);
-    console.log("🎯 Retrieval mode:", mode);
+    //console.log("🔄 Retrieving pending order:", order);
+    //console.log("📦 Order items:", order.items);
+    //console.log("🎯 Retrieval mode:", mode);
 
     try {
       // Mark order as retrieved
-      console.log("✅ Marking order as retrieved...");
+      //console.log("✅ Marking order as retrieved...");
       await pendingOrdersService.retrievePendingOrder(order.id);
-      console.log("✅ Order marked as retrieved");
+      //console.log("✅ Order marked as retrieved");
 
       // Convert pending order items to cart items
       const retrievedItems: CartItem[] = order.items.map((item) => {
-        console.log("🔄 Converting item:", item);
+        //console.log("🔄 Converting item:", item);
         return {
           id: item.productId,
           nameEn: item.productName,
@@ -274,20 +274,20 @@ function PosLayoutContent() {
         };
       });
 
-      console.log("✅ Retrieved items converted:", retrievedItems);
-      console.log("📊 Retrieved items count:", retrievedItems.length);
+      //console.log("✅ Retrieved items converted:", retrievedItems);
+      //console.log("📊 Retrieved items count:", retrievedItems.length);
 
       if (mode === "replace") {
         // Replace current cart
-        console.log("🔄 Replacing cart with retrieved items...");
+        //console.log("🔄 Replacing cart with retrieved items...");
         setCart(retrievedItems);
-        console.log("✅ Cart replaced");
+        //console.log("✅ Cart replaced");
         toast.success("Order retrieved", `Loaded ${order.orderNumber} into cart`);
       } else {
         // Merge with current cart
-        console.log("🔄 Merging with current cart...");
+        //console.log("🔄 Merging with current cart...");
         setCart((prev) => {
-          console.log("📦 Current cart:", prev);
+          //console.log("📦 Current cart:", prev);
           const merged = [...prev];
           retrievedItems.forEach((newItem) => {
             const existingIndex = merged.findIndex((item) => item.id === newItem.id);
@@ -300,7 +300,7 @@ function PosLayoutContent() {
               merged.push(newItem);
             }
           });
-          console.log("✅ Merged cart:", merged);
+          //console.log("✅ Merged cart:", merged);
           return merged;
         });
         toast.success("Order merged", `Merged ${order.orderNumber} with current cart`);
@@ -308,7 +308,7 @@ function PosLayoutContent() {
 
       mutatePendingOrdersCount(); // Refresh pending orders count
       playSuccessBeep();
-      console.log("✅ Retrieval complete!");
+      //console.log("✅ Retrieval complete!");
     } catch (error: any) {
       console.error("❌ Failed to retrieve pending order:", error);
       toast.error("Retrieve failed", error.message || "Could not retrieve the pending order");

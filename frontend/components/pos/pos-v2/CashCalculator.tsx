@@ -7,7 +7,7 @@
 
 import React from "react";
 import { Banknote, Calculator } from "lucide-react";
-import styles from "../pos/Pos2.module.css";
+import styles from "../Pos2.module.css";
 
 interface CashCalculatorProps {
   total: number;
