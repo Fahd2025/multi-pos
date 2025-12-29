@@ -1,3 +1,4 @@
+using Backend.Constants;
 using Backend.Models.DTOs.Branch.Suppliers;
 using Backend.Services.Branch.Suppliers;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +15,7 @@ public static class SupplierEndpoints
     /// </summary>
     public static IEndpointRouteBuilder MapSupplierEndpoints(this IEndpointRouteBuilder app)
     {
-        var suppliersGroup = app.MapGroup("/api/v1/suppliers").WithTags("Suppliers");
+        var suppliersGroup = app.MapGroup(ApiRoutes.Suppliers.Group).WithTags("Suppliers");
 
         // GET /api/v1/suppliers - Get all suppliers with filtering
         suppliersGroup

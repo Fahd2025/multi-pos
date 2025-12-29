@@ -1,3 +1,4 @@
+using Backend.Constants;
 using Backend.Models.DTOs.HeadOffice.Branches;
 using Backend.Services.HeadOffice.Branches;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +15,7 @@ public static class BranchEndpoints
     /// </summary>
     public static IEndpointRouteBuilder MapBranchEndpoints(this IEndpointRouteBuilder app)
     {
-        var branchGroup = app.MapGroup("/api/v1/branches").WithTags("Branches");
+        var branchGroup = app.MapGroup(ApiRoutes.Branches.Group).WithTags("Branches");
 
         // GET /api/v1/branches/lookup - Get active branches for login dropdown (public endpoint)
         branchGroup

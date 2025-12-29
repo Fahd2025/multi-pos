@@ -1,3 +1,4 @@
+using Backend.Constants;
 using Backend.Models.DTOs.Branch.Expenses;
 using Backend.Services.Branch.Expenses;
 using Microsoft.AspNetCore.Mvc;
@@ -14,8 +15,8 @@ public static class ExpenseEndpoints
     /// </summary>
     public static IEndpointRouteBuilder MapExpenseEndpoints(this IEndpointRouteBuilder app)
     {
-        var expenseGroup = app.MapGroup("/api/v1/expenses").WithTags("Expenses");
-        var expenseCategoryGroup = app.MapGroup("/api/v1/expense-categories").WithTags("Expense Categories");
+        var expenseGroup = app.MapGroup(ApiRoutes.Expenses.Group).WithTags("Expenses");
+        var expenseCategoryGroup = app.MapGroup(ApiRoutes.ExpenseCategories.Group).WithTags("Expense Categories");
 
         // GET /api/v1/expenses - Get all expenses with filtering
         expenseGroup

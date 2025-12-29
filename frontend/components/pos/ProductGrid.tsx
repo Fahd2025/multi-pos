@@ -51,7 +51,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart 
           return (
             <div
               key={product.id}
-              className={styles.productCard}
+              className={`${styles.productCard} touch-feedback-pos touch-ripple-pos`}
               onClick={() => onAddToCart(product)}
               style={{
                 cursor: product.stockLevel > 0 ? "pointer" : "not-allowed",

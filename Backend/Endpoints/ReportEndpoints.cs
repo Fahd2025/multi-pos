@@ -1,3 +1,4 @@
+using Backend.Constants;
 using Backend.Models.DTOs.Shared.Reports;
 using Backend.Services.Shared.Reports;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +15,7 @@ public static class ReportEndpoints
     /// </summary>
     public static IEndpointRouteBuilder MapReportEndpoints(this IEndpointRouteBuilder app)
     {
-        var reportsGroup = app.MapGroup("/api/v1/reports").WithTags("Reports");
+        var reportsGroup = app.MapGroup(ApiRoutes.Reports.Group).WithTags("Reports");
 
         // GET /api/v1/reports/sales - Generate sales report
         reportsGroup

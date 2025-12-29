@@ -1,3 +1,4 @@
+using Backend.Constants;
 using Backend.Models.DTOs.Branch.Sales;
 using Backend.Models.Entities.Branch;
 using Backend.Services.Branch;
@@ -16,7 +17,7 @@ public static class SalesEndpoints
     /// </summary>
     public static IEndpointRouteBuilder MapSalesEndpoints(this IEndpointRouteBuilder app)
     {
-        var salesGroup = app.MapGroup("/api/v1/sales").WithTags("Sales");
+        var salesGroup = app.MapGroup(ApiRoutes.Sales.Group).WithTags("Sales");
 
         // POST /api/v1/sales - Create a new sale
         salesGroup

@@ -3,6 +3,34 @@
  * Centralized routing paths for all pages in the application
  */
 
+import {
+  LayoutDashboard,
+  DollarSign,
+  Package,
+  Users,
+  ShoppingCart,
+  TrendingDown,
+  BarChart3,
+  Settings,
+  Building2,
+  Repeat,
+  ClipboardList,
+  Truck,
+  LayoutGrid,
+  type LucideIcon,
+} from "lucide-react";
+
+/**
+ * Navigation item type with Lucide icons and feature colors
+ */
+export interface NavigationItem {
+  name: string;
+  href: string;
+  icon: LucideIcon;
+  /** Feature variant for automatic color theming */
+  variant?: "sales" | "inventory" | "customers" | "expenses" | "purchases" | "reports" | "users" | "settings" | "tables" | "default";
+}
+
 /**
  * Generate localized route
  * @param locale - The locale code (e.g., 'en', 'ar')
@@ -120,32 +148,121 @@ export const getBasePath = (locale: string, type: "head-office" | "branch") => {
 };
 
 /**
- * Navigation items for Branch Dashboard
+ * Navigation items for Branch Dashboard with Lucide icons and feature colors
  */
-export const getBranchNavigation = (locale: string) => [
-  { name: "Dashboard", href: BRANCH_ROUTES.DASHBOARD(locale), icon: "📊" },
-  { name: "POS", href: BRANCH_ROUTES.POS(locale), icon: "🛒" },
-  { name: "Sales", href: BRANCH_ROUTES.SALES(locale), icon: "💰" },
-  { name: "Inventory", href: BRANCH_ROUTES.INVENTORY(locale), icon: "📦" },
-  { name: "Customers", href: BRANCH_ROUTES.CUSTOMERS(locale), icon: "👥" },
-  { name: "Suppliers", href: BRANCH_ROUTES.SUPPLIERS(locale), icon: "🚚" },
-  { name: "Purchases", href: BRANCH_ROUTES.PURCHASES(locale), icon: "📥" },
-  { name: "Expenses", href: BRANCH_ROUTES.EXPENSES(locale), icon: "💸" },
-  { name: "Reports", href: BRANCH_ROUTES.REPORTS(locale), icon: "📈" },
-  { name: "Tables", href: BRANCH_ROUTES.TABLES(locale), icon: "🍽️" },
-  { name: "Users", href: BRANCH_ROUTES.USERS(locale), icon: "👥" },
-  { name: "Settings", href: BRANCH_ROUTES.SETTINGS(locale), icon: "⚙️" },
+export const getBranchNavigation = (locale: string): NavigationItem[] => [
+  {
+    name: "Dashboard",
+    href: BRANCH_ROUTES.DASHBOARD(locale),
+    icon: LayoutDashboard,
+    variant: "default"
+  },
+  {
+    name: "POS",
+    href: BRANCH_ROUTES.POS(locale),
+    icon: ShoppingCart,
+    variant: "sales"
+  },
+  {
+    name: "Sales",
+    href: BRANCH_ROUTES.SALES(locale),
+    icon: DollarSign,
+    variant: "sales"
+  },
+  {
+    name: "Inventory",
+    href: BRANCH_ROUTES.INVENTORY(locale),
+    icon: Package,
+    variant: "inventory"
+  },
+  {
+    name: "Customers",
+    href: BRANCH_ROUTES.CUSTOMERS(locale),
+    icon: Users,
+    variant: "customers"
+  },
+  {
+    name: "Suppliers",
+    href: BRANCH_ROUTES.SUPPLIERS(locale),
+    icon: Truck,
+    variant: "purchases"
+  },
+  {
+    name: "Purchases",
+    href: BRANCH_ROUTES.PURCHASES(locale),
+    icon: ShoppingCart,
+    variant: "purchases"
+  },
+  {
+    name: "Expenses",
+    href: BRANCH_ROUTES.EXPENSES(locale),
+    icon: TrendingDown,
+    variant: "expenses"
+  },
+  {
+    name: "Reports",
+    href: BRANCH_ROUTES.REPORTS(locale),
+    icon: BarChart3,
+    variant: "reports"
+  },
+  {
+    name: "Tables",
+    href: BRANCH_ROUTES.TABLES(locale),
+    icon: LayoutGrid,
+    variant: "tables"
+  },
+  {
+    name: "Users",
+    href: BRANCH_ROUTES.USERS(locale),
+    icon: Users,
+    variant: "users"
+  },
+  {
+    name: "Settings",
+    href: BRANCH_ROUTES.SETTINGS(locale),
+    icon: Settings,
+    variant: "settings"
+  },
 ];
 
 /**
- * Navigation items for Head Office Dashboard
+ * Navigation items for Head Office Dashboard with Lucide icons and feature colors
  */
-export const getHeadOfficeNavigation = (locale: string) => [
-  { name: "Dashboard", href: HEAD_OFFICE_ROUTES.DASHBOARD(locale), icon: "📊" },
-  { name: "Branches", href: HEAD_OFFICE_ROUTES.BRANCHES(locale), icon: "🏢" },
-  //{ name: "Users", href: HEAD_OFFICE_ROUTES.USERS(locale), icon: "👥" },
-  { name: "Migrations", href: HEAD_OFFICE_ROUTES.MIGRATIONS(locale), icon: "🔄" },
-  { name: "Audit Logs", href: HEAD_OFFICE_ROUTES.AUDIT_LOGS(locale), icon: "📋" },
-  { name: "Analytics", href: HEAD_OFFICE_ROUTES.ANALYTICS(locale), icon: "📈" },
-  { name: "Settings", href: HEAD_OFFICE_ROUTES.SETTINGS(locale), icon: "⚙️" },
+export const getHeadOfficeNavigation = (locale: string): NavigationItem[] => [
+  {
+    name: "Dashboard",
+    href: HEAD_OFFICE_ROUTES.DASHBOARD(locale),
+    icon: LayoutDashboard,
+    variant: "default"
+  },
+  {
+    name: "Branches",
+    href: HEAD_OFFICE_ROUTES.BRANCHES(locale),
+    icon: Building2,
+    variant: "default"
+  },
+  {
+    name: "Migrations",
+    href: HEAD_OFFICE_ROUTES.MIGRATIONS(locale),
+    icon: Repeat,
+    variant: "settings"
+  },
+  {
+    name: "Audit Logs",
+    href: HEAD_OFFICE_ROUTES.AUDIT_LOGS(locale),
+    icon: ClipboardList,
+    variant: "reports"
+  },
+  {
+    name: "Analytics",
+    href: HEAD_OFFICE_ROUTES.ANALYTICS(locale),
+    icon: BarChart3,
+    variant: "reports"
+  },
+  {
+    name: "Settings",
+    href: HEAD_OFFICE_ROUTES.SETTINGS(locale),
+    icon: Settings,
+    variant: "settings"
+  },
 ];

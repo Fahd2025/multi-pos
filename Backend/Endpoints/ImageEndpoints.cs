@@ -1,3 +1,4 @@
+using Backend.Constants;
 using Backend.Data.Branch;
 using Backend.Data.HeadOffice;
 using Backend.Data.Shared;
@@ -16,7 +17,7 @@ public static class ImageEndpoints
     /// </summary>
     public static IEndpointRouteBuilder MapImageEndpoints(this IEndpointRouteBuilder app)
     {
-        var imagesGroup = app.MapGroup("/api/v1/images").WithTags("Images");
+        var imagesGroup = app.MapGroup(ApiRoutes.Images.Group).WithTags("Images");
 
         // POST /api/v1/images/upload - Upload an image for an entity
         imagesGroup

@@ -1,6 +1,7 @@
 /**
  * Head Office Dashboard
  * Overview of all branches with key metrics
+ * Now using feature-based color variants from Phase 2 enhancements
  */
 
 "use client";
@@ -17,6 +18,13 @@ import {
   PageHeader,
   Button,
 } from "@/components/shared";
+import {
+  Building2,
+  CheckCircle2,
+  Users,
+  Heart,
+  BarChart3,
+} from "lucide-react";
 
 interface DashboardStats {
   totalBranches: number;
@@ -99,20 +107,21 @@ export default function HeadOfficeDashboard({ params }: { params: Promise<{ loca
         description="Overview of all branches and key metrics"
       />
 
-      {/* Stats Cards */}
+      {/* Stats Cards - Now using feature variants */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Branches"
           value={stats.totalBranches}
-          icon="🏢"
+          icon={Building2}
+          variant="default"
           valueSize="lg"
           footer={
             <>
-              <span className="text-green-600 dark:text-green-400 font-medium">
+              <span className="text-success font-medium">
                 {stats.activeBranches} Active
               </span>
-              <span className="mx-2 text-gray-400">•</span>
-              <span className="text-gray-600 dark:text-gray-400">
+              <span className="mx-2 text-muted-foreground">•</span>
+              <span className="text-muted-foreground">
                 {stats.inactiveBranches} Inactive
               </span>
             </>
@@ -123,8 +132,8 @@ export default function HeadOfficeDashboard({ params }: { params: Promise<{ loca
           title="Active Branches"
           value={stats.activeBranches}
           description="Currently operational"
-          icon="✅"
-          valueColor="text-green-600 dark:text-green-400"
+          icon={CheckCircle2}
+          variant="sales"
           valueSize="lg"
         />
 
@@ -132,7 +141,8 @@ export default function HeadOfficeDashboard({ params }: { params: Promise<{ loca
           title="Total Users"
           value={stats.totalUsers}
           description="Across all branches"
-          icon="👥"
+          icon={Users}
+          variant="users"
           valueSize="lg"
         />
 
@@ -140,28 +150,28 @@ export default function HeadOfficeDashboard({ params }: { params: Promise<{ loca
           title="System Status"
           value="Healthy"
           description="All systems operational"
-          icon="💚"
-          valueColor="text-green-600 dark:text-green-400"
+          icon={Heart}
+          variant="sales"
           valueSize="lg"
         />
       </div>
 
       {/* Recent Branches */}
-      <div className="bg-white dark:bg-gray-800  rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+      <div className="bg-card rounded-lg shadow-sm border border-border">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-foreground">
             Recent Branches
           </h2>
           <Link
             href={`/${locale}/head-office/branches`}
-            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            className="text-sm text-primary hover:underline"
           >
             View All →
           </Link>
         </div>
         <div className="p-6">
           {recentBranches.length === 0 ? (
-            <p className="text-center text-gray-600 dark:text-gray-400 py-8">
+            <p className="text-center text-muted-foreground py-8">
               No branches found. Create your first branch to get started.
             </p>
           ) : (
@@ -170,15 +180,17 @@ export default function HeadOfficeDashboard({ params }: { params: Promise<{ loca
                 <Link
                   key={branch.id}
                   href={`/${locale}/head-office/branches/${branch.id}`}
-                  className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                  className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-secondary/50 transition-colors touch-target"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="text-2xl">🏢</div>
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Building2 className="w-6 h-6 text-primary" />
+                    </div>
                     <div>
-                      <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                      <h3 className="font-medium text-foreground">
                         {branch.nameEn}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-muted-foreground">
                         Code: {branch.code} • {branch.userCount} users
                       </p>
                     </div>
@@ -187,13 +199,13 @@ export default function HeadOfficeDashboard({ params }: { params: Promise<{ loca
                     <span
                       className={`px-3 py-1 text-xs font-medium rounded-full ${
                         branch.isActive
-                          ? "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400"
-                          : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-400"
+                          ? "bg-sales/10 text-sales"
+                          : "bg-secondary text-muted-foreground"
                       }`}
                     >
                       {branch.isActive ? "Active" : "Inactive"}
                     </span>
-                    <span className="text-gray-400">→</span>
+                    <span className="text-muted-foreground">→</span>
                   </div>
                 </Link>
               ))}
@@ -202,37 +214,39 @@ export default function HeadOfficeDashboard({ params }: { params: Promise<{ loca
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <ActionCard
-          title="Manage Branches"
-          description="Create, edit, and configure branches"
-          icon="🏢"
-          bgColor="bg-blue-50 dark:bg-blue-900/20"
-          hoverBorderColor="border-blue-500"
-          layout="vertical"
-          href={`/${locale}/head-office/branches`}
-        />
+      {/* Quick Actions - Now using feature variants */}
+      <div>
+        <h2 className="text-lg font-semibold text-foreground mb-4">
+          Quick Actions
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <ActionCard
+            title="Manage Branches"
+            description="Create, edit, and configure branches"
+            icon={Building2}
+            variant="default"
+            layout="vertical"
+            href={`/${locale}/head-office/branches`}
+          />
 
-        <ActionCard
-          title="Manage Users"
-          description="Add users and assign roles"
-          icon="👥"
-          bgColor="bg-purple-50 dark:bg-purple-900/20"
-          hoverBorderColor="border-purple-500"
-          layout="vertical"
-          href={`/${locale}/head-office/users`}
-        />
+          <ActionCard
+            title="Manage Users"
+            description="Add users and assign roles"
+            icon={Users}
+            variant="users"
+            layout="vertical"
+            href={`/${locale}/head-office/users`}
+          />
 
-        <ActionCard
-          title="View Analytics"
-          description="Multi-branch performance reports"
-          icon="📈"
-          bgColor="bg-green-50 dark:bg-green-900/20"
-          hoverBorderColor="border-green-500"
-          layout="vertical"
-          href={`/${locale}/head-office/analytics`}
-        />
+          <ActionCard
+            title="View Analytics"
+            description="Multi-branch performance reports"
+            icon={BarChart3}
+            variant="reports"
+            layout="vertical"
+            href={`/${locale}/head-office/analytics`}
+          />
+        </div>
       </div>
     </div>
   );

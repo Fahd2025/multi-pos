@@ -1,3 +1,4 @@
+using Backend.Constants;
 using Backend.Models.DTOs.Shared.Sync;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,7 +14,7 @@ public static class SyncEndpoints
     /// </summary>
     public static IEndpointRouteBuilder MapSyncEndpoints(this IEndpointRouteBuilder app)
     {
-        var syncGroup = app.MapGroup("/api/v1/sync").WithTags("Sync");
+        var syncGroup = app.MapGroup(ApiRoutes.Sync.Group).WithTags("Sync");
 
         // POST /api/v1/sync/transaction - Process a single offline transaction
         syncGroup

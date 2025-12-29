@@ -9,11 +9,13 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { type LucideIcon } from "lucide-react";
 
 export interface MenuItem {
   name: string;
   href: string;
-  icon: string; // Emoji icon
+  icon: string | LucideIcon; // Support both emoji string and Lucide icon component
+  variant?: "sales" | "inventory" | "customers" | "expenses" | "purchases" | "reports" | "users" | "settings" | "tables" | "default";
   requiresRole?: boolean;
   requiresManager?: boolean;
 }
@@ -131,7 +133,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   aria-label={item.name}
                   onClick={isMobile ? onClose : undefined}
                 >
-                  <span className="text-xl flex-shrink-0">{item.icon}</span>
+                  {/* Render icon - support both string (emoji) and LucideIcon component */}
+                  {typeof item.icon === 'string' ? (
+                    <span className="text-xl flex-shrink-0">{item.icon}</span>
+                  ) : (
+                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                  )}
                   {(!isCollapsed || isMobile) && (
                     <span className="truncate">{item.name}</span>
                   )}

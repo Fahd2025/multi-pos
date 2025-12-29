@@ -34,11 +34,13 @@ export {
 
 // Custom Generic Components
 export { StatCard } from "./StatCard";
-export type { StatCardProps } from "./StatCard";
+export type { StatCardProps, StatCardVariant } from "./StatCard";
 export { ActionCard } from "./ActionCard";
-export type { ActionCardProps } from "./ActionCard";
+export type { ActionCardProps, ActionCardVariant } from "./ActionCard";
 export { PageHeader } from "./PageHeader";
 export type { PageHeaderProps } from "./PageHeader";
+export { Breadcrumbs } from "./Breadcrumbs";
+export type { BreadcrumbsProps, Breadcrumb } from "./Breadcrumbs";
 export { InfoBanner } from "./InfoBanner";
 export type { InfoBannerProps } from "./InfoBanner";
 export { Icon } from "./Icon";
@@ -48,6 +50,8 @@ export type { IconProps, IconName } from "./Icon";
 export { Input } from "./Input";
 export { Select } from "./Select";
 export { Checkbox } from "./Checkbox";
+export { NumberPad } from "./NumberPad";
+export type { NumberPadProps } from "./NumberPad";
 
 // UI Components (previously in ui folder)
 export { Button, IconButton } from "./Button";

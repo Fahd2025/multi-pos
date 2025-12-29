@@ -6,13 +6,15 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { X, ShoppingBag } from "lucide-react";
+import { X, ShoppingBag, Hash } from "lucide-react";
 import styles from "./Pos2.module.css";
 import { ProductDto, SaleDto } from "@/types/api.types";
 import { buildProductImageUrl } from "@/lib/image-utils";
 import { useToast } from "@/hooks/useToast";
 import { TransactionDialogV3 } from "./pos-v2/TransactionDialogV3";
 import { SaveOrderData } from "./PendingOrders/SaveOrderDialog";
+import { NumberPad } from "@/components/shared";
+import { UIDialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/shared";
 
 interface OrderItem extends ProductDto {
   quantity: number;
@@ -53,6 +55,11 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
   const itemRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const previousCartLength = useRef(cart.length);
   const previousQuantities = useRef<{ [key: string]: number }>({});
+
+  // NumberPad dialog state
+  const [quantityDialogOpen, setQuantityDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<OrderItem | null>(null);
+  const [tempQuantity, setTempQuantity] = useState(1);
 
   // Order type and delivery form state
   //const [orderType, setOrderType] = useState<"dine-in" | "takeaway" | "delivery">("dine-in");
@@ -172,6 +179,26 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
     }
     onClearAll();
     setShowTransactionDialog(false);
+  };
+
+  // NumberPad handlers
+  const handleOpenQuantityDialog = (item: OrderItem) => {
+    setEditingItem(item);
+    setTempQuantity(item.quantity);
+    setQuantityDialogOpen(true);
+  };
+
+  const handleConfirmQuantity = () => {
+    if (editingItem && tempQuantity > 0) {
+      onUpdateQuantity(editingItem.id, tempQuantity);
+    }
+    setQuantityDialogOpen(false);
+    setEditingItem(null);
+  };
+
+  const handleCancelQuantity = () => {
+    setQuantityDialogOpen(false);
+    setEditingItem(null);
   };
 
   return (
@@ -458,15 +485,17 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                           justifyContent: "space-between",
                         }}
                       >
-                        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                          {/* Decrement Button */}
                           <button
                             onClick={() =>
                               onUpdateQuantity(item.id, Math.max(0, item.quantity - 1))
                             }
                             disabled={isDeleting}
+                            className="touch-feedback-pos"
                             style={{
-                              width: "32px",
-                              height: "32px",
+                              width: "48px",
+                              height: "48px",
                               backgroundColor: "var(--secondary)",
                               border: "none",
                               borderRadius: "0.5rem",
@@ -476,49 +505,75 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                               cursor: "pointer",
                               transition: "all 0.15s",
                               opacity: isDeleting ? 0.5 : 1,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
                             }}
                             onMouseEnter={(e) => {
                               if (!isDeleting) {
                                 e.currentTarget.style.backgroundColor = "var(--muted)";
-                                e.currentTarget.style.transform = "scale(0.95)";
                               }
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.backgroundColor = "var(--secondary)";
-                              e.currentTarget.style.transform = "scale(1)";
                             }}
+                            title="Decrease quantity"
                           >
                             −
                           </button>
-                          <input
-                            type="number"
-                            value={item.quantity}
-                            onChange={(e) =>
-                              onUpdateQuantity(item.id, parseInt(e.target.value) || 1)
-                            }
+
+                          {/* NumberPad Trigger Button */}
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleOpenQuantityDialog(item);
+                            }}
                             disabled={isDeleting}
-                            min="1"
-                            className={styles.quantityInput}
+                            className="touch-feedback-pos"
                             style={{
-                              width: "64px",
-                              height: "32px",
+                              minWidth: "80px",
+                              height: "48px",
                               textAlign: "center",
-                              border: "2px solid var(--border)",
+                              border: "2px solid var(--primary)",
                               borderRadius: "0.5rem",
                               fontWeight: 600,
-                              fontSize: "1.125rem",
+                              fontSize: "1.25rem",
                               transition: "all 0.2s",
                               opacity: isDeleting ? 0.5 : 1,
                               backgroundColor: "var(--background)",
                               color: "var(--foreground)",
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "0.5rem",
+                              padding: "0 1rem",
                             }}
-                          />
+                            onMouseEnter={(e) => {
+                              if (!isDeleting) {
+                                e.currentTarget.style.backgroundColor = "var(--muted)";
+                                e.currentTarget.style.borderColor = "var(--primary)";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = "var(--background)";
+                              e.currentTarget.style.borderColor = "var(--primary)";
+                            }}
+                            title="Open number pad to change quantity"
+                          >
+                            <Hash size={18} />
+                            <span>{item.quantity}</span>
+                          </button>
+
+                          {/* Increment Button */}
                           <button
                             onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
                             disabled={isDeleting}
+                            className="touch-feedback-pos"
                             style={{
-                              width: "32px",
-                              height: "32px",
+                              width: "48px",
+                              height: "48px",
                               backgroundColor: "var(--secondary)",
                               border: "none",
                               borderRadius: "0.5rem",
@@ -528,17 +583,19 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                               cursor: "pointer",
                               transition: "all 0.15s",
                               opacity: isDeleting ? 0.5 : 1,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
                             }}
                             onMouseEnter={(e) => {
                               if (!isDeleting) {
                                 e.currentTarget.style.backgroundColor = "var(--muted)";
-                                e.currentTarget.style.transform = "scale(0.95)";
                               }
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.backgroundColor = "var(--secondary)";
-                              e.currentTarget.style.transform = "scale(1)";
                             }}
+                            title="Increase quantity"
                           >
                             +
                           </button>
@@ -616,6 +673,36 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
           initialTableNumber={initialTableNumber}
           initialGuestCount={initialGuestCount}
         />
+      )}
+
+      {/* NumberPad Dialog for Quantity Change */}
+      {quantityDialogOpen && (
+        <UIDialog open={quantityDialogOpen} onOpenChange={setQuantityDialogOpen}>
+          <DialogContent className="sm:max-w-md" style={{ zIndex: 9999 }}>
+            <DialogHeader>
+              <DialogTitle>
+                {editingItem ? `Change Quantity: ${editingItem.nameEn}` : "Change Quantity"}
+              </DialogTitle>
+              <DialogDescription>
+                Use the number pad to enter the desired quantity for this item.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <NumberPad
+                value={tempQuantity}
+                onChange={setTempQuantity}
+                min={1}
+                max={999}
+                variant="sales"
+                touchOptimized={true}
+                showDisplay={true}
+                label="Quantity"
+                onConfirm={handleConfirmQuantity}
+                onCancel={handleCancelQuantity}
+              />
+            </div>
+          </DialogContent>
+        </UIDialog>
       )}
     </>
   );

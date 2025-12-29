@@ -1,3 +1,4 @@
+using Backend.Constants;
 using Backend.Models.DTOs.Branch.Customers;
 using Backend.Services.Branch.Customers;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +15,7 @@ public static class CustomerEndpoints
     /// </summary>
     public static IEndpointRouteBuilder MapCustomerEndpoints(this IEndpointRouteBuilder app)
     {
-        var customerGroup = app.MapGroup("/api/v1/customers").WithTags("Customers");
+        var customerGroup = app.MapGroup(ApiRoutes.Customers.Group).WithTags("Customers");
 
         // GET /api/v1/customers - Get all customers with search and pagination
         customerGroup

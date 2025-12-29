@@ -38,6 +38,24 @@ const config: Config = {
         border: "var(--border)",
         input: "var(--input)",
         ring: "var(--ring)",
+
+        // Feature domain colors with alpha support
+        sales: 'rgb(var(--color-sales) / <alpha-value>)',
+        inventory: 'rgb(var(--color-inventory) / <alpha-value>)',
+        customers: 'rgb(var(--color-customers) / <alpha-value>)',
+        expenses: 'rgb(var(--color-expenses) / <alpha-value>)',
+        purchases: 'rgb(var(--color-purchases) / <alpha-value>)',
+        reports: 'rgb(var(--color-reports) / <alpha-value>)',
+        users: 'rgb(var(--color-users) / <alpha-value>)',
+        settings: 'rgb(var(--color-settings) / <alpha-value>)',
+        tables: 'rgb(var(--color-tables) / <alpha-value>)',
+
+        // Enhanced status colors with alpha support
+        success: 'rgb(var(--color-success) / <alpha-value>)',
+        warning: 'rgb(var(--color-warning) / <alpha-value>)',
+        danger: 'rgb(var(--color-danger) / <alpha-value>)',
+        info: 'rgb(var(--color-info) / <alpha-value>)',
+        pending: 'rgb(var(--color-pending) / <alpha-value>)',
       },
 
       fontSize: {
@@ -65,11 +83,21 @@ const config: Config = {
       },
 
       minHeight: {
-        'touch-target': '48px',  // WCAG 2.1 Level AAA
+        'touch-target': '48px',    // WCAG 2.1 Level AAA
+        'touch-target-sm': '44px', // iOS Human Interface Guidelines
+        'touch-target-lg': '56px', // Material Design 3
       },
 
       minWidth: {
-        'touch-target': '48px',  // WCAG 2.1 Level AAA
+        'touch-target': '48px',    // WCAG 2.1 Level AAA
+        'touch-target-sm': '44px', // iOS Human Interface Guidelines
+        'touch-target-lg': '56px', // Material Design 3
+      },
+
+      gap: {
+        'touch': '0.5rem',    // 8px - minimum touch spacing
+        'touch-md': '0.75rem', // 12px
+        'touch-lg': '1rem',    // 16px
       },
 
       transitionProperty: {

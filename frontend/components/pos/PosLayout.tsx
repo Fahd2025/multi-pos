@@ -23,11 +23,27 @@ interface CartItem extends ProductDto {
   quantity: number;
 }
 
+const CART_STORAGE_KEY = "pos_cart_items";
+
 function PosLayoutContent() {
   const toast = useToast();
   const searchParams = useSearchParams();
   const [activeCategory, setActiveCategory] = useState<string /*| null*/>("all");
-  const [cart, setCart] = useState<CartItem[]>([]);
+
+  // Initialize cart from localStorage
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+        if (savedCart) {
+          return JSON.parse(savedCart);
+        }
+      } catch (error) {
+        console.error("Failed to load cart from localStorage:", error);
+      }
+    }
+    return [];
+  });
   const [isCartVisible, setIsCartVisible] = useState(true); // Default true for desktop
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [lastSale, setLastSale] = useState<SaleDto | null>(null); // Track last completed sale
@@ -73,6 +89,24 @@ function PosLayoutContent() {
       setIsSidebarCollapsed(isMobile);
     }
   }, []);
+
+  // Save cart to localStorage whenever it changes (but not when loading from URL)
+  useEffect(() => {
+    // Don't overwrite cart during initial sale load
+    if (loadingSale) return;
+
+    if (typeof window !== "undefined") {
+      try {
+        if (cart.length > 0) {
+          localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+        } else {
+          localStorage.removeItem(CART_STORAGE_KEY);
+        }
+      } catch (error) {
+        console.error("Failed to save cart to localStorage:", error);
+      }
+    }
+  }, [cart, loadingSale]);
 
   // Load existing sale when saleId is provided in URL
   useEffect(() => {

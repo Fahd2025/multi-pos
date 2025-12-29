@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
@@ -21,6 +21,8 @@ import { CreateSaleDto, ProductDto, SaleDto } from "@/types/api.types";
 import { InvoiceType, PaymentMethod, DiscountType } from "@/types/enums";
 import { SaleLineItem } from "@/components/branch/sales/SaleLineItemsList";
 
+const CART_STORAGE_KEY = "pos_cart_items";
+
 export default function POSPage({ params }: { params: Promise<{ locale: string }> }) {
   const router = useRouter();
   const { user, branch } = useAuth();
@@ -34,8 +36,20 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
   const [isMobileCategoryOpen, setIsMobileCategoryOpen] = useState(false);
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
 
-  // Cart state
-  const [lineItems, setLineItems] = useState<SaleLineItem[]>([]);
+  // Cart state - Initialize from localStorage
+  const [lineItems, setLineItems] = useState<SaleLineItem[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+        if (savedCart) {
+          return JSON.parse(savedCart);
+        }
+      } catch (error) {
+        console.error("Failed to load cart from localStorage:", error);
+      }
+    }
+    return [];
+  });
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [lastUpdatedItemIndex, setLastUpdatedItemIndex] = useState<number | undefined>(undefined);
@@ -49,6 +63,21 @@ export default function POSPage({ params }: { params: Promise<{ locale: string }
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        if (lineItems.length > 0) {
+          localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(lineItems));
+        } else {
+          localStorage.removeItem(CART_STORAGE_KEY);
+        }
+      } catch (error) {
+        console.error("Failed to save cart to localStorage:", error);
+      }
+    }
+  }, [lineItems]);
 
   const handleProductSelect = (product: ProductDto) => {
     const existingIndex = lineItems.findIndex((item) => item.productId === product.id);

@@ -1,3 +1,4 @@
+using Backend.Constants;
 using Backend.Services.HeadOffice.Audit;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,7 +14,7 @@ public static class AuditEndpoints
     /// </summary>
     public static IEndpointRouteBuilder MapAuditEndpoints(this IEndpointRouteBuilder app)
     {
-        var auditGroup = app.MapGroup("/api/v1/audit").WithTags("Audit");
+        var auditGroup = app.MapGroup(ApiRoutes.Audit.Group).WithTags("Audit");
 
         // GET /api/v1/audit/logs - Get audit logs (admin only)
         auditGroup

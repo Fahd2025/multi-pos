@@ -1,3 +1,4 @@
+using Backend.Constants;
 using Backend.Models.DTOs.Branch.Inventory;
 using Backend.Services.Branch.Inventory;
 using Microsoft.AspNetCore.Mvc;
@@ -14,9 +15,9 @@ public static class InventoryEndpoints
     /// </summary>
     public static IEndpointRouteBuilder MapInventoryEndpoints(this IEndpointRouteBuilder app)
     {
-        var categoryGroup = app.MapGroup("/api/v1/categories").WithTags("Categories");
-        var productGroup = app.MapGroup("/api/v1/products").WithTags("Products");
-        var purchaseGroup = app.MapGroup("/api/v1/purchases").WithTags("Purchases");
+        var categoryGroup = app.MapGroup(ApiRoutes.Categories.Group).WithTags("Categories");
+        var productGroup = app.MapGroup(ApiRoutes.Products.Group).WithTags("Products");
+        var purchaseGroup = app.MapGroup(ApiRoutes.Purchases.Group).WithTags("Purchases");
 
         // ============================================
         // Category Endpoints
