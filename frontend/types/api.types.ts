@@ -260,6 +260,11 @@ export interface SaleDto {
   voidedAt?: string;
   voidedBy?: string;
   voidReason?: string;
+  // Return-related fields
+  isReturn?: boolean;
+  originalSaleId?: string;
+  returnDate?: string;
+  status?: string; // Sale status (e.g., "completed", "returned", "partially_returned")
   lineItems: SaleLineItemDetailDto[];
   createdAt: string;
   // Table-related fields
@@ -292,6 +297,8 @@ export interface SaleLineItemDetailDto {
   discountedUnitPrice: number;
   lineTotal: number;
   notes?: string;
+  returnQuantity?: number; // Quantity already returned from this item
+  itemStatus?: string; // Status of this line item (e.g., "returned", "partially_returned")
 }
 
 // ============================================================================
@@ -562,6 +569,37 @@ export interface GetDeliveryOrdersParams extends PaginationParams {
 
 export interface VoidSaleDto {
   reason: string;
+}
+
+// Return Invoice DTOs
+export interface ReturnItemDto {
+  saleItemId: string;
+  productId: string;
+  returnQuantity: number;
+  unitPrice: number;
+}
+
+export interface CreateReturnDto {
+  originalSaleId: string;
+  returnReason: string;
+  returnNotes?: string;
+  items: ReturnItemDto[];
+}
+
+export interface ReturnResponseDto {
+  message: string;
+  returnOrderNumber: string;
+  returnSaleId: string;
+  refundAmount: number;
+  originalSaleId: string;
+  returnTransactionId?: string;
+  returnDate: Date;
+}
+
+export interface CanReturnResponseDto {
+  canReturn: boolean;
+  saleId: string;
+  reason?: string;
 }
 
 export interface SalesStatsDto {

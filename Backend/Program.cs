@@ -94,6 +94,7 @@ builder.Services.AddScoped<
     Backend.Services.Branch.Sales.ISalesService,
     Backend.Services.Branch.Sales.SalesService
 >();
+builder.Services.AddScoped<Backend.Services.Branch.SalesReturnService>();
 builder.Services.AddScoped<Backend.Services.Shared.Sync.ISyncService, Backend.Services.Shared.Sync.SyncService>();
 builder.Services.AddScoped<
     Backend.Services.Branch.Inventory.IInventoryService,

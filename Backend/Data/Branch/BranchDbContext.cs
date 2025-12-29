@@ -144,6 +144,11 @@ public class BranchDbContext : DbContext
             entity.HasIndex(e => e.TableId); // Index for table queries
             entity.HasIndex(e => e.Status); // Index for status filtering
 
+            // Return Management Indexes
+            entity.HasIndex(e => e.IsReturn); // Index for filtering return invoices
+            entity.HasIndex(e => e.OriginalSaleId); // Index for finding returns for a specific sale
+            entity.HasIndex(e => e.ReturnDate); // Index for return date queries
+
             entity.Property(e => e.Subtotal).HasPrecision(18, 2);
             entity.Property(e => e.TaxAmount).HasPrecision(18, 2);
             entity.Property(e => e.TotalDiscount).HasPrecision(18, 2);
@@ -169,6 +174,13 @@ public class BranchDbContext : DbContext
                 .WithMany(t => t.Sales)
                 .HasForeignKey(e => e.TableId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // Self-referencing relationship for returns
+            entity
+                .HasOne(e => e.OriginalSale)
+                .WithMany(s => s.ReturnedSales)
+                .HasForeignKey(e => e.OriginalSaleId)
+                .OnDelete(DeleteBehavior.NoAction); // Prevent cascade delete
         });
 
         // SaleLineItem configuration
@@ -176,6 +188,7 @@ public class BranchDbContext : DbContext
         {
             entity.HasIndex(e => e.SaleId);
             entity.HasIndex(e => e.ProductId);
+            entity.HasIndex(e => e.ItemStatus); // Index for item status filtering
 
             entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
             entity.Property(e => e.DiscountValue).HasPrecision(18, 2);

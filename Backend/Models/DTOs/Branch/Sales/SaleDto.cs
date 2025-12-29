@@ -32,4 +32,9 @@ public class SaleDto
     public Guid? VoidedBy { get; set; }
     public string? VoidReason { get; set; }
     public DateTime CreatedAt { get; set; }
+
+    // Return-related fields
+    public bool IsReturn { get; set; }
+    public Guid? OriginalSaleId { get; set; }
+    public DateTime? ReturnDate { get; set; }
 }

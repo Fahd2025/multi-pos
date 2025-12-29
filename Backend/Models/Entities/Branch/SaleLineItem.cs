@@ -40,6 +40,14 @@ public class SaleLineItem
     [MaxLength(500)]
     public string? Notes { get; set; }
 
+    // Return Tracking Properties
+    [Required]
+    public int ReturnQuantity { get; set; } = 0; // How many of this item have been returned
+
+    [Required]
+    [MaxLength(50)]
+    public string ItemStatus { get; set; } = "ordered"; // ordered, completed, returned, partially_returned
+
     // Navigation properties
     public Sale Sale { get; set; } = null!;
     public Product Product { get; set; } = null!;

@@ -23,10 +23,11 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 
 interface SalesTableProps {
   onSaleSelect?: (sale: SaleDto) => void;
+  onReturnClick?: (sale: SaleDto) => void;
   refreshTrigger?: number;
 }
 
-export default function SalesTable({ onSaleSelect, refreshTrigger }: SalesTableProps) {
+export default function SalesTable({ onSaleSelect, onReturnClick, refreshTrigger }: SalesTableProps) {
   const router = useRouter();
   const [sales, setSales] = useState<SaleDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -398,6 +399,12 @@ export default function SalesTable({ onSaleSelect, refreshTrigger }: SalesTableP
       label: "View Details",
       onClick: (row) => handleRowClick(row),
       variant: "primary",
+    },
+    {
+      label: "Return Invoice",
+      onClick: (row) => onReturnClick?.(row),
+      variant: "danger",
+      condition: (row) => !row.isVoided && row.status !== "returned",
     },
   ];
 

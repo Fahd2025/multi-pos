@@ -930,6 +930,9 @@ namespace Backend.Migrations.Branch
                     b.Property<int>("InvoiceType")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("IsReturn")
+                        .HasColumnType("INTEGER");
+
                     b.Property<bool>("IsVoided")
                         .HasColumnType("INTEGER");
 
@@ -943,11 +946,28 @@ namespace Backend.Migrations.Branch
                     b.Property<int?>("OrderType")
                         .HasColumnType("INTEGER");
 
+                    b.Property<Guid?>("OriginalSaleId")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("PaymentMethod")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("PaymentReference")
                         .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("ReturnApprovedBy")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ReturnDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ReturnNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ReturnReason")
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("SaleDate")
@@ -1007,9 +1027,15 @@ namespace Backend.Migrations.Branch
                     b.HasIndex("InvoiceNumber")
                         .IsUnique();
 
+                    b.HasIndex("IsReturn");
+
                     b.HasIndex("IsVoided");
 
                     b.HasIndex("OrderType");
+
+                    b.HasIndex("OriginalSaleId");
+
+                    b.HasIndex("ReturnDate");
 
                     b.HasIndex("SaleDate");
 
@@ -1046,6 +1072,11 @@ namespace Backend.Migrations.Branch
                         .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ItemStatus")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
                     b.Property<decimal>("LineTotal")
                         .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
@@ -1060,6 +1091,9 @@ namespace Backend.Migrations.Branch
                     b.Property<int>("Quantity")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("ReturnQuantity")
+                        .HasColumnType("INTEGER");
+
                     b.Property<Guid>("SaleId")
                         .HasColumnType("TEXT");
 
@@ -1072,6 +1106,8 @@ namespace Backend.Migrations.Branch
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ItemStatus");
 
                     b.HasIndex("ProductId");
 
@@ -1646,6 +1682,11 @@ namespace Backend.Migrations.Branch
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Backend.Models.Entities.Branch.Sale", "OriginalSale")
+                        .WithMany("ReturnedSales")
+                        .HasForeignKey("OriginalSaleId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Backend.Models.Entities.Branch.Table", "Table")
                         .WithMany("Sales")
                         .HasForeignKey("TableId")
@@ -1656,6 +1697,8 @@ namespace Backend.Migrations.Branch
                         .HasForeignKey("UserId");
 
                     b.Navigation("Customer");
+
+                    b.Navigation("OriginalSale");
 
                     b.Navigation("Table");
                 });
@@ -1747,6 +1790,8 @@ namespace Backend.Migrations.Branch
                     b.Navigation("DeliveryOrder");
 
                     b.Navigation("LineItems");
+
+                    b.Navigation("ReturnedSales");
                 });
 
             modelBuilder.Entity("Backend.Models.Entities.Branch.Supplier", b =>

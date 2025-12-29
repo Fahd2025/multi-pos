@@ -667,6 +667,10 @@ public class SalesService : ISalesService
             VoidedBy = sale.VoidedBy,
             VoidReason = sale.VoidReason,
             CreatedAt = sale.CreatedAt,
+            // Return-related fields
+            IsReturn = sale.IsReturn,
+            OriginalSaleId = sale.OriginalSaleId,
+            ReturnDate = sale.ReturnDate,
         };
     }
 

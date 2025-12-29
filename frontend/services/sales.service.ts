@@ -12,6 +12,9 @@ import {
   SaleDto,
   VoidSaleDto,
   SalesStatsDto,
+  CreateReturnDto,
+  ReturnResponseDto,
+  CanReturnResponseDto,
 } from '@/types/api.types';
 import { isTempId } from '@/lib/id-mapper';
 import offlineSyncQueue from '@/lib/offline-sync';
@@ -279,6 +282,59 @@ class SalesService {
     } catch (error) {
       const errorMessage = apiHelpers.getErrorMessage(error);
       throw new Error(`Failed to update payment: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Process a return (full or partial) for a sale
+   * Requires Manager or Admin role
+   * @param returnData - Return request data
+   * @returns Return response with refund details
+   */
+  async processReturn(returnData: CreateReturnDto): Promise<ReturnResponseDto> {
+    try {
+      const response = await api.post<ApiResponse<ReturnResponseDto>>(
+        `${this.basePath}/return`,
+        returnData
+      );
+      return response.data.data!;
+    } catch (error) {
+      const errorMessage = apiHelpers.getErrorMessage(error);
+      throw new Error(`Failed to process return: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Get all returns for a specific sale
+   * @param saleId - Original sale ID
+   * @returns List of return sales
+   */
+  async getReturnsForSale(saleId: string): Promise<SaleDto[]> {
+    try {
+      const response = await api.get<ApiResponse<SaleDto[]>>(
+        `${this.basePath}/${saleId}/returns`
+      );
+      return response.data.data!;
+    } catch (error) {
+      const errorMessage = apiHelpers.getErrorMessage(error);
+      throw new Error(`Failed to fetch returns: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Check if a sale can be returned
+   * @param saleId - Sale ID to check
+   * @returns Whether the sale can be returned
+   */
+  async canReturnSale(saleId: string): Promise<CanReturnResponseDto> {
+    try {
+      const response = await api.get<ApiResponse<CanReturnResponseDto>>(
+        `${this.basePath}/${saleId}/can-return`
+      );
+      return response.data.data!;
+    } catch (error) {
+      const errorMessage = apiHelpers.getErrorMessage(error);
+      throw new Error(`Failed to check return status: ${errorMessage}`);
     }
   }
 }

@@ -2,15 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import SalesStatistics from "@/components/branch/sales/SalesStatistics";
 import SalesTable from "@/components/branch/sales/SalesTable";
 import InvoiceDialog from "@/components/branch/sales/InvoiceDialog";
 import NewInvoiceModal from "@/components/branch/sales/NewInvoiceModal";
 import CreateSalesInvoiceForm from "@/components/branch/sales/CreateSalesInvoiceForm";
 import ProductGridModal from "@/components/branch/sales/ProductGridModal";
-import { ProductDto, SaleDto } from "@/types/api.types";
+import ReturnInvoiceDialog from "@/components/branch/sales/ReturnInvoiceDialog";
+import { ProductDto, SaleDto, ReturnResponseDto } from "@/types/api.types";
 import { PageHeader, ActionCard, InfoBanner, Button } from "@/components/shared";
 import { UI_STRINGS } from "@/lib/constants";
+import salesService from "@/services/sales.service";
 
 export default function SalesPage({ params }: { params: Promise<{ locale: string }> }) {
   const router = useRouter();
@@ -23,6 +26,8 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
   const [showProductGridModal, setShowProductGridModal] = useState(false);
   // Keeping NewInvoiceModal for backward compatibility
   const [showNewInvoiceModal, setShowNewInvoiceModal] = useState(false);
+  const [returnDialogOpen, setReturnDialogOpen] = useState(false);
+  const [selectedSale, setSelectedSale] = useState<SaleDto | null>(null);
 
   // Date filter states
   const [dateFrom, setDateFrom] = useState("");
@@ -47,6 +52,29 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
 
   const handleDateFilterChange = () => {
     setRefreshTrigger((prev) => prev + 1);
+  };
+
+  const handleOpenReturnDialog = async (sale: SaleDto) => {
+    try {
+      // IMPORTANT: Fetch full sale details with line items
+      const fullSale = await salesService.getSaleById(sale.id);
+      setSelectedSale(fullSale);
+      setReturnDialogOpen(true);
+    } catch (error: any) {
+      console.error("Error loading sale:", error);
+      toast.error(error.message || "Failed to load sale details");
+    }
+  };
+
+  const handleReturnSuccess = async (returnResponse: ReturnResponseDto) => {
+    console.log("Return processed successfully:", returnResponse);
+    toast.success(`Return ${returnResponse.returnOrderNumber} processed successfully!`);
+
+    // Refresh sales list to show updated statuses
+    setRefreshTrigger((prev) => prev + 1);
+
+    // Close dialog
+    setReturnDialogOpen(false);
   };
 
   // If in Create Invoice mode, show the form
@@ -187,7 +215,10 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
               🔄 Refresh
             </button>
           </div>
-          <SalesTable refreshTrigger={refreshTrigger} />
+          <SalesTable
+            refreshTrigger={refreshTrigger}
+            onReturnClick={handleOpenReturnDialog}
+          />
         </div>
 
         {/* Help Section */}
@@ -234,6 +265,14 @@ export default function SalesPage({ params }: { params: Promise<{ locale: string
         isOpen={showProductGridModal}
         onClose={() => setShowProductGridModal(false)}
         onProductSelect={handleProductSelect}
+      />
+
+      {/* Return Invoice Dialog */}
+      <ReturnInvoiceDialog
+        isOpen={returnDialogOpen}
+        onClose={() => setReturnDialogOpen(false)}
+        sale={selectedSale}
+        onSuccess={handleReturnSuccess}
       />
     </div>
   );

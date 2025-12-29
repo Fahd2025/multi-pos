@@ -81,15 +81,35 @@ public class Sale
     // Order Status
     [Required]
     [MaxLength(20)]
-    public string Status { get; set; } = "open"; // open, completed, cancelled
+    public string Status { get; set; } = "open"; // open, completed, cancelled, returned, partially_returned
 
     public DateTime? CompletedAt { get; set; }
+
+    // Return Management Properties
+    [Required]
+    public bool IsReturn { get; set; } = false;
+
+    public DateTime? ReturnDate { get; set; }
+
+    [MaxLength(100)]
+    public string? ReturnReason { get; set; } // damaged, wrong_item, customer_request, quality_issue, expired, other
+
+    [MaxLength(500)]
+    public string? ReturnNotes { get; set; }
+
+    public Guid? OriginalSaleId { get; set; } // Reference to the original sale for returns
+
+    public Guid? ReturnApprovedBy { get; set; } // Manager/User who approved the return
 
     // Navigation properties
     public Customer? Customer { get; set; }
     public ICollection<SaleLineItem> LineItems { get; set; } = new List<SaleLineItem>();
     public DeliveryOrder? DeliveryOrder { get; set; }
     public Table? Table { get; set; }
+
+    // Self-referencing relationships for returns
+    public Sale? OriginalSale { get; set; } // The original sale (if this is a return)
+    public ICollection<Sale> ReturnedSales { get; set; } = new List<Sale>(); // Returns made against this sale
 }
 
 public enum InvoiceType
