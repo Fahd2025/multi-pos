@@ -68,7 +68,12 @@ public static class SyncEndpoints
                             new
                             {
                                 success = true,
-                                data = new { entityId, transactionId = request.Id },
+                                data = new
+                                {
+                                    entityId,                // Real server-generated ID
+                                    transactionId = request.Id,  // Client transaction ID
+                                    tempId = request.EntityTempId  // Client temp ID (for ID mapping)
+                                },
                                 message = "Transaction synced successfully",
                             }
                         );
@@ -154,6 +159,7 @@ public static class SyncEndpoints
                                         transactionId = transaction.Id,
                                         success = true,
                                         entityId,
+                                        tempId = transaction.EntityTempId  // Include tempId for mapping
                                     }
                                 );
                             }

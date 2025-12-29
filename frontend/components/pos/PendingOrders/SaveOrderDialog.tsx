@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { PendingOrderStatus } from "@/types/api.types";
+import { useOfflineSync } from "@/hooks/useOfflineSync";
 
 export interface SaveOrderData {
   customerName?: string;
@@ -40,6 +41,9 @@ export function SaveOrderDialog({
   const [status, setStatus] = useState<PendingOrderStatus>(PendingOrderStatus.Parked);
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // Get offline status and pending sync count
+  const { isOnline, pendingCount } = useOfflineSync();
 
   if (!isOpen) return null;
 
@@ -110,13 +114,30 @@ export function SaveOrderDialog({
             {/* Header */}
             <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 z-10">
               <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    💾 Save Pending Order
-                  </h2>
+                <div className="flex-1">
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                      💾 Save Pending Order
+                    </h2>
+                    {/* Offline Indicator */}
+                    {!isOnline && (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 text-xs font-medium">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414" />
+                        </svg>
+                        Offline
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                     {itemCount} item{itemCount !== 1 ? "s" : ""} • ${totalAmount.toFixed(2)}
                   </p>
+                  {/* Pending Sync Count */}
+                  {!isOnline && pendingCount > 0 && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                      {pendingCount} order{pendingCount !== 1 ? "s" : ""} pending sync
+                    </p>
+                  )}
                 </div>
                 <button
                   onClick={onClose}
@@ -297,7 +318,7 @@ export function SaveOrderDialog({
                 {saving ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Saving...
+                    {isOnline ? "Saving..." : "Saving Offline..."}
                   </>
                 ) : (
                   <>
@@ -314,7 +335,7 @@ export function SaveOrderDialog({
                         d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
                       />
                     </svg>
-                    Save Order
+                    {isOnline ? "Save Order" : "Save Offline"}
                   </>
                 )}
               </button>

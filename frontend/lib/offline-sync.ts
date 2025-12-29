@@ -1,43 +1,32 @@
 /**
- * Offline Sync Queue
+ * Offline Sync Queue - Enhanced for Phase 1
  * IndexedDB-based persistent queue for offline transaction management
  * Implements last-commit-wins conflict resolution with retry logic
+ *
+ * VERSION 2 ENHANCEMENTS:
+ * - Dependency tracking for ordered synchronization
+ * - Temporary ID management for offline-created entities
+ * - Foreign key resolution support
+ * - Entity versioning for conflict detection
  */
 
-import { SyncTransactionDto } from '@/types/api.types';
+import type {
+  TransactionType,
+  SyncStatus,
+  QueuedTransaction,
+  ForeignKeyRef,
+  ConflictResolution,
+} from '@/types/offline';
 
-/**
- * Transaction types that can be queued for offline sync
- */
-export type TransactionType = 'sale' | 'purchase' | 'expense' | 'inventory_adjust';
-
-/**
- * Transaction status in the sync queue
- */
-export type SyncStatus = 'pending' | 'syncing' | 'completed' | 'failed';
-
-/**
- * Queued transaction structure
- */
-export interface QueuedTransaction {
-  id: string;
-  type: TransactionType;
-  timestamp: Date;
-  branchId: string;
-  userId: string;
-  data: any; // Transaction-specific payload
-  status: SyncStatus;
-  retryCount: number;
-  lastError?: string;
-  lastAttemptAt?: Date;
-}
+// Re-export types for backward compatibility
+export type { TransactionType, SyncStatus, QueuedTransaction };
 
 /**
  * Sync configuration
  */
 const SYNC_CONFIG = {
   DB_NAME: 'OfflineQueue',
-  DB_VERSION: 1,
+  DB_VERSION: 2, // UPDATED for Phase 1 enhancements
   STORE_NAME: 'transactions',
   MAX_RETRIES: 3,
   RETRY_DELAYS: [1000, 5000, 15000], // Exponential backoff: 1s, 5s, 15s
@@ -81,18 +70,37 @@ class OfflineSyncQueue {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
+        const oldVersion = event.oldVersion;
+        const transaction = (event.target as IDBOpenDBRequest).transaction;
 
-        // Create object store if it doesn't exist
-        if (!db.objectStoreNames.contains(SYNC_CONFIG.STORE_NAME)) {
-          const objectStore = db.createObjectStore(SYNC_CONFIG.STORE_NAME, {
-            keyPath: 'id',
-          });
+        let objectStore: IDBObjectStore;
 
-          // Create indexes for efficient querying
-          objectStore.createIndex('status', 'status', { unique: false });
-          objectStore.createIndex('timestamp', 'timestamp', { unique: false });
-          objectStore.createIndex('type', 'type', { unique: false });
-          objectStore.createIndex('branchId', 'branchId', { unique: false });
+        // Create object store if it doesn't exist (v1)
+        if (oldVersion < 1) {
+          if (!db.objectStoreNames.contains(SYNC_CONFIG.STORE_NAME)) {
+            objectStore = db.createObjectStore(SYNC_CONFIG.STORE_NAME, {
+              keyPath: 'id',
+            });
+
+            // Create v1 indexes for efficient querying
+            objectStore.createIndex('status', 'status', { unique: false });
+            objectStore.createIndex('timestamp', 'timestamp', { unique: false });
+            objectStore.createIndex('type', 'type', { unique: false });
+            objectStore.createIndex('branchId', 'branchId', { unique: false });
+          }
+        }
+
+        // Add Phase 1 enhancements (v2)
+        if (oldVersion < 2 && transaction) {
+          objectStore = transaction.objectStore(SYNC_CONFIG.STORE_NAME);
+
+          // Add new indexes for dependency tracking and temp ID management
+          if (!objectStore.indexNames.contains('entityTempId')) {
+            objectStore.createIndex('entityTempId', 'entityTempId', { unique: false });
+          }
+          if (!objectStore.indexNames.contains('entityId')) {
+            objectStore.createIndex('entityId', 'entityId', { unique: false });
+          }
         }
       };
     });
@@ -382,6 +390,113 @@ class OfflineSyncQueue {
    */
   getConfig() {
     return SYNC_CONFIG;
+  }
+
+  /**
+   * NEW: Find transaction by entity temp ID
+   * Used for dependency tracking when creating entities offline
+   * @param tempId - Temporary entity ID (e.g., "temp-customer-123")
+   * @returns Transaction or null if not found
+   */
+  async findByEntityTempId(tempId: string): Promise<QueuedTransaction | null> {
+    const db = await this.ensureInit();
+
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(SYNC_CONFIG.STORE_NAME, 'readonly');
+      const store = tx.objectStore(SYNC_CONFIG.STORE_NAME);
+      const index = store.index('entityTempId');
+      const request = index.get(tempId);
+
+      request.onsuccess = () => {
+        resolve(request.result || null);
+      };
+
+      request.onerror = () => {
+        reject(new Error('Failed to find transaction by entity temp ID'));
+      };
+    });
+  }
+
+  /**
+   * NEW: Cancel a transaction (remove from queue)
+   * Used when deleting an offline-created entity before sync
+   * @param id - Transaction ID to cancel
+   */
+  async cancel(id: string): Promise<void> {
+    return this.delete(id);
+  }
+
+  /**
+   * NEW: Get all transactions (including those with dependencies)
+   * Used by sync orchestrator for dependency graph building
+   * @returns All transactions in the queue
+   */
+  async getAllWithDependencies(): Promise<QueuedTransaction[]> {
+    const db = await this.ensureInit();
+
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(SYNC_CONFIG.STORE_NAME, 'readonly');
+      const store = tx.objectStore(SYNC_CONFIG.STORE_NAME);
+      const request = store.getAll();
+
+      request.onsuccess = () => {
+        resolve(request.result || []);
+      };
+
+      request.onerror = () => {
+        reject(new Error('Failed to fetch all transactions'));
+      };
+    });
+  }
+
+  /**
+   * NEW: Resolve foreign keys after a transaction syncs
+   * Updates all pending transactions that reference a temp ID with the real ID
+   * @param tempId - Temporary ID to resolve
+   * @param realId - Real server-generated ID
+   */
+  async resolveForeignKeys(tempId: string, realId: string): Promise<void> {
+    const db = await this.ensureInit();
+
+    return new Promise(async (resolve, reject) => {
+      const tx = db.transaction(SYNC_CONFIG.STORE_NAME, 'readwrite');
+      const store = tx.objectStore(SYNC_CONFIG.STORE_NAME);
+      const getAllRequest = store.getAll();
+
+      getAllRequest.onsuccess = () => {
+        const allTransactions = getAllRequest.result as QueuedTransaction[];
+        let updatedCount = 0;
+
+        // Find and update all transactions with foreign keys referencing tempId
+        for (const txn of allTransactions) {
+          if (txn.foreignKeys && txn.foreignKeys.length > 0) {
+            let needsUpdate = false;
+
+            for (const fk of txn.foreignKeys) {
+              if (fk.tempId === tempId) {
+                // Update the data field with real ID
+                if (txn.data && typeof txn.data === 'object') {
+                  txn.data[fk.field] = realId;
+                  needsUpdate = true;
+                }
+              }
+            }
+
+            if (needsUpdate) {
+              store.put(txn);
+              updatedCount++;
+            }
+          }
+        }
+
+        console.log(`Resolved ${updatedCount} foreign key references: ${tempId} → ${realId}`);
+        resolve();
+      };
+
+      getAllRequest.onerror = () => {
+        reject(new Error('Failed to resolve foreign keys'));
+      };
+    });
   }
 }
 

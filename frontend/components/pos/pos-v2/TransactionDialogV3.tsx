@@ -41,6 +41,7 @@ import { transformSaleToInvoiceData } from "@/lib/invoice-data-transformer";
 import InvoicePreview from "@/components/invoice/InvoicePreview";
 import { useReactToPrint } from "react-to-print";
 import CashCalculator from "./CashCalculator";
+import { OfflineBadgeCompact } from "@/components/shared/OfflineBadge";
 
 interface OrderItem extends ProductDto {
   quantity: number;
@@ -780,6 +781,7 @@ export const TransactionDialogV3: React.FC<TransactionDialogV3Props> = ({
                 <h2 className="text-lg sm:text-2xl font-bold text-white flex items-center gap-2">
                   <span className="hidden sm:inline">Complete Order</span>
                   <span className="sm:hidden">Order</span>
+                  <OfflineBadgeCompact />
                 </h2>
                 <button
                   onClick={onClose}

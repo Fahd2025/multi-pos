@@ -1,27 +1,26 @@
 /**
- * useOfflineSync Hook
+ * useOfflineSync Hook - Enhanced for Phase 1
  * Manages offline sync state, triggers background sync, and handles connectivity changes
+ *
+ * PHASE 1 ENHANCEMENTS:
+ * - Dependency-aware synchronization using DAG (Directed Acyclic Graph)
+ * - Foreign key resolution during sync
+ * - ID mapping support (temp → real IDs)
+ * - Progress tracking
  */
 
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import offlineSyncQueue, { QueuedTransaction, TransactionType, SYNC_CONFIG } from '@/lib/offline-sync';
+import { syncOrchestrator } from '@/lib/sync-orchestrator';
+import type { SyncResult } from '@/types/offline';
 import api from '@/services/api';
 
 /**
  * Online status
  */
 export type OnlineStatus = 'online' | 'offline' | 'syncing';
-
-/**
- * Sync result for a single transaction
- */
-export interface SyncResult {
-  id: string;
-  success: boolean;
-  error?: string;
-}
 
 /**
  * Offline sync hook return type
@@ -32,6 +31,7 @@ export interface UseOfflineSyncReturn {
   pendingCount: number;
   isSyncing: boolean;
   lastSyncAt: Date | null;
+  syncProgress: { current: number; total: number } | null;
   queueTransaction: (transaction: Omit<QueuedTransaction, 'id' | 'status' | 'retryCount'>) => Promise<string>;
   syncAll: () => Promise<SyncResult[]>;
   clearCompleted: () => Promise<void>;
@@ -48,6 +48,7 @@ export function useOfflineSync(): UseOfflineSyncReturn {
   const [pendingCount, setPendingCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncAt, setLastSyncAt] = useState<Date | null>(null);
+  const [syncProgress, setSyncProgress] = useState<{ current: number; total: number } | null>(null);
 
   const syncInProgressRef = useRef(false);
   const apiCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -168,58 +169,13 @@ export function useOfflineSync(): UseOfflineSyncReturn {
   );
 
   /**
-   * Sync a single transaction
-   */
-  const syncTransaction = useCallback(async (transaction: QueuedTransaction): Promise<SyncResult> => {
-    try {
-      // Mark as syncing
-      await offlineSyncQueue.updateStatus(transaction.id, 'syncing');
-
-      // Send to server
-      const response = await api.post('/api/v1/sync/transaction', {
-        id: transaction.id,
-        type: transaction.type,
-        timestamp: transaction.timestamp,
-        branchId: transaction.branchId,
-        userId: transaction.userId,
-        data: transaction.data,
-      });
-
-      // Mark as completed
-      await offlineSyncQueue.updateStatus(transaction.id, 'completed');
-
-      return {
-        id: transaction.id,
-        success: true,
-      };
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Sync failed';
-
-      // Increment retry count
-      const retryCount = await offlineSyncQueue.incrementRetry(transaction.id);
-
-      // Check if max retries reached
-      if (retryCount >= SYNC_CONFIG.MAX_RETRIES) {
-        await offlineSyncQueue.updateStatus(transaction.id, 'failed', errorMessage);
-      } else {
-        // Reset to pending for retry
-        await offlineSyncQueue.updateStatus(transaction.id, 'pending', errorMessage);
-      }
-
-      return {
-        id: transaction.id,
-        success: false,
-        error: errorMessage,
-      };
-    }
-  }, []);
-
-  /**
-   * Sync all pending transactions
+   * Sync all pending transactions (ENHANCED with dependency tracking)
+   * Uses SyncOrchestrator for DAG-based synchronization
    */
   const syncAll = useCallback(async (): Promise<SyncResult[]> => {
     // Prevent concurrent sync operations
-    if (syncInProgressRef.current || !isOnline) {
+    if (syncInProgressRef.current || !isOnline || syncOrchestrator.isSyncing()) {
+      console.log('Sync skipped: already in progress or offline');
       return [];
     }
 
@@ -227,31 +183,50 @@ export function useOfflineSync(): UseOfflineSyncReturn {
       syncInProgressRef.current = true;
       setIsSyncing(true);
       setStatus('syncing');
+      setSyncProgress(null);
 
-      // Get pending transactions
-      const pending = await offlineSyncQueue.getPending();
+      // Get all transactions (including dependencies)
+      const allTransactions = await offlineSyncQueue.getAllWithDependencies();
+      const pending = allTransactions.filter(t => t.status === 'pending');
 
       if (pending.length === 0) {
+        console.log('No pending transactions to sync');
         return [];
       }
 
-      const results: SyncResult[] = [];
+      console.log(`Syncing ${pending.length} transactions with dependency tracking...`);
 
-      // Process transactions in batches
-      for (let i = 0; i < pending.length; i += SYNC_CONFIG.BATCH_SIZE) {
-        const batch = pending.slice(i, i + SYNC_CONFIG.BATCH_SIZE);
+      // Use sync orchestrator for dependency-aware synchronization
+      const results = await syncOrchestrator.syncWithDependencies(
+        pending,
+        (current, total) => {
+          // Update progress
+          setSyncProgress({ current, total });
+        }
+      );
 
-        // Process batch sequentially (maintain chronological order)
-        for (const transaction of batch) {
-          const result = await syncTransaction(transaction);
-          results.push(result);
+      // Update transaction statuses based on results
+      for (const result of results) {
+        if (result.success) {
+          await offlineSyncQueue.updateStatus(result.id, 'completed');
+        } else {
+          // Increment retry count
+          const txn = pending.find(t => t.id === result.id);
+          if (txn) {
+            const retryCount = await offlineSyncQueue.incrementRetry(result.id);
 
-          // Add delay between transactions to avoid overwhelming server
-          if (batch.indexOf(transaction) < batch.length - 1) {
-            await new Promise((resolve) => setTimeout(resolve, 100));
+            if (retryCount >= SYNC_CONFIG.MAX_RETRIES) {
+              await offlineSyncQueue.updateStatus(result.id, 'failed', result.error);
+            } else {
+              await offlineSyncQueue.updateStatus(result.id, 'pending', result.error);
+            }
           }
         }
       }
+
+      // Calculate stats
+      const stats = syncOrchestrator.getStats(results);
+      console.log(`Sync completed: ${stats.successful}/${stats.total} successful (${stats.successRate.toFixed(1)}%)`);
 
       // Update last sync time
       setLastSyncAt(new Date());
@@ -259,16 +234,31 @@ export function useOfflineSync(): UseOfflineSyncReturn {
       // Refresh pending count
       await refreshPendingCount();
 
+      // Show toast notifications
+      if (stats.successful > 0) {
+        console.log(`✅ ${stats.successful} transactions synced successfully`);
+      }
+      if (stats.failed > 0) {
+        console.warn(`⚠️ ${stats.failed} transactions failed to sync`);
+      }
+
       return results;
-    } catch (error) {
-      console.error('Sync failed:', error);
+    } catch (error: any) {
+      console.error('Sync orchestration failed:', error);
+
+      // Check for circular dependency errors
+      if (error.message?.includes('Circular dependency')) {
+        console.error('Circular dependency detected in transaction graph!');
+      }
+
       throw error;
     } finally {
       syncInProgressRef.current = false;
       setIsSyncing(false);
       setStatus(isOnline ? 'online' : 'offline');
+      setSyncProgress(null);
     }
-  }, [isOnline, syncTransaction, refreshPendingCount]);
+  }, [isOnline, refreshPendingCount]);
 
   /**
    * Clear completed transactions
@@ -289,6 +279,7 @@ export function useOfflineSync(): UseOfflineSyncReturn {
     pendingCount,
     isSyncing,
     lastSyncAt,
+    syncProgress,
     queueTransaction,
     syncAll,
     clearCompleted,

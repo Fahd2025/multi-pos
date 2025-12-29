@@ -4,6 +4,7 @@
  */
 
 import api, { apiHelpers } from './api';
+import offlineSyncQueue from '@/lib/offline-sync';
 import {
   ApiResponse,
   PaginationResponse,
@@ -38,12 +39,66 @@ class PendingOrdersService {
 
   /**
    * Create a new pending order
+   * Supports offline mode by queuing transaction for sync when back online
    * @param orderData - Pending order creation data
-   * @returns Created pending order
+   * @returns Created pending order (or optimistic response if offline)
    */
   async createPendingOrder(
     orderData: CreatePendingOrderDto
   ): Promise<PendingOrderDto> {
+    // Check if online
+    const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+
+    // If offline, queue transaction for sync
+    if (!isOnline) {
+      try {
+        // Get branch and user context from local storage or session
+        const branchId = localStorage.getItem('branchId') || '';
+        const userId = localStorage.getItem('userId') || '';
+
+        // Queue transaction for offline sync
+        const transactionId = await offlineSyncQueue.add({
+          type: 'pending_order',
+          timestamp: new Date(),
+          branchId,
+          userId,
+          data: orderData,
+        });
+
+        // Return optimistic response
+        const optimisticResponse: PendingOrderDto = {
+          id: transactionId, // Use transaction ID as temporary ID
+          orderNumber: `PO-OFFLINE-${Date.now()}`, // Temporary order number
+          customerName: orderData.customerName,
+          customerPhone: orderData.customerPhone,
+          customerId: orderData.customerId,
+          tableId: orderData.tableId,
+          tableNumber: orderData.tableNumber?.toString(),
+          guestCount: orderData.guestCount,
+          items: orderData.items,
+          subtotal: orderData.subtotal,
+          taxAmount: orderData.taxAmount,
+          discountAmount: orderData.discountAmount,
+          totalAmount: orderData.totalAmount,
+          notes: orderData.notes,
+          orderType: orderData.orderType,
+          status: orderData.status,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          createdByUserId: userId,
+          createdByUsername: localStorage.getItem('username') || 'Unknown',
+          retrievedAt: undefined,
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
+        };
+
+        return optimisticResponse;
+      } catch (error) {
+        const errorMessage = apiHelpers.getErrorMessage(error);
+        throw new Error(`Failed to queue pending order for offline sync: ${errorMessage}`);
+      }
+    }
+
+    // Online - create pending order normally
     try {
       const response = await api.post<ApiResponse<PendingOrderDto>>(
         this.basePath,
