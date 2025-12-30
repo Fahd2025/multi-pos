@@ -8,6 +8,7 @@ using BranchEntity = Backend.Models.Entities.HeadOffice.Branch;
 using Backend.Models.Entities.HeadOffice;
 using Backend.Utilities;
 using Backend.Services.Branch.DeliveryOrders;
+using Backend.Services.Branch.CashDrawer;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services.Branch.Sales;
@@ -17,12 +18,14 @@ public class SalesService : ISalesService
     private readonly DbContextFactory _dbContextFactory;
     private readonly HeadOfficeDbContext _headOfficeContext;
     private readonly IDeliveryOrderService _deliveryOrderService;
+    private readonly ICashDrawerService _cashDrawerService;
 
-    public SalesService(DbContextFactory dbContextFactory, HeadOfficeDbContext headOfficeContext, IDeliveryOrderService deliveryOrderService)
+    public SalesService(DbContextFactory dbContextFactory, HeadOfficeDbContext headOfficeContext, IDeliveryOrderService deliveryOrderService, ICashDrawerService cashDrawerService)
     {
         _dbContextFactory = dbContextFactory;
         _headOfficeContext = headOfficeContext;
         _deliveryOrderService = deliveryOrderService;
+        _cashDrawerService = cashDrawerService;
     }
 
     public async Task<SaleDto> CreateSaleAsync(
@@ -97,6 +100,9 @@ public class SalesService : ISalesService
         }
 
         // Create sale entity
+        // Determine if this is a split payment
+        bool isSplitPayment = createSaleDto.Payments != null && createSaleDto.Payments.Count > 0;
+
         var sale = new Sale
         {
             Id = Guid.NewGuid(),
@@ -107,7 +113,7 @@ public class SalesService : ISalesService
             CustomerId = createSaleDto.CustomerId,
             CashierId = cashierId,
             SaleDate = DateTime.UtcNow,
-            PaymentMethod = createSaleDto.PaymentMethod,
+            PaymentMethod = isSplitPayment ? Backend.Models.Entities.Branch.PaymentMethod.Multiple : (createSaleDto.PaymentMethod ?? Backend.Models.Entities.Branch.PaymentMethod.Cash),
             PaymentReference = createSaleDto.PaymentReference,
             AmountPaid = createSaleDto.AmountPaid,
             ChangeReturned = createSaleDto.ChangeReturned,
@@ -241,6 +247,46 @@ public class SalesService : ISalesService
         sale.Total = total;
         sale.LineItems = lineItems;
 
+        // Handle split payments if provided
+        if (isSplitPayment && createSaleDto.Payments != null)
+        {
+            // Validate that sum of payments equals sale total
+            var paymentTotal = createSaleDto.Payments.Sum(p => p.Amount);
+            if (Math.Abs(paymentTotal - total) > 0.01m) // Allow 1 cent tolerance for rounding
+            {
+                throw new InvalidOperationException(
+                    $"Total of payments ({paymentTotal:C}) must equal sale total ({total:C})"
+                );
+            }
+
+            // Validate that all payment amounts are positive
+            if (createSaleDto.Payments.Any(p => p.Amount <= 0))
+            {
+                throw new InvalidOperationException("All payment amounts must be greater than 0");
+            }
+
+            // Create SalePayment records
+            var salePayments = new List<SalePayment>();
+            foreach (var paymentDto in createSaleDto.Payments)
+            {
+                salePayments.Add(new SalePayment
+                {
+                    SaleId = sale.Id,
+                    PaymentMethod = paymentDto.PaymentMethod,
+                    Amount = paymentDto.Amount,
+                    Reference = paymentDto.Reference,
+                    ProcessedAt = DateTime.UtcNow,
+                    ProcessedBy = cashierId,
+                    Notes = paymentDto.Notes
+                });
+            }
+            sale.Payments = salePayments;
+
+            // Set AmountPaid to total for split payments
+            sale.AmountPaid = paymentTotal;
+            sale.ChangeReturned = 0; // No change in split payment scenario
+        }
+
         // Update customer stats if customer is linked
         if (customer != null)
         {
@@ -266,6 +312,36 @@ public class SalesService : ISalesService
         // Save to database
         context.Sales.Add(sale);
         await context.SaveChangesAsync();
+
+        // Update cash drawer for cash payments
+        try
+        {
+            decimal cashAmount = 0;
+
+            if (isSplitPayment && createSaleDto.Payments != null)
+            {
+                // Sum all cash payments in split payment
+                cashAmount = createSaleDto.Payments
+                    .Where(p => p.PaymentMethod == Backend.Models.Entities.Branch.PaymentMethod.Cash)
+                    .Sum(p => p.Amount);
+            }
+            else if (createSaleDto.PaymentMethod == Backend.Models.Entities.Branch.PaymentMethod.Cash)
+            {
+                // Single cash payment
+                cashAmount = sale.Total;
+            }
+
+            if (cashAmount > 0)
+            {
+                await _cashDrawerService.UpdateExpectedCashAsync(branch.Id, cashAmount);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log the error but don't fail the sale
+            // The cash drawer integration is supplementary
+            Console.WriteLine($"Warning: Failed to update cash drawer: {ex.Message}");
+        }
 
         // Create delivery order if delivery info is provided
         if (createSaleDto.DeliveryInfo != null)

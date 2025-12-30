@@ -11,14 +11,130 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Backend.Migrations.Branch
 {
     [DbContext(typeof(BranchDbContext))]
-    [Migration("20251221180927_AddTableManagementColumns")]
-    partial class AddTableManagementColumns
+    [Migration("20251230192554_AddCashDrawerReturnsPrinterAndSplitPayments")]
+    partial class AddCashDrawerReturnsPrinterAndSplitPayments
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
+
+            modelBuilder.Entity("Backend.Models.Entities.Branch.CashDrawer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        ;
+
+                    b.Property<decimal?>("ActualCash")
+                        .HasPrecision(18, 2)
+                        ;
+
+                    b.Property<Guid>("BranchId")
+                        ;
+
+                    b.Property<DateTime?>("ClosedAt")
+                        ;
+
+                    b.Property<Guid?>("ClosedBy")
+                        ;
+
+                    b.Property<string>("DenominationBreakdown")
+                        ;
+
+                    b.Property<decimal>("ExpectedCash")
+                        .HasPrecision(18, 2)
+                        ;
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        ;
+
+                    b.Property<DateTime>("OpenedAt")
+                        ;
+
+                    b.Property<Guid>("OpenedBy")
+                        ;
+
+                    b.Property<decimal>("OpeningBalance")
+                        .HasPrecision(18, 2)
+                        ;
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        ;
+
+                    b.Property<decimal?>("Variance")
+                        .HasPrecision(18, 2)
+                        ;
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("ClosedAt");
+
+                    b.HasIndex("ClosedBy");
+
+                    b.HasIndex("OpenedAt");
+
+                    b.HasIndex("OpenedBy");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("CashDrawers");
+                });
+
+            modelBuilder.Entity("Backend.Models.Entities.Branch.CashTransaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        ;
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        ;
+
+                    b.Property<Guid>("CashDrawerId")
+                        ;
+
+                    b.Property<DateTime>("CreatedAt")
+                        ;
+
+                    b.Property<Guid>("CreatedBy")
+                        ;
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        ;
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        ;
+
+                    b.Property<string>("Reference")
+                        .HasMaxLength(100)
+                        ;
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        ;
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CashDrawerId");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("Type");
+
+                    b.ToTable("CashTransactions");
+                });
 
             modelBuilder.Entity("Backend.Models.Entities.Branch.Category", b =>
                 {
@@ -533,6 +649,248 @@ namespace Backend.Migrations.Branch
                     b.ToTable("InvoiceTemplates");
                 });
 
+            modelBuilder.Entity("Backend.Models.Entities.Branch.PendingOrder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        ;
+
+                    b.Property<DateTime>("CreatedAt")
+                        ;
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        ;
+
+                    b.Property<string>("CreatedByUsername")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        ;
+
+                    b.Property<Guid?>("CustomerId")
+                        ;
+
+                    b.Property<string>("CustomerName")
+                        .HasMaxLength(200)
+                        ;
+
+                    b.Property<string>("CustomerPhone")
+                        .HasMaxLength(20)
+                        ;
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasPrecision(18, 2)
+                        ;
+
+                    b.Property<DateTime>("ExpiresAt")
+                        ;
+
+                    b.Property<int?>("GuestCount")
+                        ;
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        ;
+
+                    b.Property<string>("OrderNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        ;
+
+                    b.Property<int>("OrderType")
+                        ;
+
+                    b.Property<DateTime?>("RetrievedAt")
+                        ;
+
+                    b.Property<int>("Status")
+                        ;
+
+                    b.Property<decimal>("Subtotal")
+                        .HasPrecision(18, 2)
+                        ;
+
+                    b.Property<Guid?>("TableId")
+                        ;
+
+                    b.Property<int?>("TableNumber")
+                        ;
+
+                    b.Property<decimal>("TaxAmount")
+                        .HasPrecision(18, 2)
+                        ;
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        ;
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        ;
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("CustomerName");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.HasIndex("OrderNumber")
+                        .IsUnique();
+
+                    b.HasIndex("OrderType");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("TableNumber");
+
+                    b.ToTable("PendingOrders");
+                });
+
+            modelBuilder.Entity("Backend.Models.Entities.Branch.PendingOrderItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        ;
+
+                    b.Property<decimal>("Discount")
+                        .HasPrecision(18, 2)
+                        ;
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        ;
+
+                    b.Property<Guid>("PendingOrderId")
+                        ;
+
+                    b.Property<Guid>("ProductId")
+                        ;
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        ;
+
+                    b.Property<string>("ProductSku")
+                        .HasMaxLength(50)
+                        ;
+
+                    b.Property<int>("Quantity")
+                        ;
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 2)
+                        ;
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        ;
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PendingOrderId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("PendingOrderItems");
+                });
+
+            modelBuilder.Entity("Backend.Models.Entities.Branch.PrinterConfiguration", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        ;
+
+                    b.Property<bool>("AutoPrint")
+                        ;
+
+                    b.Property<Guid>("BranchId")
+                        ;
+
+                    b.Property<string>("ConnectionType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        ;
+
+                    b.Property<DateTime>("CreatedAt")
+                        ;
+
+                    b.Property<string>("FooterLine1")
+                        .HasMaxLength(200)
+                        ;
+
+                    b.Property<string>("FooterLine2")
+                        .HasMaxLength(200)
+                        ;
+
+                    b.Property<string>("FooterLine3")
+                        .HasMaxLength(200)
+                        ;
+
+                    b.Property<string>("HeaderLine1")
+                        .HasMaxLength(200)
+                        ;
+
+                    b.Property<string>("HeaderLine2")
+                        .HasMaxLength(200)
+                        ;
+
+                    b.Property<string>("HeaderLine3")
+                        .HasMaxLength(200)
+                        ;
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(50)
+                        ;
+
+                    b.Property<string>("LogoPath")
+                        .HasMaxLength(500)
+                        ;
+
+                    b.Property<int>("PaperWidth")
+                        ;
+
+                    b.Property<int?>("Port")
+                        ;
+
+                    b.Property<bool>("PrintBarcode")
+                        ;
+
+                    b.Property<bool>("PrintLogo")
+                        ;
+
+                    b.Property<bool>("PrintQrCode")
+                        ;
+
+                    b.Property<string>("PrinterModel")
+                        .HasMaxLength(50)
+                        ;
+
+                    b.Property<string>("PrinterName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        ;
+
+                    b.Property<string>("TaxNumber")
+                        .HasMaxLength(100)
+                        ;
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        ;
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("ConnectionType");
+
+                    b.ToTable("PrinterConfigurations");
+                });
+
             modelBuilder.Entity("Backend.Models.Entities.Branch.Product", b =>
                 {
                     b.Property<Guid>("Id")
@@ -747,6 +1105,225 @@ namespace Backend.Migrations.Branch
                     b.ToTable("PurchaseLineItems");
                 });
 
+            modelBuilder.Entity("Backend.Models.Entities.Branch.Return", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        ;
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        ;
+
+                    b.Property<Guid?>("ApprovedBy")
+                        ;
+
+                    b.Property<Guid>("BranchId")
+                        ;
+
+                    b.Property<DateTime?>("CompletedAt")
+                        ;
+
+                    b.Property<Guid?>("CustomerId")
+                        ;
+
+                    b.Property<Guid?>("ExchangeSaleId")
+                        ;
+
+                    b.Property<bool>("IsExchange")
+                        ;
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        ;
+
+                    b.Property<Guid>("OriginalSaleId")
+                        ;
+
+                    b.Property<Guid>("ProcessedBy")
+                        ;
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        ;
+
+                    b.Property<string>("RefundMethod")
+                        .HasMaxLength(50)
+                        ;
+
+                    b.Property<string>("RefundReference")
+                        .HasMaxLength(100)
+                        ;
+
+                    b.Property<decimal>("RestockingFee")
+                        .HasPrecision(18, 2)
+                        ;
+
+                    b.Property<DateTime>("ReturnDate")
+                        ;
+
+                    b.Property<Guid?>("ReturnPolicyId")
+                        ;
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        ;
+
+                    b.Property<decimal>("Subtotal")
+                        .HasPrecision(18, 2)
+                        ;
+
+                    b.Property<decimal>("TaxAmount")
+                        .HasPrecision(18, 2)
+                        ;
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(18, 2)
+                        ;
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApprovedBy");
+
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("ExchangeSaleId");
+
+                    b.HasIndex("OriginalSaleId");
+
+                    b.HasIndex("ProcessedBy");
+
+                    b.HasIndex("ReturnDate");
+
+                    b.HasIndex("ReturnPolicyId");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("Returns");
+                });
+
+            modelBuilder.Entity("Backend.Models.Entities.Branch.ReturnLineItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        ;
+
+                    b.Property<string>("Condition")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        ;
+
+                    b.Property<decimal>("DiscountValue")
+                        .HasPrecision(18, 2)
+                        ;
+
+                    b.Property<decimal>("LineTotal")
+                        .HasPrecision(18, 2)
+                        ;
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        ;
+
+                    b.Property<Guid>("ProductId")
+                        ;
+
+                    b.Property<int>("Quantity")
+                        ;
+
+                    b.Property<bool>("Restocked")
+                        ;
+
+                    b.Property<DateTime?>("RestockedAt")
+                        ;
+
+                    b.Property<Guid>("ReturnId")
+                        ;
+
+                    b.Property<Guid>("SaleLineItemId")
+                        ;
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        ;
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("ReturnId");
+
+                    b.HasIndex("SaleLineItemId");
+
+                    b.ToTable("ReturnLineItems");
+                });
+
+            modelBuilder.Entity("Backend.Models.Entities.Branch.ReturnPolicy", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        ;
+
+                    b.Property<string>("AllowedConditions")
+                        .IsRequired()
+                        ;
+
+                    b.Property<Guid>("BranchId")
+                        ;
+
+                    b.Property<DateTime>("CreatedAt")
+                        ;
+
+                    b.Property<Guid?>("CreatedBy")
+                        ;
+
+                    b.Property<bool>("ExchangeAllowed")
+                        ;
+
+                    b.Property<bool>("IsActive")
+                        ;
+
+                    b.Property<int>("MaxReturnDays")
+                        ;
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        ;
+
+                    b.Property<string>("RefundMethods")
+                        .IsRequired()
+                        ;
+
+                    b.Property<bool>("RequireManagerApproval")
+                        ;
+
+                    b.Property<bool>("RequireReceipt")
+                        ;
+
+                    b.Property<decimal>("RestockingFeePercent")
+                        .HasPrecision(5, 2)
+                        ;
+
+                    b.Property<DateTime>("UpdatedAt")
+                        ;
+
+                    b.Property<Guid?>("UpdatedBy")
+                        ;
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("IsActive");
+
+                    b.ToTable("ReturnPolicies");
+                });
+
             modelBuilder.Entity("Backend.Models.Entities.Branch.Sale", b =>
                 {
                     b.Property<Guid>("Id")
@@ -783,6 +1360,9 @@ namespace Backend.Migrations.Branch
                     b.Property<int>("InvoiceType")
                         ;
 
+                    b.Property<bool>("IsReturn")
+                        ;
+
                     b.Property<bool>("IsVoided")
                         ;
 
@@ -796,11 +1376,28 @@ namespace Backend.Migrations.Branch
                     b.Property<int?>("OrderType")
                         ;
 
+                    b.Property<Guid?>("OriginalSaleId")
+                        ;
+
                     b.Property<int>("PaymentMethod")
                         ;
 
                     b.Property<string>("PaymentReference")
                         .HasMaxLength(200)
+                        ;
+
+                    b.Property<Guid?>("ReturnApprovedBy")
+                        ;
+
+                    b.Property<DateTime?>("ReturnDate")
+                        ;
+
+                    b.Property<string>("ReturnNotes")
+                        .HasMaxLength(500)
+                        ;
+
+                    b.Property<string>("ReturnReason")
+                        .HasMaxLength(100)
                         ;
 
                     b.Property<DateTime>("SaleDate")
@@ -860,9 +1457,15 @@ namespace Backend.Migrations.Branch
                     b.HasIndex("InvoiceNumber")
                         .IsUnique();
 
+                    b.HasIndex("IsReturn");
+
                     b.HasIndex("IsVoided");
 
                     b.HasIndex("OrderType");
+
+                    b.HasIndex("OriginalSaleId");
+
+                    b.HasIndex("ReturnDate");
 
                     b.HasIndex("SaleDate");
 
@@ -899,6 +1502,11 @@ namespace Backend.Migrations.Branch
                         .HasPrecision(18, 2)
                         ;
 
+                    b.Property<string>("ItemStatus")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        ;
+
                     b.Property<decimal>("LineTotal")
                         .HasPrecision(18, 2)
                         ;
@@ -911,6 +1519,9 @@ namespace Backend.Migrations.Branch
                         ;
 
                     b.Property<int>("Quantity")
+                        ;
+
+                    b.Property<int>("ReturnQuantity")
                         ;
 
                     b.Property<Guid>("SaleId")
@@ -926,11 +1537,56 @@ namespace Backend.Migrations.Branch
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ItemStatus");
+
                     b.HasIndex("ProductId");
 
                     b.HasIndex("SaleId");
 
                     b.ToTable("SaleLineItems");
+                });
+
+            modelBuilder.Entity("Backend.Models.Entities.Branch.SalePayment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        ;
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        ;
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        ;
+
+                    b.Property<int>("PaymentMethod")
+                        ;
+
+                    b.Property<DateTime>("ProcessedAt")
+                        ;
+
+                    b.Property<Guid>("ProcessedBy")
+                        ;
+
+                    b.Property<string>("Reference")
+                        .HasMaxLength(100)
+                        ;
+
+                    b.Property<Guid>("SaleId")
+                        ;
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PaymentMethod");
+
+                    b.HasIndex("ProcessedAt");
+
+                    b.HasIndex("ProcessedBy");
+
+                    b.HasIndex("SaleId");
+
+                    b.ToTable("SalePayments");
                 });
 
             modelBuilder.Entity("Backend.Models.Entities.Branch.Setting", b =>
@@ -1104,6 +1760,12 @@ namespace Backend.Migrations.Branch
                         .HasMaxLength(100)
                         ;
 
+                    b.Property<int?>("CurrentGuestCount")
+                        ;
+
+                    b.Property<Guid?>("CurrentSaleId")
+                        ;
+
                     b.Property<DateTime?>("DeletedAt")
                         ;
 
@@ -1122,6 +1784,9 @@ namespace Backend.Migrations.Branch
                     b.Property<int>("Number")
                         ;
 
+                    b.Property<DateTime?>("OccupiedAt")
+                        ;
+
                     b.Property<decimal>("PositionX")
                         .HasPrecision(5, 2)
                         ;
@@ -1134,6 +1799,11 @@ namespace Backend.Migrations.Branch
                         ;
 
                     b.Property<string>("Shape")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        ;
+
+                    b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
                         ;
@@ -1355,6 +2025,43 @@ namespace Backend.Migrations.Branch
                     b.ToTable("Zones");
                 });
 
+            modelBuilder.Entity("Backend.Models.Entities.Branch.CashDrawer", b =>
+                {
+                    b.HasOne("Backend.Models.Entities.Branch.User", "ClosedByUser")
+                        .WithMany()
+                        .HasForeignKey("ClosedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Backend.Models.Entities.Branch.User", "OpenedByUser")
+                        .WithMany()
+                        .HasForeignKey("OpenedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ClosedByUser");
+
+                    b.Navigation("OpenedByUser");
+                });
+
+            modelBuilder.Entity("Backend.Models.Entities.Branch.CashTransaction", b =>
+                {
+                    b.HasOne("Backend.Models.Entities.Branch.CashDrawer", "CashDrawer")
+                        .WithMany("Transactions")
+                        .HasForeignKey("CashDrawerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Backend.Models.Entities.Branch.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CashDrawer");
+
+                    b.Navigation("CreatedByUser");
+                });
+
             modelBuilder.Entity("Backend.Models.Entities.Branch.Category", b =>
                 {
                     b.HasOne("Backend.Models.Entities.Branch.Category", "ParentCategory")
@@ -1399,6 +2106,17 @@ namespace Backend.Migrations.Branch
                         .IsRequired();
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("Backend.Models.Entities.Branch.PendingOrderItem", b =>
+                {
+                    b.HasOne("Backend.Models.Entities.Branch.PendingOrder", "PendingOrder")
+                        .WithMany("Items")
+                        .HasForeignKey("PendingOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PendingOrder");
                 });
 
             modelBuilder.Entity("Backend.Models.Entities.Branch.Product", b =>
@@ -1467,12 +2185,91 @@ namespace Backend.Migrations.Branch
                     b.Navigation("Purchase");
                 });
 
+            modelBuilder.Entity("Backend.Models.Entities.Branch.Return", b =>
+                {
+                    b.HasOne("Backend.Models.Entities.Branch.User", "ApprovedByUser")
+                        .WithMany()
+                        .HasForeignKey("ApprovedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Backend.Models.Entities.Branch.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Backend.Models.Entities.Branch.Sale", "ExchangeSale")
+                        .WithMany()
+                        .HasForeignKey("ExchangeSaleId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Backend.Models.Entities.Branch.Sale", "OriginalSale")
+                        .WithMany()
+                        .HasForeignKey("OriginalSaleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Backend.Models.Entities.Branch.User", "ProcessedByUser")
+                        .WithMany()
+                        .HasForeignKey("ProcessedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Backend.Models.Entities.Branch.ReturnPolicy", "ReturnPolicy")
+                        .WithMany()
+                        .HasForeignKey("ReturnPolicyId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ApprovedByUser");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("ExchangeSale");
+
+                    b.Navigation("OriginalSale");
+
+                    b.Navigation("ProcessedByUser");
+
+                    b.Navigation("ReturnPolicy");
+                });
+
+            modelBuilder.Entity("Backend.Models.Entities.Branch.ReturnLineItem", b =>
+                {
+                    b.HasOne("Backend.Models.Entities.Branch.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Backend.Models.Entities.Branch.Return", "Return")
+                        .WithMany("LineItems")
+                        .HasForeignKey("ReturnId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Backend.Models.Entities.Branch.SaleLineItem", "SaleLineItem")
+                        .WithMany()
+                        .HasForeignKey("SaleLineItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Return");
+
+                    b.Navigation("SaleLineItem");
+                });
+
             modelBuilder.Entity("Backend.Models.Entities.Branch.Sale", b =>
                 {
                     b.HasOne("Backend.Models.Entities.Branch.Customer", "Customer")
                         .WithMany("Sales")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Backend.Models.Entities.Branch.Sale", "OriginalSale")
+                        .WithMany("ReturnedSales")
+                        .HasForeignKey("OriginalSaleId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Backend.Models.Entities.Branch.Table", "Table")
                         .WithMany("Sales")
@@ -1484,6 +2281,8 @@ namespace Backend.Migrations.Branch
                         .HasForeignKey("UserId");
 
                     b.Navigation("Customer");
+
+                    b.Navigation("OriginalSale");
 
                     b.Navigation("Table");
                 });
@@ -1507,6 +2306,25 @@ namespace Backend.Migrations.Branch
                     b.Navigation("Sale");
                 });
 
+            modelBuilder.Entity("Backend.Models.Entities.Branch.SalePayment", b =>
+                {
+                    b.HasOne("Backend.Models.Entities.Branch.User", "ProcessedByUser")
+                        .WithMany()
+                        .HasForeignKey("ProcessedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Backend.Models.Entities.Branch.Sale", "Sale")
+                        .WithMany("Payments")
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ProcessedByUser");
+
+                    b.Navigation("Sale");
+                });
+
             modelBuilder.Entity("Backend.Models.Entities.Branch.Table", b =>
                 {
                     b.HasOne("Backend.Models.Entities.Branch.Zone", "Zone")
@@ -1525,6 +2343,11 @@ namespace Backend.Migrations.Branch
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("BaseUnit");
+                });
+
+            modelBuilder.Entity("Backend.Models.Entities.Branch.CashDrawer", b =>
+                {
+                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("Backend.Models.Entities.Branch.Category", b =>
@@ -1551,6 +2374,11 @@ namespace Backend.Migrations.Branch
                     b.Navigation("Expenses");
                 });
 
+            modelBuilder.Entity("Backend.Models.Entities.Branch.PendingOrder", b =>
+                {
+                    b.Navigation("Items");
+                });
+
             modelBuilder.Entity("Backend.Models.Entities.Branch.Product", b =>
                 {
                     b.Navigation("Images");
@@ -1565,11 +2393,20 @@ namespace Backend.Migrations.Branch
                     b.Navigation("LineItems");
                 });
 
+            modelBuilder.Entity("Backend.Models.Entities.Branch.Return", b =>
+                {
+                    b.Navigation("LineItems");
+                });
+
             modelBuilder.Entity("Backend.Models.Entities.Branch.Sale", b =>
                 {
                     b.Navigation("DeliveryOrder");
 
                     b.Navigation("LineItems");
+
+                    b.Navigation("Payments");
+
+                    b.Navigation("ReturnedSales");
                 });
 
             modelBuilder.Entity("Backend.Models.Entities.Branch.Supplier", b =>

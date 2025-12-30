@@ -190,7 +190,7 @@ public class SyncService : ISyncService
             CustomerId = saleData.CustomerId,
             CashierId = cashierId,
             SaleDate = clientTimestamp, // Use client timestamp, not server time
-            PaymentMethod = saleData.PaymentMethod,
+            PaymentMethod = saleData.PaymentMethod ?? Models.Entities.Branch.PaymentMethod.Cash,
             PaymentReference = saleData.PaymentReference,
             Notes = saleData.Notes,
             IsVoided = false,

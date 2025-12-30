@@ -19,8 +19,8 @@ public class CreateSaleDto
     [MinLength(1, ErrorMessage = "At least one line item is required")]
     public List<CreateSaleLineItemDto> LineItems { get; set; } = new();
 
-    [Required]
-    public PaymentMethod PaymentMethod { get; set; }
+    // Single payment (legacy/simple mode)
+    public PaymentMethod? PaymentMethod { get; set; }
 
     [MaxLength(200)]
     public string? PaymentReference { get; set; }
@@ -30,6 +30,10 @@ public class CreateSaleDto
 
     [Range(0, double.MaxValue, ErrorMessage = "Change returned cannot be negative")]
     public decimal? ChangeReturned { get; set; }
+
+    // Split payment mode (multiple payment methods)
+    // If Payments is provided, it will be used instead of PaymentMethod
+    public List<CreateSalePaymentDto>? Payments { get; set; }
 
     // Invoice-level discount (applied to entire invoice)
     public DiscountType InvoiceDiscountType { get; set; } = DiscountType.None;

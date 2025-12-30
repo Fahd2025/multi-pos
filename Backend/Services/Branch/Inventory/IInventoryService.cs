@@ -18,6 +18,7 @@ public interface IInventoryService
         int pageSize = 50);
 
     Task<ProductDto?> GetProductByIdAsync(Guid productId);
+    Task<ProductDto?> GetProductByBarcodeAsync(string barcode);
     Task<ProductDto> CreateProductAsync(CreateProductDto dto, Guid userId);
     Task<ProductDto> UpdateProductAsync(Guid productId, UpdateProductDto dto);
     Task DeleteProductAsync(Guid productId);

@@ -826,7 +826,7 @@ public static class SalesEndpoints
                 }
             )
             .RequireAuthorization()
-            .WithName("ProcessReturn")
+            .WithName("CreateSaleReturn")
             .WithOpenApi();
 
         // GET /api/v1/sales/{id:guid}/returns - Get all returns for a sale

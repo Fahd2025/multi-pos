@@ -152,6 +152,53 @@ public class InventoryService : IInventoryService
         };
     }
 
+    public async Task<ProductDto?> GetProductByBarcodeAsync(string barcode)
+    {
+        var product = await _context.Products
+            .Include(p => p.Category)
+            .Include(p => p.Supplier)
+            .Include(p => p.Images)
+            .FirstOrDefaultAsync(p => p.Barcode == barcode && p.IsActive);
+
+        if (product == null)
+            return null;
+
+        return new ProductDto
+        {
+            Id = product.Id,
+            SKU = product.SKU,
+            NameEn = product.NameEn,
+            NameAr = product.NameAr,
+            DescriptionEn = product.DescriptionEn,
+            DescriptionAr = product.DescriptionAr,
+            CategoryId = product.CategoryId,
+            CategoryNameEn = product.Category.NameEn,
+            CategoryNameAr = product.Category.NameAr,
+            SellingPrice = product.SellingPrice,
+            CostPrice = product.CostPrice,
+            StockLevel = product.StockLevel,
+            MinStockThreshold = product.MinStockThreshold,
+            HasInventoryDiscrepancy = product.HasInventoryDiscrepancy,
+            SupplierId = product.SupplierId,
+            SupplierName = product.Supplier?.NameEn,
+            Barcode = product.Barcode,
+            IsActive = product.IsActive,
+            CreatedAt = product.CreatedAt,
+            UpdatedAt = product.UpdatedAt,
+            CreatedBy = product.CreatedBy,
+            Images = product.Images
+                .OrderBy(i => i.DisplayOrder)
+                .Select(i => new ProductImageDto
+                {
+                    Id = i.Id,
+                    ImagePath = i.ImagePath,
+                    ThumbnailPath = i.ThumbnailPath,
+                    DisplayOrder = i.DisplayOrder
+                })
+                .ToList()
+        };
+    }
+
     public async Task<ProductDto> CreateProductAsync(CreateProductDto dto, Guid userId)
     {
         // Validate category exists

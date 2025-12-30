@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -344,25 +344,21 @@ namespace Backend.Migrations.Branch
                 migrationBuilder.AddColumn<int>(
                     name: "TableId",
                     table: "Sales",
-                    type: "INTEGER",
                     nullable: true);
 
                 migrationBuilder.AddColumn<int>(
                     name: "TableNumber",
                     table: "Sales",
-                    type: "INTEGER",
                     nullable: true);
 
                 migrationBuilder.AddColumn<int>(
                     name: "GuestCount",
                     table: "Sales",
-                    type: "INTEGER",
                     nullable: true);
 
                 migrationBuilder.AddColumn<string>(
                     name: "Status",
                     table: "Sales",
-                    type: "TEXT",
                     maxLength: 20,
                     nullable: false,
                     defaultValue: "Completed");
@@ -370,7 +366,6 @@ namespace Backend.Migrations.Branch
                 migrationBuilder.AddColumn<DateTime>(
                     name: "CompletedAt",
                     table: "Sales",
-                    type: "TEXT",
                     nullable: true);
             }
 

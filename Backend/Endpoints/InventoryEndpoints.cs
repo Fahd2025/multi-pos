@@ -238,6 +238,40 @@ public static class InventoryEndpoints
             .WithName("GetProducts")
             .WithOpenApi();
 
+        // GET /api/v1/products/barcode/{barcode} - Get product by barcode
+        productGroup
+            .MapGet(
+                "/barcode/{barcode}",
+                async (
+                    string barcode,
+                    IInventoryService inventoryService
+                ) =>
+                {
+                    try
+                    {
+                        var product = await inventoryService.GetProductByBarcodeAsync(barcode);
+
+                        if (product == null)
+                        {
+                            return Results.NotFound(
+                                new { success = false, error = new { code = "NOT_FOUND", message = $"Product with barcode '{barcode}' not found" } }
+                            );
+                        }
+
+                        return Results.Ok(new { success = true, data = product });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(
+                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                        );
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("GetProductByBarcode")
+            .WithOpenApi();
+
         // POST /api/v1/products - Create a new product
         productGroup
             .MapPost(

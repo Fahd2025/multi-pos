@@ -51,6 +51,9 @@ builder.Services.AddDbContext<HeadOfficeDbContext>(options =>
 // Configure DbContextFactory
 builder.Services.AddSingleton<DbContextFactory>();
 
+// Register IDbContextFactory<BranchDbContext> for services that need it (like printing)
+builder.Services.AddScoped<Microsoft.EntityFrameworkCore.IDbContextFactory<BranchDbContext>, Backend.Data.Branch.BranchDbContextRuntimeFactory>();
+
 // Migration Services
 builder.Services.AddScoped<Backend.Services.Shared.Migrations.SqliteMigrationStrategy>();
 builder.Services.AddScoped<Backend.Services.Shared.Migrations.SqlServerMigrationStrategy>();
@@ -171,6 +174,18 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     Backend.Services.Branch.PendingOrders.IPendingOrdersService,
     Backend.Services.Branch.PendingOrders.PendingOrdersService
+>();
+builder.Services.AddScoped<
+    Backend.Services.Branch.CashDrawer.ICashDrawerService,
+    Backend.Services.Branch.CashDrawer.CashDrawerService
+>();
+builder.Services.AddScoped<
+    Backend.Services.Branch.Returns.IReturnService,
+    Backend.Services.Branch.Returns.ReturnService
+>();
+builder.Services.AddScoped<
+    Backend.Services.Shared.Printing.IPrintService,
+    Backend.Services.Shared.Printing.EscPosPrintService
 >();
 
 builder.Services.AddHttpContextAccessor();
@@ -412,6 +427,15 @@ app.MapTableEndpoints();
 
 // Pending Orders Endpoints
 app.MapPendingOrdersEndpoints();
+
+// Cash Drawer Endpoints
+app.MapCashDrawerEndpoints();
+
+// Return and Refund Endpoints
+app.MapReturnEndpoints();
+
+// Printing Endpoints
+app.MapPrintingEndpoints();
 
 app.Run();
 

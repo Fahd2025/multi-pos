@@ -106,6 +106,7 @@ public class Sale
     public ICollection<SaleLineItem> LineItems { get; set; } = new List<SaleLineItem>();
     public DeliveryOrder? DeliveryOrder { get; set; }
     public Table? Table { get; set; }
+    public ICollection<SalePayment> Payments { get; set; } = new List<SalePayment>(); // Support for split payments
 
     // Self-referencing relationships for returns
     public Sale? OriginalSale { get; set; } // The original sale (if this is a return)

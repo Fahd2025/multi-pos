@@ -17,6 +17,7 @@ import {
   ClipboardList,
   Truck,
   LayoutGrid,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 
@@ -129,6 +130,11 @@ export const BRANCH_ROUTES = {
   // Table Management
   TABLES: (locale: string) => `/${locale}/branch/tables`,
   ZONES: (locale: string) => `/${locale}/branch/tables/zones`,
+
+  // Cash Drawer
+  CASH_DRAWER: (locale: string) => `/${locale}/branch/cash-drawer`,
+  CASH_DRAWER_HISTORY: (locale: string) => `/${locale}/branch/cash-drawer/history`,
+  CASH_DRAWER_RECONCILIATION: (locale: string, id: string) => `/${locale}/branch/cash-drawer/reconciliation/${id}`,
 };
 
 /**
@@ -167,6 +173,12 @@ export const getBranchNavigation = (locale: string): NavigationItem[] => [
     name: "Sales",
     href: BRANCH_ROUTES.SALES(locale),
     icon: DollarSign,
+    variant: "sales"
+  },
+  {
+    name: "Cash Drawer",
+    href: BRANCH_ROUTES.CASH_DRAWER(locale),
+    icon: Wallet,
     variant: "sales"
   },
   {

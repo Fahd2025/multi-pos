@@ -17,6 +17,7 @@ public class BranchDbContext : DbContext
     public DbSet<Supplier> Suppliers { get; set; }
     public DbSet<Sale> Sales { get; set; }
     public DbSet<SaleLineItem> SaleLineItems { get; set; }
+    public DbSet<SalePayment> SalePayments { get; set; }
     public DbSet<Purchase> Purchases { get; set; }
     public DbSet<PurchaseLineItem> PurchaseLineItems { get; set; }
     public DbSet<Expense> Expenses { get; set; }
@@ -31,6 +32,12 @@ public class BranchDbContext : DbContext
     public DbSet<Table> Tables { get; set; }
     public DbSet<PendingOrder> PendingOrders { get; set; }
     public DbSet<PendingOrderItem> PendingOrderItems { get; set; }
+    public DbSet<CashDrawer> CashDrawers { get; set; }
+    public DbSet<CashTransaction> CashTransactions { get; set; }
+    public DbSet<ReturnPolicy> ReturnPolicies { get; set; }
+    public DbSet<Return> Returns { get; set; }
+    public DbSet<ReturnLineItem> ReturnLineItems { get; set; }
+    public DbSet<PrinterConfiguration> PrinterConfigurations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -205,6 +212,31 @@ public class BranchDbContext : DbContext
                 .HasOne(e => e.Product)
                 .WithMany(p => p.SaleLineItems)
                 .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // SalePayment configuration (Split Payment Support)
+        modelBuilder.Entity<SalePayment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.SaleId);
+            entity.HasIndex(e => e.PaymentMethod);
+            entity.HasIndex(e => e.ProcessedAt);
+            entity.HasIndex(e => e.ProcessedBy);
+
+            entity.Property(e => e.Amount).HasPrecision(18, 2);
+
+            // Relationships
+            entity
+                .HasOne(e => e.Sale)
+                .WithMany(s => s.Payments)
+                .HasForeignKey(e => e.SaleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasOne(e => e.ProcessedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.ProcessedBy)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -427,5 +459,179 @@ public class BranchDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        }
+        // CashDrawer configuration
+        modelBuilder.Entity<CashDrawer>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.BranchId);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.OpenedAt);
+            entity.HasIndex(e => e.ClosedAt);
+            entity.HasIndex(e => e.OpenedBy);
+
+            entity.Property(e => e.OpeningBalance).HasPrecision(18, 2);
+            entity.Property(e => e.ExpectedCash).HasPrecision(18, 2);
+            entity.Property(e => e.ActualCash).HasPrecision(18, 2);
+            entity.Property(e => e.Variance).HasPrecision(18, 2);
+
+            // Relationships
+            entity
+                .HasOne(e => e.OpenedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.OpenedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity
+                .HasOne(e => e.ClosedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.ClosedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity
+                .HasMany(e => e.Transactions)
+                .WithOne(t => t.CashDrawer)
+                .HasForeignKey(t => t.CashDrawerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // CashTransaction configuration
+        modelBuilder.Entity<CashTransaction>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.CashDrawerId);
+            entity.HasIndex(e => e.Type);
+            entity.HasIndex(e => e.CreatedAt);
+            entity.HasIndex(e => e.CreatedBy);
+
+            entity.Property(e => e.Amount).HasPrecision(18, 2);
+
+            // Relationships
+            entity
+                .HasOne(e => e.CashDrawer)
+                .WithMany(cd => cd.Transactions)
+                .HasForeignKey(e => e.CashDrawerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasOne(e => e.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ReturnPolicy configuration
+        modelBuilder.Entity<ReturnPolicy>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.BranchId);
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => e.CreatedAt);
+
+            entity.Property(e => e.RestockingFeePercent).HasPrecision(5, 2);
+        });
+
+        // Return configuration
+        modelBuilder.Entity<Return>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.BranchId);
+            entity.HasIndex(e => e.OriginalSaleId);
+            entity.HasIndex(e => e.CustomerId);
+            entity.HasIndex(e => e.ReturnDate);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.ProcessedBy);
+
+            entity.Property(e => e.Subtotal).HasPrecision(18, 2);
+            entity.Property(e => e.TaxAmount).HasPrecision(18, 2);
+            entity.Property(e => e.RestockingFee).HasPrecision(18, 2);
+            entity.Property(e => e.Total).HasPrecision(18, 2);
+
+            // Relationships
+            entity
+                .HasOne(e => e.OriginalSale)
+                .WithMany()
+                .HasForeignKey(e => e.OriginalSaleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity
+                .HasOne(e => e.Customer)
+                .WithMany()
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity
+                .HasOne(e => e.ProcessedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.ProcessedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity
+                .HasOne(e => e.ApprovedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.ApprovedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity
+                .HasOne(e => e.ReturnPolicy)
+                .WithMany()
+                .HasForeignKey(e => e.ReturnPolicyId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity
+                .HasOne(e => e.ExchangeSale)
+                .WithMany()
+                .HasForeignKey(e => e.ExchangeSaleId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity
+                .HasMany(e => e.LineItems)
+                .WithOne(li => li.Return)
+                .HasForeignKey(li => li.ReturnId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ReturnLineItem configuration
+        modelBuilder.Entity<ReturnLineItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.ReturnId);
+            entity.HasIndex(e => e.SaleLineItemId);
+            entity.HasIndex(e => e.ProductId);
+
+            entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
+            entity.Property(e => e.DiscountValue).HasPrecision(18, 2);
+            entity.Property(e => e.LineTotal).HasPrecision(18, 2);
+
+            // Relationships
+            entity
+                .HasOne(e => e.Return)
+                .WithMany(r => r.LineItems)
+                .HasForeignKey(e => e.ReturnId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasOne(e => e.SaleLineItem)
+                .WithMany()
+                .HasForeignKey(e => e.SaleLineItemId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity
+                .HasOne(e => e.Product)
+                .WithMany()
+                .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // PrinterConfiguration configuration
+        modelBuilder.Entity<PrinterConfiguration>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.BranchId);
+            entity.HasIndex(e => e.ConnectionType);
+
+            // Typically one printer per branch, but could have multiple
+            entity.Property(e => e.PrinterName).IsRequired();
+            entity.Property(e => e.ConnectionType).IsRequired();
+        });
+    }
 }
