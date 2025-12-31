@@ -21,7 +21,9 @@ export default function CashDrawerHistoryPage() {
       setLoading(true);
       const token = localStorage.getItem("access_token");
 
-      let url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5062'}/api/v1/cash-drawer/history?page=1&pageSize=100`;
+      let url = `${
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5062"
+      }/api/v1/cash-drawer/history?page=1&pageSize=100`;
 
       if (startDate) {
         url += `&startDate=${startDate}`;
@@ -53,7 +55,9 @@ export default function CashDrawerHistoryPage() {
     try {
       const token = localStorage.getItem("access_token");
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5062'}/api/v1/cash-drawer/${drawerId}`,
+        `${
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5062"
+        }/api/v1/cash-drawer/${drawerId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -80,12 +84,15 @@ export default function CashDrawerHistoryPage() {
     return new Date(dateString).toLocaleString();
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | null | undefined) => {
+    if (amount === null || amount === undefined) {
+      return "$0.00";
+    }
     return `$${amount.toFixed(2)}`;
   };
 
   return (
-    <div className="p-6">
+    <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Cash Drawer History</h1>
         <p className="text-gray-600">View all cash drawer sessions and their details</p>
@@ -95,9 +102,7 @@ export default function CashDrawerHistoryPage() {
       <div className="bg-white rounded-lg shadow-md p-4 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Start Date
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
             <input
               type="date"
               value={startDate}
@@ -106,9 +111,7 @@ export default function CashDrawerHistoryPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              End Date
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
             <input
               type="date"
               value={endDate}
@@ -180,9 +183,7 @@ export default function CashDrawerHistoryPage() {
                   <div className="grid grid-cols-3 gap-2 text-sm">
                     <div>
                       <div className="text-gray-600">Opening</div>
-                      <div className="font-semibold">
-                        {formatCurrency(drawer.openingBalance)}
-                      </div>
+                      <div className="font-semibold">{formatCurrency(drawer.openingBalance)}</div>
                     </div>
                     <div>
                       <div className="text-gray-600">Transactions</div>
@@ -274,16 +275,18 @@ export default function CashDrawerHistoryPage() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-3 gap-4 text-sm">
                     <div>
-                      <div className="text-gray-600">Sales Count</div>
+                      <div className="text-gray-600">Sales</div>
                       <div className="font-semibold">{selectedDrawer.salesCount}</div>
                     </div>
                     <div>
-                      <div className="text-gray-600">Cash Transactions</div>
-                      <div className="font-semibold">
-                        {selectedDrawer.transactions.length}
-                      </div>
+                      <div className="text-gray-600">Drawer Ops</div>
+                      <div className="font-semibold">{selectedDrawer.transactions.length}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-600">Total Txns</div>
+                      <div className="font-semibold">{selectedDrawer.totalTransactionCount}</div>
                     </div>
                   </div>
                 </div>
@@ -291,7 +294,9 @@ export default function CashDrawerHistoryPage() {
                 {/* Transactions List */}
                 {selectedDrawer.transactions.length > 0 && (
                   <div>
-                    <h3 className="font-semibold mb-3">Cash Transactions</h3>
+                    <h3 className="font-semibold mb-3">
+                      Drawer Operations (Deposits, Withdrawals, Petty Cash)
+                    </h3>
                     <div className="space-y-2 max-h-96 overflow-y-auto">
                       {selectedDrawer.transactions.map((transaction) => (
                         <div
@@ -301,15 +306,11 @@ export default function CashDrawerHistoryPage() {
                           <div className="flex justify-between items-start mb-2">
                             <div>
                               <div className="font-medium">{transaction.type}</div>
-                              <div className="text-sm text-gray-600">
-                                {transaction.reason}
-                              </div>
+                              <div className="text-sm text-gray-600">{transaction.reason}</div>
                             </div>
                             <div
                               className={`text-lg font-bold ${
-                                transaction.amount >= 0
-                                  ? "text-green-600"
-                                  : "text-red-600"
+                                transaction.amount >= 0 ? "text-green-600" : "text-red-600"
                               }`}
                             >
                               {transaction.amount >= 0 ? "+" : ""}
@@ -317,8 +318,7 @@ export default function CashDrawerHistoryPage() {
                             </div>
                           </div>
                           <div className="text-xs text-gray-500">
-                            {formatDate(transaction.createdAt)} •{" "}
-                            {transaction.createdByUsername}
+                            {formatDate(transaction.createdAt)} • {transaction.createdByUsername}
                             {transaction.reference && ` • Ref: ${transaction.reference}`}
                           </div>
                           {transaction.notes && (

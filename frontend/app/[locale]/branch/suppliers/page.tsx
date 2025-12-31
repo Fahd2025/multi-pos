@@ -7,13 +7,21 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { DataTable, StatCard, ConfirmationDialog, FeaturedDialog } from "@/components/shared";
+import {
+  DataTable,
+  StatCard,
+  ConfirmationDialog,
+  FeaturedDialog,
+  ActiveFiltersBadge,
+  SearchInput,
+} from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { useModal } from "@/hooks/useModal";
 import { useConfirmation } from "@/hooks/useConfirmation";
 import { useApiOperation } from "@/hooks/useApiOperation";
+import { useTableFilters } from "@/hooks/useTableFilters";
 import { DataTableColumn, DataTableAction, DisplayField } from "@/types/data-table.types";
 import { SupplierDto } from "@/types/api.types";
 import supplierService from "@/services/supplier.service";
@@ -26,6 +34,7 @@ import Link from "next/link";
 import { RoleGuard, usePermission } from "@/components/auth/RoleGuard";
 import { UserRole } from "@/types/enums";
 import { Button } from "@/components/shared/Button";
+import { XCircle, X } from "lucide-react";
 
 export default function SuppliersPage() {
   const params = useParams();
@@ -43,14 +52,18 @@ export default function SuppliersPage() {
   const [isImageCarouselOpen, setIsImageCarouselOpen] = useState(false);
   const [selectedSupplierImage, setSelectedSupplierImage] = useState<string>("");
 
-  // Filter states (input values)
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showActiveOnly, setShowActiveOnly] = useState(true);
-
-  // Applied filters (what's actually being used in the API call)
-  const [appliedFilters, setAppliedFilters] = useState({
-    search: "",
-    isActive: true,
+  // Table filters using useTableFilters hook
+  const filters = useTableFilters({
+    filterDefinitions: [
+      { type: "search", label: "Search", defaultValue: "" },
+      {
+        type: "isActive",
+        label: "Status",
+        defaultValue: true,
+        getDisplayValue: (val: boolean) => (val ? "" : "All (Active & Inactive)"),
+      },
+    ],
+    onFiltersChange: () => setCurrentPage(1),
   });
 
   // Pagination
@@ -75,46 +88,12 @@ export default function SuppliersPage() {
   const { execute } = useApiOperation();
 
   /**
-   * Count active filters (based on applied filters, not input values)
-   */
-  const getActiveFilterCount = () => {
-    let count = 0;
-    if (!appliedFilters.isActive) count++; // Count if "show all" is active
-    return count;
-  };
-
-  const activeFilterCount = getActiveFilterCount();
-
-  /**
-   * Check if any filters are active (based on applied filters, not input values)
-   */
-  const hasActiveFilters = activeFilterCount > 0 || !!appliedFilters.search;
-
-  /**
-   * Get active filter labels for display (based on applied filters)
-   */
-  const getActiveFilters = () => {
-    const filters: { type: string; label: string; value: string }[] = [];
-
-    if (appliedFilters.search) {
-      filters.push({ type: "search", label: "Search", value: appliedFilters.search });
-    }
-    if (!appliedFilters.isActive) {
-      filters.push({ type: "isActive", label: "Status", value: "All (Active & Inactive)" });
-    }
-
-    return filters;
-  };
-
-  const activeFilters = getActiveFilters();
-
-  /**
    * Load suppliers with server-side filtering and pagination
    */
   useEffect(() => {
     loadSuppliers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage]);
+  }, [currentPage, filters.appliedFilters]);
 
   /**
    * Load all suppliers for statistics (without filters)
@@ -131,8 +110,8 @@ export default function SuppliersPage() {
       const response = await supplierService.getSuppliers({
         page: currentPage,
         pageSize,
-        searchTerm: appliedFilters.search || undefined,
-        includeInactive: !appliedFilters.isActive,
+        searchTerm: filters.appliedFilters.search || undefined,
+        includeInactive: !filters.appliedFilters.isActive,
       });
       setSuppliers(response.data);
       setTotalPages(response.pagination.totalPages);
@@ -154,92 +133,6 @@ export default function SuppliersPage() {
       setAllSuppliers(response.data || []);
     } catch (err) {
       console.error("Failed to load all suppliers for stats:", err);
-    }
-  };
-
-  /**
-   * Apply filters (called by Apply Filters button)
-   */
-  const handleApplyFilters = () => {
-    // Save the current filter values as applied filters
-    setAppliedFilters({
-      search: searchTerm,
-      isActive: showActiveOnly,
-    });
-    setCurrentPage(1);
-    // Will trigger loadSuppliers via useEffect
-    setTimeout(() => loadSuppliers(), 0);
-  };
-
-  /**
-   * Reset all filters
-   */
-  const handleResetFilters = async () => {
-    // Reset all filter states
-    setSearchTerm("");
-    setShowActiveOnly(true);
-    setAppliedFilters({
-      search: "",
-      isActive: true,
-    });
-    setCurrentPage(1);
-
-    // Fetch with empty filters
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await supplierService.getSuppliers({ page: 1, pageSize });
-      setSuppliers(response.data);
-      setTotalPages(response.pagination.totalPages);
-      setTotalItems(response.pagination.totalItems);
-    } catch (err) {
-      setError("Failed to load suppliers. Please try again.");
-      console.error("Error loading suppliers:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  /**
-   * Remove individual filter
-   */
-  const handleRemoveFilter = async (filterType: string) => {
-    // Reset the specific filter in both input and applied states
-    switch (filterType) {
-      case "search":
-        setSearchTerm("");
-        setAppliedFilters((prev) => ({ ...prev, search: "" }));
-        break;
-      case "isActive":
-        setShowActiveOnly(true);
-        setAppliedFilters((prev) => ({ ...prev, isActive: true }));
-        break;
-    }
-
-    // Reset to first page and trigger refetch
-    setCurrentPage(1);
-
-    // Build updated filters for immediate fetch
-    const updatedFilters = {
-      page: 1,
-      pageSize,
-      searchTerm: filterType === "search" ? undefined : searchTerm || undefined,
-      includeInactive: filterType === "isActive" ? false : !showActiveOnly,
-    };
-
-    // Fetch with updated filters immediately
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await supplierService.getSuppliers(updatedFilters);
-      setSuppliers(response.data);
-      setTotalPages(response.pagination.totalPages);
-      setTotalItems(response.pagination.totalItems);
-    } catch (err) {
-      setError("Failed to load suppliers. Please try again.");
-      console.error("Error loading suppliers:", err);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -519,8 +412,8 @@ export default function SuppliersPage() {
             <p className="text-gray-600">Manage your suppliers and track purchase history</p>
           </div>
           <Button
-            variant="primary"
-            size="md"
+            variant="default"
+            size="default"
             onClick={() => {
               setSelectedSupplier(undefined);
               setIsModalOpen(true);
@@ -533,17 +426,10 @@ export default function SuppliersPage() {
         {/* Error Alert */}
         {error && (
           <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start">
-            <svg
+            <XCircle
               className="w-5 h-5 text-red-600 mt-0.5 mr-3 flex-shrink-0"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                clipRule="evenodd"
-              />
-            </svg>
+              aria-hidden="true"
+            />
             <div>
               <h3 className="text-sm font-medium text-red-800">Error</h3>
               <p className="text-sm text-red-700 mt-1">{error}</p>
@@ -551,14 +437,9 @@ export default function SuppliersPage() {
             <button
               onClick={() => setError(null)}
               className="ml-auto text-red-600 hover:text-red-800"
+              aria-label="Dismiss error"
             >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
+              <X className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
         )}
@@ -598,47 +479,13 @@ export default function SuppliersPage() {
         </div>
 
         {/* Active Filters Display - Full Width */}
-        {!isLoading && !error && activeFilters.length > 0 && (
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-5 py-3 mb-6">
-            <div className="flex items-center flex-wrap gap-2">
-              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                Active Filters:
-              </span>
-              {activeFilters.map((filter) => (
-                <span
-                  key={filter.type}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100 rounded-full text-sm font-medium"
-                >
-                  <span className="font-semibold">{filter.label}:</span>
-                  <span>{filter.value}</span>
-                  <button
-                    onClick={() => handleRemoveFilter(filter.type)}
-                    className="ml-1 hover:bg-blue-200 dark:hover:bg-blue-700 rounded-full p-0.5 transition-colors"
-                    title={`Remove ${filter.label} filter`}
-                  >
-                    <svg
-                      className="w-3.5 h-3.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </span>
-              ))}
-              <button
-                onClick={handleResetFilters}
-                className="ml-2 text-sm text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 font-medium underline"
-              >
-                Clear All
-              </button>
-            </div>
+        {!isLoading && !error && (
+          <div className="mb-6">
+            <ActiveFiltersBadge
+              filters={filters.activeFilters}
+              onRemove={filters.removeFilter}
+              onClearAll={filters.resetFilters}
+            />
           </div>
         )}
 
@@ -663,50 +510,16 @@ export default function SuppliersPage() {
           emptyMessage="No suppliers found. Click 'Add Supplier' to create one."
           showRowNumbers
           showFilterButton
-          activeFilterCount={activeFilterCount}
-          showResetButton={hasActiveFilters}
-          onResetFilters={handleResetFilters}
+          activeFilterCount={filters.activeFilterCount}
+          showResetButton={filters.hasActiveFilters}
+          onResetFilters={filters.resetFilters}
           searchBar={
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg
-                    className="h-5 w-5 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search by name, code, email, phone..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleApplyFilters()}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
-                />
-              </div>
-              <button
-                onClick={handleApplyFilters}
-                className="px-4 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors whitespace-nowrap"
-              >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </button>
-            </div>
+            <SearchInput
+              value={filters.filterValues.search}
+              onChange={(val) => filters.setFilterValue("search", val)}
+              onSearch={filters.applyFilters}
+              placeholder="Search by name, code, email, phone..."
+            />
           }
           filterSection={
             <div className="space-y-4">
@@ -720,8 +533,8 @@ export default function SuppliersPage() {
                     <label className="flex items-center cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={showActiveOnly}
-                        onChange={(e) => setShowActiveOnly(e.target.checked)}
+                        checked={filters.filterValues.isActive}
+                        onChange={(e) => filters.setFilterValue("isActive", e.target.checked)}
                         className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                       />
                       <span className="ml-2 text-sm text-gray-900 dark:text-gray-100">
@@ -734,12 +547,9 @@ export default function SuppliersPage() {
 
               {/* Filter Actions */}
               <div className="flex justify-end gap-2">
-                <button
-                  onClick={handleApplyFilters}
-                  className="px-6 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
-                >
+                <Button variant="primary" onClick={filters.applyFilters}>
                   Apply Filters
-                </button>
+                </Button>
               </div>
             </div>
           }

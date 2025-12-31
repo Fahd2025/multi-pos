@@ -13,7 +13,7 @@
  *   <p>Here are some helpful tips for using this feature...</p>
  * </InfoBanner>
  *
- * <InfoBanner variant="warning" title="Important Notice">
+ * <InfoBanner variant="secondary" title="Important Notice">
  *   Please backup your data before proceeding.
  * </InfoBanner>
  * ```

@@ -178,7 +178,7 @@ export default function SupplierDetailsPage({
       <div className="container mx-auto p-6">
         <ErrorAlert message={error || "Supplier not found"} />
         <Link href={`/${locale}/branch/suppliers`}>
-          <Button variant="secondary" size="md" className="mt-4">
+          <Button variant="secondary" size="default" className="mt-4">
             ← Back to Suppliers
           </Button>
         </Link>

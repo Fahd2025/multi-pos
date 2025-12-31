@@ -10,13 +10,20 @@
 import React, { useState, useEffect } from "react";
 import { use } from "react";
 import { useRouter } from "next/navigation";
-import { DataTable, FeaturedDialog, ConfirmationDialog } from "@/components/shared";
+import {
+  DataTable,
+  FeaturedDialog,
+  ConfirmationDialog,
+  ActiveFiltersBadge,
+  SearchInput,
+} from "@/components/shared";
 import { useDataTable } from "@/hooks/useDataTable";
 import { useModal } from "@/hooks/useModal";
 import { useConfirmation } from "@/hooks/useConfirmation";
 import { useApiError } from "@/hooks/useApiError";
 import { useApiOperation } from "@/hooks/useApiOperation";
 import { useToast } from "@/hooks/useToast";
+import { useTableFilters } from "@/hooks/useTableFilters";
 import {
   DataTableColumn,
   DataTableAction,
@@ -37,6 +44,7 @@ import Link from "next/link";
 import { RoleGuard, usePermission } from "@/components/auth/RoleGuard";
 import { UserRole } from "@/types/enums";
 import { Button } from "@/components/shared/Button";
+import { XCircle, X } from "lucide-react";
 
 export default function BranchUsersPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
@@ -49,16 +57,25 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Filter input states (draft)
-  const [searchQuery, setSearchQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-
-  // Applied filters (active)
-  const [appliedFilters, setAppliedFilters] = useState({
-    search: "",
-    role: "all",
-    status: "all",
+  // Table filters using new hook
+  const filters = useTableFilters({
+    filterDefinitions: [
+      { type: "search", label: "Search", defaultValue: "" },
+      {
+        type: "role",
+        label: "Role",
+        defaultValue: "all",
+        getDisplayValue: (val: string) => (val === "all" ? "All Roles" : val),
+      },
+      {
+        type: "status",
+        label: "Status",
+        defaultValue: "all",
+        getDisplayValue: (val: string) =>
+          val === "all" ? "All Statuses" : val === "active" ? "Active" : "Inactive",
+      },
+    ],
+    onFiltersChange: () => {}, // No pagination reset needed for client-side filtering
   });
 
   // Error handling
@@ -99,7 +116,7 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
   useEffect(() => {
     applyFilters();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [users, appliedFilters]);
+  }, [users, filters.appliedFilters]);
 
   const loadUsers = async () => {
     try {
@@ -119,20 +136,20 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
     let filtered = [...users];
 
     // Role filter
-    if (appliedFilters.role !== "all") {
-      filtered = filtered.filter((u) => u.role === appliedFilters.role);
+    if (filters.appliedFilters.role !== "all") {
+      filtered = filtered.filter((u) => u.role === filters.appliedFilters.role);
     }
 
     // Status filter
-    if (appliedFilters.status === "active") {
+    if (filters.appliedFilters.status === "active") {
       filtered = filtered.filter((u) => u.isActive);
-    } else if (appliedFilters.status === "inactive") {
+    } else if (filters.appliedFilters.status === "inactive") {
       filtered = filtered.filter((u) => !u.isActive);
     }
 
     // Search filter
-    if (appliedFilters.search.trim()) {
-      const query = appliedFilters.search.toLowerCase();
+    if (filters.appliedFilters.search.trim()) {
+      const query = filters.appliedFilters.search.toLowerCase();
       filtered = filtered.filter(
         (u) =>
           u.username.toLowerCase().includes(query) ||
@@ -145,86 +162,6 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
 
     setFilteredUsers(filtered);
   };
-
-  // Filter management functions
-  const handleApplyFilters = () => {
-    setAppliedFilters({
-      search: searchQuery,
-      role: roleFilter,
-      status: statusFilter,
-    });
-  };
-
-  const handleResetFilters = () => {
-    setSearchQuery("");
-    setRoleFilter("all");
-    setStatusFilter("all");
-    setAppliedFilters({
-      search: "",
-      role: "all",
-      status: "all",
-    });
-  };
-
-  const handleRemoveFilter = (filterType: string) => {
-    const newFilters = { ...appliedFilters };
-
-    switch (filterType) {
-      case "search":
-        newFilters.search = "";
-        setSearchQuery("");
-        break;
-      case "role":
-        newFilters.role = "all";
-        setRoleFilter("all");
-        break;
-      case "status":
-        newFilters.status = "all";
-        setStatusFilter("all");
-        break;
-    }
-
-    setAppliedFilters(newFilters);
-  };
-
-  const getActiveFilterCount = () => {
-    let count = 0;
-    if (appliedFilters.role !== "all") count++;
-    if (appliedFilters.status !== "all") count++;
-    return count;
-  };
-
-  const getActiveFilters = () => {
-    const filters: { type: string; label: string; value: string }[] = [];
-
-    if (appliedFilters.search) {
-      filters.push({
-        type: "search",
-        label: "Search",
-        value: appliedFilters.search,
-      });
-    }
-    if (appliedFilters.role !== "all") {
-      filters.push({
-        type: "role",
-        label: "Role",
-        value: appliedFilters.role,
-      });
-    }
-    if (appliedFilters.status !== "all") {
-      filters.push({
-        type: "status",
-        label: "Status",
-        value: appliedFilters.status === "active" ? "Active" : "Inactive",
-      });
-    }
-
-    return filters;
-  };
-
-  const activeFilters = getActiveFilters();
-  const activeFilterCount = getActiveFilterCount();
-  const hasActiveFilters = activeFilters.length > 0;
 
   const handleCreate = async (data: CreateBranchUserDto) => {
     try {
@@ -698,17 +635,10 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
         {isError && errorMessage && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
             <div className="flex items-start">
-              <svg
+              <XCircle
                 className="w-5 h-5 text-red-600 dark:text-red-400 mr-3 mt-0.5"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
+                aria-hidden="true"
+              />
               <div className="flex-1">
                 <p className="text-sm font-medium text-red-900 dark:text-red-200">Error</p>
                 <p className="text-sm text-red-800 dark:text-red-300 mt-1">{errorMessage}</p>
@@ -716,14 +646,9 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
               <button
                 onClick={clearError}
                 className="ml-3 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200"
+                aria-label="Dismiss error"
               >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -754,49 +679,12 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
         </div>
 
         {/* Active Filters Display */}
-        {activeFilters.length > 0 && (
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-5 py-3 mb-6">
-            <div className="flex items-center flex-wrap gap-2">
-              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                Active Filters:
-              </span>
-              {activeFilters.map((filter) => (
-                <span
-                  key={filter.type}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100 rounded-full text-sm font-medium"
-                >
-                  <span className="font-semibold">{filter.label}:</span>
-                  <span>{filter.value}</span>
-                  <button
-                    onClick={() => handleRemoveFilter(filter.type)}
-                    className="ml-1 hover:bg-blue-200 dark:hover:bg-blue-700 rounded-full p-0.5 transition-colors"
-                    aria-label={`Remove ${filter.label} filter`}
-                  >
-                    <svg
-                      className="w-3.5 h-3.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </span>
-              ))}
-              <button
-                onClick={handleResetFilters}
-                className="ml-2 text-sm text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 font-medium underline"
-              >
-                Clear All
-              </button>
-            </div>
-          </div>
-        )}
+        <ActiveFiltersBadge
+          filters={filters.activeFilters}
+          onRemove={filters.removeFilter}
+          onClearAll={filters.resetFilters}
+          className="mb-6"
+        />
 
         {/* DataTable */}
         <DataTable
@@ -814,80 +702,58 @@ export default function BranchUsersPage({ params }: { params: Promise<{ locale: 
           emptyMessage="No users found. Click 'Add User' to create your first user."
           // Filter integration
           showFilterButton
-          activeFilterCount={activeFilterCount}
-          showResetButton={hasActiveFilters}
-          onResetFilters={handleResetFilters}
+          activeFilterCount={filters.activeFilterCount}
+          showResetButton={filters.hasActiveFilters}
+          onResetFilters={filters.resetFilters}
           searchBar={
-            <div className="flex items-center gap-2 flex-1">
-              <div className="relative flex-1">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg
-                    className="h-5 w-5 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleApplyFilters();
-                    }
-                  }}
-                  placeholder="Search by name, username, email, phone..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
-                />
-              </div>
-              <button
-                onClick={handleApplyFilters}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium whitespace-nowrap"
-              >
-                Apply Filters
-              </button>
-            </div>
+            <SearchInput
+              value={filters.filterValues.search}
+              onChange={(val) => filters.setFilterValue("search", val)}
+              onSearch={filters.applyFilters}
+              placeholder="Search by name, username, email, phone..."
+            />
           }
           filterSection={
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Role Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Role
-                </label>
-                <select
-                  value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                >
-                  <option value="all">All Roles</option>
-                  <option value="Manager">Manager</option>
-                  <option value="Cashier">Cashier</option>
-                </select>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Role Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Role
+                  </label>
+                  <select
+                    value={filters.filterValues.role}
+                    onChange={(e) => filters.setFilterValue("role", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                  >
+                    <option value="all">All Roles</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Cashier">Cashier</option>
+                  </select>
+                </div>
+
+                {/* Status Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Status
+                  </label>
+                  <select
+                    value={filters.filterValues.status}
+                    onChange={(e) => filters.setFilterValue("status", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="active">Active Only</option>
+                    <option value="inactive">Inactive Only</option>
+                  </select>
+                </div>
               </div>
 
-              {/* Status Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Status
-                </label>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                >
-                  <option value="all">All Status</option>
-                  <option value="active">Active Only</option>
-                  <option value="inactive">Inactive Only</option>
-                </select>
+              {/* Filter Actions */}
+              <div className="flex justify-end gap-2">
+                <Button variant="primary" onClick={filters.applyFilters}>
+                  Apply Filters
+                </Button>
               </div>
             </div>
           }

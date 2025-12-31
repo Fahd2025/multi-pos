@@ -25,6 +25,9 @@ Upload/
         │   └── [Customer ID]/
         ├── Suppliers/
         │   └── [Supplier ID]/
+        ├── Purchases/
+        │   └── [Purchase ID]/
+        │       └── Invoices/
         └── Documents/
 ```
 
@@ -139,7 +142,34 @@ Suppliers/
     └── tax-registration.pdf
 ```
 
-#### 6. Documents Directory
+#### 6. Purchases Directory
+
+**Path**: `Upload/Branches/[Branch]/Purchases/[PurchaseID]/`
+
+**Purpose**: Store purchase order-related files
+
+- Invoice images (scanned or photographed)
+- Invoice PDFs
+- Delivery notes
+- Purchase receipts
+- Supporting documents
+
+**Example Structure**:
+
+```
+Purchases/
+└── 990e8400-e29b-41d4-a716-446655440000/
+    ├── original.jpg         # Original invoice image
+    ├── large.jpg           # Large thumbnail (auto-generated)
+    ├── medium.jpg          # Medium thumbnail (auto-generated)
+    ├── thumb.jpg           # Small thumbnail (auto-generated)
+    ├── delivery-note.pdf   # Delivery documentation
+    └── receipt.pdf         # Payment receipt
+```
+
+**Note**: Invoice images are automatically processed by ImageService to generate multiple sizes for optimal display and performance.
+
+#### 7. Documents Directory
 
 **Path**: `Upload/Branches/[Branch]/Documents/`
 
@@ -174,6 +204,7 @@ Each with subdirectories:
 - Categories/
 - Customers/
 - Suppliers/
+- Purchases/
 - Documents/
 
 ### Git Tracking
@@ -190,8 +221,8 @@ When creating a new branch in the system, automatically create the upload direct
 
 ```bash
 # For branch with LoginName "B004"
-mkdir -p Upload/Branches/B004/{Database,Products,Categories,Customers,Suppliers,Documents}
-touch Upload/Branches/B004/{Database,Products,Categories,Customers,Suppliers,Documents}/.gitkeep
+mkdir -p Upload/Branches/B004/{Database,Products,Categories,Customers,Suppliers,Purchases,Documents}
+touch Upload/Branches/B004/{Database,Products,Categories,Customers,Suppliers,Purchases,Documents}/.gitkeep
 ```
 
 ### 2. Storing Product Images
@@ -240,7 +271,58 @@ public async Task<string> UploadProductImageAsync(
 }
 ```
 
-### 3. Serving Static Files
+### 3. Storing Purchase Invoice Images
+
+When uploading a purchase invoice image:
+
+1. Get the branch LoginName and Purchase ID
+2. Create directory if it doesn't exist: `Upload/Branches/[Branch]/Purchases/[PurchaseID]/`
+3. Save image using ImageService (automatically generates multiple sizes)
+4. Update purchase record with image path
+
+**Example Backend Implementation**:
+
+```csharp
+// In Backend/Services/Branch/Inventory/InventoryService.cs
+// This is already implemented in Phase 6!
+if (!string.IsNullOrWhiteSpace(dto.InvoiceImageBase64))
+{
+    var imageBytes = Convert.FromBase64String(dto.InvoiceImageBase64);
+    using var imageStream = new MemoryStream(imageBytes);
+
+    var fileName = !string.IsNullOrWhiteSpace(dto.InvoiceImageFileName)
+        ? dto.InvoiceImageFileName
+        : $"invoice_{DateTime.UtcNow:yyyyMMddHHmmss}.jpg";
+
+    var result = await _imageService.UploadImageAsync(
+        branchName: branchCode,
+        entityType: "Purchases",
+        entityId: purchase.Id,
+        imageStream: imageStream,
+        fileName: fileName);
+
+    if (result.Success && !string.IsNullOrWhiteSpace(result.OriginalPath))
+    {
+        purchase.InvoiceImagePath = result.OriginalPath;
+    }
+}
+```
+
+**Storage Structure**:
+```
+Upload/Branches/B001/Purchases/550e8400-e29b-41d4-a716-446655440000/
+├── original.jpg    # Original uploaded invoice
+├── large.jpg       # Large size (auto-generated)
+├── medium.jpg      # Medium size (auto-generated)
+└── thumb.jpg       # Thumbnail (auto-generated)
+```
+
+**Database Storage**: Only the path is stored in the database:
+```sql
+InvoiceImagePath = "uploads/B001/Purchases/550e8400.../original.jpg"
+```
+
+### 4. Serving Static Files
 
 Configure ASP.NET Core to serve static files from the Upload directory:
 

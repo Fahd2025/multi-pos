@@ -167,7 +167,7 @@ export default function LoginPage() {
             />
 
             {/* Submit Button */}
-            <Button type="submit" variant="primary" size="lg" isFullWidth isLoading={isLoading}>
+            <Button type="submit" variant="default" size="lg" isFullWidth isLoading={isLoading}>
               Sign In
             </Button>
           </form>

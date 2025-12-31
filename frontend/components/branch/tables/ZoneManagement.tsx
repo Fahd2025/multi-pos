@@ -168,7 +168,7 @@ export default function ZoneManagement() {
           </Button>
           <Button
             onClick={() => openDeleteDialog(zone)}
-            variant="danger"
+            variant="destructive"
             size="sm"
           >
             Delete
@@ -186,7 +186,7 @@ export default function ZoneManagement() {
           <h2 className="text-2xl font-bold">Zone Management</h2>
           <p className="text-gray-600">Manage restaurant zones and areas</p>
         </div>
-        <Button onClick={handleAddZone} variant="primary">
+        <Button onClick={handleAddZone} variant="default">
           Add Zone
         </Button>
       </div>
@@ -210,6 +210,7 @@ export default function ZoneManagement() {
           <div>
             <label className="block text-sm font-medium mb-1">Zone Name *</label>
             <Input
+              name="zoneName"
               type="text"
               value={formData.name}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, name: e.target.value })}
@@ -232,6 +233,7 @@ export default function ZoneManagement() {
           <div>
             <label className="block text-sm font-medium mb-1">Display Order</label>
             <Input
+              name="displayOrder"
               type="number"
               value={formData.displayOrder}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, displayOrder: Number(e.target.value) })}
@@ -256,7 +258,7 @@ export default function ZoneManagement() {
           )}
 
           <div className="flex gap-2 pt-4">
-            <Button onClick={handleSaveZone} variant="primary" className="flex-1">
+            <Button onClick={handleSaveZone} variant="default" className="flex-1">
               {selectedZone ? "Update" : "Create"}
             </Button>
             <Button onClick={() => setIsDialogOpen(false)} variant="secondary">

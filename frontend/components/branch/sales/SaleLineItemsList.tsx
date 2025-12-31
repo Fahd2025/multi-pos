@@ -6,7 +6,6 @@
 "use client";
 
 import { useState } from "react";
-import { ProductDto } from "@/types/api.types";
 import { DiscountType } from "@/types/enums";
 
 export interface SaleLineItem {

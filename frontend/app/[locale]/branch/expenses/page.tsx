@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -25,6 +25,8 @@ import { DataTableColumn, DataTableAction } from "@/types/data-table.types";
 import { useAuth } from "@/hooks/useAuth";
 import { useApiOperation } from "@/hooks/useApiOperation";
 import { API_BASE_URL } from "@/lib/constants";
+import { useTableFilters } from "@/hooks/useTableFilters";
+import { ActiveFiltersBadge, SearchInput } from "@/components/shared";
 import { ImageCarousel } from "@/components/shared/image-carousel";
 import { Dialog, DialogContent, DialogTitle } from "@/components/shared/RadixDialog";
 import { RoleGuard, usePermission } from "@/components/auth/RoleGuard";
@@ -42,20 +44,51 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filter states (input values)
-  const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<number | undefined>(undefined);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  // Helper function to get category name for display
+  const getCategoryName = useCallback((categoryId: string) => {
+    if (!categoryId) return "All Categories";
+    const category = categories.find((c) => c.id === categoryId);
+    return category?.nameEn || "Unknown Category";
+  }, [categories]);
 
-  // Applied filters (what's actually being used in the API call)
-  const [appliedFilters, setAppliedFilters] = useState({
-    search: "",
-    category: "",
-    status: undefined as number | undefined,
-    startDate: "",
-    endDate: "",
+  // Table filters using new hook
+  const filters = useTableFilters({
+    filterDefinitions: [
+      { type: "search", label: "Search", defaultValue: "" },
+      {
+        type: "category",
+        label: "Category",
+        defaultValue: "",
+        getDisplayValue: getCategoryName,
+      },
+      {
+        type: "status",
+        label: "Status",
+        defaultValue: undefined,
+        getDisplayValue: (val: number | undefined) => {
+          if (val === undefined) return "All Statuses";
+          switch (val) {
+            case 0: return "Pending";
+            case 1: return "Approved";
+            case 2: return "Rejected";
+            default: return "Unknown";
+          }
+        },
+      },
+      {
+        type: "startDate",
+        label: "From",
+        defaultValue: "",
+        getDisplayValue: (val: string) => val ? new Date(val).toLocaleDateString() : "",
+      },
+      {
+        type: "endDate",
+        label: "To",
+        defaultValue: "",
+        getDisplayValue: (val: string) => val ? new Date(val).toLocaleDateString() : "",
+      },
+    ],
+    onFiltersChange: () => setCurrentPage(1),
   });
 
   // Pagination
@@ -85,69 +118,6 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
     pagination: false, // Disable client-side pagination
   });
 
-  /**
-   * Count active filters (based on applied filters, not input values)
-   */
-  const getActiveFilterCount = () => {
-    let count = 0;
-    if (appliedFilters.search) count++;
-    if (appliedFilters.category) count++;
-    if (appliedFilters.status !== undefined) count++;
-    if (appliedFilters.startDate) count++;
-    if (appliedFilters.endDate) count++;
-    return count;
-  };
-
-  const activeFilterCount = getActiveFilterCount();
-
-  /**
-   * Check if any filters are active (based on applied filters, not input values)
-   */
-  const hasActiveFilters = activeFilterCount > 0 || !!appliedFilters.search;
-
-  /**
-   * Get active filter labels for display (based on applied filters)
-   */
-  const getActiveFilters = () => {
-    const filters: { type: string; label: string; value: string }[] = [];
-
-    if (appliedFilters.search) {
-      filters.push({ type: "search", label: "Search", value: appliedFilters.search });
-    }
-    if (appliedFilters.category) {
-      const category = categories.find((c) => c.id === appliedFilters.category);
-      filters.push({
-        type: "category",
-        label: "Category",
-        value: category?.nameEn || appliedFilters.category,
-      });
-    }
-    if (appliedFilters.status !== undefined) {
-      filters.push({
-        type: "status",
-        label: "Status",
-        value: getStatusLabel(appliedFilters.status),
-      });
-    }
-    if (appliedFilters.startDate) {
-      filters.push({
-        type: "startDate",
-        label: "From",
-        value: new Date(appliedFilters.startDate).toLocaleDateString(),
-      });
-    }
-    if (appliedFilters.endDate) {
-      filters.push({
-        type: "endDate",
-        label: "To",
-        value: new Date(appliedFilters.endDate).toLocaleDateString(),
-      });
-    }
-
-    return filters;
-  };
-
-  const activeFilters = getActiveFilters();
 
   /**
    * Load expenses with server-side filtering and pagination
@@ -155,7 +125,7 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
   useEffect(() => {
     loadExpenses();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, appliedFilters]);
+  }, [currentPage, filters.appliedFilters]);
 
   /**
    * Load categories on mount
@@ -190,11 +160,11 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
       const response = await expenseService.getExpenses({
         page: currentPage,
         pageSize,
-        search: appliedFilters.search || undefined,
-        categoryId: appliedFilters.category || undefined,
-        approvalStatus: appliedFilters.status,
-        startDate: appliedFilters.startDate || undefined,
-        endDate: appliedFilters.endDate || undefined,
+        search: filters.appliedFilters.search || undefined,
+        categoryId: filters.appliedFilters.category || undefined,
+        approvalStatus: filters.appliedFilters.status,
+        startDate: filters.appliedFilters.startDate || undefined,
+        endDate: filters.appliedFilters.endDate || undefined,
       });
 
       setExpenses(response.data);
@@ -228,74 +198,6 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
     }
   };
 
-  /**
-   * Apply filters (called by Apply Filters button)
-   */
-  const handleApplyFilters = () => {
-    // Save the current filter values as applied filters
-    setAppliedFilters({
-      search: searchQuery,
-      category: categoryFilter,
-      status: statusFilter,
-      startDate: startDate,
-      endDate: endDate,
-    });
-    setCurrentPage(1);
-    // loadExpenses will be triggered automatically by useEffect when appliedFilters changes
-  };
-
-  /**
-   * Reset all filters
-   */
-  const handleResetFilters = () => {
-    // Reset all filter states
-    setSearchQuery("");
-    setCategoryFilter("");
-    setStatusFilter(undefined);
-    setStartDate("");
-    setEndDate("");
-    setAppliedFilters({
-      search: "",
-      category: "",
-      status: undefined,
-      startDate: "",
-      endDate: "",
-    });
-    setCurrentPage(1);
-    // useEffect will trigger loadExpenses when appliedFilters changes
-  };
-
-  /**
-   * Remove individual filter
-   */
-  const handleRemoveFilter = (filterType: string) => {
-    // Reset the specific filter in both input and applied states
-    switch (filterType) {
-      case "search":
-        setSearchQuery("");
-        setAppliedFilters((prev) => ({ ...prev, search: "" }));
-        break;
-      case "category":
-        setCategoryFilter("");
-        setAppliedFilters((prev) => ({ ...prev, category: "" }));
-        break;
-      case "status":
-        setStatusFilter(undefined);
-        setAppliedFilters((prev) => ({ ...prev, status: undefined }));
-        break;
-      case "startDate":
-        setStartDate("");
-        setAppliedFilters((prev) => ({ ...prev, startDate: "" }));
-        break;
-      case "endDate":
-        setEndDate("");
-        setAppliedFilters((prev) => ({ ...prev, endDate: "" }));
-        break;
-    }
-
-    // Reset to first page - useEffect will trigger loadExpenses when appliedFilters changes
-    setCurrentPage(1);
-  };
 
   const handleEdit = (expense: ExpenseDto) => {
     if (!branch || !branch.branchCode) {
@@ -522,13 +424,13 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
           </div>
           <div className="flex gap-3">
             <Link href={`/${locale}/branch/expense-categories`}>
-              <Button variant="secondary" size="md">
+              <Button variant="secondary" size="default">
                 📁 Manage Categories
               </Button>
             </Link>
             <Button
-              variant="primary"
-              size="md"
+              variant="default"
+              size="default"
               onClick={() => {
                 if (!branch || !branch.branchCode) {
                   alert("Branch information is not available. Please refresh the page.");
@@ -575,48 +477,13 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
         </div>
 
         {/* Active Filters Display - Full Width */}
-        {!loading && !error && activeFilters.length > 0 && (
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-5 py-3 mb-6">
-            <div className="flex items-center flex-wrap gap-2">
-              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                Active Filters:
-              </span>
-              {activeFilters.map((filter) => (
-                <span
-                  key={filter.type}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100 rounded-full text-sm font-medium"
-                >
-                  <span className="font-semibold">{filter.label}:</span>
-                  <span>{filter.value}</span>
-                  <button
-                    onClick={() => handleRemoveFilter(filter.type)}
-                    className="ml-1 hover:bg-blue-200 dark:hover:bg-blue-700 rounded-full p-0.5 transition-colors"
-                    title={`Remove ${filter.label} filter`}
-                  >
-                    <svg
-                      className="w-3.5 h-3.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </span>
-              ))}
-              <button
-                onClick={handleResetFilters}
-                className="ml-2 text-sm text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 font-medium underline"
-              >
-                Clear All
-              </button>
-            </div>
-          </div>
+        {!loading && !error && (
+          <ActiveFiltersBadge
+            filters={filters.activeFilters}
+            onRemove={filters.removeFilter}
+            onClearAll={filters.resetFilters}
+            className="mb-6"
+          />
         )}
 
         {/* Error Message */}
@@ -647,50 +514,16 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
             emptyMessage="No expenses found. Add your first expense to get started."
             showRowNumbers
             showFilterButton
-            activeFilterCount={activeFilterCount}
-            showResetButton={hasActiveFilters}
-            onResetFilters={handleResetFilters}
+            activeFilterCount={filters.activeFilterCount}
+            showResetButton={filters.hasActiveFilters}
+            onResetFilters={filters.resetFilters}
             searchBar={
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg
-                      className="h-5 w-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Search expenses..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleApplyFilters()}
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
-                  />
-                </div>
-                <button
-                  onClick={handleApplyFilters}
-                  className="px-4 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors whitespace-nowrap"
-                >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                </button>
-              </div>
+              <SearchInput
+                value={filters.filterValues.search}
+                onChange={(val) => filters.setFilterValue("search", val)}
+                onSearch={filters.applyFilters}
+                placeholder="Search expenses..."
+              />
             }
             filterSection={
               <div className="space-y-4">
@@ -701,8 +534,8 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
                       Category
                     </label>
                     <select
-                      value={categoryFilter}
-                      onChange={(e) => setCategoryFilter(e.target.value)}
+                      value={filters.filterValues.category}
+                      onChange={(e) => filters.setFilterValue("category", e.target.value)}
                       className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
                     >
                       <option value="">All Categories</option>
@@ -720,9 +553,9 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
                       Status
                     </label>
                     <select
-                      value={statusFilter ?? ""}
+                      value={filters.filterValues.status ?? ""}
                       onChange={(e) =>
-                        setStatusFilter(e.target.value ? Number(e.target.value) : undefined)
+                        filters.setFilterValue("status", e.target.value ? Number(e.target.value) : undefined)
                       }
                       className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
                     >
@@ -740,8 +573,8 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
                     </label>
                     <input
                       type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
+                      value={filters.filterValues.startDate}
+                      onChange={(e) => filters.setFilterValue("startDate", e.target.value)}
                       className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
                     />
                   </div>
@@ -753,8 +586,8 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
                     </label>
                     <input
                       type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
+                      value={filters.filterValues.endDate}
+                      onChange={(e) => filters.setFilterValue("endDate", e.target.value)}
                       className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
                     />
                   </div>
@@ -762,12 +595,9 @@ export default function ExpensesPage({ params }: { params: Promise<{ locale: str
 
                 {/* Filter Actions */}
                 <div className="flex justify-end gap-2">
-                  <button
-                    onClick={handleApplyFilters}
-                    className="px-6 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
-                  >
+                  <Button variant="primary" onClick={filters.applyFilters}>
                     Apply Filters
-                  </button>
+                  </Button>
                 </div>
               </div>
             }

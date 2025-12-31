@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
+} from "@/components/shared/dialog";
 import { Truck, Phone, User } from "lucide-react";
 import { DriverDto } from "@/types/api.types";
 import deliveryService from "@/services/delivery.service";

@@ -276,6 +276,7 @@ export function DeliveryManagement() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {/* Driver Filter */}
               <Select
+                name="driver"
                 label="Driver"
                 value={driverFilter}
                 onChange={(e) => setDriverFilter(e.target.value)}
@@ -284,6 +285,7 @@ export function DeliveryManagement() {
 
               {/* Date Range Preset */}
               <Select
+                name="dateRange"
                 label="Date Range"
                 value={dateRangePreset}
                 onChange={(e) => handlePresetChange(e.target.value)}
@@ -292,6 +294,7 @@ export function DeliveryManagement() {
 
               {/* Date From */}
               <Input
+                name="dateFrom"
                 type="date"
                 label="From Date"
                 value={dateFrom}
@@ -302,6 +305,7 @@ export function DeliveryManagement() {
 
               {/* Date To */}
               <Input
+                name="dateTo"
                 type="date"
                 label="To Date"
                 value={dateTo}

@@ -501,6 +501,7 @@ export function TablesManagement() {
           {/* Zone Filter */}
           {zones && zones.length > 0 && (
             <Select
+              name="zoneFilter"
               value={selectedZoneId?.toString() || "all"}
               onChange={(e) =>
                 setSelectedZoneId(e.target.value === "all" ? undefined : Number(e.target.value))

@@ -174,6 +174,7 @@ export default function TableManagement() {
 
           {/* Zone filter */}
           <Select
+            name="zoneFilter"
             value={selectedZoneId?.toString() || "all"}
             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedZoneId(e.target.value === "all" ? undefined : Number(e.target.value))}
             className="w-48"
@@ -191,7 +192,7 @@ export default function TableManagement() {
           >
             {isEditMode ? "Exit Edit Mode" : "Edit Layout"}
           </Button>
-          <Button onClick={handleAddTable} variant="primary">
+          <Button onClick={handleAddTable} variant="default">
             Add Table
           </Button>
         </div>
@@ -217,6 +218,7 @@ export default function TableManagement() {
           <div>
             <label className="block text-sm font-medium mb-1">Table Number</label>
             <Input
+              name="tableNumber"
               type="number"
               value={formData.number}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, number: Number(e.target.value) })}
@@ -227,6 +229,7 @@ export default function TableManagement() {
           <div>
             <label className="block text-sm font-medium mb-1">Table Name</label>
             <Input
+              name="tableName"
               type="text"
               value={formData.name}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, name: e.target.value })}
@@ -236,6 +239,7 @@ export default function TableManagement() {
           <div>
             <label className="block text-sm font-medium mb-1">Capacity</label>
             <Input
+              name="capacity"
               type="number"
               value={formData.capacity}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, capacity: Number(e.target.value) })}
@@ -247,6 +251,7 @@ export default function TableManagement() {
           <div>
             <label className="block text-sm font-medium mb-1">Zone</label>
             <Select
+              name="zone"
               value={formData.zoneId?.toString() || ""}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, zoneId: e.target.value ? Number(e.target.value) : undefined })}
               options={[
@@ -259,6 +264,7 @@ export default function TableManagement() {
           <div>
             <label className="block text-sm font-medium mb-1">Shape</label>
             <Select
+              name="shape"
               value={formData.dimensions.shape}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({
                 ...formData,
@@ -276,6 +282,7 @@ export default function TableManagement() {
             <div>
               <label className="block text-sm font-medium mb-1">Width (%)</label>
               <Input
+                name="width"
                 type="number"
                 value={formData.dimensions.width}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({
@@ -289,6 +296,7 @@ export default function TableManagement() {
             <div>
               <label className="block text-sm font-medium mb-1">Height (%)</label>
               <Input
+                name="height"
                 type="number"
                 value={formData.dimensions.height}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({
@@ -305,6 +313,7 @@ export default function TableManagement() {
             <div>
               <label className="block text-sm font-medium mb-1">Position X (%)</label>
               <Input
+                name="positionX"
                 type="number"
                 value={formData.position.x}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({
@@ -318,6 +327,7 @@ export default function TableManagement() {
             <div>
               <label className="block text-sm font-medium mb-1">Position Y (%)</label>
               <Input
+                name="positionY"
                 type="number"
                 value={formData.position.y}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({
@@ -333,6 +343,7 @@ export default function TableManagement() {
           <div>
             <label className="block text-sm font-medium mb-1">Rotation (degrees)</label>
             <Input
+              name="rotation"
               type="number"
               value={formData.position.rotation}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({
@@ -356,7 +367,7 @@ export default function TableManagement() {
           </div>
 
           <div className="flex gap-2 pt-4">
-            <Button onClick={handleSaveTable} variant="primary" className="flex-1">
+            <Button onClick={handleSaveTable} variant="default" className="flex-1">
               {selectedTable ? "Update" : "Create"}
             </Button>
             {selectedTable && (
@@ -365,7 +376,7 @@ export default function TableManagement() {
                   setIsDialogOpen(false);
                   openDeleteDialog(selectedTable);
                 }}
-                variant="danger"
+                variant="destructive"
               >
                 Delete
               </Button>

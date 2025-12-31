@@ -254,11 +254,11 @@ export default function ExpenseCategoriesPage({ params }: { params: Promise<{ lo
         </div>
         <div className="flex gap-3">
           <Link href={`/${locale}/branch/expenses`}>
-            <Button variant="secondary" size="md">
+            <Button variant="secondary" size="default">
               ← Back to Expenses
             </Button>
           </Link>
-          <Button variant="primary" size="md" onClick={() => setIsFormOpen(true)}>
+          <Button variant="default" size="default" onClick={() => setIsFormOpen(true)}>
             ➕ Add Category
           </Button>
         </div>

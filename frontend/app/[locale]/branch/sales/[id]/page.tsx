@@ -141,7 +141,7 @@ export default function SaleDetailsPage() {
           </h2>
           <p className="mt-2 text-gray-600">{error || "Sale not found"}</p>
           <div className="mt-6 flex gap-3 justify-center">
-            <Button onClick={fetchSaleDetails} variant="primary">
+            <Button onClick={fetchSaleDetails} variant="default">
               Retry
             </Button>
             <Button onClick={() => router.back()} variant="secondary">
@@ -277,7 +277,7 @@ export default function SaleDetailsPage() {
                   {sale.isVoided ? (
                     <StatusBadge variant="danger">Voided</StatusBadge>
                   ) : (
-                    <StatusBadge variant="success">Active</StatusBadge>
+                    <StatusBadge variant="neutral">Active</StatusBadge>
                   )}
                 </div>
               </div>
@@ -410,7 +410,7 @@ export default function SaleDetailsPage() {
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Actions</h2>
             </div>
             <div className="p-6 space-y-3">
-              <Button onClick={handlePrintInvoice} variant="primary" className="w-full">
+              <Button onClick={handlePrintInvoice} variant="default" className="w-full">
                 🖨️ Print Invoice
               </Button>
 
@@ -419,7 +419,7 @@ export default function SaleDetailsPage() {
               </Button>
 
               {!sale.isVoided && (
-                <Button onClick={() => setVoidDialogOpen(true)} variant="danger" className="w-full">
+                <Button onClick={() => setVoidDialogOpen(true)} variant="destructive" className="w-full">
                   🚫 Void Sale
                 </Button>
               )}
@@ -479,7 +479,7 @@ export default function SaleDetailsPage() {
               </Button>
               <Button
                 onClick={handleVoidSale}
-                variant="danger"
+                variant="destructive"
                 disabled={voidingInProgress || !voidReason.trim()}
               >
                 {voidingInProgress ? "Voiding..." : "Void Sale"}

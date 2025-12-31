@@ -30,6 +30,13 @@ const nextConfig: NextConfig = {
         port: '5062',
         pathname: '/api/v1/images/**',
       },
+      // Pattern for uploaded files
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '5062',
+        pathname: '/Upload/**',
+      },
     ],
   },
 };

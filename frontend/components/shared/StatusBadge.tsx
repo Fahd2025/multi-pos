@@ -6,9 +6,9 @@
  *
  * @example
  * ```tsx
- * <StatusBadge variant="success">Active</StatusBadge>
+ * <StatusBadge variant="neutral">Active</StatusBadge>
  * <StatusBadge variant="danger">Out of Stock</StatusBadge>
- * <StatusBadge variant="warning">Low Stock</StatusBadge>
+ * <StatusBadge variant="secondary">Low Stock</StatusBadge>
  * <StatusBadge variant="info">Pending</StatusBadge>
  * ```
  */

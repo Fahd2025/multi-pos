@@ -819,9 +819,24 @@ export interface PurchaseDto {
   purchaseDate: string;
   receivedDate?: string;
   totalCost: number;
-  paymentStatus: number;
+
+  // PHASE 4: Discount and tax fields
+  discountType: string; // "amount" | "percentage"
+  discountValue: number;
+  discountAmount: number;
+  taxRate: number;
+  taxAmount: number;
+  taxIncluded: boolean;
+  subtotal: number;
+  grandTotal: number;
+
+  // PHASE 5: Payment tracking
+  paymentStatus: number; // 0=Pending, 1=Partial, 2=Paid
   amountPaid: number;
+
+  // PHASE 6: Invoice image
   invoiceImagePath?: string;
+
   notes?: string;
   lineItems: PurchaseLineItemDto[];
   createdAt: string;

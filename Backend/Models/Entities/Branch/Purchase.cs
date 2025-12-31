@@ -22,6 +22,26 @@ public class Purchase
     [Required]
     public decimal TotalCost { get; set; }
 
+    // Discount fields
+    [MaxLength(20)]
+    public string DiscountType { get; set; } = "amount"; // "amount" or "percentage"
+
+    public decimal DiscountValue { get; set; } = 0;
+
+    public decimal DiscountAmount { get; set; } = 0;
+
+    // Tax fields
+    public decimal TaxRate { get; set; } = 0;
+
+    public decimal TaxAmount { get; set; } = 0;
+
+    public bool TaxIncluded { get; set; } = false;
+
+    // Totals
+    public decimal Subtotal { get; set; } = 0;
+
+    public decimal GrandTotal { get; set; } = 0;
+
     [Required]
     public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
 

@@ -1028,6 +1028,20 @@ namespace Backend.Migrations.Branch
                     b.Property<Guid>("CreatedBy")
                         ;
 
+                    b.Property<decimal>("DiscountAmount")
+                        ;
+
+                    b.Property<string>("DiscountType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        ;
+
+                    b.Property<decimal>("DiscountValue")
+                        ;
+
+                    b.Property<decimal>("GrandTotal")
+                        ;
+
                     b.Property<string>("InvoiceImagePath")
                         .HasMaxLength(500)
                         ;
@@ -1049,7 +1063,19 @@ namespace Backend.Migrations.Branch
                     b.Property<DateTime?>("ReceivedDate")
                         ;
 
+                    b.Property<decimal>("Subtotal")
+                        ;
+
                     b.Property<Guid>("SupplierId")
+                        ;
+
+                    b.Property<decimal>("TaxAmount")
+                        ;
+
+                    b.Property<bool>("TaxIncluded")
+                        ;
+
+                    b.Property<decimal>("TaxRate")
                         ;
 
                     b.Property<decimal>("TotalCost")

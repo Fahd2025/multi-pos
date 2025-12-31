@@ -72,6 +72,7 @@ export const BranchSettingsForm: React.FC<BranchSettingsFormProps> = ({ branch, 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <Select
+            name="language"
             label="Language*"
             value={formData.language}
             onChange={(e) => handleChange("language", e.target.value)}
@@ -83,6 +84,7 @@ export const BranchSettingsForm: React.FC<BranchSettingsFormProps> = ({ branch, 
           />
 
           <Input
+            name="currency"
             label="Currency*"
             value={formData.currency}
             onChange={(e) => handleChange("currency", e.target.value)}
@@ -93,6 +95,7 @@ export const BranchSettingsForm: React.FC<BranchSettingsFormProps> = ({ branch, 
 
         <div className="grid grid-cols-2 gap-4">
           <Input
+            name="timeZone"
             label="Time Zone*"
             value={formData.timeZone}
             onChange={(e) => handleChange("timeZone", e.target.value)}
@@ -101,6 +104,7 @@ export const BranchSettingsForm: React.FC<BranchSettingsFormProps> = ({ branch, 
           />
 
           <Input
+            name="dateFormat"
             label="Date Format*"
             value={formData.dateFormat}
             onChange={(e) => handleChange("dateFormat", e.target.value)}
@@ -111,6 +115,7 @@ export const BranchSettingsForm: React.FC<BranchSettingsFormProps> = ({ branch, 
 
         <div className="grid grid-cols-2 gap-4">
           <Input
+            name="numberFormat"
             label="Number Format*"
             value={formData.numberFormat}
             onChange={(e) => handleChange("numberFormat", e.target.value)}
@@ -119,6 +124,7 @@ export const BranchSettingsForm: React.FC<BranchSettingsFormProps> = ({ branch, 
           />
 
           <Input
+            name="taxRate"
             label="Tax Rate (%)*"
             type="number"
             step="0.01"

@@ -330,6 +330,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
             </h3>
 
             <Input
+              name="branchCode"
               label="Branch Code*"
               value={formData.code}
               onChange={(e) => handleChange("code", e.target.value)}
@@ -340,6 +341,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
 
             <div className="grid grid-cols-2 gap-4">
               <Input
+                name="nameEn"
                 label="Name (English)*"
                 value={formData.nameEn}
                 onChange={(e) => handleChange("nameEn", e.target.value)}
@@ -347,6 +349,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
                 required
               />
               <Input
+                name="nameAr"
                 label="Name (Arabic)*"
                 value={formData.nameAr}
                 onChange={(e) => handleChange("nameAr", e.target.value)}
@@ -357,6 +360,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
 
             <div className="grid grid-cols-2 gap-4">
               <Input
+                name="email"
                 label="Email"
                 type="email"
                 value={formData.email}
@@ -364,6 +368,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
                 placeholder="branch@example.com"
               />
               <Input
+                name="phone"
                 label="Phone"
                 type="tel"
                 value={formData.phone}
@@ -380,6 +385,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
             </h3>
 
             <Select
+              name="databaseProvider"
               label="Database Provider*"
               value={formData.databaseProvider}
               onChange={(e) => handleChange("databaseProvider", parseInt(e.target.value))}
@@ -402,6 +408,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
             {formData.databaseProvider !== 0 && (
               <div className="grid grid-cols-2 gap-4">
                 <Input
+                  name="dbServer"
                   label="Database Server*"
                   value={formData.dbServer}
                   onChange={(e) => handleChange("dbServer", e.target.value)}
@@ -409,6 +416,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
                   required
                 />
                 <Input
+                  name="dbName"
                   label="Database Name*"
                   value={formData.dbName}
                   onChange={(e) => handleChange("dbName", e.target.value)}
@@ -422,6 +430,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
             {formData.databaseProvider !== 0 && (
               <div className="grid grid-cols-3 gap-4">
                 <Input
+                  name="dbPort"
                   label="Port*"
                   type="number"
                   value={formData.dbPort}
@@ -429,12 +438,14 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
                   required
                 />
                 <Input
+                  name="dbUsername"
                   label="Username"
                   value={formData.dbUsername}
                   onChange={(e) => handleChange("dbUsername", e.target.value)}
                   placeholder="sa"
                 />
                 <Input
+                  name="dbPassword"
                   label="Password"
                   type="password"
                   value={formData.dbPassword}
@@ -466,6 +477,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
             {/* SSL Configuration - PostgreSQL & MySQL */}
             {(formData.databaseProvider === 2 || formData.databaseProvider === 3) && (
               <Select
+                name="sslMode"
                 label="SSL Mode"
                 value={formData.sslMode}
                 onChange={(e) => handleChange("sslMode", parseInt(e.target.value))}
@@ -498,6 +510,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
 
             <div className="grid grid-cols-3 gap-4">
               <Select
+                name="language"
                 label="Language*"
                 value={formData.language}
                 onChange={(e) => handleChange("language", e.target.value)}
@@ -509,6 +522,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
               />
 
               <Input
+                name="currency"
                 label="Currency*"
                 value={formData.currency}
                 onChange={(e) => handleChange("currency", e.target.value)}
@@ -517,6 +531,7 @@ export const BranchFormModal: React.FC<BranchFormModalProps> = ({
               />
 
               <Input
+                name="taxRate"
                 label="Tax Rate (%)*"
                 type="number"
                 step="0.01"

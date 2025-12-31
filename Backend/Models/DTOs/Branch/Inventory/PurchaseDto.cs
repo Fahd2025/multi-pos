@@ -12,6 +12,21 @@ public class PurchaseDto
     public DateTime PurchaseDate { get; set; }
     public DateTime? ReceivedDate { get; set; }
     public decimal TotalCost { get; set; }
+
+    // Discount fields
+    public string DiscountType { get; set; } = "amount";
+    public decimal DiscountValue { get; set; }
+    public decimal DiscountAmount { get; set; }
+
+    // Tax fields
+    public decimal TaxRate { get; set; }
+    public decimal TaxAmount { get; set; }
+    public bool TaxIncluded { get; set; }
+
+    // Totals
+    public decimal Subtotal { get; set; }
+    public decimal GrandTotal { get; set; }
+
     public int PaymentStatus { get; set; } // 0=Pending, 1=Partial, 2=Paid
     public string PaymentStatusText { get; set; } = string.Empty;
     public decimal AmountPaid { get; set; }
@@ -49,6 +64,28 @@ public class CreatePurchaseDto
     public DateTime PurchaseDate { get; set; }
     public string? Notes { get; set; }
     public List<CreatePurchaseLineItemDto> LineItems { get; set; } = new();
+
+    // Discount fields
+    public string DiscountType { get; set; } = "amount";
+    public decimal DiscountValue { get; set; } = 0;
+    public decimal DiscountAmount { get; set; } = 0;
+
+    // Tax fields
+    public decimal TaxRate { get; set; } = 0;
+    public decimal TaxAmount { get; set; } = 0;
+    public bool TaxIncluded { get; set; } = false;
+
+    // Totals
+    public decimal Subtotal { get; set; } = 0;
+    public decimal GrandTotal { get; set; } = 0;
+
+    // PHASE 5: Payment tracking
+    public int PaymentStatus { get; set; } = 0; // 0=Pending, 1=Partial, 2=Paid
+    public decimal AmountPaid { get; set; } = 0;
+
+    // PHASE 6: Invoice image upload (base64 encoded)
+    public string? InvoiceImageBase64 { get; set; }
+    public string? InvoiceImageFileName { get; set; }
 }
 
 /// <summary>
@@ -71,4 +108,26 @@ public class UpdatePurchaseDto
     public DateTime PurchaseDate { get; set; }
     public string? Notes { get; set; }
     public List<CreatePurchaseLineItemDto> LineItems { get; set; } = new();
+
+    // Discount fields
+    public string DiscountType { get; set; } = "amount";
+    public decimal DiscountValue { get; set; } = 0;
+    public decimal DiscountAmount { get; set; } = 0;
+
+    // Tax fields
+    public decimal TaxRate { get; set; } = 0;
+    public decimal TaxAmount { get; set; } = 0;
+    public bool TaxIncluded { get; set; } = false;
+
+    // Totals
+    public decimal Subtotal { get; set; } = 0;
+    public decimal GrandTotal { get; set; } = 0;
+
+    // PHASE 5: Payment tracking
+    public int PaymentStatus { get; set; } = 0; // 0=Pending, 1=Partial, 2=Paid
+    public decimal AmountPaid { get; set; } = 0;
+
+    // PHASE 6: Invoice image upload (base64 encoded)
+    public string? InvoiceImageBase64 { get; set; }
+    public string? InvoiceImageFileName { get; set; }
 }

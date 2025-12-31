@@ -23,8 +23,11 @@ import {
   LoadingSpinner,
   StatCard,
   PageHeader,
+  ActiveFiltersBadge,
+  SearchInput,
 } from "@/components/shared";
 import { useApiError } from "@/hooks/useApiError";
+import { useTableFilters } from "@/hooks/useTableFilters";
 import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
 import ProductFormModalWithImages from "@/components/branch/inventory/ProductFormModalWithImages";
 import { useApiOperation } from "@/hooks/useApiOperation";
@@ -55,18 +58,27 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
   const [totalItems, setTotalItems] = useState(0);
   const pageSize = 20;
 
-  // Filter states (input values)
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [showLowStock, setShowLowStock] = useState(false);
-  const [showOutOfStock, setShowOutOfStock] = useState(false);
+  // Helper function to get category name for display
+  const getCategoryName = useCallback((categoryId: string) => {
+    if (!categoryId) return "All Categories";
+    const category = categories.find((c) => c.id === categoryId);
+    return category?.nameEn || "Unknown Category";
+  }, [categories]);
 
-  // Applied filters (what's actually being used in the API call)
-  const [appliedFilters, setAppliedFilters] = useState({
-    search: "",
-    category: "",
-    lowStock: false,
-    outOfStock: false,
+  // Table filters using new hook
+  const filters = useTableFilters({
+    filterDefinitions: [
+      { type: "search", label: "Search", defaultValue: "" },
+      {
+        type: "category",
+        label: "Category",
+        defaultValue: "",
+        getDisplayValue: getCategoryName,
+      },
+      { type: "lowStock", label: "Low Stock", defaultValue: false, getDisplayValue: () => "Yes" },
+      { type: "outOfStock", label: "Out of Stock", defaultValue: false, getDisplayValue: () => "Yes" },
+    ],
+    onFiltersChange: () => setCurrentPage(1),
   });
 
   // Modal states
@@ -111,7 +123,7 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
   useEffect(() => {
     fetchProducts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, appliedFilters]);
+  }, [currentPage, filters.appliedFilters]);
 
   /**
    * Load categories (one-time load)
@@ -134,16 +146,16 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
       setLoading(true);
       clearError();
 
-      const filters: any = {
+      const params: any = {
         page: currentPage,
         pageSize,
-        search: appliedFilters.search || undefined,
-        categoryId: appliedFilters.category || undefined,
-        lowStock: appliedFilters.lowStock || undefined,
-        outOfStock: appliedFilters.outOfStock || undefined,
+        search: filters.appliedFilters.search || undefined,
+        categoryId: filters.appliedFilters.category || undefined,
+        lowStock: filters.appliedFilters.lowStock || undefined,
+        outOfStock: filters.appliedFilters.outOfStock || undefined,
       };
 
-      const response = await inventoryService.getProducts(filters);
+      const response = await inventoryService.getProducts(params);
       setProducts(response.data);
       setTotalPages(response.pagination.totalPages);
       setTotalItems(response.pagination.totalItems);
@@ -164,97 +176,10 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
   };
 
   /**
-   * Apply current filter values
-   */
-  const handleApplyFilters = () => {
-    setAppliedFilters({
-      search: searchTerm,
-      category: selectedCategory,
-      lowStock: showLowStock,
-      outOfStock: showOutOfStock,
-    });
-    setCurrentPage(1);
-  };
-
-  /**
    * Handle pagination
    */
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-  };
-
-  /**
-   * Get active filters for display
-   */
-  const getActiveFilters = () => {
-    const filters: { type: string; label: string; value: string }[] = [];
-
-    if (appliedFilters.search) {
-      filters.push({ type: "search", label: "Search", value: appliedFilters.search });
-    }
-    if (appliedFilters.category) {
-      const categoryName =
-        categories.find((c) => c.id === appliedFilters.category)?.nameEn || appliedFilters.category;
-      filters.push({ type: "category", label: "Category", value: categoryName });
-    }
-    if (appliedFilters.lowStock) {
-      filters.push({ type: "lowStock", label: "Low Stock", value: "Yes" });
-    }
-    if (appliedFilters.outOfStock) {
-      filters.push({ type: "outOfStock", label: "Out of Stock", value: "Yes" });
-    }
-
-    return filters;
-  };
-
-  const activeFilters = getActiveFilters();
-  const activeFilterCount = activeFilters.length;
-  const hasActiveFilters = activeFilterCount > 0;
-
-  /**
-   * Remove a single filter
-   */
-  const handleRemoveFilter = (filterType: string) => {
-    const newFilters = { ...appliedFilters };
-
-    switch (filterType) {
-      case "search":
-        newFilters.search = "";
-        setSearchTerm("");
-        break;
-      case "category":
-        newFilters.category = "";
-        setSelectedCategory("");
-        break;
-      case "lowStock":
-        newFilters.lowStock = false;
-        setShowLowStock(false);
-        break;
-      case "outOfStock":
-        newFilters.outOfStock = false;
-        setShowOutOfStock(false);
-        break;
-    }
-
-    setAppliedFilters(newFilters);
-    setCurrentPage(1);
-  };
-
-  /**
-   * Reset all filters
-   */
-  const handleResetFilters = () => {
-    setSearchTerm("");
-    setSelectedCategory("");
-    setShowLowStock(false);
-    setShowOutOfStock(false);
-    setAppliedFilters({
-      search: "",
-      category: "",
-      lowStock: false,
-      outOfStock: false,
-    });
-    setCurrentPage(1);
   };
 
   /**
@@ -276,15 +201,6 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
       },
       "danger"
     );
-  };
-
-  /**
-   * Get category name
-   */
-  const getCategoryName = (categoryId?: string) => {
-    if (!categoryId) return "Uncategorized";
-    const category = categories.find((c) => c.id === categoryId);
-    return category?.nameEn || "Unknown";
   };
 
   /**
@@ -480,49 +396,13 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
           <StatCard title="Categories" value={categories.length} />
         </div>
 
-        {/* Active Filters Display - Full Width */}
-        {!loading && !isError && activeFilters.length > 0 && (
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-5 py-3">
-            <div className="flex items-center flex-wrap gap-2">
-              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                Active Filters:
-              </span>
-              {activeFilters.map((filter) => (
-                <span
-                  key={filter.type}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100 rounded-full text-sm font-medium"
-                >
-                  <span className="font-semibold">{filter.label}:</span>
-                  <span>{filter.value}</span>
-                  <button
-                    onClick={() => handleRemoveFilter(filter.type)}
-                    className="ml-1 hover:bg-blue-200 dark:hover:bg-blue-700 rounded-full p-0.5 transition-colors"
-                    title={`Remove ${filter.label} filter`}
-                  >
-                    <svg
-                      className="w-3.5 h-3.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </span>
-              ))}
-              <button
-                onClick={handleResetFilters}
-                className="ml-2 text-sm text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 font-medium underline"
-              >
-                Clear All
-              </button>
-            </div>
-          </div>
+        {/* Active Filters Display */}
+        {!loading && !isError && (
+          <ActiveFiltersBadge
+            filters={filters.activeFilters}
+            onRemove={filters.removeFilter}
+            onClearAll={filters.resetFilters}
+          />
         )}
 
         {/* Products DataTable */}
@@ -543,50 +423,16 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
             emptyMessage="No products found. Click 'Add Product' to create one."
             showRowNumbers
             showFilterButton
-            activeFilterCount={activeFilterCount}
-            showResetButton={hasActiveFilters}
-            onResetFilters={handleResetFilters}
+            activeFilterCount={filters.activeFilterCount}
+            showResetButton={filters.hasActiveFilters}
+            onResetFilters={filters.resetFilters}
             searchBar={
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg
-                      className="h-5 w-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Search by name, code, barcode, or SKU..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleApplyFilters()}
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
-                  />
-                </div>
-                <button
-                  onClick={handleApplyFilters}
-                  className="px-4 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors whitespace-nowrap"
-                >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                </button>
-              </div>
+              <SearchInput
+                value={filters.filterValues.search}
+                onChange={(val) => filters.setFilterValue("search", val)}
+                onSearch={filters.applyFilters}
+                placeholder="Search by name, code, barcode, or SKU..."
+              />
             }
             filterSection={
               <div className="space-y-4">
@@ -597,8 +443,8 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
                       Category
                     </label>
                     <select
-                      value={selectedCategory}
-                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      value={filters.filterValues.category}
+                      onChange={(e) => filters.setFilterValue("category", e.target.value)}
                       className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
                     >
                       <option value="">All Categories</option>
@@ -619,8 +465,8 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
-                          checked={showLowStock}
-                          onChange={(e) => setShowLowStock(e.target.checked)}
+                          checked={filters.filterValues.lowStock}
+                          onChange={(e) => filters.setFilterValue("lowStock", e.target.checked)}
                           className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                         />
                         <span className="text-sm text-gray-700 dark:text-gray-200">Low Stock</span>
@@ -629,8 +475,8 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
-                          checked={showOutOfStock}
-                          onChange={(e) => setShowOutOfStock(e.target.checked)}
+                          checked={filters.filterValues.outOfStock}
+                          onChange={(e) => filters.setFilterValue("outOfStock", e.target.checked)}
                           className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                         />
                         <span className="text-sm text-gray-700 dark:text-gray-200">
@@ -643,12 +489,9 @@ export default function InventoryPage({ params }: { params: Promise<{ locale: st
 
                 {/* Apply Filters Button */}
                 <div className="flex justify-end">
-                  <button
-                    onClick={handleApplyFilters}
-                    className="px-6 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
-                  >
+                  <Button variant="primary" onClick={filters.applyFilters}>
                     Apply Filters
-                  </button>
+                  </Button>
                 </div>
               </div>
             }

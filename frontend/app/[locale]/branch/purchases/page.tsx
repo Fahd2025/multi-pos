@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import inventoryService, { PurchaseFilters } from "@/services/inventory.service";
@@ -24,6 +24,9 @@ import { StatCard } from "@/components/shared";
 import { RoleGuard, usePermission } from "@/components/auth/RoleGuard";
 import { UserRole } from "@/types/enums";
 import { useApiOperation } from "@/hooks/useApiOperation";
+import { useTableFilters } from "@/hooks/useTableFilters";
+import { ActiveFiltersBadge, SearchInput } from "@/components/shared";
+import { Image } from "lucide-react";
 
 export default function PurchasesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
@@ -40,22 +43,45 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
   const [selectedPurchase, setSelectedPurchase] = useState<PurchaseDto | undefined>(undefined);
   const [purchaseMode, setPurchaseMode] = useState<"create" | "edit" | "view">("create");
 
-  // Filter states (input values)
-  const [searchQuery, setSearchQuery] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [selectedSupplier, setSelectedSupplier] = useState<string>("all");
-  const [selectedStatus, setSelectedStatus] = useState<string>("all");
-  const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<string>("all");
+  // Helper function to get unique suppliers for filter dropdown
+  const uniqueSuppliers = Array.from(new Set(allPurchases.map((p) => p.supplierName))).sort();
 
-  // Applied filters (what's actually being used in the API call)
-  const [appliedFilters, setAppliedFilters] = useState({
-    search: "",
-    startDate: "",
-    endDate: "",
-    supplier: "all",
-    status: "all",
-    paymentStatus: "all",
+  // Table filters using new hook
+  const filters = useTableFilters({
+    filterDefinitions: [
+      { type: "search", label: "Search", defaultValue: "" },
+      {
+        type: "startDate",
+        label: "From",
+        defaultValue: "",
+        getDisplayValue: (val: string) => val ? new Date(val).toLocaleDateString() : "",
+      },
+      {
+        type: "endDate",
+        label: "To",
+        defaultValue: "",
+        getDisplayValue: (val: string) => val ? new Date(val).toLocaleDateString() : "",
+      },
+      {
+        type: "supplier",
+        label: "Supplier",
+        defaultValue: "all",
+        getDisplayValue: (val: string) => val === "all" ? "All Suppliers" : val,
+      },
+      {
+        type: "status",
+        label: "Status",
+        defaultValue: "all",
+        getDisplayValue: (val: string) => val === "all" ? "All Statuses" : val.charAt(0).toUpperCase() + val.slice(1),
+      },
+      {
+        type: "paymentStatus",
+        label: "Payment",
+        defaultValue: "all",
+        getDisplayValue: (val: string) => val === "all" ? "All Payment Statuses" : val.charAt(0).toUpperCase() + val.slice(1),
+      },
+    ],
+    onFiltersChange: () => setCurrentPage(1),
   });
 
   // Pagination states
@@ -102,67 +128,6 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
     }
   );
 
-  /**
-   * Get unique suppliers for filter dropdown (from all purchases for stats)
-   */
-  const uniqueSuppliers = Array.from(new Set(allPurchases.map((p) => p.supplierName))).sort();
-
-  /**
-   * Reset all filters
-   */
-  const handleResetFilters = async () => {
-    // Reset all filter states
-    setSearchQuery("");
-    setStartDate("");
-    setEndDate("");
-    setSelectedSupplier("all");
-    setSelectedStatus("all");
-    setSelectedPaymentStatus("all");
-    setAppliedFilters({
-      search: "",
-      startDate: "",
-      endDate: "",
-      supplier: "all",
-      status: "all",
-      paymentStatus: "all",
-    });
-    setCurrentPage(1);
-
-    // Fetch with empty filters
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await inventoryService.getPurchases({ page: 1, pageSize });
-      setPurchases(response.data);
-      setTotalPages(response.pagination.totalPages);
-      setTotalItems(response.pagination.totalItems);
-    } catch (err: any) {
-      setError(err);
-      console.error("Failed to load purchases:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /**
-   * Count active filters (based on applied filters, not input values)
-   */
-  const getActiveFilterCount = () => {
-    let count = 0;
-    if (appliedFilters.startDate) count++;
-    if (appliedFilters.endDate) count++;
-    if (appliedFilters.supplier !== "all") count++;
-    if (appliedFilters.status !== "all") count++;
-    if (appliedFilters.paymentStatus !== "all") count++;
-    return count;
-  };
-
-  const activeFilterCount = getActiveFilterCount();
-
-  /**
-   * Check if any filters are active (based on applied filters, not input values)
-   */
-  const hasActiveFilters = activeFilterCount > 0 || !!appliedFilters.search;
 
   /**
    * Fetch purchases with server-side filtering and pagination
@@ -172,21 +137,21 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
       setLoading(true);
       setError(null);
 
-      const filters: PurchaseFilters = {
+      const params: PurchaseFilters = {
         page: currentPage,
         pageSize,
-        search: searchQuery || undefined,
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
-        supplierName: selectedSupplier !== "all" ? selectedSupplier : undefined,
-        status: selectedStatus !== "all" ? (selectedStatus as "received" | "pending") : undefined,
+        search: filters.appliedFilters.search || undefined,
+        startDate: filters.appliedFilters.startDate || undefined,
+        endDate: filters.appliedFilters.endDate || undefined,
+        supplierName: filters.appliedFilters.supplier !== "all" ? filters.appliedFilters.supplier : undefined,
+        status: filters.appliedFilters.status !== "all" ? (filters.appliedFilters.status as "received" | "pending") : undefined,
         paymentStatus:
-          selectedPaymentStatus !== "all"
-            ? (selectedPaymentStatus as "paid" | "partial" | "unpaid")
+          filters.appliedFilters.paymentStatus !== "all"
+            ? (filters.appliedFilters.paymentStatus as "paid" | "partial" | "unpaid")
             : undefined,
       };
 
-      const response = await inventoryService.getPurchases(filters);
+      const response = await inventoryService.getPurchases(params);
       setPurchases(response.data);
       setTotalPages(response.pagination.totalPages);
       setTotalItems(response.pagination.totalItems);
@@ -216,7 +181,7 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
   useEffect(() => {
     fetchPurchases();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage]);
+  }, [currentPage, filters.appliedFilters]);
 
   /**
    * Load all purchases for stats on mount
@@ -226,148 +191,6 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /**
-   * Apply filters (called by Apply Filters button)
-   */
-  const handleApplyFilters = () => {
-    // Save the current filter values as applied filters
-    setAppliedFilters({
-      search: searchQuery,
-      startDate: startDate,
-      endDate: endDate,
-      supplier: selectedSupplier,
-      status: selectedStatus,
-      paymentStatus: selectedPaymentStatus,
-    });
-    setCurrentPage(1);
-    fetchPurchases();
-  };
-
-  /**
-   * Remove individual filter
-   */
-  const handleRemoveFilter = async (filterType: string) => {
-    // Reset the specific filter in both input and applied states
-    switch (filterType) {
-      case "search":
-        setSearchQuery("");
-        setAppliedFilters((prev) => ({ ...prev, search: "" }));
-        break;
-      case "startDate":
-        setStartDate("");
-        setAppliedFilters((prev) => ({ ...prev, startDate: "" }));
-        break;
-      case "endDate":
-        setEndDate("");
-        setAppliedFilters((prev) => ({ ...prev, endDate: "" }));
-        break;
-      case "supplier":
-        setSelectedSupplier("all");
-        setAppliedFilters((prev) => ({ ...prev, supplier: "all" }));
-        break;
-      case "status":
-        setSelectedStatus("all");
-        setAppliedFilters((prev) => ({ ...prev, status: "all" }));
-        break;
-      case "paymentStatus":
-        setSelectedPaymentStatus("all");
-        setAppliedFilters((prev) => ({ ...prev, paymentStatus: "all" }));
-        break;
-    }
-
-    // Reset to first page and trigger refetch
-    setCurrentPage(1);
-
-    // Build updated filters for immediate fetch
-    const updatedFilters: PurchaseFilters = {
-      page: 1,
-      pageSize,
-      search: filterType === "search" ? undefined : searchQuery || undefined,
-      startDate: filterType === "startDate" ? undefined : startDate || undefined,
-      endDate: filterType === "endDate" ? undefined : endDate || undefined,
-      supplierName:
-        filterType === "supplier"
-          ? undefined
-          : selectedSupplier !== "all"
-          ? selectedSupplier
-          : undefined,
-      status:
-        filterType === "status"
-          ? undefined
-          : selectedStatus !== "all"
-          ? (selectedStatus as "received" | "pending")
-          : undefined,
-      paymentStatus:
-        filterType === "paymentStatus"
-          ? undefined
-          : selectedPaymentStatus !== "all"
-          ? (selectedPaymentStatus as "paid" | "partial" | "unpaid")
-          : undefined,
-    };
-
-    // Fetch with updated filters immediately
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await inventoryService.getPurchases(updatedFilters);
-      setPurchases(response.data);
-      setTotalPages(response.pagination.totalPages);
-      setTotalItems(response.pagination.totalItems);
-    } catch (err: any) {
-      setError(err);
-      console.error("Failed to load purchases:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /**
-   * Get active filter labels for display (based on applied filters, not current inputs)
-   */
-  const getActiveFilters = () => {
-    const filters: { type: string; label: string; value: string }[] = [];
-
-    if (appliedFilters.search) {
-      filters.push({ type: "search", label: "Search", value: appliedFilters.search });
-    }
-    if (appliedFilters.startDate) {
-      filters.push({
-        type: "startDate",
-        label: "From",
-        value: new Date(appliedFilters.startDate).toLocaleDateString(),
-      });
-    }
-    if (appliedFilters.endDate) {
-      filters.push({
-        type: "endDate",
-        label: "To",
-        value: new Date(appliedFilters.endDate).toLocaleDateString(),
-      });
-    }
-    if (appliedFilters.supplier !== "all") {
-      filters.push({ type: "supplier", label: "Supplier", value: appliedFilters.supplier });
-    }
-    if (appliedFilters.status !== "all") {
-      filters.push({
-        type: "status",
-        label: "Status",
-        value: appliedFilters.status.charAt(0).toUpperCase() + appliedFilters.status.slice(1),
-      });
-    }
-    if (appliedFilters.paymentStatus !== "all") {
-      filters.push({
-        type: "paymentStatus",
-        label: "Payment",
-        value:
-          appliedFilters.paymentStatus.charAt(0).toUpperCase() +
-          appliedFilters.paymentStatus.slice(1),
-      });
-    }
-
-    return filters;
-  };
-
-  const activeFilters = getActiveFilters();
 
   /**
    * Handle receive purchase
@@ -406,7 +229,17 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
       sortable: true,
       render: (value, row) => (
         <div>
-          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{value}</div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{value}</span>
+            {row.invoiceImagePath && (
+              <span
+                className="inline-flex items-center text-blue-600 dark:text-blue-400"
+                title="Has invoice image"
+              >
+                <Image className="w-4 h-4" aria-hidden="true" />
+              </span>
+            )}
+          </div>
           {row.notes && (
             <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">
               {row.notes}
@@ -565,8 +398,8 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
             </p>
           </div>
           <Button
-            variant="primary"
-            size="md"
+            variant="default"
+            size="default"
             onClick={() => {
               setSelectedPurchase(undefined);
               setPurchaseMode("create");
@@ -616,48 +449,12 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
         </div>
 
         {/* Active Filters Display - Full Width */}
-        {!loading && !error && activeFilters.length > 0 && (
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-5 py-3">
-            <div className="flex items-center flex-wrap gap-2">
-              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                Active Filters:
-              </span>
-              {activeFilters.map((filter) => (
-                <span
-                  key={filter.type}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100 rounded-full text-sm font-medium"
-                >
-                  <span className="font-semibold">{filter.label}:</span>
-                  <span>{filter.value}</span>
-                  <button
-                    onClick={() => handleRemoveFilter(filter.type)}
-                    className="ml-1 hover:bg-blue-200 dark:hover:bg-blue-700 rounded-full p-0.5 transition-colors"
-                    title={`Remove ${filter.label} filter`}
-                  >
-                    <svg
-                      className="w-3.5 h-3.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </span>
-              ))}
-              <button
-                onClick={handleResetFilters}
-                className="ml-2 text-sm text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 font-medium underline"
-              >
-                Clear All
-              </button>
-            </div>
-          </div>
+        {!loading && !error && (
+          <ActiveFiltersBadge
+            filters={filters.activeFilters}
+            onRemove={filters.removeFilter}
+            onClearAll={filters.resetFilters}
+          />
         )}
 
         {/* Purchases DataTable or Error */}
@@ -673,50 +470,16 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
             onPageChange={handlePageChange}
             emptyMessage="No purchase orders found. Click 'New Purchase Order' to create one."
             showFilterButton
-            activeFilterCount={activeFilterCount}
-            showResetButton={hasActiveFilters}
-            onResetFilters={handleResetFilters}
+            activeFilterCount={filters.activeFilterCount}
+            showResetButton={filters.hasActiveFilters}
+            onResetFilters={filters.resetFilters}
             searchBar={
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg
-                      className="h-5 w-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Search purchases..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleApplyFilters()}
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
-                  />
-                </div>
-                <button
-                  onClick={handleApplyFilters}
-                  className="px-4 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors whitespace-nowrap"
-                >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                </button>
-              </div>
+              <SearchInput
+                value={filters.filterValues.search}
+                onChange={(val) => filters.setFilterValue("search", val)}
+                onSearch={filters.applyFilters}
+                placeholder="Search purchases..."
+              />
             }
             filterSection={
               <div className="space-y-4">
@@ -729,8 +492,8 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
                     <div className="relative">
                       <input
                         type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
+                        value={filters.filterValues.startDate}
+                        onChange={(e) => filters.setFilterValue("startDate", e.target.value)}
                         className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
                       />
                     </div>
@@ -744,8 +507,8 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
                     <div className="relative">
                       <input
                         type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
+                        value={filters.filterValues.endDate}
+                        onChange={(e) => filters.setFilterValue("endDate", e.target.value)}
                         className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
                       />
                     </div>
@@ -757,8 +520,8 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
                       Supplier
                     </label>
                     <select
-                      value={selectedSupplier}
-                      onChange={(e) => setSelectedSupplier(e.target.value)}
+                      value={filters.filterValues.supplier}
+                      onChange={(e) => filters.setFilterValue("supplier", e.target.value)}
                       className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
                     >
                       <option value="all">All Suppliers</option>
@@ -776,8 +539,8 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
                       Status
                     </label>
                     <select
-                      value={selectedStatus}
-                      onChange={(e) => setSelectedStatus(e.target.value)}
+                      value={filters.filterValues.status}
+                      onChange={(e) => filters.setFilterValue("status", e.target.value)}
                       className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
                     >
                       <option value="all">All Statuses</option>
@@ -792,8 +555,8 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
                       Payment
                     </label>
                     <select
-                      value={selectedPaymentStatus}
-                      onChange={(e) => setSelectedPaymentStatus(e.target.value)}
+                      value={filters.filterValues.paymentStatus}
+                      onChange={(e) => filters.setFilterValue("paymentStatus", e.target.value)}
                       className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
                     >
                       <option value="all">All Payment Statuses</option>
@@ -806,33 +569,9 @@ export default function PurchasesPage({ params }: { params: Promise<{ locale: st
 
                 {/* Filter Actions */}
                 <div className="flex justify-end gap-2">
-                  {/* <button
-                    onClick={handleResetFilters}
-                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                      Clear Filters
-                    </div>
-                  </button> */}
-                  <button
-                    onClick={handleApplyFilters}
-                    className="px-6 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
-                  >
+                  <Button variant="primary" onClick={filters.applyFilters}>
                     Apply Filters
-                  </button>
+                  </Button>
                 </div>
               </div>
             }

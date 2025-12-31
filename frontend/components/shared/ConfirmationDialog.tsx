@@ -19,7 +19,7 @@
  *   onClose={confirmation.close}
  *   title="Delete Product"
  *   message="Are you sure you want to delete this product? This action cannot be undone."
- *   variant="danger"
+ *   variant="destructive"
  *   confirmLabel="Delete"
  *   onConfirm={async () => {
  *     await deleteProduct(id);

@@ -19,6 +19,8 @@ export { ApiErrorAlert, InlineApiError, EmptyState } from "./ApiErrorAlert";
 export { LoadingSpinner } from "./LoadingSpinner";
 export { ErrorAlert, SuccessAlert } from "./ErrorAlert";
 export { StatusBadge, getStockStatusVariant } from "./StatusBadge";
+export { ActiveFiltersBadge } from "./ActiveFiltersBadge";
+export type { ActiveFilter } from "./ActiveFiltersBadge";
 
 // Skeleton Loading Components
 export {
@@ -52,10 +54,12 @@ export { Select } from "./Select";
 export { Checkbox } from "./Checkbox";
 export { NumberPad } from "./NumberPad";
 export type { NumberPadProps } from "./NumberPad";
+export { SearchInput } from "./SearchInput";
+export type { SearchInputProps } from "./SearchInput";
 
 // UI Components (previously in ui folder)
-export { Button, IconButton } from "./Button";
-export type { ButtonProps, IconButtonProps } from "./Button";
+export { Button } from "./Button";
+export type { ButtonProps } from "./Button";
 export {
   Card,
   CardHeader,

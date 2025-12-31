@@ -95,7 +95,7 @@ export default function ReconciliationReportPage({
   const calculatedExpected = totalCashIn - totalCashOut;
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div >
       {/* Header */}
       <div className="mb-6 flex justify-between items-start print:mb-4">
         <div>

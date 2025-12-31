@@ -154,7 +154,7 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
               <Button
                 type="button"
                 size="sm"
-                variant="danger"
+                variant="destructive"
                 className="h-6 w-6 p-0"
                 onClick={() => removeImage(index)}
               >

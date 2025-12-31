@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
+} from "@/components/shared/dialog";
 import { XCircle, AlertTriangle } from "lucide-react";
 
 interface FailureReasonDialogProps {

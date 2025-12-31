@@ -6,7 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/shared/dialog";
 import { Plus, Minus } from "lucide-react";
 import { ProductDto } from "@/types/api.types";
 import salesService from "@/services/sales.service";

@@ -279,6 +279,7 @@ export default function CreateSalesInvoiceForm({
                       Invoice Number
                     </Label>
                     <Input
+                      name="invoiceNumber"
                       placeholder="Auto-generated"
                       value={invoiceNumber}
                       className="bg-gray-50 border-gray-200"
@@ -290,6 +291,7 @@ export default function CreateSalesInvoiceForm({
                       Date & Time
                     </Label>
                     <Input
+                      name="invoiceDate"
                       type="datetime-local"
                       value={invoiceDate}
                       className="bg-gray-50 border-gray-200"
@@ -310,6 +312,7 @@ export default function CreateSalesInvoiceForm({
                     </Button>
                   </div>
                   <Select
+                    name="customer"
                     value={selectedCustomerId}
                     onChange={(e) => setSelectedCustomerId(e.target.value)}
                     options={customerOptions}
@@ -331,6 +334,7 @@ export default function CreateSalesInvoiceForm({
                 <Label className="text-xs font-semibold text-gray-500">Scan Barcode</Label>
                 <div className="flex gap-2">
                   <Input
+                    name="barcode"
                     ref={barcodeInputRef}
                     placeholder="Scan or enter barcode..."
                     value={barcodeInput}
@@ -361,6 +365,7 @@ export default function CreateSalesInvoiceForm({
                 <div className="md:col-span-4 space-y-2">
                   <Label className="text-xs font-semibold text-gray-500">Category</Label>
                   <Select
+                    name="category"
                     value={selectedCategoryId}
                     onChange={(e) => {
                       setSelectedCategoryId(e.target.value);
@@ -373,6 +378,7 @@ export default function CreateSalesInvoiceForm({
                 <div className="md:col-span-6 space-y-2">
                   <Label className="text-xs font-semibold text-gray-500">Product</Label>
                   <Select
+                    name="product"
                     value={selectedProductId}
                     onChange={(e) => setSelectedProductId(e.target.value)}
                     options={productOptions}
@@ -383,6 +389,7 @@ export default function CreateSalesInvoiceForm({
                   <Label className="text-xs font-semibold text-gray-500">Quantity</Label>
                   <div className="flex items-center">
                     <Input
+                      name="quantity"
                       type="number"
                       min="1"
                       value={addQuantity}
@@ -491,6 +498,7 @@ export default function CreateSalesInvoiceForm({
             <div className="space-y-2">
               <Label className="font-bold text-sm">Order Type</Label>
               <Select
+                name="orderType"
                 value={orderType}
                 onChange={(e) => setOrderType(e.target.value)}
                 options={orderTypeOptions}
@@ -501,6 +509,7 @@ export default function CreateSalesInvoiceForm({
             <div className="space-y-2">
               <Label className="font-bold text-sm">Payment Method</Label>
               <Select
+                name="paymentMethod"
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(parseInt(e.target.value))}
                 options={paymentMethodOptions}
@@ -541,6 +550,7 @@ export default function CreateSalesInvoiceForm({
                     </div>
                   </div>
                   <Input
+                    name="discount"
                     type="number"
                     min="0"
                     value={discountValue}
@@ -573,6 +583,7 @@ export default function CreateSalesInvoiceForm({
               <div className="space-y-2 pt-2">
                 <Label className="font-bold text-sm">Amount Paid</Label>
                 <Input
+                  name="amountPaid"
                   type="number"
                   min="0"
                   step="0.01"

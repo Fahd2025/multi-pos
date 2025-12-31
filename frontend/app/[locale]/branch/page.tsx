@@ -108,7 +108,7 @@ export default function BranchHomePage({ params }: { params: Promise<{ locale: s
     return (
       <div className="space-y-4">
         <ErrorAlert message={error} />
-        <Button onClick={loadStats} variant="primary">
+        <Button onClick={loadStats} variant="default">
           Retry
         </Button>
       </div>
@@ -127,7 +127,7 @@ export default function BranchHomePage({ params }: { params: Promise<{ locale: s
         actions={
           <Button
             onClick={() => router.push(`/${locale}/pos`)}
-            variant="primary"
+            variant="default"
             size="lg"
           >
             <ShoppingCart className="w-5 h-5 mr-2" />

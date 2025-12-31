@@ -22,7 +22,9 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useApiError } from "@/hooks/useApiError";
+import { useTableFilters } from "@/hooks/useTableFilters";
 import { ApiErrorAlert } from "@/components/shared/ApiErrorAlert";
+import { ActiveFiltersBadge, SearchInput } from "@/components/shared";
 import { StatCard } from "@/components/shared";
 import { useApiOperation } from "@/hooks/useApiOperation";
 import { useAuth } from "@/hooks/useAuth";
@@ -39,14 +41,13 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
   const [loading, setLoading] = useState(true);
   const { error, isError, executeWithErrorHandling, clearError } = useApiError();
 
-  // Filter states (input values)
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showActiveOnly, setShowActiveOnly] = useState(true);
-
-  // Applied filters (what's actually being used in the API call)
-  const [appliedFilters, setAppliedFilters] = useState({
-    search: "",
-    isActive: true,
+  // Table filters using new hook
+  const filters = useTableFilters({
+    filterDefinitions: [
+      { type: "search", label: "Search", defaultValue: "" },
+      { type: "isActive", label: "Status", defaultValue: true, getDisplayValue: (val) => val ? "Active Only" : "All" },
+    ],
+    onFiltersChange: () => setCurrentPage(1),
   });
 
   // Pagination
@@ -78,46 +79,12 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
   });
 
   /**
-   * Count active filters (based on applied filters, not input values)
-   */
-  const getActiveFilterCount = () => {
-    let count = 0;
-    if (!appliedFilters.isActive) count++; // Count if "show all" is active
-    return count;
-  };
-
-  const activeFilterCount = getActiveFilterCount();
-
-  /**
-   * Check if any filters are active (based on applied filters, not input values)
-   */
-  const hasActiveFilters = activeFilterCount > 0 || !!appliedFilters.search;
-
-  /**
-   * Get active filter labels for display (based on applied filters)
-   */
-  const getActiveFilters = () => {
-    const filters: { type: string; label: string; value: string }[] = [];
-
-    if (appliedFilters.search) {
-      filters.push({ type: "search", label: "Search", value: appliedFilters.search });
-    }
-    if (!appliedFilters.isActive) {
-      filters.push({ type: "isActive", label: "Status", value: "All (Active & Inactive)" });
-    }
-
-    return filters;
-  };
-
-  const activeFilters = getActiveFilters();
-
-  /**
    * Load customers with server-side filtering and pagination
    */
   useEffect(() => {
     loadCustomers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage]);
+  }, [currentPage, filters.appliedFilters]);
 
   /**
    * Load all customers for statistics (without filters)
@@ -134,8 +101,8 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
       const response = await customerService.getCustomers({
         page: currentPage,
         pageSize,
-        search: appliedFilters.search || undefined,
-        isActive: appliedFilters.isActive ? true : undefined,
+        search: filters.appliedFilters.search || undefined,
+        isActive: filters.appliedFilters.isActive ? true : undefined,
       });
 
       return response;
@@ -162,92 +129,6 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
     if (result) {
       setAllCustomers(result.data || []);
     }
-  };
-
-  /**
-   * Apply filters (called by Apply Filters button)
-   */
-  const handleApplyFilters = () => {
-    // Save the current filter values as applied filters
-    setAppliedFilters({
-      search: searchTerm,
-      isActive: showActiveOnly,
-    });
-    setCurrentPage(1);
-    // Will trigger loadCustomers via useEffect
-    setTimeout(() => loadCustomers(), 0);
-  };
-
-  /**
-   * Reset all filters
-   */
-  const handleResetFilters = async () => {
-    // Reset all filter states
-    setSearchTerm("");
-    setShowActiveOnly(true);
-    setAppliedFilters({
-      search: "",
-      isActive: true,
-    });
-    setCurrentPage(1);
-
-    // Fetch with empty filters
-    setLoading(true);
-    const result = await executeWithErrorHandling(async () => {
-      const response = await customerService.getCustomers({ page: 1, pageSize });
-      return response;
-    });
-
-    if (result) {
-      setCustomers(result.data);
-      setTotalPages(result.pagination.totalPages);
-      setTotalItems(result.pagination.totalItems);
-    }
-
-    setLoading(false);
-  };
-
-  /**
-   * Remove individual filter
-   */
-  const handleRemoveFilter = async (filterType: string) => {
-    // Reset the specific filter in both input and applied states
-    switch (filterType) {
-      case "search":
-        setSearchTerm("");
-        setAppliedFilters((prev) => ({ ...prev, search: "" }));
-        break;
-      case "isActive":
-        setShowActiveOnly(true);
-        setAppliedFilters((prev) => ({ ...prev, isActive: true }));
-        break;
-    }
-
-    // Reset to first page and trigger refetch
-    setCurrentPage(1);
-
-    // Build updated filters for immediate fetch
-    const updatedFilters = {
-      page: 1,
-      pageSize,
-      search: filterType === "search" ? undefined : searchTerm || undefined,
-      isActive: filterType === "isActive" ? true : showActiveOnly ? true : undefined,
-    };
-
-    // Fetch with updated filters immediately
-    setLoading(true);
-    const result = await executeWithErrorHandling(async () => {
-      const response = await customerService.getCustomers(updatedFilters);
-      return response;
-    });
-
-    if (result) {
-      setCustomers(result.data);
-      setTotalPages(result.pagination.totalPages);
-      setTotalItems(result.pagination.totalItems);
-    }
-
-    setLoading(false);
   };
 
   const handleEdit = (customer: CustomerDto) => {
@@ -404,8 +285,8 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
           <p className="text-gray-600">Manage your customers and track sales history</p>
         </div>
         <Button
-          variant="primary"
-          size="md"
+          variant="default"
+          size="default"
           onClick={() => {
             setSelectedCustomer(undefined);
             setIsModalOpen(true);
@@ -453,49 +334,14 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
         />
       </div>
 
-      {/* Active Filters Display - Full Width */}
-      {!loading && !isError && activeFilters.length > 0 && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-5 py-3 mb-6">
-          <div className="flex items-center flex-wrap gap-2">
-            <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
-              Active Filters:
-            </span>
-            {activeFilters.map((filter) => (
-              <span
-                key={filter.type}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100 rounded-full text-sm font-medium"
-              >
-                <span className="font-semibold">{filter.label}:</span>
-                <span>{filter.value}</span>
-                <button
-                  onClick={() => handleRemoveFilter(filter.type)}
-                  className="ml-1 hover:bg-blue-200 dark:hover:bg-blue-700 rounded-full p-0.5 transition-colors"
-                  title={`Remove ${filter.label} filter`}
-                >
-                  <svg
-                    className="w-3.5 h-3.5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </span>
-            ))}
-            <button
-              onClick={handleResetFilters}
-              className="ml-2 text-sm text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 font-medium underline"
-            >
-              Clear All
-            </button>
-          </div>
-        </div>
+      {/* Active Filters Display */}
+      {!loading && !isError && (
+        <ActiveFiltersBadge
+          filters={filters.activeFilters}
+          onRemove={filters.removeFilter}
+          onClearAll={filters.resetFilters}
+          className="mb-6"
+        />
       )}
 
       {/* Error Message */}
@@ -526,50 +372,16 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
           emptyMessage="No customers found. Click 'Add Customer' to create one."
           showRowNumbers
           showFilterButton
-          activeFilterCount={activeFilterCount}
-          showResetButton={hasActiveFilters}
-          onResetFilters={handleResetFilters}
+          activeFilterCount={filters.activeFilterCount}
+          showResetButton={filters.hasActiveFilters}
+          onResetFilters={filters.resetFilters}
           searchBar={
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg
-                    className="h-5 w-5 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search by name, email, phone..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleApplyFilters()}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm"
-                />
-              </div>
-              <button
-                onClick={handleApplyFilters}
-                className="px-4 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors whitespace-nowrap"
-              >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </button>
-            </div>
+            <SearchInput
+              value={filters.filterValues.search}
+              onChange={(val) => filters.setFilterValue("search", val)}
+              onSearch={filters.applyFilters}
+              placeholder="Search by name, email, phone..."
+            />
           }
           filterSection={
             <div className="space-y-4">
@@ -583,8 +395,8 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
                     <label className="flex items-center cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={showActiveOnly}
-                        onChange={(e) => setShowActiveOnly(e.target.checked)}
+                        checked={filters.filterValues.isActive}
+                        onChange={(e) => filters.setFilterValue("isActive", e.target.checked)}
                         className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                       />
                       <span className="ml-2 text-sm text-gray-900 dark:text-gray-100">
@@ -597,12 +409,9 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
 
               {/* Filter Actions */}
               <div className="flex justify-end gap-2">
-                <button
-                  onClick={handleApplyFilters}
-                  className="px-6 py-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
-                >
+                <Button variant="primary" onClick={filters.applyFilters}>
                   Apply Filters
-                </button>
+                </Button>
               </div>
             </div>
           }
@@ -764,12 +573,12 @@ export default function CustomersPage({ params }: { params: Promise<{ locale: st
 
               {/* Action Buttons */}
               <div className="flex justify-end gap-2 border-t pt-4 mt-4">
-                <Button variant="secondary" size="md" onClick={() => viewModal.close()}>
+                <Button variant="secondary" size="default" onClick={() => viewModal.close()}>
                   Close
                 </Button>
                 <Button
-                  variant="primary"
-                  size="md"
+                  variant="default"
+                  size="default"
                   onClick={() => {
                     viewModal.close();
                     handleEdit(viewModal.data!);

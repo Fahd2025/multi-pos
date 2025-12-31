@@ -93,7 +93,7 @@ export default function HeadOfficeDashboard({ params }: { params: Promise<{ loca
     return (
       <div className="space-y-4">
         <ErrorAlert message={error} />
-        <Button onClick={loadDashboardData} variant="primary">
+        <Button onClick={loadDashboardData} variant="default">
           Try Again
         </Button>
       </div>

@@ -197,7 +197,7 @@ export default function CustomerDetailsPage({
       <div className="container mx-auto p-6">
         <ErrorAlert message={error || "Customer not found"} />
         <Link href={`/${locale}/branch/customers`}>
-          <Button variant="secondary" size="md" className="mt-4">
+          <Button variant="secondary" size="default" className="mt-4">
             ← Back to Customers
           </Button>
         </Link>
@@ -230,10 +230,10 @@ export default function CustomerDetailsPage({
         </button>
 
         {/* <div className="flex gap-2">
-          <Button variant="primary" size="md" onClick={() => setIsEditModalOpen(true)}>
+          <Button variant="default" size="default" onClick={() => setIsEditModalOpen(true)}>
             Edit
           </Button>
-          <Button variant="danger" size="md" onClick={handleDelete}>
+          <Button variant="destructive" size="default" onClick={handleDelete}>
             Delete
           </Button>
         </div> */}

@@ -4,6 +4,7 @@ using Backend.Data.HeadOffice;
 using Backend.Data.Shared;
 using Backend.Services.Branch.Images;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Endpoints;
 
@@ -884,6 +885,134 @@ public static class ImageEndpoints
             .WithName("UploadMultipleImages")
             .WithOpenApi()
             .DisableAntiforgery();
+
+        // GET /api/v1/images/{branchName}/purchases/{purchaseId}/invoice/{size} - Serve purchase invoice image
+        imagesGroup
+            .MapGet(
+                "/{branchName}/purchases/{purchaseId:guid}/invoice/{size}",
+                async (
+                    string branchName,
+                    Guid purchaseId,
+                    string size,
+                    DbContextFactory dbContextFactory,
+                    HeadOfficeDbContext headOfficeDbContext
+                ) =>
+                {
+                    try
+                    {
+                        // Validate size
+                        var validSizes = new[] { "original", "large", "medium", "thumb" };
+                        if (!validSizes.Contains(size.ToLower()))
+                        {
+                            return Results.BadRequest(
+                                new
+                                {
+                                    success = false,
+                                    error = new
+                                    {
+                                        code = "INVALID_SIZE",
+                                        message = $"Size must be one of: {string.Join(", ", validSizes)}",
+                                    },
+                                }
+                            );
+                        }
+
+                        // Get branch from head office database
+                        var branch = await headOfficeDbContext.Branches.FirstOrDefaultAsync(b =>
+                            b.Code == branchName && b.IsActive
+                        );
+
+                        if (branch == null)
+                        {
+                            return Results.NotFound(
+                                new
+                                {
+                                    success = false,
+                                    error = new
+                                    {
+                                        code = "BRANCH_NOT_FOUND",
+                                        message = "Branch not found or inactive",
+                                    },
+                                }
+                            );
+                        }
+
+                        // Get the purchase to find the invoice image path
+                        using var branchDbContext = dbContextFactory.CreateBranchContext(branch);
+                        var purchase = branchDbContext.Purchases.FirstOrDefault(p => p.Id == purchaseId);
+
+                        if (purchase == null || string.IsNullOrEmpty(purchase.InvoiceImagePath))
+                        {
+                            return Results.NotFound(
+                                new
+                                {
+                                    success = false,
+                                    error = new
+                                    {
+                                        code = "NOT_FOUND",
+                                        message = "Purchase invoice image not found",
+                                    },
+                                }
+                            );
+                        }
+
+                        // Construct the image path based on the stored path and requested size
+                        var storedPath = purchase.InvoiceImagePath;
+
+                        // Extract the directory and base filename
+                        var directory = Path.GetDirectoryName(storedPath) ?? string.Empty;
+                        var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(storedPath);
+
+                        // Remove the -original suffix if it exists
+                        if (fileNameWithoutExtension.EndsWith("-original"))
+                        {
+                            fileNameWithoutExtension = fileNameWithoutExtension.Substring(
+                                0,
+                                fileNameWithoutExtension.Length - "-original".Length
+                            );
+                        }
+
+                        // Construct the full path with the requested size
+                        var imagePath = Path.Combine(
+                            directory,
+                            $"{fileNameWithoutExtension}-{size}.webp"
+                        );
+
+                        // Check if image exists
+                        if (!File.Exists(imagePath))
+                        {
+                            return Results.NotFound(
+                                new
+                                {
+                                    success = false,
+                                    error = new
+                                    {
+                                        code = "NOT_FOUND",
+                                        message = $"Image file not found: {size}",
+                                    },
+                                }
+                            );
+                        }
+
+                        // Serve the image file
+                        var contentType = "image/webp";
+                        return Results.File(imagePath, contentType, enableRangeProcessing: true);
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(
+                            new
+                            {
+                                success = false,
+                                error = new { code = "ERROR", message = ex.Message },
+                            }
+                        );
+                    }
+                }
+            )
+            .AllowAnonymous()
+            .WithName("ServePurchaseInvoiceImage")
+            .WithOpenApi();
 
         return app;
     }

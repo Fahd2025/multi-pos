@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
+} from "@/components/shared/dialog";
 import { CheckCircle, Circle, DollarSign } from "lucide-react";
 
 interface DeliveryConfirmationDialogProps {

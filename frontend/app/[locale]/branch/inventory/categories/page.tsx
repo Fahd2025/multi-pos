@@ -250,13 +250,13 @@ export default function CategoriesPage({ params }: { params: Promise<{ locale: s
           </div>
           <div className="flex gap-3">
             <Link href={`/${locale}/branch/inventory`}>
-              <Button variant="secondary" size="md">
+              <Button variant="secondary" size="default">
                 ← Back to Inventory
               </Button>
             </Link>
             <Button
-              variant="primary"
-              size="md"
+              variant="default"
+              size="default"
               onClick={() => {
                 setSelectedCategory(undefined);
                 setIsCategoryModalOpen(true);

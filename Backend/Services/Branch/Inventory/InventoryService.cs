@@ -1,6 +1,7 @@
 using Backend.Data.Branch;
 using Backend.Models.DTOs.Branch.Inventory;
 using Backend.Models.Entities.Branch;
+using Backend.Services.Branch.Images;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services.Branch.Inventory;
@@ -12,11 +13,13 @@ public class InventoryService : IInventoryService
 {
     private readonly BranchDbContext _context;
     private readonly ILogger<InventoryService> _logger;
+    private readonly IImageService _imageService;
 
-    public InventoryService(BranchDbContext context, ILogger<InventoryService> logger)
+    public InventoryService(BranchDbContext context, ILogger<InventoryService> logger, IImageService imageService)
     {
         _context = context;
         _logger = logger;
+        _imageService = imageService;
     }
 
     #region Product Operations
@@ -695,6 +698,17 @@ public class InventoryService : IInventoryService
                 PurchaseDate = p.PurchaseDate,
                 ReceivedDate = p.ReceivedDate,
                 TotalCost = p.TotalCost,
+                // Discount fields
+                DiscountType = p.DiscountType,
+                DiscountValue = p.DiscountValue,
+                DiscountAmount = p.DiscountAmount,
+                // Tax fields
+                TaxRate = p.TaxRate,
+                TaxAmount = p.TaxAmount,
+                TaxIncluded = p.TaxIncluded,
+                // Totals
+                Subtotal = p.Subtotal,
+                GrandTotal = p.GrandTotal,
                 PaymentStatus = (int)p.PaymentStatus,
                 PaymentStatusText = GetPaymentStatusText((int)p.PaymentStatus),
                 AmountPaid = p.AmountPaid,
@@ -740,6 +754,17 @@ public class InventoryService : IInventoryService
             PurchaseDate = purchase.PurchaseDate,
             ReceivedDate = purchase.ReceivedDate,
             TotalCost = purchase.TotalCost,
+            // Discount fields
+            DiscountType = purchase.DiscountType,
+            DiscountValue = purchase.DiscountValue,
+            DiscountAmount = purchase.DiscountAmount,
+            // Tax fields
+            TaxRate = purchase.TaxRate,
+            TaxAmount = purchase.TaxAmount,
+            TaxIncluded = purchase.TaxIncluded,
+            // Totals
+            Subtotal = purchase.Subtotal,
+            GrandTotal = purchase.GrandTotal,
             PaymentStatus = (int)purchase.PaymentStatus,
             PaymentStatusText = GetPaymentStatusText((int)purchase.PaymentStatus),
             AmountPaid = purchase.AmountPaid,
@@ -799,9 +824,20 @@ public class InventoryService : IInventoryService
             SupplierId = dto.SupplierId,
             PurchaseDate = dto.PurchaseDate,
             ReceivedDate = null,
-            PaymentStatus = PaymentStatus.Pending,
-            AmountPaid = 0,
+            PaymentStatus = (PaymentStatus)dto.PaymentStatus,
+            AmountPaid = dto.AmountPaid,
             Notes = dto.Notes,
+            // Discount fields
+            DiscountType = dto.DiscountType,
+            DiscountValue = dto.DiscountValue,
+            DiscountAmount = dto.DiscountAmount,
+            // Tax fields
+            TaxRate = dto.TaxRate,
+            TaxAmount = dto.TaxAmount,
+            TaxIncluded = dto.TaxIncluded,
+            // Totals
+            Subtotal = dto.Subtotal,
+            GrandTotal = dto.GrandTotal,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = userId,
             LineItems = new List<PurchaseLineItem>()
@@ -828,6 +864,42 @@ public class InventoryService : IInventoryService
         }
 
         purchase.TotalCost = totalCost;
+
+        // PHASE 6: Handle invoice image upload if provided
+        if (!string.IsNullOrWhiteSpace(dto.InvoiceImageBase64))
+        {
+            try
+            {
+                var imageBytes = Convert.FromBase64String(dto.InvoiceImageBase64);
+                using var imageStream = new MemoryStream(imageBytes);
+
+                var fileName = !string.IsNullOrWhiteSpace(dto.InvoiceImageFileName)
+                    ? dto.InvoiceImageFileName
+                    : $"invoice_{DateTime.UtcNow:yyyyMMddHHmmss}.jpg";
+
+                var result = await _imageService.UploadImageAsync(
+                    branchName: branchCode,
+                    entityType: "Purchases",
+                    entityId: purchase.Id,
+                    imageStream: imageStream,
+                    fileName: fileName);
+
+                if (result.Success && !string.IsNullOrWhiteSpace(result.OriginalPath))
+                {
+                    purchase.InvoiceImagePath = result.OriginalPath;
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to upload invoice image for purchase {PurchaseId}: {Error}",
+                        purchase.Id, result.ErrorMessage);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading invoice image for purchase {PurchaseId}", purchase.Id);
+                // Continue without failing the purchase creation
+            }
+        }
 
         _context.Purchases.Add(purchase);
         await _context.SaveChangesAsync();
@@ -876,6 +948,20 @@ public class InventoryService : IInventoryService
         purchase.SupplierId = dto.SupplierId;
         purchase.PurchaseDate = dto.PurchaseDate;
         purchase.Notes = dto.Notes;
+        // Update discount fields
+        purchase.DiscountType = dto.DiscountType;
+        purchase.DiscountValue = dto.DiscountValue;
+        purchase.DiscountAmount = dto.DiscountAmount;
+        // Update tax fields
+        purchase.TaxRate = dto.TaxRate;
+        purchase.TaxAmount = dto.TaxAmount;
+        purchase.TaxIncluded = dto.TaxIncluded;
+        // Update totals
+        purchase.Subtotal = dto.Subtotal;
+        purchase.GrandTotal = dto.GrandTotal;
+        // PHASE 5: Update payment status and amount paid
+        purchase.PaymentStatus = (PaymentStatus)dto.PaymentStatus;
+        purchase.AmountPaid = dto.AmountPaid;
 
         // Get existing line items 
         var existingLineItems = await _context.PurchaseLineItems.Where(p => p.PurchaseId == purchaseId).ToListAsync();
@@ -906,6 +992,47 @@ public class InventoryService : IInventoryService
         _context.PurchaseLineItems.AddRange(lineItems);
 
         purchase.TotalCost = totalCost;
+
+        // PHASE 6: Handle invoice image upload if provided
+        if (!string.IsNullOrWhiteSpace(dto.InvoiceImageBase64))
+        {
+            try
+            {
+                var imageBytes = Convert.FromBase64String(dto.InvoiceImageBase64);
+                using var imageStream = new MemoryStream(imageBytes);
+
+                var fileName = !string.IsNullOrWhiteSpace(dto.InvoiceImageFileName)
+                    ? dto.InvoiceImageFileName
+                    : $"invoice_{DateTime.UtcNow:yyyyMMddHHmmss}.jpg";
+
+                var branchCode = _context.Database.GetConnectionString()?.Contains("B001") == true ? "B001" :
+                    _context.Database.GetConnectionString()?.Contains("B002") == true ? "B002" :
+                    _context.Database.GetConnectionString()?.Contains("B003") == true ? "B003" : "B001";
+
+                var result = await _imageService.UploadImageAsync(
+                    branchName: branchCode,
+                    entityType: "Purchases",
+                    entityId: purchase.Id,
+                    imageStream: imageStream,
+                    fileName: fileName);
+
+                if (result.Success && !string.IsNullOrWhiteSpace(result.OriginalPath))
+                {
+                    purchase.InvoiceImagePath = result.OriginalPath;
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to upload invoice image for purchase {PurchaseId}: {Error}",
+                        purchase.Id, result.ErrorMessage);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading invoice image for purchase {PurchaseId}", purchase.Id);
+                // Continue without failing the purchase update
+            }
+        }
+
         await _context.SaveChangesAsync();
 
         return (await GetPurchaseByIdAsync(purchase.Id))!;
