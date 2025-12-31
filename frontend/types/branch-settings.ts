@@ -11,6 +11,86 @@ export interface Address {
   shortAddress?: string;
 }
 
+/**
+ * Theme Configuration Types
+ */
+
+export type ThemeMode = 'light' | 'dark' | 'auto';
+export type ThemeStyle = 'preset' | 'custom';
+
+export interface ThemeColors {
+  // Primary colors
+  primary: string;
+  primaryForeground: string;
+
+  // Secondary colors
+  secondary: string;
+  secondaryForeground: string;
+
+  // Accent colors
+  accent: string;
+  accentForeground: string;
+
+  // Background colors
+  background: string;
+  foreground: string;
+
+  // Surface colors
+  card: string;
+  cardForeground: string;
+
+  // Border and input
+  border: string;
+  input: string;
+  ring: string;
+
+  // Semantic colors
+  destructive: string;
+  destructiveForeground: string;
+  success: string;
+  warning: string;
+  info: string;
+}
+
+export interface ThemePreset {
+  id: string;
+  name: string;
+  nameAr: string;
+  description: string;
+  descriptionAr: string;
+  light: ThemeColors;
+  dark: ThemeColors;
+  preview?: string; // Preview image URL
+}
+
+export interface ThemeConfig {
+  // Basic mode
+  mode: ThemeMode; // 'light' | 'dark' | 'auto'
+
+  // Style configuration
+  style: ThemeStyle; // 'preset' | 'custom'
+  presetId?: string; // If using preset
+
+  // Custom colors (if style === 'custom')
+  customColors?: {
+    light: Partial<ThemeColors>;
+    dark: Partial<ThemeColors>;
+  };
+
+  // Advanced settings
+  borderRadius?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
+  fontScale?: number; // 0.8 to 1.2
+  spacing?: 'compact' | 'comfortable' | 'spacious';
+
+  // Animations
+  enableAnimations?: boolean;
+  animationSpeed?: 'slow' | 'normal' | 'fast';
+
+  // Accessibility
+  highContrast?: boolean;
+  reducedMotion?: boolean;
+}
+
 export interface BranchSettings {
   id: string;
   code: string;
@@ -39,6 +119,9 @@ export interface BranchSettings {
   taxRate: number;
   priceIncludesTax: boolean;
 
+  // Theme Configuration
+  themeConfig?: ThemeConfig;
+
   // Metadata
   isActive: boolean;
   updatedAt: string;
@@ -66,6 +149,9 @@ export interface UpdateBranchSettings {
   enableTax: boolean;
   taxRate: number;
   priceIncludesTax: boolean;
+
+  // Theme Configuration
+  themeConfig?: ThemeConfig;
 }
 
 export interface ApiResponse<T> {

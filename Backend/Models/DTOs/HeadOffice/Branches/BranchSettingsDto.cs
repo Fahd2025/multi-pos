@@ -36,6 +36,9 @@ public class BranchSettingsDto
     public bool AllowNegativeStock { get; set; } = false;
     public int NegativeStockLimit { get; set; } = 0;
 
+    // Theme Configuration
+    public object? ThemeConfig { get; set; } // Deserialized JSON object
+
     // Metadata
     public bool IsActive { get; set; }
     public DateTime UpdatedAt { get; set; }

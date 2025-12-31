@@ -111,6 +111,9 @@ public class Branch
     [Required]
     public int NegativeStockLimit { get; set; } = 0;
 
+    // Theme Configuration (stored as JSON)
+    public string? ThemeConfigJson { get; set; }
+
     [Required]
     public bool IsActive { get; set; } = true;
 

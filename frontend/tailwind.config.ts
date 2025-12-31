@@ -39,7 +39,12 @@ const config: Config = {
         input: "var(--input)",
         ring: "var(--ring)",
 
-        // Feature domain colors with alpha support
+        // Theme semantic colors
+        success: "var(--success)",
+        warning: "var(--warning)",
+        info: "var(--info)",
+
+        // Feature domain colors with alpha support (legacy - kept for backwards compatibility)
         sales: 'rgb(var(--color-sales) / <alpha-value>)',
         inventory: 'rgb(var(--color-inventory) / <alpha-value>)',
         customers: 'rgb(var(--color-customers) / <alpha-value>)',
@@ -49,12 +54,7 @@ const config: Config = {
         users: 'rgb(var(--color-users) / <alpha-value>)',
         settings: 'rgb(var(--color-settings) / <alpha-value>)',
         tables: 'rgb(var(--color-tables) / <alpha-value>)',
-
-        // Enhanced status colors with alpha support
-        success: 'rgb(var(--color-success) / <alpha-value>)',
-        warning: 'rgb(var(--color-warning) / <alpha-value>)',
         danger: 'rgb(var(--color-danger) / <alpha-value>)',
-        info: 'rgb(var(--color-info) / <alpha-value>)',
         pending: 'rgb(var(--color-pending) / <alpha-value>)',
       },
 

@@ -46,22 +46,22 @@ export const ActiveFiltersBadge: React.FC<ActiveFiltersBadgeProps> = ({
 
   return (
     <div
-      className={`bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-5 py-3 ${className}`}
+      className={`bg-primary/10 border border-primary/30 rounded-lg px-5 py-3 ${className}`}
     >
       <div className="flex items-center flex-wrap gap-2">
-        <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+        <span className="text-sm font-medium text-foreground">
           Active Filters:
         </span>
         {filters.map((filter) => (
           <span
             key={filter.type}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100 rounded-full text-sm font-medium"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/20 text-foreground rounded-full text-sm font-medium"
           >
             <span className="font-semibold">{filter.label}:</span>
             <span>{filter.value}</span>
             <button
               onClick={() => onRemove(filter.type)}
-              className="ml-1 hover:bg-blue-200 dark:hover:bg-blue-700 rounded-full p-0.5 transition-colors"
+              className="ml-1 hover:bg-primary/30 rounded-full p-0.5 transition-colors"
               title={`Remove ${filter.label} filter`}
               aria-label={`Remove ${filter.label} filter`}
             >
@@ -71,7 +71,7 @@ export const ActiveFiltersBadge: React.FC<ActiveFiltersBadgeProps> = ({
         ))}
         <button
           onClick={onClearAll}
-          className="ml-2 text-sm text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 font-medium underline"
+          className="ml-2 text-sm text-primary hover:text-primary/80 font-medium underline"
         >
           Clear All
         </button>

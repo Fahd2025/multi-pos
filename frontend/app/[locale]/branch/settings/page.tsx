@@ -26,6 +26,7 @@ import { UserRole } from "@/types/enums";
 import { Button } from "@/components/shared/Button";
 import { BRANCH_ROUTES } from "@/lib/routes";
 import { useToast } from "@/hooks/useToast";
+import { ThemeSettings } from "@/components/branch/settings/ThemeSettings";
 
 export default function BranchSettingsPage() {
   const params = useParams();
@@ -61,7 +62,7 @@ export default function BranchSettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<"branch" | "regional" | "tax">("branch");
+  const [activeTab, setActiveTab] = useState<"branch" | "regional" | "tax" | "theme">("branch");
   const [imageError, setImageError] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -258,7 +259,7 @@ export default function BranchSettingsPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div
-          className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"
+          className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"
           role="status"
           aria-label="Loading"
         ></div>
@@ -297,7 +298,7 @@ export default function BranchSettingsPage() {
         <div className="mb-8">
           <button
             onClick={() => router.push(BRANCH_ROUTES.SETTINGS_INVOICE_TEMPLATES(locale))}
-            className="flex items-center justify-between p-4 w-full md:w-1/2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-md transition-all"
+            className="flex items-center justify-between p-4 w-full md:w-1/2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-primary hover:shadow-md transition-all"
           >
             <div className="flex items-center gap-3">
               <div className="text-2xl">📄</div>
@@ -344,7 +345,7 @@ export default function BranchSettingsPage() {
                 py-4 px-1 border-b-2 font-medium text-sm transition-colors
                 ${
                   activeTab === "branch"
-                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    ? "border-primary text-primary"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
                 }
               `}
@@ -360,7 +361,7 @@ export default function BranchSettingsPage() {
                 py-4 px-1 border-b-2 font-medium text-sm transition-colors
                 ${
                   activeTab === "regional"
-                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    ? "border-primary text-primary"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
                 }
               `}
@@ -376,7 +377,7 @@ export default function BranchSettingsPage() {
                 py-4 px-1 border-b-2 font-medium text-sm transition-colors
                 ${
                   activeTab === "tax"
-                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    ? "border-primary text-primary"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
                 }
               `}
@@ -385,6 +386,22 @@ export default function BranchSettingsPage() {
               aria-controls="tax-panel"
             >
               Tax Settings
+            </button>
+            <button
+              onClick={() => setActiveTab("theme")}
+              className={`
+                py-4 px-1 border-b-2 font-medium text-sm transition-colors
+                ${
+                  activeTab === "theme"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                }
+              `}
+              role="tab"
+              aria-selected={activeTab === "theme"}
+              aria-controls="theme-panel"
+            >
+              Theme Settings
             </button>
           </nav>
         </div>
@@ -418,7 +435,7 @@ export default function BranchSettingsPage() {
                   id="nameEn"
                   value={settings.nameEn}
                   onChange={(e) => setSettings({ ...settings, nameEn: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                   required
                   aria-required="true"
                 />
@@ -440,7 +457,7 @@ export default function BranchSettingsPage() {
                   id="nameAr"
                   value={settings.nameAr}
                   onChange={(e) => setSettings({ ...settings, nameAr: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                   dir="rtl"
                   required
                   aria-required="true"
@@ -460,7 +477,7 @@ export default function BranchSettingsPage() {
                   id="phone"
                   value={settings.phone || ""}
                   onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                   placeholder="+1 234 567 8900"
                 />
               </div>
@@ -478,7 +495,7 @@ export default function BranchSettingsPage() {
                   id="email"
                   value={settings.email || ""}
                   onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                   placeholder="branch@example.com"
                 />
               </div>
@@ -496,7 +513,7 @@ export default function BranchSettingsPage() {
                   id="vatNumber"
                   value={settings.vatNumber || ""}
                   onChange={(e) => setSettings({ ...settings, vatNumber: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                   placeholder="123456789"
                 />
               </div>
@@ -516,7 +533,7 @@ export default function BranchSettingsPage() {
                   onChange={(e) =>
                     setSettings({ ...settings, commercialRegistrationNumber: e.target.value })
                   }
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                   placeholder="CR-123456789"
                 />
               </div>
@@ -540,7 +557,7 @@ export default function BranchSettingsPage() {
                     id="cityEn"
                     value={settings.addressEn?.city || ""}
                     onChange={(e) => updateAddress("En", "city", e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                   />
                 </div>
 
@@ -556,7 +573,7 @@ export default function BranchSettingsPage() {
                     id="districtEn"
                     value={settings.addressEn?.district || ""}
                     onChange={(e) => updateAddress("En", "district", e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                   />
                 </div>
 
@@ -572,7 +589,7 @@ export default function BranchSettingsPage() {
                     id="streetEn"
                     value={settings.addressEn?.street || ""}
                     onChange={(e) => updateAddress("En", "street", e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                   />
                 </div>
 
@@ -588,7 +605,7 @@ export default function BranchSettingsPage() {
                     id="buildingEn"
                     value={settings.addressEn?.buildingNumber || ""}
                     onChange={(e) => updateAddress("En", "buildingNumber", e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                   />
                 </div>
 
@@ -604,7 +621,7 @@ export default function BranchSettingsPage() {
                     id="postalEn"
                     value={settings.addressEn?.postalCode || ""}
                     onChange={(e) => updateAddress("En", "postalCode", e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                   />
                 </div>
 
@@ -620,7 +637,7 @@ export default function BranchSettingsPage() {
                     value={settings.addressEn?.shortAddress || ""}
                     onChange={(e) => updateAddress("En", "shortAddress", e.target.value)}
                     rows={2}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                   />
                 </div>
               </div>
@@ -644,7 +661,7 @@ export default function BranchSettingsPage() {
                     id="cityAr"
                     value={settings.addressAr?.city || ""}
                     onChange={(e) => updateAddress("Ar", "city", e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                     dir="rtl"
                   />
                 </div>
@@ -661,7 +678,7 @@ export default function BranchSettingsPage() {
                     id="districtAr"
                     value={settings.addressAr?.district || ""}
                     onChange={(e) => updateAddress("Ar", "district", e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                     dir="rtl"
                   />
                 </div>
@@ -678,7 +695,7 @@ export default function BranchSettingsPage() {
                     id="streetAr"
                     value={settings.addressAr?.street || ""}
                     onChange={(e) => updateAddress("Ar", "street", e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                     dir="rtl"
                   />
                 </div>
@@ -695,7 +712,7 @@ export default function BranchSettingsPage() {
                     id="buildingAr"
                     value={settings.addressAr?.buildingNumber || ""}
                     onChange={(e) => updateAddress("Ar", "buildingNumber", e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                     dir="rtl"
                   />
                 </div>
@@ -712,7 +729,7 @@ export default function BranchSettingsPage() {
                     id="postalAr"
                     value={settings.addressAr?.postalCode || ""}
                     onChange={(e) => updateAddress("Ar", "postalCode", e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                     dir="rtl"
                   />
                 </div>
@@ -729,7 +746,7 @@ export default function BranchSettingsPage() {
                     value={settings.addressAr?.shortAddress || ""}
                     onChange={(e) => updateAddress("Ar", "shortAddress", e.target.value)}
                     rows={2}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                     dir="rtl"
                   />
                 </div>
@@ -799,13 +816,13 @@ export default function BranchSettingsPage() {
                     className="hidden"
                     aria-label="Upload branch logo"
                   />
-                  <button
+                  <Button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
+                    variant="primary"
                   >
                     {logoUrl ? "Change Logo" : "Upload Logo"}
-                  </button>
+                  </Button>
                   <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                     JPG, PNG, GIF or SVG. Max size 5MB.
                   </p>
@@ -843,7 +860,7 @@ export default function BranchSettingsPage() {
                   id="timeZone"
                   value={settings.timeZone}
                   onChange={(e) => setSettings({ ...settings, timeZone: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                   required
                   aria-required="true"
                 >
@@ -873,7 +890,7 @@ export default function BranchSettingsPage() {
                   id="currency"
                   value={settings.currency}
                   onChange={(e) => setSettings({ ...settings, currency: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                   required
                   aria-required="true"
                 >
@@ -903,7 +920,7 @@ export default function BranchSettingsPage() {
                   id="language"
                   value={settings.language}
                   onChange={(e) => setSettings({ ...settings, language: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                   required
                   aria-required="true"
                 >
@@ -930,7 +947,7 @@ export default function BranchSettingsPage() {
                   id="dateFormat"
                   value={settings.dateFormat}
                   onChange={(e) => setSettings({ ...settings, dateFormat: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                   required
                   aria-required="true"
                 >
@@ -960,7 +977,7 @@ export default function BranchSettingsPage() {
                   id="numberFormat"
                   value={settings.numberFormat}
                   onChange={(e) => setSettings({ ...settings, numberFormat: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                   required
                   aria-required="true"
                 >
@@ -999,7 +1016,7 @@ export default function BranchSettingsPage() {
                     type="checkbox"
                     checked={settings.enableTax}
                     onChange={(e) => setSettings({ ...settings, enableTax: e.target.checked })}
-                    className="w-5 h-5 border-gray-300 rounded text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 transition-colors"
+                    className="w-5 h-5 border-gray-300 rounded text-primary focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 transition-colors"
                     aria-describedby="enableTax-description"
                   />
                 </div>
@@ -1072,7 +1089,7 @@ export default function BranchSettingsPage() {
                         checked={!settings.priceIncludesTax}
                         onChange={() => setSettings({ ...settings, priceIncludesTax: false })}
                         disabled={!settings.enableTax}
-                        className="w-4 h-4 border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 disabled:opacity-50 transition-colors"
+                        className="w-4 h-4 border-gray-300 text-primary focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 disabled:opacity-50 transition-colors"
                         aria-describedby="priceExclusive-description"
                       />
                     </div>
@@ -1101,7 +1118,7 @@ export default function BranchSettingsPage() {
                         checked={settings.priceIncludesTax}
                         onChange={() => setSettings({ ...settings, priceIncludesTax: true })}
                         disabled={!settings.enableTax}
-                        className="w-4 h-4 border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 disabled:opacity-50 transition-colors"
+                        className="w-4 h-4 border-gray-300 text-primary focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 disabled:opacity-50 transition-colors"
                         aria-describedby="priceInclusive-description"
                       />
                     </div>
@@ -1127,34 +1144,45 @@ export default function BranchSettingsPage() {
           </div>
         )}
 
+        {/* Theme Settings Section */}
+        {activeTab === "theme" && (
+          <div
+            id="theme-panel"
+            role="tabpanel"
+            aria-labelledby="theme-tab"
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6"
+          >
+            <ThemeSettings
+              currentTheme={settings.themeConfig}
+              onSave={async (themeConfig) => {
+                // Update settings with new theme config
+                const updatedSettings = { ...settings, themeConfig };
+                setSettings(updatedSettings);
+                await handleSave();
+              }}
+            />
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div className="mt-8 flex items-center justify-end gap-4">
-          <button
+          <Button
             type="button"
             onClick={loadSettings}
             disabled={isSaving}
-            className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            variant="outline"
           >
             Reset
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+            isLoading={isSaving}
+            variant="primary"
           >
-            {isSaving ? (
-              <>
-                <div
-                  className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"
-                  aria-hidden="true"
-                ></div>
-                Saving...
-              </>
-            ) : (
-              "Save Settings"
-            )}
-          </button>
+            Save Settings
+          </Button>
         </div>
         </div>
       </div>

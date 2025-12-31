@@ -66,4 +66,7 @@ public class UpdateBranchSettingsDto
     public bool AllowNegativeStock { get; set; } = false;
 
     public int NegativeStockLimit { get; set; } = 0;
+
+    // Theme Configuration
+    public object? ThemeConfig { get; set; } // Will be serialized to JSON
 }
