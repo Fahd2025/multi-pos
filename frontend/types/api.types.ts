@@ -639,6 +639,9 @@ export interface ProductDto {
   hasInventoryDiscrepancy: boolean;
   supplierId?: string;
   supplierName?: string;
+  unitId?: string;
+  unitName?: string;
+  unitSymbol?: string;
   barcode?: string;
   isActive: boolean;
   images: ProductImageDto[];
@@ -710,6 +713,41 @@ export interface CreateCategoryDto {
   descriptionAr?: string;
   parentCategoryId?: string;
   displayOrder?: number;
+}
+
+export interface UnitDto {
+  id: string;
+  code: string;
+  nameEn: string;
+  nameAr: string;
+  symbol?: string;
+  isBaseUnit: boolean;
+  baseUnitId?: string;
+  baseUnitName?: string;
+  conversionFactor?: number;
+  allowFractional: boolean;
+  decimalPlaces: number;
+  displayOrder: number;
+  isActive: boolean;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  productCount: number;
+}
+
+export interface CreateUnitRequest {
+  code: string;
+  nameEn: string;
+  nameAr: string;
+  symbol?: string;
+  isBaseUnit: boolean;
+  baseUnitId?: string;
+  conversionFactor?: number;
+  allowFractional: boolean;
+  decimalPlaces: number;
+  displayOrder: number;
+  notes?: string;
 }
 
 // ============================================================================

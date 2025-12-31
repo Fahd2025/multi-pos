@@ -21,6 +21,9 @@ public class ProductDto
     public bool HasInventoryDiscrepancy { get; set; }
     public Guid? SupplierId { get; set; }
     public string? SupplierName { get; set; }
+    public Guid? UnitId { get; set; }
+    public string? UnitName { get; set; }
+    public string? UnitSymbol { get; set; }
     public string? Barcode { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }

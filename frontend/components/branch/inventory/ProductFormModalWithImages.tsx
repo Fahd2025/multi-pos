@@ -11,7 +11,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ProductDto, CategoryDto, CreateProductDto, UpdateProductDto } from "@/types/api.types";
+import { ProductDto, CategoryDto, UnitDto, CreateProductDto, UpdateProductDto } from "@/types/api.types";
 import inventoryService from "@/services/inventory.service";
 import imageService from "@/services/image.service";
 import { FeaturedDialog } from "@/components/shared";
@@ -40,6 +40,22 @@ export default function ProductFormModalWithImages({
   const [uploadingImages, setUploadingImages] = useState(false);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]); // Base64 strings for MultiImageUpload
   const [imagesToUpload, setImagesToUpload] = useState<File[]>([]); // Actual files to upload
+  const [units, setUnits] = useState<UnitDto[]>([]);
+
+  // Load units
+  useEffect(() => {
+    const loadUnits = async () => {
+      try {
+        const data = await inventoryService.getUnits(false); // Active only
+        setUnits(data);
+      } catch (error) {
+        console.error("Failed to load units:", error);
+      }
+    };
+    if (isOpen) {
+      loadUnits();
+    }
+  }, [isOpen]);
 
   // Initialize image preview URLs when product changes
   useEffect(() => {
@@ -87,7 +103,19 @@ export default function ProductFormModalWithImages({
       name: "categoryId",
       label: "Category",
       type: "select",
+      required: true,
       options: categories.map((c) => ({ label: c.nameEn, value: c.id })),
+    },
+    {
+      name: "unitId",
+      label: "Unit of Measurement",
+      type: "select",
+      required: true,
+      options: units.map((u) => ({
+        label: u.symbol ? `${u.nameEn} (${u.symbol})` : u.nameEn,
+        value: u.id,
+      })),
+      helperText: "Select the unit for this product (e.g., kg, piece, liter)",
     },
     {
       name: "descriptionEn",

@@ -97,6 +97,7 @@ export const BRANCH_ROUTES = {
   // Inventory
   INVENTORY: (locale: string) => `/${locale}/branch/inventory`,
   CATEGORIES: (locale: string) => `/${locale}/branch/inventory/categories`,
+  UNITS: (locale: string) => `/${locale}/branch/inventory/units`,
 
   // Customers
   CUSTOMERS: (locale: string) => `/${locale}/branch/customers`,
@@ -184,6 +185,12 @@ export const getBranchNavigation = (locale: string): NavigationItem[] => [
   {
     name: "Inventory",
     href: BRANCH_ROUTES.INVENTORY(locale),
+    icon: Package,
+    variant: "inventory"
+  },
+  {
+    name: "Units",
+    href: BRANCH_ROUTES.UNITS(locale),
     icon: Package,
     variant: "inventory"
   },

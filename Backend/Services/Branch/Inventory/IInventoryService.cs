@@ -36,6 +36,14 @@ public interface IInventoryService
         Guid? parentCategoryId, int displayOrder);
     Task DeleteCategoryAsync(Guid categoryId);
 
+    // Unit operations
+    Task<List<UnitDto>> GetUnitsAsync(bool includeInactive = false);
+    Task<UnitDto?> GetUnitByIdAsync(Guid unitId);
+    Task<List<UnitDto>> GetBaseUnitsAsync();
+    Task<UnitDto> CreateUnitAsync(CreateUnitRequest dto, Guid userId);
+    Task<UnitDto> UpdateUnitAsync(Guid unitId, UpdateUnitRequest dto);
+    Task DeleteUnitAsync(Guid unitId);
+
     // Purchase operations
     Task<(List<PurchaseDto> Purchases, int TotalCount)> GetPurchasesAsync(
         Guid? supplierId = null,

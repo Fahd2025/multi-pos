@@ -77,6 +77,20 @@ public static class ApiRoutes
     }
 
     /// <summary>
+    /// Unit routes
+    /// </summary>
+    public static class Units
+    {
+        public const string Group = $"{ApiBase}/units";
+        public const string Create = "";
+        public const string List = "";
+        public const string ById = "{id}";
+        public const string Update = "{id}";
+        public const string Delete = "{id}";
+        public const string BaseUnits = "base";
+    }
+
+    /// <summary>
     /// Customer routes
     /// </summary>
     public static class Customers

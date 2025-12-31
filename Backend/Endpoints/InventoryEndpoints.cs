@@ -16,6 +16,7 @@ public static class InventoryEndpoints
     public static IEndpointRouteBuilder MapInventoryEndpoints(this IEndpointRouteBuilder app)
     {
         var categoryGroup = app.MapGroup(ApiRoutes.Categories.Group).WithTags("Categories");
+        var unitGroup = app.MapGroup(ApiRoutes.Units.Group).WithTags("Units");
         var productGroup = app.MapGroup(ApiRoutes.Products.Group).WithTags("Products");
         var purchaseGroup = app.MapGroup(ApiRoutes.Purchases.Group).WithTags("Purchases");
 
@@ -685,6 +686,223 @@ public static class InventoryEndpoints
             )
             .RequireAuthorization()
             .WithName("ReceivePurchase")
+            .WithOpenApi();
+
+        // ============================================
+        // Unit Endpoints
+        // ============================================
+
+        // GET /api/v1/units - Get all units
+        unitGroup
+            .MapGet(
+                "",
+                async (
+                    IInventoryService inventoryService,
+                    bool includeInactive = false
+                ) =>
+                {
+                    try
+                    {
+                        var units = await inventoryService.GetUnitsAsync(includeInactive);
+                        return Results.Ok(new { success = true, data = units });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(
+                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                        );
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("GetUnits")
+            .WithOpenApi();
+
+        // GET /api/v1/units/base - Get base units only
+        unitGroup
+            .MapGet(
+                "/base",
+                async (IInventoryService inventoryService) =>
+                {
+                    try
+                    {
+                        var units = await inventoryService.GetBaseUnitsAsync();
+                        return Results.Ok(new { success = true, data = units });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(
+                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                        );
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("GetBaseUnits")
+            .WithOpenApi();
+
+        // GET /api/v1/units/{id} - Get unit by ID
+        unitGroup
+            .MapGet(
+                "/{id:guid}",
+                async (
+                    Guid id,
+                    IInventoryService inventoryService
+                ) =>
+                {
+                    try
+                    {
+                        var unit = await inventoryService.GetUnitByIdAsync(id);
+                        if (unit == null)
+                        {
+                            return Results.NotFound(
+                                new { success = false, error = new { code = "NOT_FOUND", message = "Unit not found" } }
+                            );
+                        }
+                        return Results.Ok(new { success = true, data = unit });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(
+                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                        );
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("GetUnitById")
+            .WithOpenApi();
+
+        // POST /api/v1/units - Create a new unit
+        unitGroup
+            .MapPost(
+                "",
+                async (
+                    [FromBody] CreateUnitRequest request,
+                    HttpContext httpContext,
+                    IInventoryService inventoryService
+                ) =>
+                {
+                    try
+                    {
+                        var userId = httpContext.Items["UserId"] as Guid?;
+                        if (!userId.HasValue)
+                        {
+                            return Results.Unauthorized();
+                        }
+
+                        var unit = await inventoryService.CreateUnitAsync(request, userId.Value);
+
+                        return Results.Created(
+                            $"/api/v1/units/{unit.Id}",
+                            new
+                            {
+                                success = true,
+                                data = unit,
+                                message = "Unit created successfully",
+                            }
+                        );
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        return Results.BadRequest(
+                            new
+                            {
+                                success = false,
+                                error = new { code = "INVALID_OPERATION", message = ex.Message },
+                            }
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(
+                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                        );
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("CreateUnit")
+            .WithOpenApi();
+
+        // PUT /api/v1/units/{id} - Update a unit
+        unitGroup
+            .MapPut(
+                "/{id:guid}",
+                async (
+                    Guid id,
+                    [FromBody] UpdateUnitRequest request,
+                    IInventoryService inventoryService
+                ) =>
+                {
+                    try
+                    {
+                        var unit = await inventoryService.UpdateUnitAsync(id, request);
+
+                        return Results.Ok(
+                            new
+                            {
+                                success = true,
+                                data = unit,
+                                message = "Unit updated successfully",
+                            }
+                        );
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        return Results.BadRequest(
+                            new
+                            {
+                                success = false,
+                                error = new { code = "INVALID_OPERATION", message = ex.Message },
+                            }
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(
+                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                        );
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("UpdateUnit")
+            .WithOpenApi();
+
+        // DELETE /api/v1/units/{id} - Delete a unit
+        unitGroup
+            .MapDelete(
+                "/{id:guid}",
+                async (Guid id, IInventoryService inventoryService) =>
+                {
+                    try
+                    {
+                        await inventoryService.DeleteUnitAsync(id);
+                        return Results.Ok(
+                            new { success = true, message = "Unit deleted successfully" }
+                        );
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        return Results.BadRequest(
+                            new
+                            {
+                                success = false,
+                                error = new { code = "INVALID_OPERATION", message = ex.Message },
+                            }
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(
+                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                        );
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("DeleteUnit")
             .WithOpenApi();
 
         return app;

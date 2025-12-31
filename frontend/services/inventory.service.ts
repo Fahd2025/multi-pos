@@ -9,6 +9,8 @@ import {
   CreateProductDto,
   UpdateProductDto,
   CategoryDto,
+  UnitDto,
+  CreateUnitRequest,
   StockAdjustmentDto,
   PaginationResponse,
   PurchaseDto,
@@ -173,6 +175,60 @@ class InventoryService {
    */
   async deleteCategory(id: string): Promise<void> {
     await api.delete(`/api/v1/categories/${id}`);
+  }
+
+  // ==================== UNITS ====================
+
+  /**
+   * Get all units
+   */
+  async getUnits(includeInactive: boolean = false): Promise<UnitDto[]> {
+    const params = new URLSearchParams();
+    if (includeInactive) params.append('includeInactive', 'true');
+
+    const response = await api.get<ApiResponse<UnitDto[]>>(
+      `/api/v1/units${params.toString() ? `?${params.toString()}` : ''}`
+    );
+    return response.data.data || [];
+  }
+
+  /**
+   * Get base units only
+   */
+  async getBaseUnits(): Promise<UnitDto[]> {
+    const response = await api.get<ApiResponse<UnitDto[]>>('/api/v1/units/base');
+    return response.data.data || [];
+  }
+
+  /**
+   * Get unit by ID
+   */
+  async getUnitById(id: string): Promise<UnitDto> {
+    const response = await api.get<ApiResponse<UnitDto>>(`/api/v1/units/${id}`);
+    return response.data.data!;
+  }
+
+  /**
+   * Create a new unit
+   */
+  async createUnit(unit: CreateUnitRequest): Promise<UnitDto> {
+    const response = await api.post<ApiResponse<UnitDto>>('/api/v1/units', unit);
+    return response.data.data!;
+  }
+
+  /**
+   * Update an existing unit
+   */
+  async updateUnit(id: string, unit: CreateUnitRequest): Promise<UnitDto> {
+    const response = await api.put<ApiResponse<UnitDto>>(`/api/v1/units/${id}`, unit);
+    return response.data.data!;
+  }
+
+  /**
+   * Delete a unit
+   */
+  async deleteUnit(id: string): Promise<void> {
+    await api.delete(`/api/v1/units/${id}`);
   }
 
   // ==================== PURCHASES ====================

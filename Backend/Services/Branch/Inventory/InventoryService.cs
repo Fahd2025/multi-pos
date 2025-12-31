@@ -35,6 +35,7 @@ public class InventoryService : IInventoryService
         var query = _context.Products
             .Include(p => p.Category)
             .Include(p => p.Supplier)
+            .Include(p => p.Unit)
             .Include(p => p.Images)
             .AsQueryable();
 
@@ -87,6 +88,9 @@ public class InventoryService : IInventoryService
                 HasInventoryDiscrepancy = p.HasInventoryDiscrepancy,
                 SupplierId = p.SupplierId,
                 SupplierName = p.Supplier != null ? p.Supplier.NameEn : null,
+                UnitId = p.UnitId,
+                UnitName = p.Unit != null ? p.Unit.NameEn : null,
+                UnitSymbol = p.Unit != null ? p.Unit.Symbol : null,
                 Barcode = p.Barcode,
                 IsActive = p.IsActive,
                 CreatedAt = p.CreatedAt,
@@ -113,6 +117,7 @@ public class InventoryService : IInventoryService
         var product = await _context.Products
             .Include(p => p.Category)
             .Include(p => p.Supplier)
+            .Include(p => p.Unit)
             .Include(p => p.Images)
             .FirstOrDefaultAsync(p => p.Id == productId);
 
@@ -160,6 +165,7 @@ public class InventoryService : IInventoryService
         var product = await _context.Products
             .Include(p => p.Category)
             .Include(p => p.Supplier)
+            .Include(p => p.Unit)
             .Include(p => p.Images)
             .FirstOrDefaultAsync(p => p.Barcode == barcode && p.IsActive);
 
@@ -385,6 +391,9 @@ public class InventoryService : IInventoryService
                 HasInventoryDiscrepancy = p.HasInventoryDiscrepancy,
                 SupplierId = p.SupplierId,
                 SupplierName = p.Supplier != null ? p.Supplier.NameEn : null,
+                UnitId = p.UnitId,
+                UnitName = p.Unit != null ? p.Unit.NameEn : null,
+                UnitSymbol = p.Unit != null ? p.Unit.Symbol : null,
                 Barcode = p.Barcode,
                 IsActive = p.IsActive,
                 CreatedAt = p.CreatedAt,
@@ -613,6 +622,272 @@ public class InventoryService : IInventoryService
         }
 
         return false;
+    }
+
+    #endregion
+
+    #region Unit Operations
+
+    public async Task<List<UnitDto>> GetUnitsAsync(bool includeInactive = false)
+    {
+        var query = _context.Units
+            .Include(u => u.BaseUnit)
+            .AsQueryable();
+
+        if (!includeInactive)
+        {
+            query = query.Where(u => u.IsActive);
+        }
+
+        var units = await query
+            .OrderBy(u => u.DisplayOrder)
+            .ThenBy(u => u.NameEn)
+            .Select(u => new UnitDto
+            {
+                Id = u.Id,
+                Code = u.Code,
+                NameEn = u.NameEn,
+                NameAr = u.NameAr,
+                Symbol = u.Symbol,
+                IsBaseUnit = u.IsBaseUnit,
+                BaseUnitId = u.BaseUnitId,
+                BaseUnitName = u.BaseUnit != null ? u.BaseUnit.NameEn : null,
+                ConversionFactor = u.ConversionFactor,
+                AllowFractional = u.AllowFractional,
+                DecimalPlaces = u.DecimalPlaces,
+                DisplayOrder = u.DisplayOrder,
+                IsActive = u.IsActive,
+                Notes = u.Notes,
+                CreatedAt = u.CreatedAt,
+                UpdatedAt = u.UpdatedAt,
+                CreatedBy = u.CreatedBy,
+                ProductCount = u.Products.Count
+            })
+            .ToListAsync();
+
+        return units;
+    }
+
+    public async Task<UnitDto?> GetUnitByIdAsync(Guid unitId)
+    {
+        var unit = await _context.Units
+            .Include(u => u.BaseUnit)
+            .Where(u => u.Id == unitId)
+            .Select(u => new UnitDto
+            {
+                Id = u.Id,
+                Code = u.Code,
+                NameEn = u.NameEn,
+                NameAr = u.NameAr,
+                Symbol = u.Symbol,
+                IsBaseUnit = u.IsBaseUnit,
+                BaseUnitId = u.BaseUnitId,
+                BaseUnitName = u.BaseUnit != null ? u.BaseUnit.NameEn : null,
+                ConversionFactor = u.ConversionFactor,
+                AllowFractional = u.AllowFractional,
+                DecimalPlaces = u.DecimalPlaces,
+                DisplayOrder = u.DisplayOrder,
+                IsActive = u.IsActive,
+                Notes = u.Notes,
+                CreatedAt = u.CreatedAt,
+                UpdatedAt = u.UpdatedAt,
+                CreatedBy = u.CreatedBy,
+                ProductCount = u.Products.Count
+            })
+            .FirstOrDefaultAsync();
+
+        return unit;
+    }
+
+    public async Task<List<UnitDto>> GetBaseUnitsAsync()
+    {
+        var units = await _context.Units
+            .Where(u => u.IsBaseUnit && u.IsActive)
+            .OrderBy(u => u.DisplayOrder)
+            .ThenBy(u => u.NameEn)
+            .Select(u => new UnitDto
+            {
+                Id = u.Id,
+                Code = u.Code,
+                NameEn = u.NameEn,
+                NameAr = u.NameAr,
+                Symbol = u.Symbol,
+                IsBaseUnit = u.IsBaseUnit,
+                BaseUnitId = u.BaseUnitId,
+                BaseUnitName = null,
+                ConversionFactor = u.ConversionFactor,
+                AllowFractional = u.AllowFractional,
+                DecimalPlaces = u.DecimalPlaces,
+                DisplayOrder = u.DisplayOrder,
+                IsActive = u.IsActive,
+                Notes = u.Notes,
+                CreatedAt = u.CreatedAt,
+                UpdatedAt = u.UpdatedAt,
+                CreatedBy = u.CreatedBy,
+                ProductCount = u.Products.Count
+            })
+            .ToListAsync();
+
+        return units;
+    }
+
+    public async Task<UnitDto> CreateUnitAsync(CreateUnitRequest dto, Guid userId)
+    {
+        // Validate code uniqueness
+        var existingUnit = await _context.Units
+            .FirstOrDefaultAsync(u => u.Code.ToLower() == dto.Code.ToLower());
+
+        if (existingUnit != null)
+        {
+            throw new InvalidOperationException($"Unit with code '{dto.Code}' already exists.");
+        }
+
+        // Validate derived unit requirements
+        if (!dto.IsBaseUnit)
+        {
+            if (!dto.BaseUnitId.HasValue)
+            {
+                throw new InvalidOperationException("Base unit is required for derived units.");
+            }
+
+            if (!dto.ConversionFactor.HasValue || dto.ConversionFactor.Value <= 0)
+            {
+                throw new InvalidOperationException("Conversion factor must be greater than 0 for derived units.");
+            }
+
+            // Validate base unit exists and is actually a base unit
+            var baseUnit = await _context.Units.FindAsync(dto.BaseUnitId.Value);
+            if (baseUnit == null)
+            {
+                throw new InvalidOperationException("Base unit not found.");
+            }
+
+            if (!baseUnit.IsBaseUnit)
+            {
+                throw new InvalidOperationException("The selected unit is not a base unit. Only base units can be used as references.");
+            }
+        }
+
+        var unit = new Unit
+        {
+            Id = Guid.NewGuid(),
+            Code = dto.Code,
+            NameEn = dto.NameEn,
+            NameAr = dto.NameAr,
+            Symbol = dto.Symbol,
+            IsBaseUnit = dto.IsBaseUnit,
+            BaseUnitId = dto.BaseUnitId,
+            ConversionFactor = dto.ConversionFactor,
+            AllowFractional = dto.AllowFractional,
+            DecimalPlaces = dto.DecimalPlaces,
+            DisplayOrder = dto.DisplayOrder,
+            IsActive = true,
+            Notes = dto.Notes,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            CreatedBy = userId
+        };
+
+        _context.Units.Add(unit);
+        await _context.SaveChangesAsync();
+
+        return await GetUnitByIdAsync(unit.Id) ?? throw new InvalidOperationException("Failed to retrieve created unit.");
+    }
+
+    public async Task<UnitDto> UpdateUnitAsync(Guid unitId, UpdateUnitRequest dto)
+    {
+        var unit = await _context.Units.FindAsync(unitId);
+        if (unit == null)
+        {
+            throw new InvalidOperationException("Unit not found.");
+        }
+
+        // Validate code uniqueness (excluding current unit)
+        var existingUnit = await _context.Units
+            .FirstOrDefaultAsync(u => u.Code.ToLower() == dto.Code.ToLower() && u.Id != unitId);
+
+        if (existingUnit != null)
+        {
+            throw new InvalidOperationException($"Unit with code '{dto.Code}' already exists.");
+        }
+
+        // Validate derived unit requirements
+        if (!dto.IsBaseUnit)
+        {
+            if (!dto.BaseUnitId.HasValue)
+            {
+                throw new InvalidOperationException("Base unit is required for derived units.");
+            }
+
+            if (!dto.ConversionFactor.HasValue || dto.ConversionFactor.Value <= 0)
+            {
+                throw new InvalidOperationException("Conversion factor must be greater than 0 for derived units.");
+            }
+
+            // Validate base unit exists and is actually a base unit
+            var baseUnit = await _context.Units.FindAsync(dto.BaseUnitId.Value);
+            if (baseUnit == null)
+            {
+                throw new InvalidOperationException("Base unit not found.");
+            }
+
+            if (!baseUnit.IsBaseUnit)
+            {
+                throw new InvalidOperationException("The selected unit is not a base unit. Only base units can be used as references.");
+            }
+
+            // Prevent circular references
+            if (dto.BaseUnitId.Value == unitId)
+            {
+                throw new InvalidOperationException("A unit cannot be its own base unit.");
+            }
+        }
+
+        // Update unit properties
+        unit.Code = dto.Code;
+        unit.NameEn = dto.NameEn;
+        unit.NameAr = dto.NameAr;
+        unit.Symbol = dto.Symbol;
+        unit.IsBaseUnit = dto.IsBaseUnit;
+        unit.BaseUnitId = dto.BaseUnitId;
+        unit.ConversionFactor = dto.ConversionFactor;
+        unit.AllowFractional = dto.AllowFractional;
+        unit.DecimalPlaces = dto.DecimalPlaces;
+        unit.DisplayOrder = dto.DisplayOrder;
+        unit.Notes = dto.Notes;
+        unit.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return await GetUnitByIdAsync(unitId) ?? throw new InvalidOperationException("Failed to retrieve updated unit.");
+    }
+
+    public async Task DeleteUnitAsync(Guid unitId)
+    {
+        var unit = await _context.Units
+            .Include(u => u.Products)
+            .Include(u => u.DerivedUnits)
+            .FirstOrDefaultAsync(u => u.Id == unitId);
+
+        if (unit == null)
+        {
+            throw new InvalidOperationException("Unit not found.");
+        }
+
+        // Check if unit is used by products
+        if (unit.Products.Any())
+        {
+            throw new InvalidOperationException($"Cannot delete unit '{unit.NameEn}' because it is used by {unit.Products.Count} product(s).");
+        }
+
+        // Check if unit is used as a base unit by other units
+        if (unit.DerivedUnits.Any())
+        {
+            throw new InvalidOperationException($"Cannot delete unit '{unit.NameEn}' because it is used as a base unit by {unit.DerivedUnits.Count} derived unit(s).");
+        }
+
+        _context.Units.Remove(unit);
+        await _context.SaveChangesAsync();
     }
 
     #endregion

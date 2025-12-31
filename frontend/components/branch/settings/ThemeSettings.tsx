@@ -322,12 +322,123 @@ export const ThemeSettings = observer(
                   Customize colors for light and dark modes separately
                 </p>
 
-                {/* TODO: Implement touch-friendly color picker */}
-                <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-900 text-center">
-                  <Smartphone className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Custom color picker coming soon
-                  </p>
+                {/* Mode Selector for Custom Colors */}
+                <div className="flex gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                  <button
+                    onClick={() => setPreviewMode("light")}
+                    className={`
+                      flex-1 py-2 px-4 rounded-md transition-all touch-manipulation
+                      ${
+                        previewMode === "light"
+                          ? "bg-white dark:bg-gray-700 shadow text-primary font-semibold"
+                          : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                      }
+                    `}
+                  >
+                    <Sun className="h-4 w-4 inline mr-2" />
+                    Light Mode
+                  </button>
+                  <button
+                    onClick={() => setPreviewMode("dark")}
+                    className={`
+                      flex-1 py-2 px-4 rounded-md transition-all touch-manipulation
+                      ${
+                        previewMode === "dark"
+                          ? "bg-white dark:bg-gray-700 shadow text-primary font-semibold"
+                          : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                      }
+                    `}
+                  >
+                    <Moon className="h-4 w-4 inline mr-2" />
+                    Dark Mode
+                  </button>
+                </div>
+
+                {/* Color Pickers */}
+                <div className="space-y-4 border rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
+                  {[
+                    { key: "primary", label: "Primary Color", description: "Main brand color for buttons and accents" },
+                    { key: "primaryForeground", label: "Primary Text", description: "Text color on primary backgrounds" },
+                    { key: "secondary", label: "Secondary Color", description: "Secondary UI elements" },
+                    { key: "secondaryForeground", label: "Secondary Text", description: "Text on secondary backgrounds" },
+                    { key: "accent", label: "Accent Color", description: "Highlights and hover states" },
+                    { key: "accentForeground", label: "Accent Text", description: "Text on accent backgrounds" },
+                    { key: "background", label: "Background", description: "Page background color" },
+                    { key: "foreground", label: "Text Color", description: "Primary text color" },
+                    { key: "card", label: "Card Background", description: "Card and panel backgrounds" },
+                    { key: "cardForeground", label: "Card Text", description: "Text on cards" },
+                    { key: "border", label: "Border Color", description: "Borders and dividers" },
+                    { key: "input", label: "Input Background", description: "Form input backgrounds" },
+                    { key: "ring", label: "Focus Ring", description: "Focus indicator color" },
+                    { key: "destructive", label: "Destructive/Danger", description: "Delete and error actions" },
+                    { key: "destructiveForeground", label: "Destructive Text", description: "Text on destructive backgrounds" },
+                    { key: "success", label: "Success Color", description: "Success messages and states" },
+                    { key: "warning", label: "Warning Color", description: "Warning messages and alerts" },
+                    { key: "info", label: "Info Color", description: "Informational messages" },
+                  ].map(({ key, label, description }) => {
+                    const mode = previewMode === "light" ? "light" : "dark";
+                    const defaultPreset = themePresets[0];
+                    const currentValue =
+                      localConfig.customColors?.[mode]?.[key as keyof typeof localConfig.customColors.light] ||
+                      defaultPreset[mode][key as keyof typeof defaultPreset.light] ||
+                      "#000000";
+
+                    return (
+                      <div key={key} className="grid grid-cols-1 sm:grid-cols-[1fr,auto] gap-3 items-start p-3 bg-white dark:bg-gray-800 rounded-lg border">
+                        <div className="flex-1">
+                          <Label htmlFor={`color-${key}`} className="text-sm font-semibold">
+                            {label}
+                          </Label>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                            {description}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="color"
+                            id={`color-${key}`}
+                            value={currentValue}
+                            onChange={(e) => {
+                              const newColor = e.target.value;
+                              setLocalConfig({
+                                ...localConfig,
+                                customColors: {
+                                  light: localConfig.customColors?.light || {},
+                                  dark: localConfig.customColors?.dark || {},
+                                  [mode]: {
+                                    ...(localConfig.customColors?.[mode] || {}),
+                                    [key]: newColor,
+                                  },
+                                },
+                              });
+                            }}
+                            className="h-12 w-12 sm:h-14 sm:w-14 rounded-lg border-2 border-gray-300 dark:border-gray-600 cursor-pointer touch-manipulation"
+                          />
+                          <div className="hidden sm:block text-xs text-gray-500 dark:text-gray-400 font-mono w-20">
+                            {currentValue}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Info Banner */}
+                <div className="bg-info/10 border border-info/30 rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <Palette className="h-5 w-5 text-info flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-foreground mb-1 text-sm">
+                        Custom Color Tips
+                      </h4>
+                      <ul className="text-xs text-muted-foreground space-y-1">
+                        <li>• Configure light and dark modes separately using the tabs above</li>
+                        <li>• Ensure sufficient contrast between text and background colors</li>
+                        <li>• "Foreground" colors are for text on corresponding backgrounds</li>
+                        <li>• Changes preview in real-time when you click "Apply Theme"</li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -515,14 +626,14 @@ export const ThemeSettings = observer(
             </div>
 
             {/* Info banner */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div className="bg-info/10 border border-info/30 rounded-lg p-4">
               <div className="flex gap-3">
-                <Accessibility className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                <Accessibility className="h-5 w-5 text-info flex-shrink-0" />
                 <div>
-                  <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                  <h4 className="font-semibold text-foreground mb-1">
                     Accessibility Features
                   </h4>
-                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                  <p className="text-sm text-muted-foreground">
                     These settings help users with visual impairments or motion
                     sensitivity. Changes apply immediately across the entire
                     application.
