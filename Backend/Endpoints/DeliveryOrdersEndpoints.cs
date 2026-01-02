@@ -556,6 +556,196 @@ public static class DeliveryOrdersEndpoints
             .WithName("UpdateDeliveryOrderStatus")
             .WithOpenApi();
 
+        // GET /api/v1/delivery-orders/unassigned - Get unassigned deliveries
+        deliveryOrdersGroup
+            .MapGet(
+                "/unassigned",
+                async (HttpContext httpContext, IDeliveryOrderService deliveryOrderService) =>
+                {
+                    try
+                    {
+                        var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                        if (branch == null)
+                        {
+                            return Results.BadRequest(new
+                            {
+                                success = false,
+                                error = new { code = "BRANCH_NOT_FOUND", message = "Branch context not found" }
+                            });
+                        }
+
+                        var deliveries = await deliveryOrderService.GetUnassignedDeliveriesAsync(branch.Code);
+
+                        return Results.Ok(new { success = true, data = deliveries });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(new { success = false, error = new { code = "ERROR", message = ex.Message } });
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("GetUnassignedDeliveries")
+            .WithOpenApi();
+
+        // GET /api/v1/delivery-orders/driver/:driverId/active - Get active deliveries by driver
+        deliveryOrdersGroup
+            .MapGet(
+                "/driver/{driverId:guid}/active",
+                async (Guid driverId, HttpContext httpContext, IDeliveryOrderService deliveryOrderService) =>
+                {
+                    try
+                    {
+                        var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                        if (branch == null)
+                        {
+                            return Results.BadRequest(new
+                            {
+                                success = false,
+                                error = new { code = "BRANCH_NOT_FOUND", message = "Branch context not found" }
+                            });
+                        }
+
+                        var deliveries = await deliveryOrderService.GetActiveDeliveriesByDriverAsync(driverId, branch.Code);
+
+                        return Results.Ok(new { success = true, data = deliveries });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(new { success = false, error = new { code = "ERROR", message = ex.Message } });
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("GetActiveDeliveriesByDriver")
+            .WithOpenApi();
+
+        // POST /api/v1/delivery-orders/:id/assign - Assign driver to delivery
+        deliveryOrdersGroup
+            .MapPost(
+                "/{id:guid}/assign",
+                async (
+                    Guid id,
+                    [FromBody] AssignDriverRequest request,
+                    HttpContext httpContext,
+                    IDeliveryOrderService deliveryOrderService
+                ) =>
+                {
+                    try
+                    {
+                        var userId = httpContext.Items["UserId"] as Guid?;
+                        if (!userId.HasValue)
+                        {
+                            return Results.Unauthorized();
+                        }
+
+                        var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                        if (branch == null)
+                        {
+                            return Results.BadRequest(new
+                            {
+                                success = false,
+                                error = new { code = "BRANCH_NOT_FOUND", message = "Branch context not found" }
+                            });
+                        }
+
+                        var deliveryOrder = await deliveryOrderService.AssignDriverAsync(
+                            id,
+                            request.DriverId,
+                            userId.Value,
+                            branch.Code
+                        );
+
+                        return Results.Ok(new
+                        {
+                            success = true,
+                            data = deliveryOrder,
+                            message = "Driver assigned successfully"
+                        });
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        return Results.BadRequest(new
+                        {
+                            success = false,
+                            error = new { code = "INVALID_OPERATION", message = ex.Message }
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(new { success = false, error = new { code = "ERROR", message = ex.Message } });
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("AssignDriver")
+            .WithOpenApi();
+
+        // POST /api/v1/delivery-orders/:id/unassign - Unassign driver from delivery
+        deliveryOrdersGroup
+            .MapPost(
+                "/{id:guid}/unassign",
+                async (
+                    Guid id,
+                    [FromBody] UnassignDriverRequest request,
+                    HttpContext httpContext,
+                    IDeliveryOrderService deliveryOrderService
+                ) =>
+                {
+                    try
+                    {
+                        var userId = httpContext.Items["UserId"] as Guid?;
+                        if (!userId.HasValue)
+                        {
+                            return Results.Unauthorized();
+                        }
+
+                        var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                        if (branch == null)
+                        {
+                            return Results.BadRequest(new
+                            {
+                                success = false,
+                                error = new { code = "BRANCH_NOT_FOUND", message = "Branch context not found" }
+                            });
+                        }
+
+                        var deliveryOrder = await deliveryOrderService.UnassignDriverAsync(
+                            id,
+                            request.Reason,
+                            userId.Value,
+                            branch.Code
+                        );
+
+                        return Results.Ok(new
+                        {
+                            success = true,
+                            data = deliveryOrder,
+                            message = "Driver unassigned successfully"
+                        });
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        return Results.BadRequest(new
+                        {
+                            success = false,
+                            error = new { code = "INVALID_OPERATION", message = ex.Message }
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(new { success = false, error = new { code = "ERROR", message = ex.Message } });
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("UnassignDriver")
+            .WithOpenApi();
+
         return app;
     }
 }
+
+// Request DTOs for endpoints
+public record AssignDriverRequest(Guid DriverId);
+public record UnassignDriverRequest(string Reason);

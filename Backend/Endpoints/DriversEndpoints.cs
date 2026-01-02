@@ -317,6 +317,264 @@ public static class DriversEndpoints
             .WithName("DeactivateDriver")
             .WithOpenApi();
 
+        // PUT /api/v1/drivers/:id/availability - Update driver availability
+        driversGroup
+            .MapPut(
+                "/{id:guid}/availability",
+                async (
+                    Guid id,
+                    [FromBody] UpdateAvailabilityRequest request,
+                    HttpContext httpContext,
+                    IDriverService driverService
+                ) =>
+                {
+                    try
+                    {
+                        var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                        if (branch == null)
+                        {
+                            return Results.BadRequest(new
+                            {
+                                success = false,
+                                error = new { code = "BRANCH_NOT_FOUND", message = "Branch context not found" }
+                            });
+                        }
+
+                        var driver = await driverService.UpdateDriverAvailabilityAsync(id, request.IsAvailable, branch.Code);
+
+                        return Results.Ok(new
+                        {
+                            success = true,
+                            data = driver,
+                            message = $"Driver availability updated to {(request.IsAvailable ? "available" : "unavailable")}"
+                        });
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        return Results.NotFound(new
+                        {
+                            success = false,
+                            error = new { code = "DRIVER_NOT_FOUND", message = ex.Message }
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(new { success = false, error = new { code = "ERROR", message = ex.Message } });
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("UpdateDriverAvailability")
+            .WithOpenApi();
+
+        // GET /api/v1/drivers/available - Get available drivers
+        driversGroup
+            .MapGet(
+                "/available",
+                async (HttpContext httpContext, IDriverService driverService) =>
+                {
+                    try
+                    {
+                        var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                        if (branch == null)
+                        {
+                            return Results.BadRequest(new
+                            {
+                                success = false,
+                                error = new { code = "BRANCH_NOT_FOUND", message = "Branch context not found" }
+                            });
+                        }
+
+                        var drivers = await driverService.GetAvailableDriversAsync(branch.Code);
+
+                        return Results.Ok(new { success = true, data = drivers });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(new { success = false, error = new { code = "ERROR", message = ex.Message } });
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("GetAvailableDrivers")
+            .WithOpenApi();
+
+        // POST /api/v1/drivers/performance - Record delivery performance
+        driversGroup
+            .MapPost(
+                "/performance",
+                async (
+                    [FromBody] RecordPerformanceDto dto,
+                    HttpContext httpContext,
+                    IDriverService driverService
+                ) =>
+                {
+                    try
+                    {
+                        var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                        if (branch == null)
+                        {
+                            return Results.BadRequest(new
+                            {
+                                success = false,
+                                error = new { code = "BRANCH_NOT_FOUND", message = "Branch context not found" }
+                            });
+                        }
+
+                        var performance = await driverService.RecordDeliveryPerformanceAsync(dto, branch.Code);
+
+                        return Results.Created($"/api/v1/drivers/performance/{performance.Id}", new
+                        {
+                            success = true,
+                            data = performance,
+                            message = "Performance recorded successfully"
+                        });
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        return Results.BadRequest(new
+                        {
+                            success = false,
+                            error = new { code = "INVALID_OPERATION", message = ex.Message }
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(new { success = false, error = new { code = "ERROR", message = ex.Message } });
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("RecordDriverPerformance")
+            .WithOpenApi();
+
+        // GET /api/v1/drivers/:id/stats - Get driver statistics
+        driversGroup
+            .MapGet(
+                "/{id:guid}/stats",
+                async (
+                    Guid id,
+                    HttpContext httpContext,
+                    IDriverService driverService,
+                    DateTime? from = null,
+                    DateTime? to = null
+                ) =>
+                {
+                    try
+                    {
+                        var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                        if (branch == null)
+                        {
+                            return Results.BadRequest(new
+                            {
+                                success = false,
+                                error = new { code = "BRANCH_NOT_FOUND", message = "Branch context not found" }
+                            });
+                        }
+
+                        var stats = await driverService.GetDriverStatsAsync(id, from, to, branch.Code);
+
+                        return Results.Ok(new { success = true, data = stats });
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        return Results.NotFound(new
+                        {
+                            success = false,
+                            error = new { code = "DRIVER_NOT_FOUND", message = ex.Message }
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(new { success = false, error = new { code = "ERROR", message = ex.Message } });
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("GetDriverStats")
+            .WithOpenApi();
+
+        // GET /api/v1/drivers/:id/performance - Get driver performance history
+        driversGroup
+            .MapGet(
+                "/{id:guid}/performance",
+                async (
+                    Guid id,
+                    HttpContext httpContext,
+                    IDriverService driverService,
+                    int page = 1,
+                    int pageSize = 20
+                ) =>
+                {
+                    try
+                    {
+                        var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                        if (branch == null)
+                        {
+                            return Results.BadRequest(new
+                            {
+                                success = false,
+                                error = new { code = "BRANCH_NOT_FOUND", message = "Branch context not found" }
+                            });
+                        }
+
+                        var performances = await driverService.GetDriverPerformanceHistoryAsync(id, page, pageSize, branch.Code);
+
+                        return Results.Ok(new { success = true, data = performances });
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        return Results.NotFound(new
+                        {
+                            success = false,
+                            error = new { code = "DRIVER_NOT_FOUND", message = ex.Message }
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(new { success = false, error = new { code = "ERROR", message = ex.Message } });
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("GetDriverPerformanceHistory")
+            .WithOpenApi();
+
+        // GET /api/v1/drivers/:id/active-count - Get active deliveries count
+        driversGroup
+            .MapGet(
+                "/{id:guid}/active-count",
+                async (Guid id, HttpContext httpContext, IDriverService driverService) =>
+                {
+                    try
+                    {
+                        var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                        if (branch == null)
+                        {
+                            return Results.BadRequest(new
+                            {
+                                success = false,
+                                error = new { code = "BRANCH_NOT_FOUND", message = "Branch context not found" }
+                            });
+                        }
+
+                        var count = await driverService.GetDriverActiveDeliveriesCountAsync(id, branch.Code);
+
+                        return Results.Ok(new { success = true, data = count });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(new { success = false, error = new { code = "ERROR", message = ex.Message } });
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("GetDriverActiveDeliveriesCount")
+            .WithOpenApi();
+
         return app;
     }
 }
+
+// Request DTOs for endpoints
+public record UpdateAvailabilityRequest(bool IsAvailable);

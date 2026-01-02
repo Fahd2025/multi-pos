@@ -1,9 +1,12 @@
 using Backend.Constants;
+using Backend.Data.HeadOffice;
+using Backend.Data.Shared;
 using Backend.Models.DTOs.Branch.Sales;
 using Backend.Models.Entities.Branch;
 using Backend.Services.Branch;
 using Backend.Services.Branch.Sales;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Endpoints;
 
@@ -325,6 +328,8 @@ public static class SalesEndpoints
                 async (
                     Guid id,
                     HttpContext httpContext,
+                    DbContextFactory dbContextFactory,
+                    HeadOfficeDbContext headOfficeContext,
                     ISalesService salesService,
                     string format = "json"
                 ) =>
@@ -349,9 +354,38 @@ public static class SalesEndpoints
                             );
                         }
 
-                        var sale = await salesService.GetSaleByIdAsync(id, branch.Code);
+                        // For HTML format, fetch the Sale entity directly to access DeliveryOrder
+                        Sale? saleEntity = null;
+                        if (format.ToLower() == "html")
+                        {
+                            using var context = dbContextFactory.CreateBranchContext(branch);
+                            saleEntity = await context.Sales
+                                .Include(s => s.Customer)
+                                .Include(s => s.LineItems)
+                                .ThenInclude(li => li.Product)
+                                .Include(s => s.DeliveryOrder)
+                                .FirstOrDefaultAsync(s => s.Id == id);
 
-                        if (sale == null)
+                            if (saleEntity == null)
+                            {
+                                return Results.NotFound(
+                                    new
+                                    {
+                                        success = false,
+                                        error = new
+                                        {
+                                            code = "SALE_NOT_FOUND",
+                                            message = $"Sale with ID '{id}' does not exist",
+                                        },
+                                    }
+                                );
+                            }
+                        }
+
+                        // For JSON format, use the DTO
+                        var sale = saleEntity == null ? await salesService.GetSaleByIdAsync(id, branch.Code) : null;
+
+                        if (sale == null && saleEntity == null)
                         {
                             return Results.NotFound(
                                 new
@@ -369,13 +403,17 @@ public static class SalesEndpoints
                         // Return HTML format for printing
                         if (format.ToLower() == "html")
                         {
+                            // Get cashier name
+                            var cashier = await headOfficeContext.Users.FindAsync(saleEntity!.CashierId);
+                            var cashierName = cashier?.FullNameEn ?? "Unknown";
+
                             var html = $@"
 <!DOCTYPE html>
 <html lang='en'>
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>Invoice - {sale.TransactionId}</title>
+    <title>Invoice - {saleEntity.TransactionId}</title>
     <style>
         body {{
             font-family: 'Courier New', monospace;
@@ -469,12 +507,21 @@ public static class SalesEndpoints
 
     <div class='section'>
         <div class='section-title'>SALES RECEIPT</div>
-        <p><strong>Transaction ID:</strong> {sale.TransactionId}</p>
-        {(string.IsNullOrEmpty(sale.InvoiceNumber) ? "" : $"<p><strong>Invoice #:</strong> {sale.InvoiceNumber}</p>")}
-        <p><strong>Date:</strong> {sale.SaleDate:yyyy-MM-dd HH:mm:ss}</p>
-        <p><strong>Cashier:</strong> {sale.CashierName}</p>
-        {(sale.CustomerId.HasValue ? $"<p><strong>Customer:</strong> {sale.CustomerName}</p>" : "")}
+        <p><strong>Transaction ID:</strong> {saleEntity.TransactionId}</p>
+        {(string.IsNullOrEmpty(saleEntity.InvoiceNumber) ? "" : $"<p><strong>Invoice #:</strong> {saleEntity.InvoiceNumber}</p>")}
+        <p><strong>Date:</strong> {saleEntity.SaleDate:yyyy-MM-dd HH:mm:ss}</p>
+        <p><strong>Cashier:</strong> {cashierName}</p>
+        {(saleEntity.CustomerId.HasValue && saleEntity.Customer != null ? $"<p><strong>Customer:</strong> {saleEntity.Customer.NameEn}</p>" : "")}
     </div>
+
+    {(saleEntity.DeliveryOrder != null ? $@"
+    <div class='section' style='background-color: #fffbe6; padding: 8px; border-left: 3px solid #faad14; margin: 10px 0;'>
+        <div class='section-title' style='color: #d46b08;'>🚚 DELIVERY INFORMATION</div>
+        <p style='font-size: 10px;'><strong>Status:</strong> {(saleEntity.DeliveryOrder.DriverId == null ? "⏳ Awaiting driver assignment" : "✓ Assigned to driver")}</p>
+        {(saleEntity.DeliveryOrder.DriverId != null ? $"<p style='font-size: 10px;'><strong>Driver:</strong> Assigned</p>" : "")}
+        <p style='font-size: 10px;'><strong>Address:</strong> {saleEntity.DeliveryOrder.DeliveryAddress}</p>
+        {(!string.IsNullOrEmpty(saleEntity.DeliveryOrder.SpecialInstructions) ? $"<p style='font-size: 10px;'><strong>Instructions:</strong> {saleEntity.DeliveryOrder.SpecialInstructions}</p>" : "")}
+    </div>" : "")}
 
     <table class='line-items'>
         <thead>
@@ -486,9 +533,9 @@ public static class SalesEndpoints
             </tr>
         </thead>
         <tbody>
-            {string.Join("", sale.LineItems.Select(li => $@"
+            {string.Join("", saleEntity.LineItems.Select(li => $@"
             <tr>
-                <td>{li.ProductName}</td>
+                <td>{li.Product?.NameEn ?? "Unknown Product"}</td>
                 <td class='qty'>{li.Quantity}</td>
                 <td class='price'>${li.UnitPrice:F2}</td>
                 <td class='price'>${li.LineTotal:F2}</td>
@@ -505,37 +552,37 @@ public static class SalesEndpoints
     <div class='totals'>
         <div class='totals-row'>
             <span>Subtotal:</span>
-            <span>${sale.Subtotal:F2}</span>
+            <span>${saleEntity.Subtotal:F2}</span>
         </div>
-        {(sale.TotalDiscount > 0 ? $@"
+        {(saleEntity.TotalDiscount > 0 ? $@"
         <div class='totals-row'>
             <span>Discount:</span>
-            <span>-${sale.TotalDiscount:F2}</span>
+            <span>-${saleEntity.TotalDiscount:F2}</span>
         </div>" : "")}
-        {(sale.TaxAmount > 0 ? $@"
+        {(saleEntity.TaxAmount > 0 ? $@"
         <div class='totals-row'>
             <span>Tax ({branch.TaxRate:F1}%):</span>
-            <span>${sale.TaxAmount:F2}</span>
+            <span>${saleEntity.TaxAmount:F2}</span>
         </div>" : "")}
         <div class='totals-row grand-total'>
             <span>TOTAL:</span>
-            <span>${sale.Total:F2}</span>
+            <span>${saleEntity.Total:F2}</span>
         </div>
         <div class='totals-row' style='margin-top: 10px;'>
             <span>Payment Method:</span>
-            <span>{sale.PaymentMethodName}</span>
+            <span>{saleEntity.PaymentMethod}</span>
         </div>
     </div>
 
-    {(string.IsNullOrEmpty(sale.Notes) ? "" : $@"
+    {(string.IsNullOrEmpty(saleEntity.Notes) ? "" : $@"
     <div class='section'>
         <div class='section-title'>Notes:</div>
-        <p style='font-size: 10px;'>{sale.Notes}</p>
+        <p style='font-size: 10px;'>{saleEntity.Notes}</p>
     </div>")}
 
     <div class='footer'>
         <p>Thank you for your business!</p>
-        <p>*** {(sale.InvoiceType == InvoiceType.Standard ? "TAX INVOICE" : "SIMPLIFIED INVOICE")} ***</p>
+        <p>*** {(saleEntity.InvoiceType == InvoiceType.Standard ? "TAX INVOICE" : "SIMPLIFIED INVOICE")} ***</p>
     </div>
 </body>
 </html>";

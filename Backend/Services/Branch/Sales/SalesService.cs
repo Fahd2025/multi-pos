@@ -486,6 +486,7 @@ public class SalesService : ISalesService
             .Sales.Include(s => s.Customer)
             .Include(s => s.LineItems)
             .ThenInclude(li => li.Product)
+            .Include(s => s.DeliveryOrder)  // Include delivery order for receipt rendering
             .FirstOrDefaultAsync(s => s.Id == id);
 
         if (sale == null)

@@ -3,6 +3,7 @@ using System;
 using Backend.Data.Branch;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Backend.Migrations.Branch
 {
     [DbContext(typeof(BranchDbContext))]
-    partial class BranchDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260102053246_AddDriverPerformanceTracking")]
+    partial class AddDriverPerformanceTracking
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
@@ -21,50 +24,50 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal?>("ActualCash")
                         .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                        ;
 
                     b.Property<Guid>("BranchId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime?>("ClosedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid?>("ClosedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("DenominationBreakdown")
-                        .HasColumnType("nvarchar(max)");
+                        ;
 
                     b.Property<decimal>("ExpectedCash")
                         .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                        ;
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("OpenedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("OpenedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("OpeningBalance")
                         .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                        ;
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal?>("Variance")
                         .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                        ;
 
                     b.HasKey("Id");
 
@@ -87,38 +90,38 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                        ;
 
                     b.Property<Guid>("CashDrawerId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("CreatedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Reason")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Reference")
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -137,50 +140,50 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("CreatedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("DescriptionAr")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("DescriptionEn")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("DisplayOrder")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("ImagePath")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("NameAr")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("NameEn")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid?>("ParentCategoryId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -198,94 +201,94 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("AdditionalNumber")
                         .HasMaxLength(10)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("AddressAr")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("AddressEn")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("BuildingNumber")
                         .HasMaxLength(10)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("City")
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("CreatedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("District")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Email")
                         .HasMaxLength(255)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<DateTime?>("LastVisitAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("LogoPath")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("LoyaltyPoints")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("NameAr")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("NameEn")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Phone")
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("PostalCode")
                         .HasMaxLength(10)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("StreetName")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("TotalPurchases")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("UnitNumber")
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("VisitCount")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.HasKey("Id");
 
@@ -305,57 +308,57 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime?>("ActualDeliveryTime")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("CreatedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid?>("CustomerId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("DeliveryAddress")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("DeliveryLocation")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("DeliveryStatus")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<Guid?>("DriverId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int?>("EstimatedDeliveryMinutes")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<DateTime?>("EstimatedDeliveryTime")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("OrderId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("PickupAddress")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("Priority")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("SpecialInstructions")
                         .HasMaxLength(1000)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -380,96 +383,96 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("AddressAr")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("AddressEn")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal?>("AverageRating")
                         .HasPrecision(3, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("CreatedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Email")
                         .HasMaxLength(255)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<bool>("IsAvailable")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<DateTime>("LicenseExpiryDate")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("LicenseImagePath")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("LicenseNumber")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("NameAr")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("NameEn")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Phone")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("ProfileImagePath")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("TotalDeliveries")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("VehicleColor")
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("VehicleImagePath")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("VehicleNumber")
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("VehicleType")
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -493,30 +496,30 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("CustomerFeedback")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal?>("CustomerRating")
                         .HasPrecision(3, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("DeliveryOrderId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("DeliveryTimeMinutes")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<Guid>("DriverId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<bool>("OnTime")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<DateTime>("RecordedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -533,52 +536,52 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("ApprovalStatus")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<DateTime?>("ApprovedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid?>("ApprovedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("CreatedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("DescriptionAr")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("DescriptionEn")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("ExpenseCategoryId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("ExpenseDate")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("PaymentMethod")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("PaymentReference")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("ReceiptImagePath")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -595,35 +598,35 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal?>("BudgetAllocation")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("NameAr")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("NameEn")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -639,41 +642,41 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("CreatedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int?>("CustomHeight")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<int?>("CustomWidth")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("PaperSize")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("Schema")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -690,80 +693,80 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("CreatedByUserId")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("CreatedByUsername")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid?>("CustomerId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("CustomerName")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("CustomerPhone")
                         .HasMaxLength(20)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("DiscountAmount")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int?>("GuestCount")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("OrderNumber")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("OrderType")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<DateTime?>("RetrievedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("Status")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<decimal>("Subtotal")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid?>("TableId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int?>("TableNumber")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<decimal>("TaxAmount")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("TotalAmount")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -791,41 +794,41 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("Discount")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("PendingOrderId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("ProductId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("ProductName")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("ProductSku")
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("Quantity")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<decimal>("TotalPrice")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("UnitPrice")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -840,84 +843,84 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<bool>("AutoPrint")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<Guid>("BranchId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("ConnectionType")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("FooterLine1")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("FooterLine2")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("FooterLine3")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("HeaderLine1")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("HeaderLine2")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("HeaderLine3")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("IpAddress")
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("LogoPath")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("PaperWidth")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<int?>("Port")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<bool>("PrintBarcode")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<bool>("PrintLogo")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<bool>("PrintQrCode")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("PrinterModel")
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("PrinterName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("TaxNumber")
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -932,70 +935,70 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Barcode")
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("CategoryId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("CostPrice")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("CreatedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("DescriptionAr")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("DescriptionEn")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<bool>("HasInventoryDiscrepancy")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<int>("MinStockThreshold")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("NameAr")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("NameEn")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("SKU")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("SellingPrice")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("StockLevel")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<Guid?>("SupplierId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid?>("UnitId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -1021,29 +1024,29 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("DisplayOrder")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("ImagePath")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("ProductId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("ThumbnailPath")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("UploadedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("UploadedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -1056,71 +1059,71 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("AmountPaid")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("CreatedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("DiscountAmount")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("DiscountType")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("DiscountValue")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("GrandTotal")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("InvoiceImagePath")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Notes")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("PaymentStatus")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<DateTime>("PurchaseDate")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("PurchaseOrderNumber")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime?>("ReceivedDate")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("Subtotal")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("SupplierId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("TaxAmount")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<bool>("TaxIncluded")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<decimal>("TaxRate")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("TotalCost")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -1140,24 +1143,24 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("LineTotal")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("ProductId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("PurchaseId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("Quantity")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<decimal>("UnitCost")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -1172,78 +1175,78 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime?>("ApprovedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid?>("ApprovedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("BranchId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid?>("CustomerId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid?>("ExchangeSaleId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<bool>("IsExchange")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("OriginalSaleId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("ProcessedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Reason")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("RefundMethod")
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("RefundReference")
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("RestockingFee")
                         .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                        ;
 
                     b.Property<DateTime>("ReturnDate")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid?>("ReturnPolicyId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("Subtotal")
                         .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                        ;
 
                     b.Property<decimal>("TaxAmount")
                         .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                        ;
 
                     b.Property<decimal>("Total")
                         .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                        ;
 
                     b.HasKey("Id");
 
@@ -1272,46 +1275,46 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Condition")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("DiscountValue")
                         .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                        ;
 
                     b.Property<decimal>("LineTotal")
                         .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                        ;
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("ProductId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("Quantity")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<bool>("Restocked")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<DateTime?>("RestockedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("ReturnId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("SaleLineItemId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("UnitPrice")
                         .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                        ;
 
                     b.HasKey("Id");
 
@@ -1328,53 +1331,53 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("AllowedConditions")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        ;
 
                     b.Property<Guid>("BranchId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid?>("CreatedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<bool>("ExchangeAllowed")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<int>("MaxReturnDays")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("RefundMethods")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        ;
 
                     b.Property<bool>("RequireManagerApproval")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<bool>("RequireReceipt")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<decimal>("RestockingFeePercent")
                         .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
+                        ;
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid?>("UpdatedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -1391,125 +1394,125 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal?>("AmountPaid")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("CashierId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal?>("ChangeReturned")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid?>("CustomerId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int?>("GuestCount")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("InvoiceNumber")
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("InvoiceType")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<bool>("IsReturn")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<bool>("IsVoided")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("Notes")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("OrderNumber")
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int?>("OrderType")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<Guid?>("OriginalSaleId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("PaymentMethod")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("PaymentReference")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid?>("ReturnApprovedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime?>("ReturnDate")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("ReturnNotes")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("ReturnReason")
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("SaleDate")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("Subtotal")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int?>("TableId")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<int?>("TableNumber")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<decimal>("TaxAmount")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("Total")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("TotalDiscount")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("TransactionId")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid?>("UserId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("VoidReason")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime?>("VoidedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid?>("VoidedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -1548,55 +1551,55 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Barcode")
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("DiscountType")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<decimal>("DiscountValue")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("DiscountedUnitPrice")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("ItemStatus")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("LineTotal")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("ProductId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("Quantity")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<int>("ReturnQuantity")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<Guid>("SaleId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Unit")
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("UnitPrice")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -1613,31 +1616,31 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                        ;
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("PaymentMethod")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<DateTime>("ProcessedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("ProcessedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Reference")
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("SaleId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -1656,25 +1659,25 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Key")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("UpdatedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Value")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -1688,61 +1691,61 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("AddressAr")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("AddressEn")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("CreatedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("DeliveryTerms")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Email")
                         .HasMaxLength(255)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("LogoPath")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("NameAr")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("NameEn")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("PaymentTerms")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Phone")
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -1760,39 +1763,39 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("ErrorMessage")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime?>("LastSyncAttempt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("RetryCount")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("SyncId")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("SyncStatus")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<DateTime>("Timestamp")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("TransactionData")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("TransactionType")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -1810,81 +1813,81 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<int>("Capacity")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int?>("CurrentGuestCount")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<Guid?>("CurrentSaleId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("Height")
                         .HasPrecision(5, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("Number")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<DateTime?>("OccupiedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("PositionX")
                         .HasPrecision(5, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("PositionY")
                         .HasPrecision(5, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("Rotation")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("Shape")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("UpdatedBy")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal>("Width")
                         .HasPrecision(5, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int?>("ZoneId")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.HasKey("Id");
 
@@ -1902,61 +1905,61 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<bool>("AllowFractional")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<Guid?>("BaseUnitId")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<decimal?>("ConversionFactor")
                         .HasPrecision(18, 6)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("CreatedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("DecimalPlaces")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<int>("DisplayOrder")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<bool>("IsBaseUnit")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("NameAr")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("NameEn")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Symbol")
                         .HasMaxLength(10)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -1976,55 +1979,55 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<Guid>("CreatedBy")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("FullNameAr")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("FullNameEn")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<DateTime?>("LastActivityAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime?>("LastLoginAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Phone")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("PreferredLanguage")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Role")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -2046,38 +2049,38 @@ namespace Backend.Migrations.Branch
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Description")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("DisplayOrder")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("UpdatedBy")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 

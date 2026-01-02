@@ -38,6 +38,7 @@ public class BranchDbContext : DbContext
     public DbSet<Return> Returns { get; set; }
     public DbSet<ReturnLineItem> ReturnLineItems { get; set; }
     public DbSet<PrinterConfiguration> PrinterConfigurations { get; set; }
+    public DbSet<DriverPerformance> DriverPerformances { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -344,6 +345,30 @@ public class BranchDbContext : DbContext
                   .WithOne(d => d.Driver)
                   .HasForeignKey(d => d.DriverId)
                   .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // DriverPerformance configuration
+        modelBuilder.Entity<DriverPerformance>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.DriverId);
+            entity.HasIndex(e => e.DeliveryOrderId);
+            entity.HasIndex(e => e.RecordedAt);
+
+            entity.Property(e => e.CustomerRating).HasPrecision(3, 2);
+            entity.Property(e => e.CustomerFeedback).HasMaxLength(500);
+
+            entity
+                .HasOne(e => e.Driver)
+                .WithMany()
+                .HasForeignKey(e => e.DriverId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity
+                .HasOne(e => e.DeliveryOrder)
+                .WithMany()
+                .HasForeignKey(e => e.DeliveryOrderId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         // Unit configuration

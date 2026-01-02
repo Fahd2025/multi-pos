@@ -36,6 +36,8 @@ export default function BranchLayout({
     BRANCH_ROUTES.SUPPLIERS(locale),
     BRANCH_ROUTES.EXPENSES(locale),
     BRANCH_ROUTES.REPORTS(locale),
+    BRANCH_ROUTES.DRIVERS(locale),
+    BRANCH_ROUTES.DISPATCH(locale),
     BRANCH_ROUTES.USERS(locale),
     BRANCH_ROUTES.SETTINGS(locale),
   ];

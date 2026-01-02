@@ -480,4 +480,202 @@ public class DeliveryOrderService : IDeliveryOrderService
             UpdatedAt = deliveryOrder.UpdatedAt
         };
     }
+
+    // Dispatch operations
+    public async Task<IEnumerable<DeliveryOrderDto>> GetUnassignedDeliveriesAsync(string branchCode)
+    {
+        var deliveries = await _context.DeliveryOrders
+            .Where(d => d.DriverId == null && d.DeliveryStatus == DeliveryStatus.Pending)
+            .Include(d => d.Sale)
+                .ThenInclude(s => s.Customer)
+            .Include(d => d.Sale)
+                .ThenInclude(s => s.LineItems)
+                    .ThenInclude(li => li.Product)
+            .OrderBy(d => d.Priority)
+                .ThenBy(d => d.CreatedAt)
+            .Select(d => new DeliveryOrderDto
+            {
+                Id = d.Id,
+                OrderId = d.OrderId,
+                OrderTransactionId = d.Sale != null ? d.Sale.TransactionId : string.Empty,
+                CustomerId = d.CustomerId,
+                CustomerName = d.Sale != null && d.Sale.Customer != null ? d.Sale.Customer.NameEn : string.Empty,
+                DriverId = d.DriverId,
+                DriverName = null,
+                PickupAddress = d.PickupAddress,
+                DeliveryAddress = d.DeliveryAddress,
+                DeliveryLocation = d.DeliveryLocation,
+                EstimatedDeliveryTime = d.EstimatedDeliveryTime,
+                ActualDeliveryTime = d.ActualDeliveryTime,
+                DeliveryStatus = d.DeliveryStatus,
+                Priority = d.Priority,
+                SpecialInstructions = d.SpecialInstructions,
+                ItemsCount = d.Sale != null ? d.Sale.LineItems.Count : 0,
+                OrderTotal = d.Sale != null ? d.Sale.Total : 0,
+                CreatedAt = d.CreatedAt,
+                UpdatedAt = d.UpdatedAt
+            })
+            .ToListAsync();
+
+        return deliveries;
+    }
+
+    public async Task<IEnumerable<DeliveryOrderDto>> GetActiveDeliveriesByDriverAsync(Guid driverId, string branchCode)
+    {
+        var deliveries = await _context.DeliveryOrders
+            .Where(d => d.DriverId == driverId &&
+                       (d.DeliveryStatus == DeliveryStatus.Assigned ||
+                        d.DeliveryStatus == DeliveryStatus.OutForDelivery))
+            .Include(d => d.Sale)
+                .ThenInclude(s => s.Customer)
+            .Include(d => d.Sale)
+                .ThenInclude(s => s.LineItems)
+                    .ThenInclude(li => li.Product)
+            .Include(d => d.Driver)
+            .OrderBy(d => d.EstimatedDeliveryTime)
+            .Select(d => new DeliveryOrderDto
+            {
+                Id = d.Id,
+                OrderId = d.OrderId,
+                OrderTransactionId = d.Sale != null ? d.Sale.TransactionId : string.Empty,
+                CustomerId = d.CustomerId,
+                CustomerName = d.Sale != null && d.Sale.Customer != null ? d.Sale.Customer.NameEn : string.Empty,
+                DriverId = d.DriverId,
+                DriverName = d.Driver != null ? d.Driver.NameEn : string.Empty,
+                PickupAddress = d.PickupAddress,
+                DeliveryAddress = d.DeliveryAddress,
+                DeliveryLocation = d.DeliveryLocation,
+                EstimatedDeliveryTime = d.EstimatedDeliveryTime,
+                ActualDeliveryTime = d.ActualDeliveryTime,
+                DeliveryStatus = d.DeliveryStatus,
+                Priority = d.Priority,
+                SpecialInstructions = d.SpecialInstructions,
+                ItemsCount = d.Sale != null ? d.Sale.LineItems.Count : 0,
+                OrderTotal = d.Sale != null ? d.Sale.Total : 0,
+                CreatedAt = d.CreatedAt,
+                UpdatedAt = d.UpdatedAt
+            })
+            .ToListAsync();
+
+        return deliveries;
+    }
+
+    public async Task<DeliveryOrderDto> AssignDriverAsync(Guid deliveryOrderId, Guid driverId, Guid userId, string branchCode)
+    {
+        var deliveryOrder = await _context.DeliveryOrders
+            .Include(d => d.Sale)
+                .ThenInclude(s => s.Customer)
+            .Include(d => d.Sale)
+                .ThenInclude(s => s.LineItems)
+            .FirstOrDefaultAsync(d => d.Id == deliveryOrderId);
+
+        if (deliveryOrder == null)
+        {
+            throw new InvalidOperationException($"Delivery order with ID '{deliveryOrderId}' not found");
+        }
+
+        // Verify driver exists and is active
+        var driver = await _context.Drivers
+            .Where(d => d.Id == driverId && d.IsActive)
+            .FirstOrDefaultAsync();
+
+        if (driver == null)
+        {
+            throw new InvalidOperationException($"Driver with ID '{driverId}' does not exist or is inactive");
+        }
+
+        // Check if driver is available
+        if (!driver.IsAvailable)
+        {
+            throw new InvalidOperationException($"Driver '{driver.NameEn}' is not currently available");
+        }
+
+        // Assign the driver
+        deliveryOrder.DriverId = driverId;
+        deliveryOrder.DeliveryStatus = DeliveryStatus.Assigned;
+        deliveryOrder.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return new DeliveryOrderDto
+        {
+            Id = deliveryOrder.Id,
+            OrderId = deliveryOrder.OrderId,
+            OrderTransactionId = deliveryOrder.Sale?.TransactionId ?? string.Empty,
+            CustomerId = deliveryOrder.CustomerId,
+            CustomerName = deliveryOrder.Sale?.Customer?.NameEn ?? string.Empty,
+            DriverId = deliveryOrder.DriverId,
+            DriverName = driver.NameEn,
+            PickupAddress = deliveryOrder.PickupAddress,
+            DeliveryAddress = deliveryOrder.DeliveryAddress,
+            DeliveryLocation = deliveryOrder.DeliveryLocation,
+            EstimatedDeliveryTime = deliveryOrder.EstimatedDeliveryTime,
+            ActualDeliveryTime = deliveryOrder.ActualDeliveryTime,
+            DeliveryStatus = deliveryOrder.DeliveryStatus,
+            Priority = deliveryOrder.Priority,
+            SpecialInstructions = deliveryOrder.SpecialInstructions,
+            ItemsCount = deliveryOrder.Sale?.LineItems.Count ?? 0,
+            OrderTotal = deliveryOrder.Sale?.Total ?? 0,
+            CreatedAt = deliveryOrder.CreatedAt,
+            UpdatedAt = deliveryOrder.UpdatedAt
+        };
+    }
+
+    public async Task<DeliveryOrderDto> UnassignDriverAsync(Guid deliveryOrderId, string reason, Guid userId, string branchCode)
+    {
+        var deliveryOrder = await _context.DeliveryOrders
+            .Include(d => d.Sale)
+                .ThenInclude(s => s.Customer)
+            .Include(d => d.Sale)
+                .ThenInclude(s => s.LineItems)
+            .FirstOrDefaultAsync(d => d.Id == deliveryOrderId);
+
+        if (deliveryOrder == null)
+        {
+            throw new InvalidOperationException($"Delivery order with ID '{deliveryOrderId}' not found");
+        }
+
+        if (deliveryOrder.DriverId == null)
+        {
+            throw new InvalidOperationException("Delivery order has no driver assigned");
+        }
+
+        // Log the reason in special instructions (you might want to add a separate audit log table)
+        if (!string.IsNullOrEmpty(reason))
+        {
+            deliveryOrder.SpecialInstructions = string.IsNullOrEmpty(deliveryOrder.SpecialInstructions)
+                ? $"Driver unassigned: {reason}"
+                : $"{deliveryOrder.SpecialInstructions}\nDriver unassigned: {reason}";
+        }
+
+        // Unassign the driver
+        deliveryOrder.DriverId = null;
+        deliveryOrder.DeliveryStatus = DeliveryStatus.Pending;
+        deliveryOrder.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return new DeliveryOrderDto
+        {
+            Id = deliveryOrder.Id,
+            OrderId = deliveryOrder.OrderId,
+            OrderTransactionId = deliveryOrder.Sale?.TransactionId ?? string.Empty,
+            CustomerId = deliveryOrder.CustomerId,
+            CustomerName = deliveryOrder.Sale?.Customer?.NameEn ?? string.Empty,
+            DriverId = deliveryOrder.DriverId,
+            DriverName = null,
+            PickupAddress = deliveryOrder.PickupAddress,
+            DeliveryAddress = deliveryOrder.DeliveryAddress,
+            DeliveryLocation = deliveryOrder.DeliveryLocation,
+            EstimatedDeliveryTime = deliveryOrder.EstimatedDeliveryTime,
+            ActualDeliveryTime = deliveryOrder.ActualDeliveryTime,
+            DeliveryStatus = deliveryOrder.DeliveryStatus,
+            Priority = deliveryOrder.Priority,
+            SpecialInstructions = deliveryOrder.SpecialInstructions,
+            ItemsCount = deliveryOrder.Sale?.LineItems.Count ?? 0,
+            OrderTotal = deliveryOrder.Sale?.Total ?? 0,
+            CreatedAt = deliveryOrder.CreatedAt,
+            UpdatedAt = deliveryOrder.UpdatedAt
+        };
+    }
 }

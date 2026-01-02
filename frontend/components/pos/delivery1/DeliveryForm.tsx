@@ -11,6 +11,7 @@ import { Plus, Minus } from "lucide-react";
 import { ProductDto } from "@/types/api.types";
 import salesService from "@/services/sales.service";
 import inventoryService from "@/services/inventory.service";
+import { toast } from "sonner";
 
 interface DeliveryFormProps {
   open: boolean;
@@ -121,7 +122,7 @@ export function DeliveryForm({
       setLoading(true);
 
       // Create the sale with delivery information
-      await salesService.createSale({
+      const sale = await salesService.createSale({
         invoiceType: 0, // Standard invoice
         deliveryAddress: `${deliveryInfo.customerName}, ${deliveryInfo.phone}, ${deliveryInfo.address}`,
         specialInstructions: deliveryInfo.instructions || undefined,
@@ -136,6 +137,12 @@ export function DeliveryForm({
         })),
       });
 
+      // Show success notification with order details
+      toast.success("Delivery Order Created", {
+        description: `Order #${sale.transactionId} - Awaiting driver assignment`,
+        duration: 5000,
+      });
+
       // Reset form
       setCart([]);
       setDeliveryInfo({
@@ -147,7 +154,9 @@ export function DeliveryForm({
       onSuccess();
     } catch (error) {
       console.error("Failed to create delivery order:", error);
-      alert("Failed to create delivery order");
+      toast.error("Failed to create delivery order", {
+        description: error instanceof Error ? error.message : "Please try again",
+      });
     } finally {
       setLoading(false);
     }

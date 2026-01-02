@@ -83,7 +83,12 @@
       "Bash(git status:*)",
       "Bash(perl:*)",
       "Bash(git diff:*)",
-      "Bash(git stash push:*)"
+      "Bash(git stash push:*)",
+      "Bash(git restore:*)",
+      "Bash(python cleanup-migration.py:*)",
+      "Bash(for file in *.tsx)",
+      "Bash(tee:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []

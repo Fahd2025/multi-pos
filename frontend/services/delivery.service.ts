@@ -162,6 +162,120 @@ class DeliveryService {
     }
   }
 
+  /**
+   * Update driver availability
+   * @param id - Driver ID
+   * @param isAvailable - Availability status
+   * @returns Updated driver
+   */
+  async updateDriverAvailability(id: string, isAvailable: boolean): Promise<DriverDto> {
+    try {
+      const response = await api.put<ApiResponse<DriverDto>>(
+        `${this.driversBasePath}/${id}/availability`,
+        { isAvailable }
+      );
+      return response.data.data!;
+    } catch (error) {
+      const errorMessage = apiHelpers.getErrorMessage(error);
+      throw new Error(`Failed to update driver availability: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Get available drivers
+   * @returns List of available drivers
+   */
+  async getAvailableDrivers(): Promise<DriverDto[]> {
+    try {
+      const response = await api.get<ApiResponse<DriverDto[]>>(
+        `${this.driversBasePath}/available`
+      );
+      return response.data.data!;
+    } catch (error) {
+      const errorMessage = apiHelpers.getErrorMessage(error);
+      throw new Error(`Failed to fetch available drivers: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Record driver performance
+   * @param performanceData - Performance data
+   * @returns Recorded performance
+   */
+  async recordDriverPerformance(performanceData: any): Promise<any> {
+    try {
+      const response = await api.post<ApiResponse<any>>(
+        `${this.driversBasePath}/performance`,
+        performanceData
+      );
+      return response.data.data!;
+    } catch (error) {
+      const errorMessage = apiHelpers.getErrorMessage(error);
+      throw new Error(`Failed to record driver performance: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Get driver statistics
+   * @param id - Driver ID
+   * @param from - Start date (optional)
+   * @param to - End date (optional)
+   * @returns Driver statistics
+   */
+  async getDriverStats(id: string, from?: Date, to?: Date): Promise<any> {
+    try {
+      const params = new URLSearchParams();
+      if (from) params.append('from', from.toISOString());
+      if (to) params.append('to', to.toISOString());
+      const queryString = params.toString();
+      const url = queryString
+        ? `${this.driversBasePath}/${id}/stats?${queryString}`
+        : `${this.driversBasePath}/${id}/stats`;
+
+      const response = await api.get<ApiResponse<any>>(url);
+      return response.data.data!;
+    } catch (error) {
+      const errorMessage = apiHelpers.getErrorMessage(error);
+      throw new Error(`Failed to fetch driver stats: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Get driver performance history
+   * @param id - Driver ID
+   * @param page - Page number (default: 1)
+   * @param pageSize - Page size (default: 20)
+   * @returns Performance history
+   */
+  async getDriverPerformanceHistory(id: string, page = 1, pageSize = 20): Promise<any[]> {
+    try {
+      const response = await api.get<ApiResponse<any[]>>(
+        `${this.driversBasePath}/${id}/performance?page=${page}&pageSize=${pageSize}`
+      );
+      return response.data.data!;
+    } catch (error) {
+      const errorMessage = apiHelpers.getErrorMessage(error);
+      throw new Error(`Failed to fetch driver performance history: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Get driver active deliveries count
+   * @param id - Driver ID
+   * @returns Active deliveries count
+   */
+  async getDriverActiveCount(id: string): Promise<number> {
+    try {
+      const response = await api.get<ApiResponse<number>>(
+        `${this.driversBasePath}/${id}/active-count`
+      );
+      return response.data.data!;
+    } catch (error) {
+      const errorMessage = apiHelpers.getErrorMessage(error);
+      throw new Error(`Failed to fetch driver active count: ${errorMessage}`);
+    }
+  }
+
   // ============================
   // Delivery Order Management Methods
   // ============================
@@ -292,6 +406,81 @@ class DeliveryService {
     } catch (error) {
       const errorMessage = apiHelpers.getErrorMessage(error);
       throw new Error(`Failed to update delivery status: ${errorMessage}`);
+    }
+  }
+
+  // ============================
+  // Dispatch Operations (New)
+  // ============================
+
+  /**
+   * Get unassigned deliveries
+   * @returns List of unassigned delivery orders
+   */
+  async getUnassignedDeliveries(): Promise<DeliveryOrderDto[]> {
+    try {
+      const response = await api.get<ApiResponse<DeliveryOrderDto[]>>(
+        `${this.deliveryBasePath}/unassigned`
+      );
+      return response.data.data!;
+    } catch (error) {
+      const errorMessage = apiHelpers.getErrorMessage(error);
+      throw new Error(`Failed to fetch unassigned deliveries: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Get active deliveries by driver
+   * @param driverId - Driver ID
+   * @returns List of active delivery orders for the driver
+   */
+  async getActiveDeliveriesByDriver(driverId: string): Promise<DeliveryOrderDto[]> {
+    try {
+      const response = await api.get<ApiResponse<DeliveryOrderDto[]>>(
+        `${this.deliveryBasePath}/driver/${driverId}/active`
+      );
+      return response.data.data!;
+    } catch (error) {
+      const errorMessage = apiHelpers.getErrorMessage(error);
+      throw new Error(`Failed to fetch active deliveries for driver: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Assign driver to delivery order (new endpoint)
+   * @param deliveryOrderId - Delivery order ID
+   * @param driverId - Driver ID to assign
+   * @returns Updated delivery order
+   */
+  async assignDriver(deliveryOrderId: string, driverId: string): Promise<DeliveryOrderDto> {
+    try {
+      const response = await api.post<ApiResponse<DeliveryOrderDto>>(
+        `${this.deliveryBasePath}/${deliveryOrderId}/assign`,
+        { driverId }
+      );
+      return response.data.data!;
+    } catch (error) {
+      const errorMessage = apiHelpers.getErrorMessage(error);
+      throw new Error(`Failed to assign driver: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Unassign driver from delivery order
+   * @param deliveryOrderId - Delivery order ID
+   * @param reason - Reason for unassignment
+   * @returns Updated delivery order
+   */
+  async unassignDriver(deliveryOrderId: string, reason: string): Promise<DeliveryOrderDto> {
+    try {
+      const response = await api.post<ApiResponse<DeliveryOrderDto>>(
+        `${this.deliveryBasePath}/${deliveryOrderId}/unassign`,
+        { reason }
+      );
+      return response.data.data!;
+    } catch (error) {
+      const errorMessage = apiHelpers.getErrorMessage(error);
+      throw new Error(`Failed to unassign driver: ${errorMessage}`);
     }
   }
 }

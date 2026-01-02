@@ -15,7 +15,7 @@ export interface MenuItem {
   name: string;
   href: string;
   icon: string | LucideIcon; // Support both emoji string and Lucide icon component
-  variant?: "sales" | "inventory" | "customers" | "expenses" | "purchases" | "reports" | "users" | "settings" | "tables" | "default";
+  variant?: "sales" | "inventory" | "customers" | "expenses" | "purchases" | "reports" | "users" | "settings" | "tables" | "drivers" | "dispatch" | "default";
   requiresRole?: boolean;
   requiresManager?: boolean;
 }

@@ -18,6 +18,8 @@ import {
   Truck,
   LayoutGrid,
   Wallet,
+  UserCog,
+  Navigation,
   type LucideIcon,
 } from "lucide-react";
 
@@ -29,7 +31,7 @@ export interface NavigationItem {
   href: string;
   icon: LucideIcon;
   /** Feature variant for automatic color theming */
-  variant?: "sales" | "inventory" | "customers" | "expenses" | "purchases" | "reports" | "users" | "settings" | "tables" | "default";
+  variant?: "sales" | "inventory" | "customers" | "expenses" | "purchases" | "reports" | "users" | "settings" | "tables" | "drivers" | "dispatch" | "default";
 }
 
 /**
@@ -136,6 +138,10 @@ export const BRANCH_ROUTES = {
   CASH_DRAWER: (locale: string) => `/${locale}/branch/cash-drawer`,
   CASH_DRAWER_HISTORY: (locale: string) => `/${locale}/branch/cash-drawer/history`,
   CASH_DRAWER_RECONCILIATION: (locale: string, id: string) => `/${locale}/branch/cash-drawer/reconciliation/${id}`,
+
+  // Delivery & Dispatch
+  DRIVERS: (locale: string) => `/${locale}/branch/drivers`,
+  DISPATCH: (locale: string) => `/${locale}/branch/dispatch`,
 };
 
 /**
@@ -229,6 +235,18 @@ export const getBranchNavigation = (locale: string): NavigationItem[] => [
     href: BRANCH_ROUTES.TABLES(locale),
     icon: LayoutGrid,
     variant: "tables"
+  },
+  {
+    name: "Drivers",
+    href: BRANCH_ROUTES.DRIVERS(locale),
+    icon: UserCog,
+    variant: "drivers"
+  },
+  {
+    name: "Dispatch",
+    href: BRANCH_ROUTES.DISPATCH(locale),
+    icon: Navigation,
+    variant: "dispatch"
   },
   {
     name: "Users",

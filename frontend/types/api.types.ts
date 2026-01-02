@@ -500,6 +500,39 @@ export interface DriverDto {
 }
 
 /**
+ * Driver performance DTOs
+ */
+export interface DriverPerformanceDto {
+  id: string;
+  deliveryOrderId: string;
+  orderNumber: string;
+  deliveryTimeMinutes: number;
+  customerRating?: number;
+  customerFeedback?: string;
+  onTime: boolean;
+  recordedAt: string;
+}
+
+export interface DriverStatsDto {
+  driverId: string;
+  totalDeliveries: number;
+  completedDeliveries: number;
+  failedDeliveries: number;
+  averageRating: number;
+  averageDeliveryTimeMinutes: number;
+  onTimePercentage: number;
+  activeDeliveries: number;
+}
+
+export interface RecordPerformanceDto {
+  deliveryOrderId: string;
+  deliveryTimeMinutes: number;
+  customerRating?: number;
+  customerFeedback?: string;
+  onTime: boolean;
+}
+
+/**
  * Delivery order DTOs
  */
 export interface CreateDeliveryOrderDto {
