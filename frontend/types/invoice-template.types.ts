@@ -1,4 +1,26 @@
 /**
+ * Template type (Sales or Return)
+ */
+export enum TemplateType {
+  Sales = 0,
+  Return = 1,
+}
+
+/**
+ * Helper function to get display name for TemplateType
+ */
+export const getTemplateTypeName = (type: TemplateType): string => {
+  switch (type) {
+    case TemplateType.Sales:
+      return "Sales Invoice";
+    case TemplateType.Return:
+      return "Return Invoice";
+    default:
+      return "Unknown";
+  }
+};
+
+/**
  * Paper size types for invoice templates
  */
 export enum PaperSize {
@@ -54,6 +76,8 @@ export interface InvoiceTemplate {
   isActive: boolean;
   paperSize: PaperSize;
   paperSizeName: string;
+  templateType: TemplateType;
+  templateTypeName: string;
   customWidth?: number;
   customHeight?: number;
   schema: string; // JSON string
@@ -72,6 +96,8 @@ export interface InvoiceTemplateListItem {
   isActive: boolean;
   paperSize: PaperSize;
   paperSizeName: string;
+  templateType: TemplateType;
+  templateTypeName: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -83,6 +109,7 @@ export interface CreateInvoiceTemplateDto {
   name: string;
   description?: string;
   paperSize: PaperSize;
+  templateType: TemplateType;
   customWidth?: number;
   customHeight?: number;
   schema: string;
@@ -96,6 +123,7 @@ export interface UpdateInvoiceTemplateDto {
   name: string;
   description?: string;
   paperSize: PaperSize;
+  templateType: TemplateType;
   customWidth?: number;
   customHeight?: number;
   schema: string;

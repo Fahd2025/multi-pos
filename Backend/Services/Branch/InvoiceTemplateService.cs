@@ -32,6 +32,8 @@ public class InvoiceTemplateService : IInvoiceTemplateService
                 IsActive = t.IsActive,
                 PaperSize = t.PaperSize,
                 PaperSizeName = t.PaperSize.ToString(),
+                TemplateType = t.TemplateType,
+                TemplateTypeName = t.TemplateType.ToString(),
                 CreatedAt = t.CreatedAt,
                 UpdatedAt = t.UpdatedAt
             })
@@ -52,6 +54,8 @@ public class InvoiceTemplateService : IInvoiceTemplateService
                 IsActive = t.IsActive,
                 PaperSize = t.PaperSize,
                 PaperSizeName = t.PaperSize.ToString(),
+                TemplateType = t.TemplateType,
+                TemplateTypeName = t.TemplateType.ToString(),
                 CustomWidth = t.CustomWidth,
                 CustomHeight = t.CustomHeight,
                 Schema = t.Schema,
@@ -76,6 +80,34 @@ public class InvoiceTemplateService : IInvoiceTemplateService
                 IsActive = t.IsActive,
                 PaperSize = t.PaperSize,
                 PaperSizeName = t.PaperSize.ToString(),
+                TemplateType = t.TemplateType,
+                TemplateTypeName = t.TemplateType.ToString(),
+                CustomWidth = t.CustomWidth,
+                CustomHeight = t.CustomHeight,
+                Schema = t.Schema,
+                CreatedAt = t.CreatedAt,
+                UpdatedAt = t.UpdatedAt,
+                CreatedBy = t.CreatedBy
+            })
+            .FirstOrDefaultAsync();
+
+        return template;
+    }
+
+    public async Task<InvoiceTemplateDto?> GetActiveTemplateByTypeAsync(TemplateType templateType)
+    {
+        var template = await _context.InvoiceTemplates
+            .Where(t => t.IsActive && t.TemplateType == templateType)
+            .Select(t => new InvoiceTemplateDto
+            {
+                Id = t.Id,
+                Name = t.Name,
+                Description = t.Description,
+                IsActive = t.IsActive,
+                PaperSize = t.PaperSize,
+                PaperSizeName = t.PaperSize.ToString(),
+                TemplateType = t.TemplateType,
+                TemplateTypeName = t.TemplateType.ToString(),
                 CustomWidth = t.CustomWidth,
                 CustomHeight = t.CustomHeight,
                 Schema = t.Schema,
@@ -117,6 +149,7 @@ public class InvoiceTemplateService : IInvoiceTemplateService
             PaperSize = dto.PaperSize,
             CustomWidth = dto.CustomWidth,
             CustomHeight = dto.CustomHeight,
+            TemplateType = dto.TemplateType,
             Schema = dto.Schema,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
@@ -134,6 +167,8 @@ public class InvoiceTemplateService : IInvoiceTemplateService
             IsActive = template.IsActive,
             PaperSize = template.PaperSize,
             PaperSizeName = template.PaperSize.ToString(),
+            TemplateType = template.TemplateType,
+            TemplateTypeName = template.TemplateType.ToString(),
             CustomWidth = template.CustomWidth,
             CustomHeight = template.CustomHeight,
             Schema = template.Schema,
@@ -168,6 +203,7 @@ public class InvoiceTemplateService : IInvoiceTemplateService
         template.PaperSize = dto.PaperSize;
         template.CustomWidth = dto.CustomWidth;
         template.CustomHeight = dto.CustomHeight;
+        template.TemplateType = dto.TemplateType;
         template.Schema = dto.Schema;
         template.UpdatedAt = DateTime.UtcNow;
 
@@ -181,6 +217,8 @@ public class InvoiceTemplateService : IInvoiceTemplateService
             IsActive = template.IsActive,
             PaperSize = template.PaperSize,
             PaperSizeName = template.PaperSize.ToString(),
+            TemplateType = template.TemplateType,
+            TemplateTypeName = template.TemplateType.ToString(),
             CustomWidth = template.CustomWidth,
             CustomHeight = template.CustomHeight,
             Schema = template.Schema,
@@ -235,6 +273,8 @@ public class InvoiceTemplateService : IInvoiceTemplateService
             IsActive = template.IsActive,
             PaperSize = template.PaperSize,
             PaperSizeName = template.PaperSize.ToString(),
+            TemplateType = template.TemplateType,
+            TemplateTypeName = template.TemplateType.ToString(),
             CustomWidth = template.CustomWidth,
             CustomHeight = template.CustomHeight,
             Schema = template.Schema,
@@ -261,6 +301,7 @@ public class InvoiceTemplateService : IInvoiceTemplateService
             PaperSize = originalTemplate.PaperSize,
             CustomWidth = originalTemplate.CustomWidth,
             CustomHeight = originalTemplate.CustomHeight,
+            TemplateType = originalTemplate.TemplateType,
             Schema = originalTemplate.Schema,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
@@ -278,6 +319,8 @@ public class InvoiceTemplateService : IInvoiceTemplateService
             IsActive = duplicateTemplate.IsActive,
             PaperSize = duplicateTemplate.PaperSize,
             PaperSizeName = duplicateTemplate.PaperSize.ToString(),
+            TemplateType = duplicateTemplate.TemplateType,
+            TemplateTypeName = duplicateTemplate.TemplateType.ToString(),
             CustomWidth = duplicateTemplate.CustomWidth,
             CustomHeight = duplicateTemplate.CustomHeight,
             Schema = duplicateTemplate.Schema,

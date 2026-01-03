@@ -11,6 +11,8 @@ import { useParams, useRouter } from "next/navigation";
 import invoiceTemplateService from "@/services/invoice-template.service";
 import {
   PaperSize,
+  TemplateType,
+  getTemplateTypeName,
   InvoiceSchema,
   InvoiceSchemaSection,
   InvoiceTemplate,
@@ -34,6 +36,7 @@ export default function InvoiceBuilderEditPage() {
   const [templateName, setTemplateName] = useState("");
   const [description, setDescription] = useState("");
   const [paperSize, setPaperSize] = useState<PaperSize>(PaperSize.Thermal80mm);
+  const [templateType, setTemplateType] = useState<TemplateType>(TemplateType.Sales);
   const [customWidth, setCustomWidth] = useState<number>(80);
   const [customHeight, setCustomHeight] = useState<number>(297);
 
@@ -64,6 +67,7 @@ export default function InvoiceBuilderEditPage() {
       setTemplateName(data.name);
       setDescription(data.description || "");
       setPaperSize(data.paperSize);
+      setTemplateType(data.templateType);
       setCustomWidth(data.customWidth || 80);
       setCustomHeight(data.customHeight || 297);
 
@@ -120,6 +124,7 @@ export default function InvoiceBuilderEditPage() {
         name: templateName,
         description: description || undefined,
         paperSize,
+        templateType,
         customWidth: paperSize === PaperSize.Custom ? customWidth : undefined,
         customHeight: paperSize === PaperSize.Custom ? customHeight : undefined,
         schema: JSON.stringify(schema),
@@ -745,6 +750,22 @@ export default function InvoiceBuilderEditPage() {
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                 placeholder="Describe this template..."
               />
+            </div>
+
+            {/* Template Type (Read-only) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Template Type
+              </label>
+              <input
+                type="text"
+                value={getTemplateTypeName(templateType)}
+                disabled
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 cursor-not-allowed"
+              />
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Template type cannot be changed after creation
+              </p>
             </div>
 
             {/* Paper Size */}

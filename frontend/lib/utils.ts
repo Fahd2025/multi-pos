@@ -74,3 +74,31 @@ export function formatCurrency(
     currency: currency,
   }).format(amount);
 }
+
+/**
+ * Format date to localized date string
+ * @param dateString - ISO date string
+ * @param locale - Locale code (e.g., "en-US", "ar-SA")
+ * @returns Formatted date string
+ */
+export function formatDate(
+  dateString: string,
+  locale: string = "en-US"
+): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString(locale);
+}
+
+/**
+ * Format date to localized date and time string
+ * @param dateString - ISO date string
+ * @param locale - Locale code (e.g., "en-US", "ar-SA")
+ * @returns Formatted date and time string
+ */
+export function formatDateTime(
+  dateString: string,
+  locale: string = "en-US"
+): string {
+  const date = new Date(dateString);
+  return date.toLocaleString(locale);
+}

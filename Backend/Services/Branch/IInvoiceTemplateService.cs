@@ -27,6 +27,13 @@ public interface IInvoiceTemplateService
     Task<InvoiceTemplateDto?> GetActiveTemplateAsync();
 
     /// <summary>
+    /// Get the active invoice template by type for the current branch
+    /// </summary>
+    /// <param name="templateType">Template type (Sales or Return)</param>
+    /// <returns>Active template of specified type or null if none set</returns>
+    Task<InvoiceTemplateDto?> GetActiveTemplateByTypeAsync(Backend.Models.Entities.Branch.TemplateType templateType);
+
+    /// <summary>
     /// Create a new invoice template
     /// </summary>
     /// <param name="dto">Template creation data</param>

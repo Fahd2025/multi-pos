@@ -25,6 +25,9 @@ public class InvoiceTemplate
     public int? CustomHeight { get; set; } // in mm
 
     [Required]
+    public TemplateType TemplateType { get; set; } = TemplateType.Sales;
+
+    [Required]
     public string Schema { get; set; } = string.Empty; // JSON configuration
 
     [Required]
@@ -43,4 +46,10 @@ public enum PaperSize
     Thermal80mm = 1,
     A4 = 2,
     Custom = 3
+}
+
+public enum TemplateType
+{
+    Sales = 0,
+    Return = 1
 }

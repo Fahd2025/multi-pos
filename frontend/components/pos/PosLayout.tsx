@@ -18,6 +18,7 @@ import { SaveOrderDialog, SaveOrderData } from "./PendingOrders/SaveOrderDialog"
 import pendingOrdersService from "@/services/pending-orders.service";
 import { usePendingOrdersCount } from "@/hooks/usePendingOrders";
 import { PendingOrderDto, PendingOrderStatus, CreatePendingOrderDto } from "@/types/api.types";
+import { QuickReturnPanel } from "./Returns/QuickReturnPanel";
 
 interface CartItem extends ProductDto {
   quantity: number;
@@ -51,6 +52,9 @@ function PosLayoutContent() {
   // Pending Orders state
   const [isPendingOrdersPanelOpen, setIsPendingOrdersPanelOpen] = useState(false);
   const { count: pendingOrdersCount, mutate: mutatePendingOrdersCount } = usePendingOrdersCount();
+
+  // Quick Return state
+  const [isReturnPanelOpen, setIsReturnPanelOpen] = useState(false);
 
   // Read URL parameters for table integration
   const tableNumber = searchParams.get("tableNumber");
@@ -459,6 +463,7 @@ function PosLayoutContent() {
           onToast={handleToast}
           onOpenPendingOrders={() => setIsPendingOrdersPanelOpen(true)}
           pendingOrdersCount={pendingOrdersCount || 0}
+          onOpenReturns={() => setIsReturnPanelOpen(true)}
         />
 
         {/* Mobile Categories Bar - shown between nav and search on mobile */}
@@ -517,6 +522,16 @@ function PosLayoutContent() {
         onRetrieve={handleRetrievePendingOrder}
         hasItemsInCart={cart.length > 0}
         onCountUpdate={mutatePendingOrdersCount}
+      />
+
+      {/* Quick Return Panel */}
+      <QuickReturnPanel
+        isOpen={isReturnPanelOpen}
+        onClose={() => setIsReturnPanelOpen(false)}
+        onReturnProcessed={(returnResponse) => {
+          console.log("Return processed in POS:", returnResponse);
+          toast.success("Return processed", `Refund amount: ${returnResponse.refundAmount}`);
+        }}
       />
     </div>
   );

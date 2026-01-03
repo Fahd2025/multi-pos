@@ -52,6 +52,7 @@ interface TopBarProps {
   ) => void;
   onOpenPendingOrders?: () => void;
   pendingOrdersCount?: number;
+  onOpenReturns?: () => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
@@ -66,6 +67,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   onToast,
   onOpenPendingOrders,
   pendingOrdersCount = 0,
+  onOpenReturns,
 }) => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
@@ -306,8 +308,7 @@ export const TopBar: React.FC<TopBarProps> = ({
 
   const handleReturnInvoice = () => {
     handleButtonPress("return", () => {
-      // TODO: Implement return invoice functionality
-      console.log("Return Invoice clicked");
+      onOpenReturns?.();
     });
   };
 

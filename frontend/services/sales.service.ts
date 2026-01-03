@@ -261,6 +261,70 @@ class SalesService {
   }
 
   /**
+   * Get return invoice in various formats
+   * @param id - Return sale ID (the ID of the return transaction, not the original sale)
+   * @param format - Output format (html, json, pdf)
+   * @returns Invoice data or blob (for PDF)
+   */
+  async getReturnInvoice(
+    id: string,
+    format: 'pdf' | 'html' | 'json' = 'html'
+  ): Promise<Blob | string | any> {
+    try {
+      const url = `${this.basePath}/${id}/return-invoice?format=${format}`;
+
+      if (format === 'pdf') {
+        // Return blob for PDF
+        const response = await api.get(url, {
+          responseType: 'blob',
+        });
+        return response.data;
+      } else if (format === 'html') {
+        // Return HTML string
+        const response = await api.get(url, {
+          responseType: 'text',
+        });
+        return response.data;
+      } else {
+        // Return JSON
+        const response = await api.get(url);
+        return response.data;
+      }
+    } catch (error) {
+      const errorMessage = apiHelpers.getErrorMessage(error);
+      throw new Error(`Failed to fetch return invoice: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Print return invoice (opens print dialog)
+   * @param id - Return sale ID (the ID of the return transaction, not the original sale)
+   */
+  async printReturnInvoice(id: string): Promise<void> {
+    try {
+      const html = await this.getReturnInvoice(id, 'html') as string;
+
+      // Open print window with return invoice HTML
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(html);
+        printWindow.document.close();
+        printWindow.focus();
+
+        // Wait for content to load then print
+        printWindow.onload = () => {
+          printWindow.print();
+        };
+      } else {
+        throw new Error('Failed to open print window. Please check popup blocker settings.');
+      }
+    } catch (error) {
+      const errorMessage = apiHelpers.getErrorMessage(error);
+      throw new Error(`Failed to print return invoice: ${errorMessage}`);
+    }
+  }
+
+  /**
    * Update payment for an existing sale
    * @param saleId - Sale ID
    * @param paymentData - Payment update data

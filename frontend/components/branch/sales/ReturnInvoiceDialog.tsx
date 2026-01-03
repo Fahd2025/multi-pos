@@ -177,6 +177,15 @@ export default function ReturnInvoiceDialog({
         `Return processed successfully! Refund: ${formatCurrency(response.refundAmount)}`
       );
 
+      // Automatically print return invoice with custom template
+      try {
+        await salesService.printReturnInvoice(response.returnSaleId);
+        toast.success("Opening return invoice for printing...");
+      } catch (printError: any) {
+        console.error("Failed to print return invoice:", printError);
+        toast.warning("Return processed but failed to print invoice");
+      }
+
       onSuccess?.(response);
       onClose();
     } catch (error: any) {
@@ -187,8 +196,15 @@ export default function ReturnInvoiceDialog({
     }
   };
 
-  const handlePrintReturnInvoice = () => {
-    toast.info("Print return invoice (Coming soon)");
+  const handlePrintReturnInvoice = async () => {
+    if (!sale) return;
+    try {
+      // For printing return invoice before processing, we would need the return sale ID
+      // This functionality is typically used after processing the return
+      toast.info("Please complete the return to print the return invoice");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to print return invoice");
+    }
   };
 
   const handlePrintOriginalInvoice = async () => {

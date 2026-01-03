@@ -10,6 +10,8 @@ public class InvoiceTemplateListDto
     public bool IsActive { get; set; }
     public PaperSize PaperSize { get; set; }
     public string PaperSizeName { get; set; } = string.Empty;
+    public TemplateType TemplateType { get; set; }
+    public string TemplateTypeName { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

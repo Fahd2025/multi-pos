@@ -710,6 +710,7 @@ public class SalesService : ISalesService
                     DiscountedUnitPrice = lineItem.DiscountedUnitPrice,
                     LineTotal = lineItem.LineTotal,
                     Notes = lineItem.Notes,
+                    ReturnQuantity = lineItem.ReturnQuantity,
                 }
             );
         }

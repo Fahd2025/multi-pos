@@ -20,6 +20,9 @@ public class CreateInvoiceTemplateDto
     public int? CustomHeight { get; set; }
 
     [Required]
+    public TemplateType TemplateType { get; set; } = TemplateType.Sales;
+
+    [Required]
     public string Schema { get; set; } = string.Empty;
 
     public bool SetAsActive { get; set; } = false;

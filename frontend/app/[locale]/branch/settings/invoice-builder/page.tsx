@@ -12,6 +12,8 @@ import invoiceTemplateService from "@/services/invoice-template.service";
 import {
   PaperSize,
   getPaperSizeName,
+  TemplateType,
+  getTemplateTypeName,
   DEFAULT_INVOICE_SCHEMA,
   InvoiceSchema,
   InvoiceSchemaSection,
@@ -30,6 +32,7 @@ export default function InvoiceBuilderPage() {
   const [templateName, setTemplateName] = useState("");
   const [description, setDescription] = useState("");
   const [paperSize, setPaperSize] = useState<PaperSize>(PaperSize.Thermal80mm);
+  const [templateType, setTemplateType] = useState<TemplateType>(TemplateType.Sales);
   const [customWidth, setCustomWidth] = useState<number>(80);
   const [customHeight, setCustomHeight] = useState<number>(297);
   const [setAsActive, setSetAsActive] = useState(false);
@@ -84,6 +87,7 @@ export default function InvoiceBuilderPage() {
         name: templateName,
         description: description || undefined,
         paperSize,
+        templateType,
         customWidth: paperSize === PaperSize.Custom ? customWidth : undefined,
         customHeight: paperSize === PaperSize.Custom ? customHeight : undefined,
         schema: JSON.stringify(schema),
@@ -680,6 +684,24 @@ export default function InvoiceBuilderPage() {
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                 placeholder="Describe this template..."
               />
+            </div>
+
+            {/* Template Type */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Template Type <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={templateType}
+                onChange={(e) => setTemplateType(Number(e.target.value) as TemplateType)}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              >
+                <option value={TemplateType.Sales}>{getTemplateTypeName(TemplateType.Sales)}</option>
+                <option value={TemplateType.Return}>{getTemplateTypeName(TemplateType.Return)}</option>
+              </select>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Choose whether this template is for sales invoices or return invoices
+              </p>
             </div>
 
             {/* Paper Size */}

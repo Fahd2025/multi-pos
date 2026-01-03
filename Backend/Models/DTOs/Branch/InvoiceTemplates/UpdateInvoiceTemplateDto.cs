@@ -20,5 +20,8 @@ public class UpdateInvoiceTemplateDto
     public int? CustomHeight { get; set; }
 
     [Required]
+    public TemplateType TemplateType { get; set; }
+
+    [Required]
     public string Schema { get; set; } = string.Empty;
 }

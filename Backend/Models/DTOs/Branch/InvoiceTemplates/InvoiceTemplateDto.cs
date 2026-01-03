@@ -10,6 +10,8 @@ public class InvoiceTemplateDto
     public bool IsActive { get; set; }
     public PaperSize PaperSize { get; set; }
     public string PaperSizeName { get; set; } = string.Empty;
+    public TemplateType TemplateType { get; set; }
+    public string TemplateTypeName { get; set; } = string.Empty;
     public int? CustomWidth { get; set; }
     public int? CustomHeight { get; set; }
     public string Schema { get; set; } = string.Empty;

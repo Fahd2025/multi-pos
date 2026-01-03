@@ -16,4 +16,5 @@ public class SaleLineItemDto
     public decimal DiscountedUnitPrice { get; set; }
     public decimal LineTotal { get; set; }
     public string? Notes { get; set; }
+    public int ReturnQuantity { get; set; } // Quantity already returned from this item
 }
