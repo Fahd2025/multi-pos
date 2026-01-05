@@ -227,7 +227,9 @@ export const ActionCard: React.FC<ActionCardProps> = ({
       <div className={`flex items-start ${layout === "horizontal" ? "gap-4" : "flex-col"}`}>
         {/* Horizontal layout icon */}
         {layout === "horizontal" && icon && (
-          <div className={`w-12 h-12 ${iconBg} ${shapeClass} flex items-center justify-center flex-shrink-0`}>
+          <div
+            className={`w-12 h-12 ${iconBg} ${shapeClass} flex items-center justify-center flex-shrink-0`}
+          >
             {renderIcon()}
           </div>
         )}
@@ -241,11 +243,7 @@ export const ActionCard: React.FC<ActionCardProps> = ({
           >
             {title}
           </h3>
-          <p
-            className={`text-sm text-muted-foreground ${
-              layout === "vertical" ? "" : "mt-1"
-            }`}
-          >
+          <p className={`text-sm text-muted-foreground ${layout === "vertical" ? "" : "mt-1"}`}>
             {description}
           </p>
         </div>
@@ -255,15 +253,19 @@ export const ActionCard: React.FC<ActionCardProps> = ({
 
   const baseClasses = `
     relative
-    bg-card
+    glass
     border-2 ${borderStyle}
-    rounded-lg
+    rounded-xl
     p-6
     shadow-sm
-    transition-all duration-200
+    transition-all duration-300
     touch-target-lg
     focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2
-    ${disabled ? "opacity-50 cursor-not-allowed" : `${hoverStyle} hover:shadow-md touch-feedback`}
+    ${
+      disabled
+        ? "opacity-50 cursor-not-allowed"
+        : `${hoverStyle} hover:scale-[1.02] hover:shadow-lg active:scale-95`
+    }
     ${className}
   `;
 
@@ -278,11 +280,7 @@ export const ActionCard: React.FC<ActionCardProps> = ({
 
   // Render as button
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`${baseClasses} text-left w-full`}
-    >
+    <button onClick={onClick} disabled={disabled} className={`${baseClasses} text-left w-full`}>
       {content}
     </button>
   );

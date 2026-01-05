@@ -30,6 +30,8 @@ import {
   ShoppingCart,
   BarChart3,
 } from "lucide-react";
+import { RevenueChart } from "@/components/dashboard/RevenueChart";
+import { TopProductsChart } from "@/components/dashboard/TopProductsChart";
 
 export default function BranchHomePage({ params }: { params: Promise<{ locale: string }> }) {
   const router = useRouter();
@@ -125,11 +127,7 @@ export default function BranchHomePage({ params }: { params: Promise<{ locale: s
         title="Branch Dashboard"
         description={`Welcome back, ${user?.fullNameEn || user?.username}`}
         actions={
-          <Button
-            onClick={() => router.push(`/${locale}/pos`)}
-            variant="default"
-            size="lg"
-          >
+          <Button onClick={() => router.push(`/${locale}/pos`)} variant="default" size="lg">
             <ShoppingCart className="w-5 h-5 mr-2" />
             New Sale
           </Button>
@@ -175,11 +173,19 @@ export default function BranchHomePage({ params }: { params: Promise<{ locale: s
         />
       </div>
 
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="lg:col-span-2">
+          <RevenueChart />
+        </div>
+        <div>
+          <TopProductsChart data={stats?.topProducts || []} loading={loading} />
+        </div>
+      </div>
+
       {/* Inventory Overview - Now using feature variants */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-foreground mb-4">
-          Inventory Status
-        </h2>
+        <h2 className="text-lg font-semibold text-foreground mb-4">Inventory Status</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatCard
             title="Low Stock Alerts"
@@ -210,9 +216,7 @@ export default function BranchHomePage({ params }: { params: Promise<{ locale: s
 
       {/* Quick Actions - Now using feature variants */}
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-4">
-          Quick Actions
-        </h2>
+        <h2 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <ActionCard
             title="Process Sale"

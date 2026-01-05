@@ -404,8 +404,12 @@ public static class InventoryEndpoints
                             return Results.Unauthorized();
                         }
 
+                        // Get branch context
+                        var branch = httpContext.Items["Branch"] as Backend.Models.Entities.HeadOffice.Branch;
+                        var branchId = branch?.Id;
+
                         dto.ProductId = id;
-                        var product = await inventoryService.AdjustStockAsync(id, dto, userId.Value);
+                        var product = await inventoryService.AdjustStockAsync(id, dto, userId.Value, branchId);
 
                         return Results.Ok(
                             new
@@ -430,6 +434,69 @@ public static class InventoryEndpoints
             )
             .RequireAuthorization()
             .WithName("AdjustStock")
+            .WithOpenApi();
+
+        // GET /api/v1/products/:id/stock-history - Get stock adjustment history for a product
+        productGroup
+            .MapGet(
+                "/{id:guid}/stock-history",
+                async (
+                    Guid id,
+                    HttpContext httpContext,
+                    Backend.Services.HeadOffice.Audit.IAuditService auditService,
+                    int page = 1,
+                    int pageSize = 50
+                ) =>
+                {
+                    try
+                    {
+                        var userId = httpContext.Items["UserId"] as Guid?;
+                        if (!userId.HasValue)
+                        {
+                            return Results.Unauthorized();
+                        }
+
+                        // Get stock adjustment audit logs for this product
+                        var (logs, totalCount) = await auditService.GetAuditLogsAsync(
+                            userId: null,
+                            branchId: null,
+                            eventType: "InventoryManagement",
+                            action: "StockAdjustment",
+                            fromDate: null,
+                            toDate: null,
+                            page: page,
+                            pageSize: pageSize
+                        );
+
+                        // Filter logs for this specific product
+                        var productLogs = logs.Where(l => l.EntityId == id).ToList();
+                        var productLogsCount = productLogs.Count;
+
+                        return Results.Ok(
+                            new
+                            {
+                                success = true,
+                                data = productLogs,
+                                pagination = new
+                                {
+                                    page,
+                                    pageSize,
+                                    totalItems = productLogsCount,
+                                    totalPages = (int)Math.Ceiling(productLogsCount / (double)pageSize),
+                                },
+                            }
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.BadRequest(
+                            new { success = false, error = new { code = "ERROR", message = ex.Message } }
+                        );
+                    }
+                }
+            )
+            .RequireAuthorization()
+            .WithName("GetProductStockHistory")
             .WithOpenApi();
 
         // ============================================

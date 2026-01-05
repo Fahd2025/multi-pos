@@ -13,25 +13,21 @@
  * ```
  */
 
-import React from 'react';
+import React from "react";
 
 export interface StatusBadgeProps {
-  variant: 'success' | 'danger' | 'warning' | 'info' | 'neutral';
+  variant: "success" | "danger" | "warning" | "info" | "neutral";
   children: React.ReactNode;
   className?: string;
 }
 
-export const StatusBadge: React.FC<StatusBadgeProps> = ({
-  variant,
-  children,
-  className = '',
-}) => {
+export const StatusBadge: React.FC<StatusBadgeProps> = ({ variant, children, className = "" }) => {
   const variantStyles = {
-    success: 'bg-green-100 text-green-800',
-    danger: 'bg-red-100 text-red-800',
-    warning: 'bg-yellow-100 text-yellow-800',
-    info: 'bg-blue-100 text-blue-800',
-    neutral: 'bg-gray-100 text-gray-800',
+    success: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+    danger: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+    warning: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+    info: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+    neutral: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
   };
 
   return (
@@ -49,10 +45,10 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
 export const getStockStatusVariant = (
   stockLevel: number,
   minThreshold: number
-): 'success' | 'warning' | 'danger' => {
-  if (stockLevel <= 0) return 'danger';
-  if (stockLevel <= minThreshold) return 'warning';
-  return 'success';
+): "success" | "warning" | "danger" => {
+  if (stockLevel <= 0) return "danger";
+  if (stockLevel <= minThreshold) return "warning";
+  return "success";
 };
 
 /**
@@ -60,12 +56,16 @@ export const getStockStatusVariant = (
  */
 export const getApprovalStatusVariant = (
   status: number
-): 'warning' | 'success' | 'danger' | 'neutral' => {
+): "warning" | "success" | "danger" | "neutral" => {
   switch (status) {
-    case 0: return 'warning'; // Pending
-    case 1: return 'success'; // Approved
-    case 2: return 'danger';  // Rejected
-    default: return 'neutral';
+    case 0:
+      return "warning"; // Pending
+    case 1:
+      return "success"; // Approved
+    case 2:
+      return "danger"; // Rejected
+    default:
+      return "neutral";
   }
 };
 
@@ -74,15 +74,23 @@ export const getApprovalStatusVariant = (
  */
 export const getDeliveryStatusVariant = (
   status: number
-): 'success' | 'warning' | 'info' | 'danger' | 'neutral' => {
+): "success" | "warning" | "info" | "danger" | "neutral" => {
   switch (status) {
-    case 0: return 'neutral';  // Pending
-    case 1: return 'info';     // Assigned
-    case 2: return 'warning';  // PickedUp
-    case 3: return 'warning';  // OutForDelivery
-    case 4: return 'success';  // Delivered
-    case 5: return 'danger';   // Failed
-    case 6: return 'danger';   // Cancelled
-    default: return 'neutral';
+    case 0:
+      return "neutral"; // Pending
+    case 1:
+      return "info"; // Assigned
+    case 2:
+      return "warning"; // PickedUp
+    case 3:
+      return "warning"; // OutForDelivery
+    case 4:
+      return "success"; // Delivered
+    case 5:
+      return "danger"; // Failed
+    case 6:
+      return "danger"; // Cancelled
+    default:
+      return "neutral";
   }
 };

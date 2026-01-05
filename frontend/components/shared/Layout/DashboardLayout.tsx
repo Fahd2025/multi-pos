@@ -55,11 +55,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   }, [isSidebarOpen]);
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen bg-transparent">
       {/* Mobile Drawer Overlay */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
           aria-hidden="true"
         />
@@ -67,7 +67,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Mobile Drawer Sidebar */}
       <aside
-        className={`fixed top-0 left-0 bottom-0 w-72 bg-white dark:bg-gray-800 shadow-xl border-r border-gray-200 dark:border-gray-700 z-50 transform transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto ${
+        className={`fixed top-0 left-0 bottom-0 w-72 glass shadow-xl border-r border-white/20 z-50 transform transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-label="Mobile navigation sidebar"
@@ -89,7 +89,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Desktop Sidebar - Full Height */}
       <aside
-        className={`hidden lg:block h-screen bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out overflow-y-auto ${
+        className={`hidden lg:block h-screen glass shadow-sm border-r border-white/20 transition-all duration-300 ease-in-out overflow-y-auto ${
           isSidebarCollapsed ? "w-20" : "w-72"
         }`}
         aria-label="Desktop navigation sidebar"
@@ -123,9 +123,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         />
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900">
+        <main className="flex-1 overflow-auto bg-transparent">
           <div className="p-4 sm:p-6 lg:p-8">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+            <div className="glass rounded-xl shadow-sm border border-white/20 p-4 sm:p-6">
               {children}
             </div>
           </div>

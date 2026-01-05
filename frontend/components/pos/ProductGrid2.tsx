@@ -154,22 +154,23 @@ export default function ProductGrid({
             onClick={() => handleProductClick(product)}
             disabled={isOutOfStock}
             className={`
-              group relative bg-white dark:bg-gray-800 
-              border-2 rounded-xl
+              group relative glass
+              rounded-2xl
               p-3 sm:p-4 lg:p-5
               transition-all duration-200
               touch-manipulation
               min-h-[180px] sm:min-h-[200px] lg:min-h-[240px]
+              text-left flex flex-col justify-between
 
               // Focus styles for keyboard navigation
-              focus:outline-none focus:ring-4 focus:ring-blue-300 focus:ring-offset-2
+              focus:outline-none focus:ring-4 focus:ring-primary/50 focus:ring-offset-2
 
               ${
                 isOutOfStock
-                  ? "border-gray-200 opacity-50 cursor-not-allowed"
-                  : "border-gray-200 hover:border-blue-500 hover:shadow-lg active:scale-95 cursor-pointer"
+                  ? "opacity-50 cursor-not-allowed bg-muted/50"
+                  : "hover:border-primary/50 hover:shadow-lg active:scale-95 cursor-pointer hover:bg-white/50 dark:hover:bg-white/5"
               }
-              ${isClicked ? "animate-pulse-once" : ""}
+              ${isClicked ? "animate-click-scale ring-2 ring-primary" : ""}
             `}
             aria-label={`${product.nameEn}, Price: $${product.sellingPrice.toFixed(2)}, Stock: ${
               product.stockLevel

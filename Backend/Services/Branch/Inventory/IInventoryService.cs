@@ -22,7 +22,7 @@ public interface IInventoryService
     Task<ProductDto> CreateProductAsync(CreateProductDto dto, Guid userId);
     Task<ProductDto> UpdateProductAsync(Guid productId, UpdateProductDto dto);
     Task DeleteProductAsync(Guid productId);
-    Task<ProductDto> AdjustStockAsync(Guid productId, StockAdjustmentDto dto, Guid userId);
+    Task<ProductDto> AdjustStockAsync(Guid productId, StockAdjustmentDto dto, Guid userId, Guid? branchId = null);
     Task<List<ProductDto>> GetLowStockProductsAsync();
 
     // Category operations

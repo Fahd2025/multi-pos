@@ -18,13 +18,11 @@ import {
   PageHeader,
   Button,
 } from "@/components/shared";
+import { Building2, CheckCircle2, Users, Heart, BarChart3 } from "lucide-react";
 import {
-  Building2,
-  CheckCircle2,
-  Users,
-  Heart,
-  BarChart3,
-} from "lucide-react";
+  BranchStatusChart,
+  BranchUserDistributionChart,
+} from "@/components/dashboard/BranchCharts";
 
 interface DashboardStats {
   totalBranches: number;
@@ -45,6 +43,7 @@ export default function HeadOfficeDashboard({ params }: { params: Promise<{ loca
     totalUsers: 0,
   });
   const [recentBranches, setRecentBranches] = useState<BranchDto[]>([]);
+  const [allBranches, setAllBranches] = useState<BranchDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,6 +58,7 @@ export default function HeadOfficeDashboard({ params }: { params: Promise<{ loca
 
       // Load all branches
       const branchesData = await branchService.getBranches({ page: 1, pageSize: 100 });
+      setAllBranches(branchesData.data);
 
       // Calculate stats
       const activeBranches = branchesData.data.filter((b) => b.isActive);
@@ -117,13 +117,9 @@ export default function HeadOfficeDashboard({ params }: { params: Promise<{ loca
           valueSize="lg"
           footer={
             <>
-              <span className="text-success font-medium">
-                {stats.activeBranches} Active
-              </span>
+              <span className="text-success font-medium">{stats.activeBranches} Active</span>
               <span className="mx-2 text-muted-foreground">•</span>
-              <span className="text-muted-foreground">
-                {stats.inactiveBranches} Inactive
-              </span>
+              <span className="text-muted-foreground">{stats.inactiveBranches} Inactive</span>
             </>
           }
         />
@@ -156,12 +152,19 @@ export default function HeadOfficeDashboard({ params }: { params: Promise<{ loca
         />
       </div>
 
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <BranchStatusChart
+          activeCount={stats.activeBranches}
+          inactiveCount={stats.inactiveBranches}
+        />
+        <BranchUserDistributionChart branches={allBranches} />
+      </div>
+
       {/* Recent Branches */}
       <div className="bg-card rounded-lg shadow-sm border border-border">
         <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-foreground">
-            Recent Branches
-          </h2>
+          <h2 className="text-lg font-semibold text-foreground">Recent Branches</h2>
           <Link
             href={`/${locale}/head-office/branches`}
             className="text-sm text-primary hover:underline"
@@ -187,9 +190,7 @@ export default function HeadOfficeDashboard({ params }: { params: Promise<{ loca
                       <Building2 className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-medium text-foreground">
-                        {branch.nameEn}
-                      </h3>
+                      <h3 className="font-medium text-foreground">{branch.nameEn}</h3>
                       <p className="text-sm text-muted-foreground">
                         Code: {branch.code} • {branch.userCount} users
                       </p>
@@ -216,9 +217,7 @@ export default function HeadOfficeDashboard({ params }: { params: Promise<{ loca
 
       {/* Quick Actions - Now using feature variants */}
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-4">
-          Quick Actions
-        </h2>
+        <h2 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <ActionCard
             title="Manage Branches"

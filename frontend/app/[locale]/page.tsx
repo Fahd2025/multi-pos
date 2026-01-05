@@ -30,7 +30,10 @@ export default function LoginPage() {
         setBranches(branchData);
       } catch (err) {
         console.error("Failed to fetch branches:", err);
-        toast.error("Failed to load branches", "Unable to fetch branch information. Please try again later.");
+        toast.error(
+          "Failed to load branches",
+          "Unable to fetch branch information. Please try again later."
+        );
       } finally {
         setLoadingBranches(false);
       }
@@ -52,17 +55,24 @@ export default function LoginPage() {
 
       // Show success toast after successful login
       if (loginMode === "branch") {
-        toast.success("Login successful", `Successfully logged in to ${formData.branchCode} branch`);
+        toast.success(
+          "Login successful",
+          `Successfully logged in to ${formData.branchCode} branch`
+        );
       } else {
         toast.success("Login successful", "Successfully logged in to head office");
       }
     } catch (err: any) {
       // Show specific toast for head office access denied
       if (err.message?.includes("Not authorized for head office access")) {
-        toast.error("Access denied", "You don't have permission to access the head office dashboard.");
+        toast.error(
+          "Access denied",
+          "You don't have permission to access the head office dashboard."
+        );
       } else {
         // For other errors (like incorrect credentials), show the error directly
-        const errorMessage = err.response?.data?.message || "Login failed. Please check your credentials.";
+        const errorMessage =
+          err.response?.data?.message || "Login failed. Please check your credentials.";
         toast.error("Login failed", errorMessage, 8000); // Show for 8 seconds to ensure visibility
       }
     }
@@ -94,7 +104,7 @@ export default function LoginPage() {
         </div>
 
         {/* Login Form */}
-        <div className="mt-8 bg-white dark:bg-gray-800  rounded-xl shadow-lg p-8">
+        <div className="mt-8 glass rounded-xl shadow-lg p-8">
           {/* Login Mode Tabs */}
           <div className="flex gap-2 p-1 mb-6 bg-gray-100 dark:bg-gray-700 rounded-lg">
             <button

@@ -112,7 +112,13 @@ export const StatCard: React.FC<StatCardProps> = ({
   const iconTextColor = iconColor || variantStyles[variant].text;
 
   // Auto-calculate trend color based on positive/negative
-  const calculatedTrendColor = trendColor || (trend?.startsWith("+") ? "text-success" : trend?.startsWith("-") ? "text-danger" : "text-muted-foreground");
+  const calculatedTrendColor =
+    trendColor ||
+    (trend?.startsWith("+")
+      ? "text-success"
+      : trend?.startsWith("-")
+      ? "text-danger"
+      : "text-muted-foreground");
 
   // Render icon (support for Lucide icons, React nodes, and emojis)
   const renderIcon = () => {
@@ -160,9 +166,13 @@ export const StatCard: React.FC<StatCardProps> = ({
     <Component
       onClick={onClick}
       className={`
-        bg-card border border-border rounded-lg p-6 shadow-sm
-        transition-all duration-200
-        ${onClick ? "hover:shadow-md hover:border-primary/30 touch-feedback cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2" : ""}
+        glass rounded-xl p-6 shadow-sm
+        transition-all duration-300
+        ${
+          onClick
+            ? "hover:scale-[1.02] hover:shadow-lg hover:border-primary/30 cursor-pointer active:scale-95"
+            : ""
+        }
         ${className}
       `}
     >
@@ -178,12 +188,22 @@ export const StatCard: React.FC<StatCardProps> = ({
             <div className={`text-sm font-medium ${calculatedTrendColor} flex items-center gap-1`}>
               {trend.startsWith("+") && (
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 10l7-7m0 0l7 7m-7-7v18"
+                  />
                 </svg>
               )}
               {trend.startsWith("-") && (
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                  />
                 </svg>
               )}
               <span>{trend}</span>
@@ -198,14 +218,18 @@ export const StatCard: React.FC<StatCardProps> = ({
 
         {/* Icon container */}
         {icon && (
-          <div className={`w-12 h-12 ${iconBg} rounded-lg flex items-center justify-center flex-shrink-0 ml-4`}>
+          <div
+            className={`w-12 h-12 ${iconBg} rounded-lg flex items-center justify-center flex-shrink-0 ml-4`}
+          >
             {renderIcon()}
           </div>
         )}
       </div>
 
       {/* Footer */}
-      {footer && <div className="mt-4 flex items-center text-sm border-t border-border pt-3">{footer}</div>}
+      {footer && (
+        <div className="mt-4 flex items-center text-sm border-t border-border pt-3">{footer}</div>
+      )}
     </Component>
   );
 };

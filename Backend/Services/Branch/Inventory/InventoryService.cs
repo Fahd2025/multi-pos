@@ -2,7 +2,9 @@ using Backend.Data.Branch;
 using Backend.Models.DTOs.Branch.Inventory;
 using Backend.Models.Entities.Branch;
 using Backend.Services.Branch.Images;
+using Backend.Services.HeadOffice.Audit;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace Backend.Services.Branch.Inventory;
 
@@ -14,12 +16,14 @@ public class InventoryService : IInventoryService
     private readonly BranchDbContext _context;
     private readonly ILogger<InventoryService> _logger;
     private readonly IImageService _imageService;
+    private readonly IAuditService _auditService;
 
-    public InventoryService(BranchDbContext context, ILogger<InventoryService> logger, IImageService imageService)
+    public InventoryService(BranchDbContext context, ILogger<InventoryService> logger, IImageService imageService, IAuditService auditService)
     {
         _context = context;
         _logger = logger;
         _imageService = imageService;
+        _auditService = auditService;
     }
 
     #region Product Operations
@@ -327,7 +331,7 @@ public class InventoryService : IInventoryService
         await _context.SaveChangesAsync();
     }
 
-    public async Task<ProductDto> AdjustStockAsync(Guid productId, StockAdjustmentDto dto, Guid userId)
+    public async Task<ProductDto> AdjustStockAsync(Guid productId, StockAdjustmentDto dto, Guid userId, Guid? branchId = null)
     {
         var product = await _context.Products.FindAsync(productId);
         if (product == null)
@@ -358,8 +362,28 @@ public class InventoryService : IInventoryService
 
         await _context.SaveChangesAsync();
 
-        // TODO: Log the adjustment for audit trail
-        // This would be integrated with the AuditService when implemented
+        // Log the adjustment for audit trail
+        var oldValues = JsonSerializer.Serialize(new { StockLevel = oldStockLevel, ProductName = product.NameEn });
+        var newValues = JsonSerializer.Serialize(new
+        {
+            StockLevel = product.StockLevel,
+            ProductName = product.NameEn,
+            AdjustmentType = dto.AdjustmentType,
+            AdjustmentQuantity = dto.AdjustmentQuantity,
+            Reason = dto.Reason
+        });
+
+        await _auditService.LogAsync(
+            userId: userId,
+            branchId: branchId,
+            eventType: "InventoryManagement",
+            action: "StockAdjustment",
+            entityType: "Product",
+            entityId: productId,
+            oldValues: oldValues,
+            newValues: newValues,
+            success: true
+        );
 
         return (await GetProductByIdAsync(product.Id))!;
     }

@@ -109,7 +109,7 @@ export default function ShoppingCart({
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-gray-800  border-l border-gray-200">
+    <div className="h-full flex flex-col glass rounded-l-none md:rounded-l-2xl border-l border-border/50">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
         <div>
@@ -129,14 +129,14 @@ export default function ShoppingCart({
       </div>
 
       {/* Cart Items */}
-      <div ref={cartItemsRef} className="flex-1 overflow-y-auto overflow-x-hidden">
+      <div ref={cartItemsRef} className="flex-1 overflow-y-auto overflow-x-hidden p-2">
         {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full p-6 text-center animate-fadeIn">
+          <div className="flex flex-col items-center justify-center h-full p-6 text-center animate-fadeIn glass rounded-xl m-2">
             <span className="text-6xl mb-4 animate-scaleIn">🛒</span>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              Cart is empty
-            </h3>
-            <p className="text-sm text-gray-600">Add products from the grid to start a sale</p>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Cart is empty</h3>
+            <p className="text-sm text-muted-foreground">
+              Add products from the grid to start a sale
+            </p>
           </div>
         ) : (
           <div className="divide-y divide-gray-200">
@@ -151,12 +151,12 @@ export default function ShoppingCart({
                   ref={(el) => {
                     itemRefs.current[index] = el;
                   }}
-                  className={`p-4 transition-all duration-300 animate-slideDown rounded-lg ${
+                  className={`p-4 mb-2 transition-all duration-300 animate-slideDown rounded-xl border border-border/50 ${
                     isDeleting
-                      ? "animate-delete-item bg-red-100 translate-x-full opacity-0"
+                      ? "animate-delete-item bg-destructive/10 translate-x-full opacity-0"
                       : isUpdating
-                      ? "animate-quantity-update border-2"
-                      : "hover:bg-gray-50 border-2 border-transparent"
+                      ? "animate-quantity-update border-primary"
+                      : "bg-card/50 hover:bg-card border-transparent"
                   }`}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >

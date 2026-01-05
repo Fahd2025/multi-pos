@@ -8,6 +8,7 @@
 import { useState, useEffect } from "react";
 import { ProductDto } from "@/types/api.types";
 import inventoryService from "@/services/inventory.service";
+import StockHistoryModal from "./StockHistoryModal";
 
 interface StockAdjustmentModalProps {
   isOpen: boolean;
@@ -30,6 +31,7 @@ export default function StockAdjustmentModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [showHistory, setShowHistory] = useState(false);
 
   // Reset form when modal opens/closes or product changes
   useEffect(() => {
@@ -101,32 +103,40 @@ export default function StockAdjustmentModal({
 
     try {
       const qty = parseFloat(quantity);
-      let adjustmentValue: number;
+      let backendAdjustmentType: 'Add' | 'Remove' | 'Set';
+      let adjustmentQuantity: number;
 
+      // Map frontend adjustment types to backend types
       switch (adjustmentType) {
         case "increase":
-          adjustmentValue = qty;
+          backendAdjustmentType = "Add";
+          adjustmentQuantity = qty;
           break;
         case "decrease":
-          adjustmentValue = -qty;
+          backendAdjustmentType = "Remove";
+          adjustmentQuantity = qty;
           break;
         case "set":
-          adjustmentValue = qty - product.stockLevel;
+          backendAdjustmentType = "Set";
+          adjustmentQuantity = qty;
           break;
         default:
-          adjustmentValue = 0;
+          backendAdjustmentType = "Add";
+          adjustmentQuantity = 0;
       }
 
       const adjustment = {
-        adjustment: adjustmentValue,
+        adjustmentQuantity: adjustmentQuantity,
+        adjustmentType: backendAdjustmentType,
         reason: reason.trim(),
+        newStockLevel: calculateNewStock(),
       };
 
       await inventoryService.adjustStock(product.id, adjustment);
       onSuccess();
       onClose();
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || "Failed to adjust stock");
+      setError(err.response?.data?.error?.message || err.response?.data?.message || err.message || "Failed to adjust stock");
       console.error("Failed to adjust stock:", err);
     } finally {
       setLoading(false);
@@ -185,12 +195,34 @@ export default function StockAdjustmentModal({
                 </h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{product.nameEn}</p>
               </div>
-              <button
-                onClick={onClose}
-                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-              >
-                <span className="text-2xl">×</span>
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowHistory(true)}
+                  className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center gap-2"
+                  title="View adjustment history"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  History
+                </button>
+                <button
+                  onClick={onClose}
+                  className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                >
+                  <span className="text-2xl">×</span>
+                </button>
+              </div>
             </div>
 
             {/* Current Stock Display */}
@@ -418,6 +450,13 @@ export default function StockAdjustmentModal({
           </div>
         </div>
       </div>
+
+      {/* Stock History Modal */}
+      <StockHistoryModal
+        isOpen={showHistory}
+        onClose={() => setShowHistory(false)}
+        product={product}
+      />
     </>
   );
 }

@@ -356,6 +356,21 @@ class InventoryService {
     const categories = await this.getCategories();
     return categories.length;
   }
+
+  /**
+   * Get stock adjustment history for a product
+   */
+  async getProductStockHistory(productId: string, page: number = 1, pageSize: number = 50): Promise<PaginationResponse<import('@/types/api.types').AuditLog>> {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('pageSize', pageSize.toString());
+
+    const response = await api.get<PaginationResponse<import('@/types/api.types').AuditLog>>(
+      `/api/v1/products/${productId}/stock-history?${params.toString()}`
+    );
+
+    return response.data;
+  }
 }
 
 // Export singleton instance

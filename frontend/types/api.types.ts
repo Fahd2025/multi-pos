@@ -116,7 +116,7 @@ export interface BranchDto {
   crn?: string;
   taxNumber?: string;
   logoPath?: string;
-  databaseProvider: number;
+  databaseProvider: string; // Changed from number to string to match service
   language: string;
   currency: string;
   timeZone: string;
@@ -125,6 +125,7 @@ export interface BranchDto {
   allowNegativeStock?: boolean;
   negativeStockLimit?: number;
   isActive: boolean;
+  userCount: number; // Added missing property
   createdAt: string;
   updatedAt: string;
 }
@@ -435,7 +436,7 @@ export enum DeliveryStatus {
   Assigned = 1,
   OutForDelivery = 2,
   Delivered = 3,
-  Failed = 4
+  Failed = 4,
 }
 
 /**
@@ -445,7 +446,7 @@ export enum DeliveryPriority {
   Low = 0,
   Normal = 1,
   High = 2,
-  Urgent = 3
+  Urgent = 3,
 }
 
 /**
@@ -720,8 +721,11 @@ export interface UpdateProductDto {
 }
 
 export interface StockAdjustmentDto {
-  adjustment: number;
+  productId?: string;
+  adjustmentQuantity: number;
+  adjustmentType: 'Add' | 'Remove' | 'Set';
   reason: string;
+  newStockLevel?: number;
 }
 
 export interface CategoryDto {
@@ -1211,4 +1215,25 @@ export interface ApiError {
 export interface ValidationError {
   field: string;
   messages: string[];
+}
+
+// ============================================================================
+// Audit Log Types
+// ============================================================================
+
+export interface AuditLog {
+  id: string;
+  timestamp: string;
+  userId?: string;
+  branchId?: string;
+  eventType: string;
+  entityType?: string;
+  entityId?: string;
+  action: string;
+  oldValues?: string;
+  newValues?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  success: boolean;
+  errorMessage?: string;
 }

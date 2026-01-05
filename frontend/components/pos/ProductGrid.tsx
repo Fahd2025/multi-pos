@@ -30,80 +30,108 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart 
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   return (
-    <div className={styles.productGrid}>
+    <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 3xl:grid-cols-8 gap-3 sm:gap-4 lg:gap-5">
       {products.length === 0 ? (
-        <div
-          style={{
-            textAlign: "center",
-            color: "var(--muted-foreground)",
-            gridColumn: "1 / -1",
-            marginTop: "2rem",
-          }}
-        >
-          No products available
+        <div className="col-span-full flex flex-col items-center justify-center p-12 text-muted-foreground">
+          <span className="text-4xl mb-4">📦</span>
+          <p>No products available</p>
         </div>
       ) : (
         products.map((product) => {
-          // Get product image URL
-          const hasImage = product.images && product.images.length > 0;
-          const isError = imageErrors[product.id];
+          const isOutOfStock = product.stockLevel <= 0;
+          const isLowStock =
+            product.stockLevel > 0 && product.stockLevel < product.minStockThreshold;
 
           return (
-            <div
+            <button
               key={product.id}
-              className={`${styles.productCard} touch-feedback-pos touch-ripple-pos`}
               onClick={() => onAddToCart(product)}
-              style={{
-                cursor: product.stockLevel > 0 ? "pointer" : "not-allowed",
-                opacity: product.stockLevel > 0 ? 1 : 0.6,
-              }}
-            >
-              {hasImage && !isError ? (
-                <img
-                  src={buildProductImageUrl(
-                    branchCode,
-                    product.images[0].imagePath,
-                    product.id,
-                    "thumb"
-                  )}
-                  alt={product.nameEn}
-                  className={styles.productImage}
-                  onError={() => setImageErrors((prev) => ({ ...prev, [product.id]: true }))}
-                />
-              ) : (
-                <div
-                  className={styles.productImage}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: "var(--muted)",
-                    fontSize: "3rem",
-                  }}
-                >
-                  📦
-                </div>
-              )}
-              <div className={styles.productName}>{product.nameEn}</div>
+              disabled={isOutOfStock}
+              className={`
+                group relative glass
+                rounded-2xl
+                p-3 sm:p-4 lg:p-5
+                transition-all duration-200
+                touch-manipulation
+                min-h-[180px] sm:min-h-[200px] lg:min-h-[240px]
+                text-left flex flex-col justify-between
 
-              <div className={styles.productMeta}>
-                <div className={styles.stockInfo}>
-                  {product.stockLevel <= 0 && (
-                    <span className={`${styles.stockBadge} ${styles.stockBadgeOutOfStock}`}>
-                      Out of Stock
+                focus:outline-none focus:ring-4 focus:ring-primary/50 focus:ring-offset-2
+
+                ${
+                  isOutOfStock
+                    ? "opacity-50 cursor-not-allowed bg-muted/50"
+                    : "hover:border-primary/50 hover:shadow-lg active:scale-95 cursor-pointer hover:bg-white/50 dark:hover:bg-white/5"
+                }
+              `}
+            >
+              <div className="aspect-square bg-white dark:bg-gray-700/50 rounded-lg mb-3 flex items-center justify-center overflow-hidden relative w-full">
+                {product.images && product.images.length > 0 ? (
+                  <img
+                    src={buildProductImageUrl(
+                      branchCode,
+                      product.images[0].imagePath,
+                      product.id,
+                      "thumb"
+                    )}
+                    alt={product.nameEn}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                      (e.target as HTMLImageElement).nextElementSibling?.classList.remove("hidden");
+                    }}
+                  />
+                ) : (
+                  <span className="text-4xl md:text-5xl">📦</span>
+                )}
+
+                {/* Fallback for error or no image (hidden by default if image exists) */}
+                {product.images && product.images.length > 0 && (
+                  <div className="hidden absolute inset-0 flex items-center justify-center bg-muted">
+                    <span className="text-4xl">📦</span>
+                  </div>
+                )}
+
+                {isOutOfStock && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
+                    <span className="px-3 py-1.5 bg-destructive text-destructive-foreground text-sm font-bold rounded">
+                      OUT OF STOCK
                     </span>
-                  )}
-                  {product.stockLevel > 0 && product.stockLevel <= product.minStockThreshold && (
-                    <span className={`${styles.stockBadge} ${styles.stockBadgeLowStock}`}>
-                      Low Stock
+                  </div>
+                )}
+
+                {isLowStock && !isOutOfStock && (
+                  <div className="absolute top-2 right-2 z-10">
+                    <span className="px-2 py-1 bg-amber-500 text-white text-xs font-bold rounded shadow-sm">
+                      LOW
                     </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="w-full">
+                <h4 className="font-semibold text-sm sm:text-base text-foreground line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+                  {product.nameEn}
+                </h4>
+
+                <div className="flex items-center justify-between mt-auto">
+                  <div className="flex flex-col">
+                    <span className="text-lg sm:text-xl font-bold text-primary">
+                      ${product.sellingPrice.toFixed(2)}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      Stock: {product.stockLevel}
+                    </span>
+                  </div>
+
+                  {!isOutOfStock && (
+                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                      <span className="text-lg font-bold">+</span>
+                    </div>
                   )}
-                </div>
-                <div className={styles.priceInfo}>
-                  <span className={styles.productPrice}>${product.sellingPrice.toFixed(2)}</span>
                 </div>
               </div>
-            </div>
+            </button>
           );
         })
       )}
